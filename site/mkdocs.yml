@@ -11,20 +11,29 @@ theme:
   # logo: assets/logo.png  # Uncomment when logo exists
   # favicon: assets/favicon.png  # Uncomment when favicon exists
   palette:
-    - scheme: default
+    # Default fallback (dark mode when no system preference)
+    - scheme: slate
+      primary: black
+      accent: black
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+    # System preference detection
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
       primary: indigo
       accent: indigo
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode
-    - scheme: slate
-      primary: indigo
-      accent: indigo
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: black
+      accent: black
       toggle:
         icon: material/brightness-4
         name: Switch to light mode
   features:
-    - announce.dismiss
     - content.code.annotate
     - content.code.copy
     - content.tabs.link
@@ -51,10 +60,19 @@ plugins:
           options:
             docstring_style: google
             show_source: true
-  # - git-revision-date-localized:
-  #     enable_creation_date: true
+  - git-revision-date-localized:
+      enable_creation_date: true
+      type: datetime
+      timezone: UTC
   - minify:
       minify_html: true
+  - blog:
+      archive: false
+  - meta
+  - social:
+      enabled: !ENV [MKDOCS_ENABLE_SOCIAL, false]
+  - open-in-new-tab:
+      add_icon: true
 
 markdown_extensions:
   - abbr
@@ -63,6 +81,9 @@ markdown_extensions:
   - def_list
   - footnotes
   - md_in_html
+  - pymdownx.magiclink:
+      repo_url_shorthand: true
+      social_url_shorthand: true
   - toc:
       permalink: true
   - pymdownx.arithmatex:
@@ -71,15 +92,11 @@ markdown_extensions:
       smart_enable: all
   - pymdownx.caret
   - pymdownx.details
-  - pymdownx.emoji:
-      emoji_index: !!python/name:material.extensions.emoji.twemoji
-      emoji_generator: !!python/name:material.extensions.emoji.to_svg
   - pymdownx.highlight:
       anchor_linenums: true
       line_spans: __span
       pygments_lang_class: true
   - pymdownx.inlinehilite
-  - pymdownx.keys
   - pymdownx.mark
   - pymdownx.smartsymbols
   - pymdownx.superfences:
@@ -89,8 +106,6 @@ markdown_extensions:
           format: !!python/name:pymdownx.superfences.fence_code_format
   - pymdownx.tabbed:
       alternate_style: true
-  - pymdownx.tasklist:
-      custom_checkbox: true
   - pymdownx.tilde
 
 nav:
