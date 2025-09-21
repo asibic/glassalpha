@@ -1,5 +1,6 @@
 # Keep strategic cursor rules private
 .cursor/rules/project_overview.mdc
+.cursor/rules/phase1_priorities.mdc
 .cursor/rules/causal.mdc
 
 # Byte-compiled / optimized / DLL files

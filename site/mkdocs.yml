@@ -11,27 +11,17 @@ theme:
   # logo: assets/logo.png  # Uncomment when logo exists
   # favicon: assets/favicon.png  # Uncomment when favicon exists
   palette:
-    # Default fallback (dark mode when no system preference)
-    - scheme: slate
-      primary: black
-      accent: black
+    - scheme: default
+      primary: slate   # deep navy/gray
+      accent: cyan     # subtle tech/AI vibe
       toggle:
-        icon: material/brightness-4
-        name: Switch to light mode
-    # System preference detection
-    - media: "(prefers-color-scheme: light)"
-      scheme: default
-      primary: indigo
-      accent: indigo
-      toggle:
-        icon: material/brightness-7
+        icon: material/weather-night
         name: Switch to dark mode
-    - media: "(prefers-color-scheme: dark)"
-      scheme: slate
-      primary: black
-      accent: black
+    - scheme: slate
+      primary: slate
+      accent: cyan
       toggle:
-        icon: material/brightness-4
+        icon: material/weather-sunny
         name: Switch to light mode
   features:
     - content.code.annotate
@@ -52,15 +42,14 @@ theme:
     - toc.follow
 
 plugins:
-  - search:
-      separator: '[\s\-,:!=\[\]()"/]+|(?!\b)(?=[A-Z][a-z])|\.(?!\d)|&[lg]t;'
-  - mkdocstrings:
-      handlers:
-        python:
-          paths: [../packages/src]
-          options:
-            docstring_style: google
-            show_source: true
+  - search
+#  - mkdocstrings: # Off until we have actual Python modules and need this
+#      handlers:
+#        python:
+#          paths: [../packages/src]
+#          options:
+#            docstring_style: google
+#            show_source: true
   - git-revision-date-localized:
       enable_creation_date: true
       type: datetime
@@ -69,7 +58,6 @@ plugins:
       minify_html: true
   - blog:
       archive: false
-  - meta
   - social
   - open-in-new-tab:
       add_icon: true
@@ -99,37 +87,19 @@ markdown_extensions:
   - pymdownx.inlinehilite
   - pymdownx.mark
   - pymdownx.smartsymbols
-  - pymdownx.snippets:
-    auto_append:
-      - includes/abbreviations.md
+  - pymdownx.snippets
   - pymdownx.superfences
   - pymdownx.tabbed:
       alternate_style: true
   - pymdownx.tilde
 
-nav:
+av:
   - Home: index.md
   - Blog: 
     - blog/index.md
   - Getting Started:
     - Installation: getting-started/installation.md
     - Quick Start: getting-started/quickstart.md
-    - Examples: getting-started/examples.md
-  - Features:
-    - Explainability: features/explainability.md
-    - Counterfactuals: features/counterfactuals.md
-    - Audit Reports: features/audit.md
-    - Fairness: features/fairness.md
-    - Drift Monitoring: features/drift.md
-  - API Reference:
-    - Overview: api/overview.md
-    - Explainability: api/explainability.md
-    - Counterfactuals: api/counterfactuals.md
-    - Audit: api/audit.md
-  - Examples:
-    - German Credit: examples/german-credit.md
-    - COMPAS Bias: examples/compas.md
-    - Adult Income: examples/adult-income.md
   - Contributing: contributing.md
   - Assumptions & Limitations: limitations.md
 
@@ -142,9 +112,5 @@ extra:
 #    property: !ENV GOOGLE_ANALYTICS_KEY
 
 extra_javascript:
-  - javascripts/mathjax.js
   - https://polyfill.io/v3/polyfill.min.js?features=es6
   - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
-
-extra_css:
-  - stylesheets/extra.css

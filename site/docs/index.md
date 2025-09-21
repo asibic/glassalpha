@@ -1,5 +1,9 @@
 # Glass Alpha
 
+!!! warning "Early Development"
+    Glass Alpha is in active development. Core audit functionality is coming Q4 2024.
+    Star the repo to get notified when ready for testing.
+
 ## Open-core AI compliance toolkit for tabular ML
 
 Glass Alpha provides enterprise-grade explainability, fairness, and compliance tools for tabular machine learning models. Built with a focus on regulatory requirements and on-premise deployment.

@@ -31,6 +31,10 @@ alwaysApply: true
 # Docs & reports
 - Every feature must have an example notebook in `examples/`.
 - Audit reports must be deterministic under a seeded run; include **seeds, git commit, dataset hash**.
+# Documentation & Communication Style
+- **Radical honesty**: Never sugarcoat limitations, risks, or edge cases
+- **Actionable detail**: Always include specific steps, parameters, and why
+- **Acknowledge uncertainty**: Explicitly call out assumptions and unknowns
 
 # AI assistance in Cursor
 - When asked to create files, prefer minimal interfaces first, then tests, then docs.
