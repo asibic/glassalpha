@@ -58,7 +58,6 @@ plugins:
       minify_html: true
   - blog:
       archive: false
-  - social
   - open-in-new-tab:
       add_icon: true
 
@@ -93,7 +92,7 @@ markdown_extensions:
       alternate_style: true
   - pymdownx.tilde
 
-av:
+nav:
   - Home: index.md
   - Blog: 
     - blog/index.md
