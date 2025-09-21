@@ -98,7 +98,7 @@ nav:
     - Installation: getting-started/installation.md
     - Hello Audit Tutorial: getting-started/quickstart.md
   - Reference:
-    - Phase 1 Scope & Limitations: limitations.md
+    - Scope & Limitations: limitations.md
     - Contributing: contributing.md
   - Blog: 
     - blog/index.md

@@ -1,7 +1,7 @@
 # Glass Alpha
 
-!!! info "Phase 1: Audit-First Focus"
-    Glass Alpha Phase 1 delivers one core capability: **deterministic, regulator-ready PDF audit reports** for tabular ML models. Built for compliance teams who need reproducible documentation.
+!!! info "Audit-First Focus"
+    Glass Alpha delivers **deterministic, regulator-ready PDF audit reports** for tabular ML models. Built for teams who need reproducible, audit-ready model documentation.
 
 ## One Command, Regulator-Ready PDF Audit
 
@@ -36,7 +36,7 @@ Generate comprehensive audit reports for your ML models in under 60 seconds:
 - **YAML configuration**: Policy-as-code for compliance requirements
 - **60-second runtime**: From model to PDF in under a minute
 
-## Supported Models (Phase 1)
+## Supported Models
 
 | Model Type | Status | Notes |
 |-----------|--------|-------|
@@ -44,7 +44,7 @@ Generate comprehensive audit reports for your ML models in under 60 seconds:
 | LightGBM | ✅ Full support | Native integration |
 | Logistic Regression | ✅ Full support | scikit-learn compatible |
 
-*Random Forest, deep learning and other model types planned for Phase 2*
+*Additional model types planned for future releases*
 
 ## What's in an Audit Report?
 
@@ -60,7 +60,7 @@ Every Glass Alpha audit includes:
    - Individual prediction explanations
    - Waterfall plots for key decisions
 
-3. **Basic Fairness Analysis** *(Phase 1 POC)*
+3. **Basic Fairness Analysis**
    - Protected attribute analysis
    - Disparate impact calculations
    - Group parity metrics
@@ -85,13 +85,13 @@ glassalpha --version
 
 ### 1. Download Sample Data
 ```bash
-# Get German Credit dataset (regulatory benchmark)
+# Get sample dataset (regulatory benchmark)
 wget https://archive.ics.uci.edu/ml/datasets/Statlog+%28German+Credit+Data%29
 ```
 
 ### 2. Create Audit Configuration
 ```yaml
-# german_credit_audit.yaml
+# sample_audit.yaml
 model:
   type: xgboost
   target_column: default
@@ -112,17 +112,17 @@ reproducibility:
 
 ### 3. Generate Audit
 ```bash
-glassalpha audit --config german_credit_audit.yaml --out german_credit_audit.pdf
+glassalpha audit --config sample_audit.yaml --out german_credit_audit.pdf
 ```
 
 **Result**: A professional PDF audit report with complete model documentation.
 
-## Phase 1 Examples
+## Examples
 
 - 📊 [Financial Lending Audit](examples/german-credit-audit.md) - Credit scoring compliance
 - 💰 [Fair Hiring Audit](examples/adult-income-audit.md) - Employment screening analysis
 
-*Additional examples coming with Phase 2*
+*Additional examples planned for future releases*
 
 ## Next Steps
 
@@ -131,13 +131,9 @@ glassalpha audit --config german_credit_audit.yaml --out german_credit_audit.pdf
 - 🏛️ [Regulatory Compliance](compliance/overview.md) - Legal considerations
 - 👥 [Contributing](contributing.md) - Join the project
 
-## Phase 2 Roadmap
+## Future Development
 
-After Phase 1 exits, we'll expand to:
-- Advanced fairness monitoring and drift detection
-- Counterfactual explanations and recourse recommendations
-- Additional model types (Random Forest, Neural Networks)
-- Dashboard and API interfaces
+Future improvements may include additional features through ongoing development.
 
 ## License & Support
 
@@ -147,4 +143,4 @@ After Phase 1 exits, we'll expand to:
 
 ---
 
-*Built for compliance teams who need reproducible, regulator-ready ML audit reports.*
+*Built for teams who need reproducible, regulator-ready ML audit reports.*

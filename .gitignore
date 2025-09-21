@@ -2,6 +2,7 @@
 .cursor/rules/project_overview.mdc
 .cursor/rules/phase1_priorities.mdc
 .cursor/rules/causal.mdc
+.cursor/rules/guardrails.mdc
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

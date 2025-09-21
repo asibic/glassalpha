@@ -91,4 +91,4 @@ glassalpha audit --config audit_config.yaml --out german_audit_2024.pdf
 - ⚙️ [Configuration Reference](configuration.md)  
 - 🏛️ [Regulatory Compliance](../compliance/overview.md)
 
-Remember: Glass Alpha Phase 1 is **audit-first**. One command, regulator-ready PDF.
+Remember: Glass Alpha is **audit-first**. One command, regulator-ready PDF.

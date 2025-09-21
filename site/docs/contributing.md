@@ -1,14 +1,14 @@
 # Contributing to Glass Alpha
 
-Thank you for your interest in contributing to Glass Alpha! This guide focuses on **Phase 1 audit-first development**.
+Thank you for your interest in contributing to Glass Alpha! This guide focuses on **audit-first development**.
 
-## Phase 1 Development Focus
+## Development Focus
 
-!!! info "Phase 1 Review Gate"
-    Every PR must pass: **"Does this directly improve audit PDF quality, usability, or reproducibility?"**
+!!! info "Contribution Guidelines"
+    Contributions should focus on: **"Does this directly improve audit PDF quality, usability, or reproducibility?"**
     
-    - If no: defer to Phase 2
-    - If introduces complexity without clear audit value: reject
+    - Features should align with audit-first approach
+    - Avoid complexity without clear user value
 
 ## Development Setup
 
@@ -77,7 +77,7 @@ def test_feature_importance_calculation():
     assert sum(result.values()) == pytest.approx(1.0)
 ```
 
-## Phase 1 Development Priorities
+## Development Priorities
 
 ### Audit PDF Quality
 1. **Deterministic outputs**: Identical PDFs on same config/seed
@@ -86,17 +86,16 @@ def test_feature_importance_calculation():
 4. **Error handling**: Graceful failures with clear messages
 
 ### CLI Usability
-1. **60-second workflow**: `glassalpha audit` completes in <60s
+1. **Fast workflow**: `glassalpha audit` completes quickly
 2. **Clear error messages**: Actionable feedback on failures
 3. **Configuration validation**: Catch config errors early
-4. **Progress indicators**: User feedback during long operations
+4. **Progress indicators**: User feedback during operations
 
 ## Making Changes
 
 ### 1. Create a Feature Branch
 ```bash
-git checkout -b audit/your-audit-improvement
-# Use "audit/" prefix for Phase 1 PRs
+git checkout -b feature/your-improvement
 ```
 
 ### 2. Focus on Audit Value
@@ -106,11 +105,11 @@ git checkout -b audit/your-audit-improvement
 
 ### 3. Test Your Changes
 ```bash
-# Phase 1 test suite
-pytest -m "audit" --strict
+# Test suite
+pytest --strict
 
-# Determinism tests
-make audit-test-determinism
+# Run all tests
+make test
 
 # Code quality
 black --check packages/src
@@ -121,7 +120,7 @@ mypy --strict packages/src
 ### 4. Commit Your Changes
 ```bash
 git add .
-git commit -m "audit: improve PDF reproducibility
+git commit -m "feat: improve PDF reproducibility
 
 - Add config hash to manifest
 - Fix seed handling in SHAP
@@ -136,11 +135,11 @@ git commit -m "audit: improve PDF reproducibility
 4. **Submit PR** with clear description
 5. **Address review feedback** promptly
 
-### Phase 1 PR Title Format
-- `audit:` Audit PDF improvements (preferred for Phase 1)
-- `fix:` Bug fixes that affect audit quality
+### PR Title Format
+- `feat:` New features
+- `fix:` Bug fixes
 - `docs:` Documentation updates
-- `test:` Test improvements for audit functionality
+- `test:` Test improvements
 
 ## Security & Privacy Guidelines
 
@@ -177,12 +176,12 @@ def explain_prediction(
     """
 ```
 
-### Audit Examples
-Every audit improvement should include:
-- Updated German Credit or Adult Income examples
-- Before/after PDF comparison if visual changes
+### Examples
+New features should include:
+- Updated example notebooks as needed
+- Before/after comparison if visual changes
 - Performance impact measurement
-- Updated "Hello Audit" tutorial if workflow changes
+- Updated tutorial if workflow changes
 
 ## Questions?
 
