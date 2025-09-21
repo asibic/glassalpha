@@ -1,0 +1,17 @@
+---
+description: Fairness and drift rules
+globs:
+  - "src/glassalpha/fairness/**"
+  - "src/glassalpha/monitoring/**"
+  - "configs/fairness/**"
+alwaysApply: false
+---
+
+# Metrics & thresholds
+- Implement core group metrics: demographic parity, equalized odds, TPR/FPR gaps, calibration by group.
+- Drift: PSI/KL/KS per feature; flag top-k drifts.
+- Thresholds come from YAML config; each metric returns pass/fail + margin.
+
+# Reporting
+- Show confidence intervals or bootstrap error for fairness metrics.
+- Clearly state **protected attributes** and any exclusions.

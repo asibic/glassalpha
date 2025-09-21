@@ -1,0 +1,14 @@
+---
+description: Security, privacy, and on-prem practices
+globs:
+  - "**/*"
+alwaysApply: false
+---
+
+# Data handling
+- No PII logging. Provide a redaction utility for logs and reports.
+- Support full offline mode; telemetry disabled by default.
+
+# Packaging
+- Provide Dockerfiles with non-root user, pinned deps, and reproducible builds.
+- Supply SBOM for enterprise builds (e.g., pip-audit / syft).

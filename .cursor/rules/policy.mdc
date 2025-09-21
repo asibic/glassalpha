@@ -1,0 +1,14 @@
+---
+description: Policy-as-code for recourse and compliance
+globs:
+  - "src/glassalpha/policy/**"
+  - "configs/policy/**"
+alwaysApply: false
+---
+
+# Policy schema
+- Define immutables, monotone fields, bounds, cost weights, and allowed actions in YAML (validated on load).
+- Refuse to run recourse if policy invalid.
+
+# Recourse guarantees
+- Each suggestion includes: changed fields, costs, feasibility proof, predicted delta, and **policy version**.

@@ -1,0 +1,31 @@
+---
+description: Python packaging, testing, and typing rules
+globs:
+  - "**/*.py"
+  - "pyproject.toml"
+  - "tox.ini"
+alwaysApply: false
+---
+
+# Packaging
+- Use `pyproject.toml` with **Poetry** or **uv + hatchling**. Package name: `glassalpha`.
+- Structure as src layout: `src/glassalpha/`.
+
+# Dependencies (install as needed)
+- Core: numpy, pandas, scikit-learn, xgboost, lightgbm, shap, pydantic, orjson, pyyaml, typer
+- Recourse/opt: scipy, ortools (default MILP), pulp or pyomo (optional via adapter)
+- Fairness/metrics: fairlearn, statsmodels
+- Reports: jinja2, weasyprint (HTML->PDF), reportlab (fallback, air-gapped)
+- Causal (later): dowhy, econml (optional scaffolding)
+- API (later/premium): fastapi, uvicorn
+- Utils: importlib-resources (template loading)
+
+# Testing
+- pytest + pytest-cov; **90% coverage** on core math utilities.
+- Property tests with **hypothesis** for determinism and monotonic constraints.
+- **Integration tests**: end-to-end CLI workflows with fixed seeds
+- **Regression tests**: byte-identical PDF outputs for audit reproducibility  
+- **Performance benchmarks**: track SHAP computation time on standard datasets
+
+# Typing & lint
+- mypy --strict; ruff for lint; black for format; **pre-commit hooks** required.

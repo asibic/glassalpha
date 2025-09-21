@@ -1,0 +1,27 @@
+---
+description: Explainability & recourse implementation guidance
+globs:
+  - "src/glassalpha/explain/**"
+  - "src/glassalpha/recourse/**"
+  - "examples/**"
+alwaysApply: false
+---
+
+# TreeSHAP first
+- Implement **exact TreeSHAP** for XGBoost/LightGBM/CatBoost models.
+- Provide **KernelSHAP fallback** with configurable background sampling `N`; warn if N < 100.
+- Document the **baseline value** strategy; default to sampled training background.
+
+# Stability & schema
+- Provide a stability check: same seed -> identical outputs; different seed -> within tolerance.
+- All features pass through a **Schema** (pydantic): dtype, bounds, categorical levels, immutability.
+
+# Recourse
+- Implement cost-aware, constraint-respecting counterfactuals:
+  - Immutable features list, monotone directions, min/max ranges.
+  - Mixed-integer or L2/L1 cost objective; return **top-k** feasible changes.
+- Return both: (a) actionable deltas, (b) feasibility certificate (constraints satisfied).
+
+# API shape
+- `Explainer(model, schema).explain(x, global_=False)` -> dict with attributions (raw & normalized), optional CI.
+- `Recourse(model, schema, policy).suggest(x, k=3)` -> list of feasible edits with cost, predicted delta, policy version.

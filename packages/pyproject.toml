@@ -1,0 +1,23 @@
+[project]
+name = "glassalpha"
+version = "0.1.0"
+description = "GlassAlpha interpretability tool"
+authors = [{ name = "Gabe Mays" }]
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff>=0.6", "mypy>=1.11"]
+docs = []
+
+[build-system]
+requires = ["hatchling>=1.17"]
+build-backend = "hatchling.build"
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.pytest.ini_options]
+addopts = "-q"

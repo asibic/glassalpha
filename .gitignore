@@ -1,3 +1,7 @@
+# Keep strategic cursor rules private
+.cursor/rules/project_overview.mdc
+.cursor/rules/causal.mdc
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
@@ -136,7 +140,7 @@ celerybeat.pid
 
 # Environments
 .env
-.envrc
+.envrc.local
 .venv
 env/
 venv/
@@ -150,9 +154,6 @@ venv.bak/
 
 # Rope project settings
 .ropeproject
-
-# mkdocs documentation
-/site
 
 # mypy
 .mypy_cache/

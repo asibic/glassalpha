@@ -1,0 +1,37 @@
+---
+description: Global rules for the AI Compliance toolkit (explainability, recourse, audits)
+globs:
+  - "**/*"
+alwaysApply: true
+---
+
+# General intent
+- This repo builds an open-core, on-prem–friendly AI compliance toolkit for **tabular ML**.
+  - V1: TreeSHAP explainability + causal-feasible counterfactual recourse + audit PDF.
+  - Add: fairness & drift monitoring; later an optional causal mode (Hybrid ACE–SAE).
+- **Scope:** Tabular models first (XGBoost/LightGBM/LogReg/RandomForest). Defer DL/LLMs until v2.
+- Follow priorities defined in project_overview.mdc
+
+# Code style & quality
+- Python 3.11+. Use **type hints** everywhere; enforce **mypy --strict**, **ruff**, **black**.
+- Prefer functional, testable units over notebooks; notebooks live in `examples/` only.
+
+# Security & privacy
+- Assume on-prem/offline. **No outbound network calls** in core lib.
+- Gate any telemetry behind explicit env flag: `glassalpha_TELEMETRY=on` (default off).
+- Never log raw PII; sanitize and hash IDs.
+
+# Config & reproducibility
+- **Config-first:** all CLIs accept a YAML config; each run writes an **immutable run manifest** (config hash, dataset hash, git SHA, seeds).
+- Centralize randomness: all seeds come from `glassalpha.utils.seeds` and must be recorded in outputs.
+
+# Policy-as-code
+- Policies (immutables, monotone directions, bounds, costs) live in `configs/policy/*.yaml` and are validated at runtime.
+
+# Docs & reports
+- Every feature must have an example notebook in `examples/`.
+- Audit reports must be deterministic under a seeded run; include **seeds, git commit, dataset hash**.
+
+# AI assistance in Cursor
+- When asked to create files, prefer minimal interfaces first, then tests, then docs.
+- If requirements conflict, follow these rules over older ones.

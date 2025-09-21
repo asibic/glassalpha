@@ -1,0 +1,32 @@
+---
+description: Audit report rules (deterministic, regulator-ready)
+globs:
+  - "src/glassalpha/audit/**"
+  - "templates/reports/**"
+  - "examples/**"
+alwaysApply: false
+---
+
+# Report contract
+- Input: model snapshot, data schema, sample cases, metrics, seeds, policy, config.
+- Output: single PDF with sections (fixed order):
+  1) **Cover**
+  2) **Lineage**
+  3) **Data Schema**
+  4) **Global Explanations**
+  5) **Local Explanations**
+  6) **Fairness**
+  7) **Drift & Calibration**
+  8) **Recourse**
+  9) **Assumptions & Sensitivity**
+  10) **Appendix** (Configs/Seeds/Git SHA/Hashes)
+- Determinism: include Git SHA, dataset hash, random seeds; timestamps in UTC ISO-8601.
+
+# Implementation
+- Render HTML via **Jinja2** -> PDF with **WeasyPrint**. No internet fonts/assets.
+- Provide CLI: `glassalpha audit --config configs/audit.yaml --out reports/audit.pdf`
+- **Repro test:** `make audit-test` must re-generate byte-identical PDFs on same machine & seed.
+- Accessibility: embed alt text for figures; embed fonts.
+
+# Warnings
+- If causal mode disabled or DAG confidence low, add banner: **"Correlative explanations only"**.
