@@ -94,13 +94,14 @@ markdown_extensions:
 
 nav:
   - Home: index.md
-  - Blog: 
-    - blog/index.md
   - Getting Started:
     - Installation: getting-started/installation.md
-    - Quick Start: getting-started/quickstart.md
-  - Contributing: contributing.md
-  - Assumptions & Limitations: limitations.md
+    - Hello Audit Tutorial: getting-started/quickstart.md
+  - Reference:
+    - Phase 1 Scope & Limitations: limitations.md
+    - Contributing: contributing.md
+  - Blog: 
+    - blog/index.md
 
 extra:
   social:

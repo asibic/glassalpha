@@ -1,173 +1,150 @@
 # Glass Alpha
 
-!!! warning "Early Development"
-    Glass Alpha is in active development. Core audit functionality is coming Q4 2024.
-    Star the repo to get notified when ready for testing.
+!!! info "Phase 1: Audit-First Focus"
+    Glass Alpha Phase 1 delivers one core capability: **deterministic, regulator-ready PDF audit reports** for tabular ML models. Built for compliance teams who need reproducible documentation.
 
-## Open-core AI compliance toolkit for tabular ML
+## One Command, Regulator-Ready PDF Audit
 
-Glass Alpha provides enterprise-grade explainability, fairness, and compliance tools for tabular machine learning models. Built with a focus on regulatory requirements and on-premise deployment.
+Generate comprehensive audit reports for your ML models in under 60 seconds:
 
-!!! success "60-Second Quick Start"
-    ```python
-    from glassalpha import explain, audit
-    import xgboost as xgb
+!!! success "Hello Audit - 60 Second Demo"
+    ```bash
+    # 1. Install Glass Alpha
+    pip install glassalpha
     
-    # Train your model
-    model = xgb.XGBClassifier()
-    model.fit(X_train, y_train)
+    # 2. Generate your first audit
+    glassalpha audit --config configs/german_credit.yaml --out my_audit.pdf
     
-    # Generate explanations
-    explanations = explain(model, X_test)
-    
-    # Create audit report
-    report = audit(model, X_test, y_test, output="audit_report.pdf")
+    # 3. Done! You have a deterministic, reproducible audit report
     ```
-    **That's it!** You now have a regulator-ready PDF audit report.
+    **That's it!** Byte-identical PDF audits with complete lineage tracking.
 
-## Key Features
+## Why Glass Alpha Audit?
 
-<div class="grid cards" markdown>
+### 🏛️ Regulator-Ready
+- **Deterministic outputs**: Identical PDFs on same seed/data/model
+- **Complete lineage**: Git SHA, config hash, data hash, seeds recorded
+- **Professional formatting**: Publication-quality reports with visualizations
 
--   :material-eye-check:{ .lg .middle } **Explainability**
+### 🔒 On-Premise First  
+- **Zero external calls**: Runs completely offline
+- **File-based**: No databases or complex infrastructure
+- **Reproducible**: Immutable run manifests for audit trails
 
-    ---
+### ⚡ CLI Simplicity
+- **Single command**: `glassalpha audit` does everything
+- **YAML configuration**: Policy-as-code for compliance requirements
+- **60-second runtime**: From model to PDF in under a minute
 
-    TreeSHAP-based feature importance and individual predictions explanations for tree-based models
+## Supported Models (Phase 1)
 
-    [:octicons-arrow-right-24: Learn more](features/explainability.md)
-
--   :material-scale-balance:{ .lg .middle } **Fairness Analysis**
-
-    ---
-
-    Comprehensive bias detection and mitigation across protected attributes
-
-    [:octicons-arrow-right-24: Learn more](features/fairness.md)
-
--   :material-file-document-check:{ .lg .middle } **Audit Reports**
-
-    ---
-
-    Deterministic, regulator-ready PDF reports with full reproducibility
-
-    [:octicons-arrow-right-24: Learn more](features/audit.md)
-
--   :material-sync:{ .lg .middle } **Counterfactual Recourse**
-
-    ---
-
-    Causal-aware, feasible recommendations for changing model decisions
-
-    [:octicons-arrow-right-24: Learn more](features/counterfactuals.md)
-
-</div>
-
-## Why Glass Alpha?
-
-### 🏢 Enterprise-Ready
-- **On-premise first**: No external API calls, runs entirely offline
-- **Deterministic outputs**: Seeded runs produce identical results
-- **Policy-as-code**: Codify compliance requirements in YAML
-
-### 📊 Built for Tabular ML
-- Optimized for XGBoost, LightGBM, scikit-learn
-- Handles real-world messy data
-- Scales to millions of rows
-
-### ✅ Regulatory Compliance
-- GDPR Article 22 compliant explanations
-- Fair lending (ECOA/FCRA) compatible
-- Audit trail with immutable manifests
-
-## Supported Models
-
-| Framework | Status | Notes |
+| Model Type | Status | Notes |
 |-----------|--------|-------|
 | XGBoost | ✅ Full support | TreeSHAP optimized |
 | LightGBM | ✅ Full support | Native integration |
-| scikit-learn | ✅ Full support | Random Forest, Logistic Regression |
-| CatBoost | 🔄 Coming soon | Q2 2025 |
-| Deep Learning | 📅 Planned | v2.0 roadmap |
+| Logistic Regression | ✅ Full support | scikit-learn compatible |
+
+*Random Forest, deep learning and other model types planned for Phase 2*
+
+## What's in an Audit Report?
+
+Every Glass Alpha audit includes:
+
+1. **Model Performance Metrics**
+   - Accuracy, precision, recall, F1, AUC-ROC
+   - Confusion matrices and performance curves
+   - Cross-validation results
+
+2. **TreeSHAP Explanations** 
+   - Feature importance rankings
+   - Individual prediction explanations
+   - Waterfall plots for key decisions
+
+3. **Basic Fairness Analysis** *(Phase 1 POC)*
+   - Protected attribute analysis
+   - Disparate impact calculations
+   - Group parity metrics
+
+4. **Reproducibility Manifest**
+   - Complete configuration hash
+   - Dataset fingerprint
+   - Git commit SHA and timestamp
+   - All random seeds used
 
 ## Installation
 
-=== "Standard"
-    ```bash
-    pip install glassalpha
-    ```
+```bash
+# Standard installation
+pip install glassalpha
 
-=== "Development"
-    ```bash
-    git clone https://github.com/GlassAlpha/glassalpha
-    cd glassalpha
-    pip install -e packages/[dev]
-    ```
-
-=== "Enterprise"
-    ```bash
-    # For on-premise deployment with additional security features
-    pip install glassalpha[enterprise]
-    ```
-
-## Quick Examples
-
-### Generate Explanations
-```python
-from glassalpha import Explainer
-import pandas as pd
-
-explainer = Explainer(model)
-shap_values = explainer.explain(X_test)
-
-# Feature importance
-explainer.plot_importance()
-
-# Individual prediction explanation
-explainer.plot_waterfall(X_test.iloc[0])
+# Verify installation
+glassalpha --version
 ```
 
-### Detect Bias
-```python
-from glassalpha import FairnessAnalyzer
+## Hello Audit Tutorial
 
-analyzer = FairnessAnalyzer(
-    protected_attributes=['gender', 'race']
-)
-
-bias_report = analyzer.analyze(
-    model, X_test, y_test, y_pred
-)
-
-print(bias_report.disparate_impact)
+### 1. Download Sample Data
+```bash
+# Get German Credit dataset (regulatory benchmark)
+wget https://archive.ics.uci.edu/ml/datasets/Statlog+%28German+Credit+Data%29
 ```
 
-### Generate Audit Report
-```python
-from glassalpha import AuditReport
-
-report = AuditReport(
-    model=model,
-    data=(X_test, y_test),
-    config="configs/audit_config.yaml"
-)
-
-report.generate("audit_report_2025.pdf")
+### 2. Create Audit Configuration
+```yaml
+# german_credit_audit.yaml
+model:
+  type: xgboost
+  target_column: default
+  
+data:
+  train_path: german_credit_train.csv
+  test_path: german_credit_test.csv
+  
+audit:
+  protected_attributes:
+    - gender
+    - age_group
+  confidence_level: 0.95
+  
+reproducibility:
+  random_seed: 42
 ```
+
+### 3. Generate Audit
+```bash
+glassalpha audit --config german_credit_audit.yaml --out german_credit_audit.pdf
+```
+
+**Result**: A professional PDF audit report with complete model documentation.
+
+## Phase 1 Examples
+
+- 📊 [Financial Lending Audit](examples/german-credit-audit.md) - Credit scoring compliance
+- 💰 [Fair Hiring Audit](examples/adult-income-audit.md) - Employment screening analysis
+
+*Additional examples coming with Phase 2*
 
 ## Next Steps
 
-- 📚 [Read the Getting Started Guide](getting-started/quickstart.md)
-- 💡 [Explore Example Notebooks](examples/german-credit.md)
-- 🛠️ [API Reference](api/overview.md)
-- 👥 [Contributing Guidelines](contributing.md)
+- 📚 [Quick Start Guide](getting-started/quickstart.md) - Step-by-step tutorial
+- ⚙️ [Configuration Reference](getting-started/configuration.md) - YAML options
+- 🏛️ [Regulatory Compliance](compliance/overview.md) - Legal considerations
+- 👥 [Contributing](contributing.md) - Join the project
 
-## License
+## Phase 2 Roadmap
 
-Glass Alpha is released under the Apache 2.0 License. See [LICENSE](https://github.com/GlassAlpha/glassalpha/blob/main/LICENSE) for details.
+After Phase 1 exits, we'll expand to:
+- Advanced fairness monitoring and drift detection
+- Counterfactual explanations and recourse recommendations
+- Additional model types (Random Forest, Neural Networks)
+- Dashboard and API interfaces
 
-## Support
+## License & Support
 
-- 📧 Email: support@glassalpha.io
-- 💬 GitHub Discussions: [GlassAlpha/glassalpha/discussions](https://github.com/GlassAlpha/glassalpha/discussions)
-- 🐛 Issues: [GlassAlpha/glassalpha/issues](https://github.com/GlassAlpha/glassalpha/issues)
+- **License**: Apache 2.0 - See [LICENSE](https://github.com/GlassAlpha/glassalpha/blob/main/LICENSE)
+- **Issues**: [GitHub Issues](https://github.com/GlassAlpha/glassalpha/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/GlassAlpha/glassalpha/discussions)
+
+---
+
+*Built for compliance teams who need reproducible, regulator-ready ML audit reports.*

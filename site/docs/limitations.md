@@ -1,62 +1,59 @@
-# Assumptions & Limitations
+# Phase 1 Scope & Limitations
 
-This document outlines the key assumptions and known limitations of Glass Alpha to ensure transparent and responsible use.
+This document outlines the Phase 1 scope, assumptions, and limitations of Glass Alpha's **audit-first** approach to ensure transparent and responsible use.
 
-## Scope
+## Phase 1 Audit-First Scope
 
-### Supported Models
-Glass Alpha is currently optimized for:
-- **Tree-based models**: XGBoost, LightGBM, RandomForest, GradientBoosting
-- **Linear models**: LogisticRegression, LinearRegression
-- **Tabular data only**: Structured data with defined features
+!!! info "Phase 1 Focus: PDF Audit Reports Only"
+    Phase 1 delivers **one core capability**: deterministic, regulator-ready PDF audit reports. All other features are minimal POCs or deferred to Phase 2.
 
-### Not Yet Supported
-- Deep learning models (planned for v2.0)
-- Computer vision models
-- Natural language processing models
-- Time series specific models (partial support via tabular features)
-- Graph neural networks
+### Supported Models (Phase 1)
+- **XGBoost** ✅ Full audit support
+- **LightGBM** ✅ Full audit support  
+- **Logistic Regression** ✅ Full audit support
+- **Random Forest** 🔄 Coming Q4 2025
 
-## Technical Limitations
+### Phase 1 Audit Components
+- **Model Performance**: Accuracy, precision, recall, F1, AUC-ROC, confusion matrices
+- **TreeSHAP Explanations**: Feature importance, individual predictions, waterfall plots
+- **Basic Fairness Analysis**: Minimal POC with protected attribute analysis
+- **Reproducibility Manifest**: Complete lineage tracking (config hash, data hash, git SHA, seeds)
 
-### Explainability
+### Not in Phase 1
+- Deep learning models → Phase 2
+- Advanced fairness monitoring → Phase 2
+- Counterfactual explanations → Phase 2
+- Drift detection (beyond basic PSI) → Phase 2
+- Dashboard or web interfaces → Phase 2
+- API services → Phase 2
 
-**TreeSHAP Limitations**
-- Only exact for tree-based models
-- Approximations used for other model types
+## Phase 1 Technical Limitations
+
+### PDF Audit Generation
+
+**Deterministic Output Requirements**
+- Requires identical Python/package versions for byte-identical PDFs
+- Git repository required for commit SHA tracking
+- Seeded random number generation throughout pipeline
+
+**TreeSHAP Explanations**
+- Only exact for tree-based models (XGBoost, LightGBM)
+- Approximations used for Logistic Regression
 - Computational complexity O(TLD²) where T=trees, L=leaves, D=depth
+- Background data selection affects explanation quality
 
-**Feature Interactions**
-- Currently limited to 2-way interactions
-- Higher-order interactions require exponential compute
 
-**Background Data Requirements**
-- SHAP requires representative background samples
-- Poor background selection can bias explanations
-- Recommended minimum: 100 samples for background
+### Basic Fairness Analysis (Phase 1 POC)
 
-### Counterfactuals
-
-**Feasibility Constraints**
-- Cannot guarantee actionable counterfactuals for all instances
-- Domain constraints must be manually specified
-- Causal relationships must be provided, not inferred
-
-**Search Limitations**
-- Greedy search may miss global optima
-- High-dimensional spaces (>100 features) may be slow
-- Categorical features with many levels increase complexity
-
-### Fairness Analysis
-
-**Metric Limitations**
-- No single metric captures all aspects of fairness
-- Metrics can conflict with each other
-- Requires predefined protected attributes
+**Limited Scope**
+- Basic group parity metrics only (disparate impact, equal opportunity difference)
+- No advanced bias mitigation techniques
+- Minimal statistical testing
+- Simple protected attribute analysis
 
 **Data Requirements**
-- Needs sufficient samples per protected group (>30 recommended)
-- Assumes protected attributes are available and accurate
+- Requires predefined protected attributes
+- Needs sufficient samples per group (>30 recommended)
 - Cannot detect unlabeled proxy discrimination
 
 ## Performance Considerations
@@ -73,8 +70,8 @@ Glass Alpha is currently optimized for:
 ### Memory Requirements
 
 - **SHAP computation**: ~8GB RAM per 100K samples with 100 features
-- **Counterfactual search**: ~4GB RAM for 1000 searches
-- **Audit report generation**: ~2GB RAM for standard report
+- **PDF report generation**: ~1GB RAM for standard audit
+- **Reproducibility tracking**: ~100MB for manifest data
 
 ## Statistical Assumptions
 
