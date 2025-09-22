@@ -73,6 +73,8 @@ We welcome contributions! Priority areas:
 
 See [CONTRIBUTING](site/docs/contributing.md) for guidelines.
 
-## License
+## License & Trademark
 
-Apache-2.0 - See [LICENSE](LICENSE)
+**Code License**: Apache-2.0 - See [LICENSE](LICENSE)
+
+**Trademark Notice**: "GlassAlpha", "Glass Alpha" and the GlassAlpha logo are trademarks protected under trademark law. See [TRADEMARK.md](TRADEMARK.md) for usage guidelines. While our code is open source, our brand is not.

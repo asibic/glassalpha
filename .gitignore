@@ -55,6 +55,9 @@ site/site/
 !.vscode/launch.json
 !.vscode/extensions.json
 
+# Remove all rules for now until they are useful for contributors
+.cursor/
+
 # Keep some cursor rules private until ready
 .cursor/rules/project_overview.mdc
 .cursor/rules/phase1_priorities.mdc
