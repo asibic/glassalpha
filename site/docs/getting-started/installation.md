@@ -108,4 +108,3 @@ pip install --user glassalpha
 
 - [Quick Start Guide](quickstart.md)
 - [Example Audits](../examples/german-credit-audit.md)
-- [API Reference](/api/overview/)

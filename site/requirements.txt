@@ -1,11 +1,10 @@
 # MkDocs core
 mkdocs==1.5.3
-mkdocs-material==9.5.3
+mkdocs-material==9.6.20
 
 # MkDocs plugins
-mkdocs-material[social]
-mkdocs-open-in-new-tab>=1.0.0
+mkdocs-open-in-new-tab>=1.0.8
 
 # Dependencies for material theme extensions
-pymdown-extensions==10.5
+pymdown-extensions==10.16.1
 pygments>=2.16

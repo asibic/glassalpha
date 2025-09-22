@@ -7,6 +7,7 @@ edit_uri: edit/main/site/docs/
 
 theme:
   name: material
+  language: en
   # custom_dir: overrides  # Uncomment when overrides directory exists
   # logo: assets/logo.png  # Uncomment when logo exists
   # favicon: assets/favicon.png  # Uncomment when favicon exists
@@ -23,14 +24,20 @@ theme:
       toggle:
         icon: material/weather-sunny
         name: Switch to light mode
+  font:
+    text: system-ui
+    code: "JetBrains Mono"
   features:
+    - content.action.edit
     - content.code.annotate
     - content.code.copy
     - content.tabs.link
     - content.tooltips
+    - palette.toggle
     - navigation.expand
     - navigation.footer
     - navigation.indexes
+    - navigation.instant
     - navigation.sections
     - navigation.tabs
     - navigation.tabs.sticky
@@ -40,6 +47,7 @@ theme:
     - search.share
     - search.suggest
     - toc.follow
+    - toc.integrate
 
 plugins:
   - search
