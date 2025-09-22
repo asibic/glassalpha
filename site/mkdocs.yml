@@ -103,6 +103,7 @@ nav:
     - Security Policy: security.md
     - Changelog: changelog.md
     - Contributing: contributing.md
+  - About: about.md
   - Blog: 
     - blog/index.md
 
