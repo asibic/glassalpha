@@ -1,0 +1,30 @@
+# .github/dependabot.yml
+version: 2
+updates:
+  # Main Python package (packages/ directory)
+  - package-ecosystem: "pip"
+    directory: "/packages"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "your-github-username"  # Replace with your actual username
+    assignees:
+      - "your-github-username"  # Replace with your actual username
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+    
+  # Documentation site dependencies
+  - package-ecosystem: "pip" 
+    directory: "/site"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 3
+    reviewers:
+      - "your-github-username"  # Replace with your actual username
+    assignees:
+      - "your-github-username"  # Replace with your actual username
+    commit-message:
+      prefix: "docs-deps"
+      include: "scope"
