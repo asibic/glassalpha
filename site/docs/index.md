@@ -150,7 +150,7 @@ This configuration format is being designed to support deterministic, reproducib
 
 ## License & Support
 
-- **License**: Apache 2.0 - See [LICENSE](https://github.com/GlassAlpha/glassalpha/blob/main/LICENSE)
+- **License & Guidelines**: Apache 2.0 - See [LICENSE](https://github.com/GlassAlpha/glassalpha/blob/main/LICENSE) and [Trademark Guidelines](https://github.com/GlassAlpha/glassalpha/blob/main/TRADEMARK.md)
 - **Issues**: [GitHub Issues](https://github.com/GlassAlpha/glassalpha/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/GlassAlpha/glassalpha/discussions)
 
