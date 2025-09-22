@@ -80,7 +80,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('site/requirements.txt', 'site/mkdocs.yml', 'site/hooks.py', 'packages/pyproject.toml') }}
+          key: ${{ runner.os }}-pip-${{ hashFiles('site/requirements.txt', 'site/mkdocs.yml', 'packages/pyproject.toml') }}
           restore-keys: |
             ${{ runner.os }}-pip-
 

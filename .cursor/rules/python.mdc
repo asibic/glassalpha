@@ -7,25 +7,45 @@ globs:
 alwaysApply: false
 ---
 
-# Packaging
-- Use `pyproject.toml` with **Poetry** or **uv + hatchling**. Package name: `glassalpha`.
-- Structure as src layout: `src/glassalpha/`.
+Python packaging, testing, and typing rules
 
-# Dependencies (install as needed)
-- Core: numpy, pandas, scikit-learn, xgboost, lightgbm, shap, pydantic, orjson, pyyaml, typer
-- Recourse/opt: scipy, ortools (default MILP), pulp or pyomo (optional via adapter)
-- Fairness/metrics: fairlearn, statsmodels
-- Reports: jinja2, weasyprint (HTML->PDF), reportlab (fallback, air-gapped)
-- Causal (later): dowhy, econml (optional scaffolding)
-- API (later/premium): fastapi, uvicorn
-- Utils: importlib-resources (template loading)
+# Packaging
+- Use `pyproject.toml` with **Poetry** or **uv + hatchling**. Package name: `glassalpha`
+- Structure as src layout: `src/glassalpha/`
+
+# Phase 1 Dependencies (Install as needed)
+## Core (Required)
+- numpy, pandas, scikit-learn
+- xgboost, lightgbm (Phase 1 model support)
+- shap (TreeSHAP implementation)
+- pydantic (schema validation)
+- orjson, pyyaml (config handling)
+- typer (CLI framework)
+
+## Recourse (Minimal POC)
+- scipy (optimization for simple recourse)
+
+## Fairness/Metrics
+- fairlearn, statsmodels (basic fairness metrics for audit)
+
+## Reports (Phase 1 Priority)
+- jinja2, weasyprint (HTML->PDF for audit reports)
+- reportlab (fallback for air-gapped environments)
+- importlib-resources (template loading)
+
+## Out of Scope for Phase 1
+- API frameworks (deferred)
+- Causal inference libraries (deferred)
+- Advanced optimization solvers (deferred)
+- Real-time serving infrastructure (deferred)
 
 # Testing
-- pytest + pytest-cov; **90% coverage** on core math utilities.
-- Property tests with **hypothesis** for determinism and monotonic constraints.
+- pytest + pytest-cov; **90% coverage** on core math utilities
+- Property tests with **hypothesis** for determinism and monotonic constraints
 - **Integration tests**: end-to-end CLI workflows with fixed seeds
-- **Regression tests**: byte-identical PDF outputs for audit reproducibility  
+- **Regression tests**: byte-identical PDF outputs for audit reproducibility
 - **Performance benchmarks**: track SHAP computation time on standard datasets
 
-# Typing & lint
-- mypy --strict; ruff for lint; black for format; **pre-commit hooks** required.
+# Typing & Lint
+- mypy --strict; ruff for lint; black for format; **pre-commit hooks** required
+- All code must pass type checking before merge

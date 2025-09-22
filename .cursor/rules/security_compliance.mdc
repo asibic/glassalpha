@@ -5,10 +5,19 @@ globs:
 alwaysApply: false
 ---
 
-# Data handling
-- No PII logging. Provide a redaction utility for logs and reports.
-- Support full offline mode; telemetry disabled by default.
+Security, privacy, and on-prem practices
 
-# Packaging
-- Provide Dockerfiles with non-root user, pinned deps, and reproducible builds.
-- Supply SBOM for enterprise builds (e.g., pip-audit / syft).
+# Phase 1 Scope (Local CLI Only)
+**Note:** This rule is scoped for Phase 1 local CLI usage. Container/enterprise deployment features are deferred.
+
+# Data handling
+- No PII logging in core library
+- Provide a redaction utility for logs and reports  
+- Support full offline mode; telemetry disabled by default
+- All operations must work without network calls
+
+# Local Security Practices
+- Never log raw PII; sanitize and hash IDs
+- Store configs and outputs with appropriate file permissions
+- Support air-gapped environments by default
+- Gate any telemetry behind explicit env flag: `GLASSALPHA_TELEMETRY=on` (default off)

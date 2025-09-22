@@ -6,9 +6,21 @@ globs:
 alwaysApply: false
 ---
 
-# Policy schema
-- Define immutables, monotone fields, bounds, cost weights, and allowed actions in YAML (validated on load).
-- Refuse to run recourse if policy invalid.
+Policy-as-code for recourse and compliance
 
-# Recourse guarantees
-- Each suggestion includes: changed fields, costs, feasibility proof, predicted delta, and **policy version**.
+# Phase 1 Scope (Minimal Recourse POC)
+**Note:** This rule is scoped for Phase 1 minimal recourse. Advanced policy features are deferred.
+
+# Basic Policy Schema
+- Define simple constraints in YAML (validated on load):
+  - Immutable features (cannot be changed)
+  - Monotonic constraints (e.g., age can only increase)
+  - Basic cost function (simple weights per feature)
+- Refuse to run recourse if policy invalid
+
+# Minimal Recourse Implementation
+- Each suggestion includes:
+  - Changed fields with their deltas
+  - Total cost based on simple cost function
+  - Verification that constraints are satisfied
+  - Policy version for reproducibility

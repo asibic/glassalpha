@@ -21,17 +21,17 @@ Our target is simple, powerful audit generation:
 
 ## Why We're Building Glass Alpha
 
-### 🏛️ Designed for Regulatory Compliance
+### Designed for Regulatory Compliance
 - **Planned: Deterministic outputs** - Identical PDFs on same seed/data/model
 - **Planned: Complete lineage** - Git SHA, config hash, data hash, seeds will be recorded
 - **Planned: Professional formatting** - Publication-quality reports with visualizations
 
-### 🔒 On-Premise First Design 
+### On-Premise First Design 
 - **No external dependencies** - Will run completely offline
 - **File-based approach** - No databases or complex infrastructure needed
 - **Full reproducibility** - Immutable run manifests for audit trails
 
-### ⚡ Simplicity as a Core Principle
+### Simplicity as a Core Principle
 - **Single command goal** - `glassalpha audit` will handle everything
 - **YAML configuration** - Policy-as-code for compliance requirements
 - **Fast execution target** - Under 60 seconds from model to PDF
@@ -40,9 +40,9 @@ Our target is simple, powerful audit generation:
 
 | Model Type | Target Status | Notes |
 |-----------|--------------|-------|
-| XGBoost | 🚧 Planned | TreeSHAP optimization planned |
-| LightGBM | 🚧 Planned | Native integration planned |
-| Logistic Regression | 🚧 Planned | scikit-learn compatibility planned |
+| XGBoost | Planned | TreeSHAP optimization planned |
+| LightGBM | Planned | Native integration planned |
+| Logistic Regression | Planned | scikit-learn compatibility planned |
 
 *Additional model types may be considered based on community needs*
 
@@ -126,17 +126,17 @@ This configuration format is being designed to support deterministic, reproducib
 
 ## Target Use Cases
 
-- 📊 [Planned: Financial Lending Audit](examples/german-credit-audit.md) - Credit scoring compliance example
-- 💰 [Planned: Fair Hiring Audit](examples/adult-income-audit.md) - Employment screening analysis example
+- [Planned: Financial Lending Audit](examples/german-credit-audit.md) - Credit scoring compliance example
+- [Planned: Fair Hiring Audit](examples/adult-income-audit.md) - Employment screening analysis example
 
 *These examples demonstrate our target capabilities*
 
 ## Documentation
 
-- 🚧 [Development Guide](getting-started/quickstart.md) - Set up your development environment
-- 📋 [Design: Configuration Schema](getting-started/configuration.md) - Planned YAML structure
-- 🏛️ [Vision: Regulatory Compliance](compliance/overview.md) - Target compliance frameworks  
-- 👥 [Contributing](contributing.md) - Help build Glass Alpha
+- [Development Guide](getting-started/quickstart.md) - Set up your development environment
+- [Design: Configuration Schema](getting-started/configuration.md) - Planned YAML structure
+- [Vision: Regulatory Compliance](compliance/overview.md) - Target compliance frameworks  
+- [Contributing](contributing.md) - Help build Glass Alpha
 
 ## Development Status
 

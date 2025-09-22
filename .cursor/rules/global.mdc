@@ -8,8 +8,7 @@ alwaysApply: true
 # General intent
 - This repo builds an open-core, on-prem–friendly AI compliance toolkit for **tabular ML**.
   - V1: TreeSHAP explainability + causal-feasible counterfactual recourse + audit PDF.
-  - Add: fairness & drift monitoring; later an optional causal mode (Hybrid ACE–SAE).
-- **Scope:** Tabular models first (XGBoost/LightGBM/LogReg/RandomForest). Defer DL/LLMs until v2.
+- **V1 Scope:** Tabular models first (XGBoost/LightGBM/LogReg/RandomForest).
 - Follow priorities defined in project_overview.mdc
 
 # Code style & quality

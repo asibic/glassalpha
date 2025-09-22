@@ -55,10 +55,9 @@ site/site/
 !.vscode/launch.json
 !.vscode/extensions.json
 
-# Keep strategic cursor rules private
+# Keep some cursor rules private until ready
 .cursor/rules/project_overview.mdc
 .cursor/rules/phase1_priorities.mdc
-.cursor/rules/causal.mdc
 .cursor/rules/guardrails.mdc
 
 # Byte-compiled / optimized / DLL files

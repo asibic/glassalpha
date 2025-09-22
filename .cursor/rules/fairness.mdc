@@ -7,11 +7,17 @@ globs:
 alwaysApply: false
 ---
 
-# Metrics & thresholds
-- Implement core group metrics: demographic parity, equalized odds, TPR/FPR gaps, calibration by group.
-- Drift: PSI/KL/KS per feature; flag top-k drifts.
-- Thresholds come from YAML config; each metric returns pass/fail + margin.
+Fairness and drift rules
+
+# Phase 1 Scope (Current Focus)
+**Note:** This rule is scoped for Phase 1. Advanced monitoring and continuous drift detection are deferred.
+
+# Basic Metrics for Audit Report
+- Implement core group metrics for PDF audit: demographic parity, equalized odds, TPR/FPR gaps, calibration by group
+- Basic drift detection: PSI/KL/KS per feature (static comparison only, no continuous monitoring)
+- Thresholds come from YAML config; each metric returns pass/fail + margin for audit report
 
 # Reporting
-- Show confidence intervals or bootstrap error for fairness metrics.
-- Clearly state **protected attributes** and any exclusions.
+- Show confidence intervals or bootstrap error for fairness metrics in PDF
+- Clearly state **protected attributes** and any exclusions
+- Flag top-k feature drifts in audit report
