@@ -2,8 +2,6 @@
 
 > ⚠️ **Pre-Alpha Status**: GlassAlpha is under active development. Core functionality is being built to deliver deterministic, regulator-ready PDF audits.
 
-## Architecture Overview
-
 GlassAlpha is built as an **extensible framework** for AI compliance and interpretability, starting with tabular ML models in Phase 1 and designed to expand to LLMs and multimodal systems.
 
 ### Core Design Principles
