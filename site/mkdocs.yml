@@ -9,8 +9,8 @@ theme:
   name: material
   language: en
   # custom_dir: overrides  # Uncomment when overrides directory exists
-  # logo: assets/logo.png  # Uncomment when logo exists
-  # favicon: assets/favicon.png  # Uncomment when favicon exists
+  logo: assets/images/glassalpha-transparent-150px.png
+  favicon: assets/images/favicon.ico
   palette:
     - scheme: default
       primary: slate   # deep navy/gray
