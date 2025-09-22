@@ -1,13 +1,21 @@
-# Fair Hiring Audit - Adult Income Dataset
+# Target Example: Fair Hiring Audit - Adult Income Dataset
 
-This example demonstrates bias detection and fairness analysis for employment screening using the Adult Income (Census) dataset.
+!!! warning "Planned Feature - Not Yet Implemented"
+    This example describes the target functionality. The audit generation system is currently under development.
 
-!!! success "Phase 1 Priority"
-    This is one of the two required example audits for Phase 1 completion. Must produce publication-ready PDF reports.
+!!! success "Development Priority"
+    This is one of the two required example audits for initial release. When complete, it will produce publication-ready PDF reports demonstrating bias detection.
 
 ## Overview
 
-The Adult Income dataset contains 48,842 census records with demographic and employment information. This example shows how to audit ML models used in hiring decisions for protected class bias.
+The Adult Income dataset contains 48,842 census records with demographic and employment information. This example will demonstrate how Glass Alpha audits ML models for protected class bias in hiring decisions.
+
+## Why This Example Matters
+
+- **EEOC compliance**: Directly addresses Four-Fifths Rule requirements
+- **Scale testing**: Large dataset tests performance at scale
+- **Multiple protected classes**: Race, gender, age intersectionality
+- **Real bias patterns**: Dataset exhibits known fairness challenges
 
 ## Dataset Details
 
@@ -17,21 +25,19 @@ The Adult Income dataset contains 48,842 census records with demographic and emp
 - **Use Case**: Employment screening, hiring bias detection
 - **Regulatory Context**: EEOC Guidelines, Title VII, GDPR
 
-## Quick Start
+## Planned Implementation
+
+### Goal: Fairness Audit
 
 ```bash
-# 1. Download the dataset
-curl -O https://archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.data
-curl -O https://archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.test
-
-# 2. Generate audit
+# Future CLI interface (not yet available)
 glassalpha audit --data adult.data --target income --out adult_income_audit.pdf
 ```
 
-## Full Configuration Example
+### Planned Configuration Design
 
 ```yaml
-# adult_income_audit.yaml
+# Design specification for adult_income_audit.yaml
 model:
   type: lightgbm
   target_column: income
@@ -93,13 +99,16 @@ reproducibility:
   track_data_hash: true
 ```
 
-## Generate Complete Audit
+## Planned Audit Generation
+
+Once implemented, the audit will be generated with:
 
 ```bash
+# Future command (not yet available)
 glassalpha audit --config adult_income_audit.yaml --out adult_income_hiring_audit.pdf
 ```
 
-## What's in the Audit Report
+## Target Audit Report Contents
 
 1. **Executive Summary**
    - Hiring bias risk assessment
@@ -142,21 +151,26 @@ This audit addresses employment law requirements:
 - **ADEA** (Age Discrimination in Employment Act)
 - **EU GDPR** (Automated Decision-Making)
 
-## Expected Results
+## Design Goals for This Example
 
-With seed `2024`, expect these approximate metrics:
+### Target Performance Metrics (with seed `2024`)
 
-**Overall Performance**:
-- Accuracy: 85.2% ± 1.1%
-- AUC-ROC: 0.90 ± 0.02
+**Model Performance Goals**:
+- Accuracy: ~85%
+- AUC-ROC: ~0.90
 
-**Fairness Metrics**:
-- Gender parity ratio: 0.83 (⚠️ Below 0.8 threshold)
-- Race parity ratio: 0.72 (❌ Fails 80% rule)
-- Age discrimination index: 0.91 (✅ Acceptable)
+**Fairness Testing Goals**:
+- Demonstrate detection of bias violations
+- Show gender parity ratio below 80% threshold
+- Illustrate race-based disparate impact
+- Provide clear visualization of fairness gaps
 
-!!! danger "Bias Alert"
-    Default model shows significant bias against protected groups. Audit report includes mitigation strategies.
+### Key Demonstration Points
+
+This example will showcase Glass Alpha's ability to:
+1. **Detect bias** - Identify when models fail the Four-Fifths Rule
+2. **Explain disparities** - Show which features drive unfair outcomes  
+3. **Suggest mitigations** - Provide actionable recommendations
 
 ## Mitigation Strategies
 

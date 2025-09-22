@@ -1,0 +1,48 @@
+---
+globs: site/docs/changelog.md
+alwaysApply: false
+---
+
+# Changelog Maintenance
+
+## Standards
+- Follow [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format
+- Use [Semantic Versioning](https://semver.org/spec/v2.0.0.html) for version numbers
+- Keep entries in reverse chronological order (newest first)
+
+## Categories (Use These Sections)
+- **Added** - New features
+- **Changed** - Changes in existing functionality  
+- **Deprecated** - Soon-to-be removed features
+- **Removed** - Now removed features
+- **Fixed** - Bug fixes
+- **Security** - Security vulnerabilities
+- **In Development** - Features being worked on (pre-release only)
+- **Documentation** - Doc-only changes
+
+## Phase 1 Specific Rules
+- Be honest about development status - use "In Development" for unimplemented features
+- Focus on audit-first priorities: PDF generation, determinism, fairness metrics
+- Don't promise features outside Phase 1 scope
+- Include "No releases yet" until first actual release
+
+## Entry Format
+
+Use this format for changelog entries:
+
+```
+### Added
+- TreeSHAP explanations for XGBoost models with deterministic output
+- CLI command `glassalpha audit --config file.yaml --out report.pdf`
+```
+
+## When to Update
+- Before each release (move Unreleased → version number)
+- When merging significant PRs
+- When changing user-facing behavior
+- When fixing security issues (immediate update required)
+
+## Regulatory Context
+- Changes must be trackable for audit purposes
+- Include impact on determinism/reproducibility
+- Note any breaking changes to audit outputs

@@ -1,13 +1,21 @@
-# Financial Lending Audit - German Credit Dataset
+# Target Example: Financial Lending Audit - German Credit Dataset
 
-This example demonstrates a complete audit workflow for financial lending compliance using the German Credit dataset.
+!!! warning "Planned Feature - Not Yet Implemented"
+    This example describes the target functionality. The audit generation system is currently under development.
 
-!!! success "Phase 1 Priority"
-    This is one of the two required example audits for Phase 1 completion. Must produce publication-ready PDF reports.
+!!! success "Development Priority"
+    This is one of the two required example audits for initial release. When complete, it will produce publication-ready PDF reports.
 
 ## Overview
 
-The German Credit dataset is a regulatory compliance benchmark containing 1,000 loan applications with 20 features including demographics, financial status, and loan details. This example shows how to generate a regulator-ready PDF audit for credit scoring models.
+The German Credit dataset is our primary benchmark for developing the financial lending compliance audit. It contains 1,000 loan applications with 20 features including demographics, financial status, and loan details. This example will demonstrate how Glass Alpha generates regulator-ready PDF audits for credit scoring models.
+
+## Why This Example Matters
+
+- **Regulatory relevance**: Directly addresses ECOA/FCRA requirements
+- **Real-world complexity**: Mixed numerical and categorical features
+- **Fairness challenges**: Contains protected attributes requiring bias analysis
+- **Industry standard**: Widely used compliance benchmark
 
 ## Dataset Details
 
@@ -17,20 +25,19 @@ The German Credit dataset is a regulatory compliance benchmark containing 1,000 
 - **Use Case**: Financial lending compliance
 - **Regulatory Context**: EU GDPR, Equal Credit Opportunity Act
 
-## Quick Start
+## Planned Implementation
+
+### Goal: Basic Audit
 
 ```bash
-# 1. Download the dataset
-curl -O https://archive.ics.uci.edu/ml/machine-learning-databases/statlog/german/german.data
-
-# 2. Generate audit with basic config
+# Future CLI interface (not yet available)
 glassalpha audit --data german.data --target credit_risk --out german_credit_audit.pdf
 ```
 
-## Full Configuration Example
+### Planned Configuration Design
 
 ```yaml
-# german_credit_audit.yaml
+# Design specification for german_credit_audit.yaml
 model:
   type: xgboost
   target_column: credit_risk
@@ -81,13 +88,16 @@ reproducibility:
   track_data_hash: true
 ```
 
-## Generate Complete Audit
+## Planned Audit Generation
+
+Once implemented, the audit will be generated with:
 
 ```bash
+# Future command (not yet available)
 glassalpha audit --config german_credit_audit.yaml --out german_credit_complete_audit.pdf
 ```
 
-## What's in the Audit Report
+## Target Audit Report Contents
 
 1. **Executive Summary**
    - Model performance overview
@@ -130,15 +140,17 @@ This audit addresses common compliance requirements:
 - **EU GDPR Article 22** (Automated Decision-Making)
 - **Basel III** (Model Risk Management)
 
-## Expected Results
+## Design Goals for This Example
 
-With seed `42`, expect these approximate performance metrics:
-- **Accuracy**: 72.5% ± 2.1%
-- **AUC-ROC**: 0.78 ± 0.03
-- **Demographic Parity Ratio**: 0.85 (age), 0.92 (gender)
+### Target Metrics (with seed `42`)
+- **Accuracy**: ~72.5%
+- **AUC-ROC**: ~0.78
+- **Demographic Parity Ratio**: Target 0.80+ for all protected groups
 
-!!! warning "Deterministic Output"
-    Results should be byte-identical across runs with the same seed and data. If not, file a bug report.
+### Determinism Requirements
+- Byte-identical PDF outputs with same configuration
+- Complete reproducibility manifest in every report
+- All randomness controlled through explicit seeds
 
 ## Next Steps
 

@@ -1,54 +1,54 @@
 # Glass Alpha
 
-!!! info "Audit-First Focus"
-    Glass Alpha delivers **deterministic, regulator-ready PDF audit reports** for tabular ML models. Built for teams who need reproducible, audit-ready model documentation.
+!!! warning "Pre-Alpha Development Status"
+    Glass Alpha is under active development. The features described here represent our current development goals and are not yet implemented. Current version: 0.1.0 (initial structure only)
 
-## One Command, Regulator-Ready PDF Audit
+!!! info "Project Vision"
+    Glass Alpha will deliver **deterministic, regulator-ready PDF audit reports** for tabular ML models. We're building an open-source toolkit for teams who need reproducible, audit-ready model documentation.
 
-Generate comprehensive audit reports for your ML models in under 60 seconds:
+## The Goal: One Command Audit Generation
 
-!!! success "Hello Audit - 60 Second Demo"
+Our target is simple, powerful audit generation:
+
+!!! example "Planned Interface (Coming Soon)"
     ```bash
-    # 1. Install Glass Alpha
-    pip install glassalpha
-    
-    # 2. Generate your first audit
+    # Future CLI interface (not yet available)
     glassalpha audit --config configs/german_credit.yaml --out my_audit.pdf
     
-    # 3. Done! You have a deterministic, reproducible audit report
+    # Will produce byte-identical PDF audits with complete lineage tracking
     ```
-    **That's it!** Byte-identical PDF audits with complete lineage tracking.
+    **Goal:** Generate deterministic audit PDFs for XGBoost, LightGBM, and Logistic Regression models.
 
-## Why Glass Alpha Audit?
+## Why We're Building Glass Alpha
 
-### 🏛️ Regulator-Ready
-- **Deterministic outputs**: Identical PDFs on same seed/data/model
-- **Complete lineage**: Git SHA, config hash, data hash, seeds recorded
-- **Professional formatting**: Publication-quality reports with visualizations
+### 🏛️ Designed for Regulatory Compliance
+- **Planned: Deterministic outputs** - Identical PDFs on same seed/data/model
+- **Planned: Complete lineage** - Git SHA, config hash, data hash, seeds will be recorded
+- **Planned: Professional formatting** - Publication-quality reports with visualizations
 
-### 🔒 On-Premise First  
-- **Zero external calls**: Runs completely offline
-- **File-based**: No databases or complex infrastructure
-- **Reproducible**: Immutable run manifests for audit trails
+### 🔒 On-Premise First Design 
+- **No external dependencies** - Will run completely offline
+- **File-based approach** - No databases or complex infrastructure needed
+- **Full reproducibility** - Immutable run manifests for audit trails
 
-### ⚡ CLI Simplicity
-- **Single command**: `glassalpha audit` does everything
-- **YAML configuration**: Policy-as-code for compliance requirements
-- **60-second runtime**: From model to PDF in under a minute
+### ⚡ Simplicity as a Core Principle
+- **Single command goal** - `glassalpha audit` will handle everything
+- **YAML configuration** - Policy-as-code for compliance requirements
+- **Fast execution target** - Under 60 seconds from model to PDF
 
-## Supported Models
+## Planned Model Support
 
-| Model Type | Status | Notes |
-|-----------|--------|-------|
-| XGBoost | ✅ Full support | TreeSHAP optimized |
-| LightGBM | ✅ Full support | Native integration |
-| Logistic Regression | ✅ Full support | scikit-learn compatible |
+| Model Type | Target Status | Notes |
+|-----------|--------------|-------|
+| XGBoost | 🚧 Planned | TreeSHAP optimization planned |
+| LightGBM | 🚧 Planned | Native integration planned |
+| Logistic Regression | 🚧 Planned | scikit-learn compatibility planned |
 
-*Additional model types planned for future releases*
+*Additional model types may be considered based on community needs*
 
-## What's in an Audit Report?
+## Planned Audit Report Contents
 
-Every Glass Alpha audit includes:
+Audit reports will include:
 
 1. **Model Performance Metrics**
    - Accuracy, precision, recall, F1, AUC-ROC
@@ -71,27 +71,39 @@ Every Glass Alpha audit includes:
    - Git commit SHA and timestamp
    - All random seeds used
 
-## Installation
+## Development Setup (Current)
 
 ```bash
-# Standard installation
-pip install glassalpha
+# Clone the repository
+git clone https://github.com/GlassAlpha/glassalpha
+cd glassalpha
 
-# Verify installation
-glassalpha --version
+# Set up development environment
+python -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+
+# Install in development mode
+pip install -e packages/[dev]
+
+# Run tests to verify setup
+pytest
 ```
 
-## Hello Audit Tutorial
+## Contribute to Development
 
-### 1. Download Sample Data
-```bash
-# Get sample dataset (regulatory benchmark)
-wget https://archive.ics.uci.edu/ml/datasets/Statlog+%28German+Credit+Data%29
-```
+We're actively building the audit generation system. Here's how you can help:
 
-### 2. Create Audit Configuration
+### Priority Areas
+1. **Core Audit Engine** - PDF generation pipeline
+2. **TreeSHAP Integration** - Model explanation system  
+3. **Fairness Metrics** - Bias detection implementation
+4. **CLI Interface** - Command-line tool development
+5. **Test Coverage** - Example datasets and validation
+
+### Example: Planned Configuration Format
+
 ```yaml
-# sample_audit.yaml
+# Future configuration structure (design phase)
 model:
   type: xgboost
   target_column: default
@@ -110,30 +122,31 @@ reproducibility:
   random_seed: 42
 ```
 
-### 3. Generate Audit
-```bash
-glassalpha audit --config sample_audit.yaml --out german_credit_audit.pdf
-```
+This configuration format is being designed to support deterministic, reproducible audits.
 
-**Result**: A professional PDF audit report with complete model documentation.
+## Target Use Cases
 
-## Examples
+- 📊 [Planned: Financial Lending Audit](examples/german-credit-audit.md) - Credit scoring compliance example
+- 💰 [Planned: Fair Hiring Audit](examples/adult-income-audit.md) - Employment screening analysis example
 
-- 📊 [Financial Lending Audit](examples/german-credit-audit.md) - Credit scoring compliance
-- 💰 [Fair Hiring Audit](examples/adult-income-audit.md) - Employment screening analysis
+*These examples demonstrate our target capabilities*
 
-*Additional examples planned for future releases*
+## Documentation
 
-## Next Steps
+- 🚧 [Development Guide](getting-started/quickstart.md) - Set up your development environment
+- 📋 [Design: Configuration Schema](getting-started/configuration.md) - Planned YAML structure
+- 🏛️ [Vision: Regulatory Compliance](compliance/overview.md) - Target compliance frameworks  
+- 👥 [Contributing](contributing.md) - Help build Glass Alpha
 
-- 📚 [Quick Start Guide](getting-started/quickstart.md) - Step-by-step tutorial
-- ⚙️ [Configuration Reference](getting-started/configuration.md) - YAML options
-- 🏛️ [Regulatory Compliance](compliance/overview.md) - Legal considerations
-- 👥 [Contributing](contributing.md) - Join the project
+## Development Status
 
-## Future Development
-
-Future improvements may include additional features through ongoing development.
+### Current Focus
+- [ ] PDF generation pipeline
+- [ ] TreeSHAP integration for XGBoost/LightGBM
+- [ ] Basic fairness metrics
+- [ ] Deterministic execution
+- [ ] CLI interface
+- [ ] German Credit & Adult Income examples
 
 ## License & Support
 

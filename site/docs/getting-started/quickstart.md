@@ -1,61 +1,101 @@
-# Hello Audit Tutorial
+# Development Quick Start
 
-Get your first regulator-ready PDF audit report in under 5 minutes.
+!!! warning "Pre-Alpha Software"
+    Glass Alpha is under active development. The audit generation features described in our documentation are planned but not yet implemented.
 
-## Prerequisites
+## Current Development Setup
+
+### Prerequisites
 - Python 3.11+
-- pip
+- Git
+- pip/venv
 
-## Step 1: Install Glass Alpha
-
-```bash
-pip install glassalpha
-glassalpha --version  # Verify installation
-```
-
-## Step 2: Download Sample Data
+### Step 1: Clone and Set Up Development Environment
 
 ```bash
-# Sample dataset - regulatory compliance benchmark
-curl -O https://archive.ics.uci.edu/ml/machine-learning-databases/statlog/german/german.data
+# Clone the repository
+git clone https://github.com/GlassAlpha/glassalpha
+cd glassalpha
+
+# Create virtual environment
+python -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+
+# Install in development mode
+pip install -e packages/[dev]
 ```
 
-## Step 3: Create Your First Audit
+### Step 2: Verify Installation
 
 ```bash
-# Generate audit with default config
-glassalpha audit --data german.data --target default --out my_first_audit.pdf
+# Run existing tests
+pytest
 
-# ✅ Done! Open my_first_audit.pdf to see your audit report
+# Check code quality tools
+ruff check packages/
+mypy packages/
 ```
 
-## Step 4: Verify Determinism
+### Step 3: Explore the Project Structure
 
 ```bash
-# Run the same audit again
-glassalpha audit --data german.data --target default --out my_second_audit.pdf
+# Package source code
+ls packages/src/glassalpha/
 
-# Compare - should be byte-identical
-diff my_first_audit.pdf my_second_audit.pdf
-# (no output = identical files)
+# Documentation
+ls site/docs/
+
+# Tests
+ls packages/tests/
 ```
 
-## What You Just Created
+## What's Currently Implemented
 
-Your PDF audit report includes:
+✅ **Available Now:**
+- Basic package structure
+- Development environment setup
+- Documentation site (MkDocs)
+- Testing framework (pytest)
+- Code quality tools (ruff, mypy)
 
-1. **Executive Summary** - Key metrics and findings
-2. **Model Performance** - Accuracy, confusion matrix, ROC curves  
-3. **Feature Importance** - TreeSHAP explanations and rankings
-4. **Fairness Analysis** - Basic group parity metrics
-5. **Reproducibility Manifest** - Seeds, hashes, git commit for auditability
+🚧 **In Development:**
 
-## Advanced Configuration
+- PDF audit report generation
+- TreeSHAP integration for model explanations
+- Basic fairness metrics implementation
+- Deterministic, reproducible execution
+- CLI interface (`glassalpha audit`)
 
-For production use, create a YAML config file:
+## Contributing to Development
+
+### Areas Needing Implementation
+
+1. **Core Audit Module** (`packages/src/glassalpha/audit/`)
+   - PDF generation pipeline
+   - Report template system
+   - Visualization components
+
+2. **Explainability Module** (`packages/src/glassalpha/explain/`)
+   - TreeSHAP wrapper for XGBoost/LightGBM
+   - Feature importance calculations
+   - Waterfall plot generation
+
+3. **Fairness Module** (`packages/src/glassalpha/fairness/`)
+   - Demographic parity metrics
+   - Equalized odds calculations
+   - Protected attribute analysis
+
+4. **CLI Interface** (`packages/src/glassalpha/cli/`)
+   - Command-line argument parsing
+   - Configuration file loading
+   - Progress reporting
+
+### Example: Future Configuration Design
+
+We're designing the configuration schema to support:
 
 ```yaml
-# audit_config.yaml
+# Planned configuration structure
 model:
   type: xgboost
   params:
@@ -78,17 +118,18 @@ reproducibility:
   track_git: true
 ```
 
-Then run:
-```bash
-glassalpha audit --config audit_config.yaml --out german_audit_2024.pdf
-```
+## How to Contribute
 
-
+1. **Check open issues** on GitHub for current priorities
+2. **Join discussions** about architecture decisions
+3. **Submit PRs** with tests and documentation
+4. **Help with examples** using German Credit and Adult Income datasets
 
 ## Next Steps
 
-- 📊 [Financial Credit Deep Dive](../examples/german-credit-audit.md)
-- ⚙️ [Configuration Reference](configuration.md)  
-- 🏛️ [Regulatory Compliance](../compliance/overview.md)
+- 📊 [Target Example: German Credit](../examples/german-credit-audit.md)
+- ⚙️ [Design Doc: Configuration](configuration.md)  
+- 🏛️ [Vision: Regulatory Compliance](../compliance/overview.md)
+- 👥 [Contributing Guidelines](../contributing.md)
 
-Remember: Glass Alpha is **audit-first**. One command, regulator-ready PDF.
+**Goal:** Transform Glass Alpha from vision to reality - one deterministic, regulator-ready PDF at a time.

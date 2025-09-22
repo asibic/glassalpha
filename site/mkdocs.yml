@@ -100,6 +100,8 @@ nav:
   - Reference:
     - Scope & Limitations: limitations.md
     - Regulatory Compliance: compliance/overview.md
+    - Security Policy: security.md
+    - Changelog: changelog.md
     - Contributing: contributing.md
   - Blog: 
     - blog/index.md

@@ -1,10 +1,11 @@
-# Configuration Reference
+# Configuration Design Reference
 
-Complete YAML configuration options for Glass Alpha audit generation.
+!!! warning "Design Documentation"
+    This document describes the **planned** configuration schema for Glass Alpha. These features are not yet implemented. This serves as a design specification for development.
 
-## Configuration Structure
+## Planned Configuration Structure
 
-Glass Alpha uses YAML configuration files with four main sections:
+The configuration system will use YAML files with four main sections:
 
 ```yaml
 model:      # Model type and training parameters
@@ -13,9 +14,18 @@ audit:      # Audit scope and fairness metrics
 reproducibility:  # Determinism and tracking
 ```
 
-## Model Configuration
+## Design Goals
 
-### Supported Models
+This configuration schema is designed to:
+
+1. **Enable reproducibility** - All parameters affecting output must be configurable
+2. **Support compliance** - Include settings required for regulatory documentation
+3. **Maintain simplicity** - Common use cases should work with minimal configuration
+4. **Allow extensibility** - Future features can be added without breaking changes
+
+## Model Configuration (Planned)
+
+### Target Model Support
 
 ```yaml
 model:
