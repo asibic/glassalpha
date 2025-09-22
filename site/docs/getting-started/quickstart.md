@@ -87,7 +87,7 @@ glassalpha audit --config audit_config.yaml --out german_audit_2024.pdf
 
 ## Next Steps
 
-- 📊 [Financial Credit Deep Dive](../examples/german-credit.md)
+- 📊 [Financial Credit Deep Dive](../examples/german-credit-audit.md)
 - ⚙️ [Configuration Reference](configuration.md)  
 - 🏛️ [Regulatory Compliance](../compliance/overview.md)
 

@@ -107,5 +107,5 @@ pip install --user glassalpha
 ## Next Steps
 
 - [Quick Start Guide](quickstart.md)
-- [Example Notebooks](examples.md)
+- [Example Audits](../examples/german-credit-audit.md)
 - [API Reference](/api/overview/)

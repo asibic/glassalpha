@@ -35,6 +35,7 @@ alwaysApply: true
 - **Radical honesty**: Never sugarcoat limitations, risks, or edge cases
 - **Actionable detail**: Always include specific steps, parameters, and why
 - **Acknowledge uncertainty**: Explicitly call out assumptions and unknowns
+- Be concise, not overly verbose in documentation. Prioritize user value and clarity.
 
 # AI assistance in Cursor
 - When asked to create files, prefer minimal interfaces first, then tests, then docs.

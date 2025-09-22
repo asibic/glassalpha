@@ -1,8 +1,12 @@
 {
     "cSpell.words": [
+        "explainability",
+        "glassalpha",
         "libcairo",
         "mkdocs",
         "MKDOCS",
-        "pyproject"
+        "mypy",
+        "pyproject",
+        "SHAP"
     ]
 }
