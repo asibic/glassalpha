@@ -1,7 +1,7 @@
 # Configuration Design Reference
 
 !!! warning "Design Documentation"
-    This document describes the **planned** configuration schema for Glass Alpha. These features are not yet implemented. This serves as a design specification for development.
+    This document describes the **planned** configuration schema for GlassAlpha. These features are not yet implemented. This serves as a design specification for development.
 
 ## Planned Configuration Structure
 
@@ -277,7 +277,7 @@ glassalpha audit --config complete_audit_config.yaml --out audit_report.pdf
 
 ## Validation
 
-Glass Alpha validates configuration files at runtime:
+GlassAlpha validates configuration files at runtime:
 
 - **Required fields**: Missing required fields cause immediate failure
 - **Type checking**: Values must match expected types  

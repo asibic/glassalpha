@@ -1,6 +1,6 @@
 # Installation
 
-Glass Alpha can be installed via pip or from source. The library requires Python 3.11 or higher.
+GlassAlpha can be installed via pip or from source. The library requires Python 3.11 or higher.
 
 ## Requirements
 
@@ -41,7 +41,7 @@ pip install -e packages/[dev]
 
 ## Optional Dependencies
 
-Glass Alpha has optional dependencies for specific features:
+GlassAlpha has optional dependencies for specific features:
 
 ### Visualization
 ```bash
@@ -68,7 +68,7 @@ print(glassalpha.__version__)
 
 # Run basic smoke test
 from glassalpha import Explainer
-print("Glass Alpha successfully installed!")
+print("GlassAlpha successfully installed!")
 ```
 
 ## Platform-Specific Notes

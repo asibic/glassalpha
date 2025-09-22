@@ -1,6 +1,6 @@
-# Contributing to Glass Alpha
+# Contributing to GlassAlpha
 
-Thank you for your interest in contributing to Glass Alpha! This guide focuses on **audit-first development**.
+Thank you for your interest in contributing to GlassAlpha! This guide focuses on **audit-first development**.
 
 ## Development Focus
 
@@ -188,4 +188,4 @@ New features should include:
 - 💬 [GitHub Discussions](https://github.com/GlassAlpha/glassalpha/discussions)
 - 🐛 [Issue Tracker](https://github.com/GlassAlpha/glassalpha/issues)
 
-Thank you for contributing to Glass Alpha! 🎉
+Thank you for contributing to GlassAlpha! 🎉

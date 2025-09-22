@@ -1,12 +1,12 @@
-# Glass Alpha
+# GlassAlpha
 
 **Open-source AI compliance toolkit for transparent, auditable, and regulator-ready tabular ML models.**
 
-> ⚠️ **Pre-Alpha Status**: Glass Alpha is under active development. Core functionality is being built to deliver deterministic, regulator-ready PDF audits.
+> ⚠️ **Pre-Alpha Status**: GlassAlpha is under active development. Core functionality is being built to deliver deterministic, regulator-ready PDF audits.
 
 ## Vision
 
-Glass Alpha provides **one-command audit generation** that produces deterministic, professional PDF reports for ML models - designed for teams needing reproducible, audit-ready documentation.
+GlassAlpha provides **one-command audit generation** that produces deterministic, professional PDF reports for ML models - designed for teams needing reproducible, audit-ready documentation.
 
 ### Phase 1 Focus (Current)
 - **PDF Audit Generation**: Polished, exportable reports with complete lineage tracking

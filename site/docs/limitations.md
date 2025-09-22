@@ -1,11 +1,11 @@
 # Project Scope & Limitations
 
 !!! warning "Pre-Alpha Development"
-    Glass Alpha is under active development. This document describes our intended project scope and design limitations to ensure transparent expectations.
+    GlassAlpha is under active development. This document describes our intended project scope and design limitations to ensure transparent expectations.
 
 ## Project Philosophy
 
-Glass Alpha follows an **audit-first** approach, prioritizing regulatory compliance and trust over cutting-edge ML features.
+GlassAlpha follows an **audit-first** approach, prioritizing regulatory compliance and trust over cutting-edge ML features.
 
 ### Current Development Scope
 
@@ -28,7 +28,7 @@ Glass Alpha follows an **audit-first** approach, prioritizing regulatory complia
 
 ### Focus on Tabular Data
 
-Glass Alpha is intentionally limited to tabular/structured data because:
+GlassAlpha is intentionally limited to tabular/structured data because:
 - Most regulatory compliance requirements focus on tabular models
 - TreeSHAP provides exact explanations for tree-based models
 - Tabular fairness metrics are well-established
@@ -44,7 +44,7 @@ We prioritize reproducibility over speed:
 
 ### Local-First Architecture
 
-Glass Alpha is designed for on-premise deployment:
+GlassAlpha is designed for on-premise deployment:
 - No cloud dependencies or external API calls
 - All processing happens locally
 - File-based storage instead of databases
@@ -54,7 +54,7 @@ Glass Alpha is designed for on-premise deployment:
 
 ### Design Targets
 
-Glass Alpha is being designed for:
+GlassAlpha is being designed for:
 - **Dataset size**: Up to 1M rows initially
 - **Feature count**: Up to 200 features
 - **Model complexity**: Up to 1000 trees
@@ -71,7 +71,7 @@ We explicitly choose:
 
 ### Not Legal Advice
 
-Glass Alpha provides technical tools for generating audit documentation. It does not:
+GlassAlpha provides technical tools for generating audit documentation. It does not:
 - Provide legal advice or interpretations
 - Guarantee regulatory compliance
 - Replace human judgment in decision-making
@@ -91,7 +91,7 @@ As a pre-alpha project:
 
 ### Intended Use Cases
 
-Glass Alpha is designed for:
+GlassAlpha is designed for:
 - **Decision support** - Augmenting human decision-making
 - **Compliance documentation** - Generating audit reports for regulators
 - **Model validation** - Testing for bias and fairness issues
@@ -99,7 +99,7 @@ Glass Alpha is designed for:
 
 ### Not Intended For
 
-Glass Alpha should NOT be used for:
+GlassAlpha should NOT be used for:
 - **Fully automated decisions** without human review
 - **Life-critical applications** (medical diagnosis, safety systems)
 - **Real-time systems** requiring sub-second responses
@@ -107,7 +107,7 @@ Glass Alpha should NOT be used for:
 
 ## Contributing & Feedback
 
-Help us build Glass Alpha:
+Help us build GlassAlpha:
 - **Code contributions**: See [Contributing Guide](contributing.md)
 - **Bug reports**: [GitHub Issues](https://github.com/GlassAlpha/glassalpha/issues)
 - **Feature requests**: [GitHub Discussions](https://github.com/GlassAlpha/glassalpha/discussions)
@@ -115,8 +115,8 @@ Help us build Glass Alpha:
 
 ## Project Evolution
 
-Glass Alpha will continue to evolve based on community needs and contributions. Future improvements may focus on expanding compliance capabilities and supporting additional use cases as determined by user feedback and regulatory requirements.
+GlassAlpha will continue to evolve based on community needs and contributions. Future improvements may focus on expanding compliance capabilities and supporting additional use cases as determined by user feedback and regulatory requirements.
 
 ---
 
-*Glass Alpha: Building trust in machine learning, one audit at a time.*
+*GlassAlpha: Building trust in machine learning, one audit at a time.*

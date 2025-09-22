@@ -8,7 +8,7 @@
 
 ## Overview
 
-The German Credit dataset is our primary benchmark for developing the financial lending compliance audit. It contains 1,000 loan applications with 20 features including demographics, financial status, and loan details. This example will demonstrate how Glass Alpha generates regulator-ready PDF audits for credit scoring models.
+The German Credit dataset is our primary benchmark for developing the financial lending compliance audit. It contains 1,000 loan applications with 20 features including demographics, financial status, and loan details. This example will demonstrate how GlassAlpha generates regulator-ready PDF audits for credit scoring models.
 
 ## Why This Example Matters
 

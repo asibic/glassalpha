@@ -8,7 +8,7 @@
 
 ## Overview
 
-The Adult Income dataset contains 48,842 census records with demographic and employment information. This example will demonstrate how Glass Alpha audits ML models for protected class bias in hiring decisions.
+The Adult Income dataset contains 48,842 census records with demographic and employment information. This example will demonstrate how GlassAlpha audits ML models for protected class bias in hiring decisions.
 
 ## Why This Example Matters
 
@@ -167,7 +167,7 @@ This audit addresses employment law requirements:
 
 ### Key Demonstration Points
 
-This example will showcase Glass Alpha's ability to:
+This example will showcase GlassAlpha's ability to:
 1. **Detect bias** - Identify when models fail the Four-Fifths Rule
 2. **Explain disparities** - Show which features drive unfair outcomes  
 3. **Suggest mitigations** - Provide actionable recommendations

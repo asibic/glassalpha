@@ -4,11 +4,11 @@
 
 ## Our Security Commitment
 
-Glass Alpha is designed for regulated industries requiring high trust and transparency. Security is fundamental to our mission of providing audit-ready ML compliance tools.
+GlassAlpha is designed for regulated industries requiring high trust and transparency. Security is fundamental to our mission of providing audit-ready ML compliance tools.
 
 ## Reporting Security Vulnerabilities
 
-If you discover a security vulnerability in Glass Alpha, please help us protect our users by reporting it responsibly:
+If you discover a security vulnerability in GlassAlpha, please help us protect our users by reporting it responsibly:
 
 ### How to Report
 - **Email**: security@glassalpha.com

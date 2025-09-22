@@ -1,10 +1,10 @@
-# Glass Alpha
+# GlassAlpha
 
 !!! warning "Pre-Alpha Development Status"
-    Glass Alpha is under active development. The features described here represent our current development goals and are not yet implemented. Current version: 0.1.0 (initial structure only)
+    GlassAlpha is under active development. The features described here represent our current development goals and are not yet implemented. Current version: 0.1.0 (initial structure only)
 
 !!! info "Project Vision"
-    Glass Alpha will deliver **deterministic, regulator-ready PDF audit reports** for tabular ML models. We're building an open-source toolkit for teams who need reproducible, audit-ready model documentation.
+    GlassAlpha will deliver **deterministic, regulator-ready PDF audit reports** for tabular ML models. We're building an open-source toolkit for teams who need reproducible, audit-ready model documentation.
 
 ## The Goal: One Command Audit Generation
 
@@ -19,7 +19,7 @@ Our target is simple, powerful audit generation:
     ```
     **Goal:** Generate deterministic audit PDFs for XGBoost, LightGBM, and Logistic Regression models.
 
-## Why We're Building Glass Alpha
+## Why We're Building GlassAlpha
 
 ### Designed for Regulatory Compliance
 - **Planned: Deterministic outputs** - Identical PDFs on same seed/data/model
@@ -136,7 +136,7 @@ This configuration format is being designed to support deterministic, reproducib
 - [Development Guide](getting-started/quickstart.md) - Set up your development environment
 - [Design: Configuration Schema](getting-started/configuration.md) - Planned YAML structure
 - [Vision: Regulatory Compliance](compliance/overview.md) - Target compliance frameworks  
-- [Contributing](contributing.md) - Help build Glass Alpha
+- [Contributing](contributing.md) - Help build GlassAlpha
 
 ## Development Status
 

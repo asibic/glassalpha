@@ -1,7 +1,7 @@
 # Development Quick Start
 
 !!! warning "Pre-Alpha Software"
-    Glass Alpha is under active development. The audit generation features described in our documentation are planned but not yet implemented.
+    GlassAlpha is under active development. The audit generation features described in our documentation are planned but not yet implemented.
 
 ## Current Development Setup
 
@@ -132,4 +132,4 @@ reproducibility:
 - 🏛️ [Vision: Regulatory Compliance](../compliance/overview.md)
 - 👥 [Contributing Guidelines](../contributing.md)
 
-**Goal:** Transform Glass Alpha from vision to reality - one deterministic, regulator-ready PDF at a time.
+**Goal:** Transform GlassAlpha from vision to reality - one deterministic, regulator-ready PDF at a time.
