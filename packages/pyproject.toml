@@ -15,7 +15,6 @@ classifiers = [
     "Intended Audience :: Legal Industry",
     "Intended Audience :: Financial and Insurance Industry",
     "Intended Audience :: Healthcare Industry",
-    "Intended Audience :: Government",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
     "Topic :: Software Development :: Quality Assurance",
     "License :: OSI Approved :: Apache Software License",
