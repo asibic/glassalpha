@@ -230,11 +230,8 @@ def save_config(
     """
     path = Path(path)
 
-    # Convert to dictionary
-    if include_defaults:
-        config_dict = config.model_dump()
-    else:
-        config_dict = config.model_dump(exclude_defaults=True)
+    # Convert to dictionary - use ternary for cleaner code
+    config_dict = config.model_dump() if include_defaults else config.model_dump(exclude_defaults=True)
 
     # Write YAML
     with open(path, 'w') as f:

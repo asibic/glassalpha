@@ -128,7 +128,10 @@ class TreeSHAPExplainer:
                 if len(shap_values) == 2:
                     # Binary classification - use positive class
                     shap_values_array = shap_values[1]
-                    base_value_scalar = self.base_value[1] if isinstance(self.base_value, np.ndarray) else self.base_value
+                    base_value_scalar = (
+                        self.base_value[1] if isinstance(self.base_value, np.ndarray)
+                        else self.base_value
+                    )
                 else:
                     # Multi-class - would need special handling
                     shap_values_array = shap_values
