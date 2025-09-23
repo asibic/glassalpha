@@ -73,7 +73,9 @@ def validate_strict_mode(config: AuditConfig) -> None:
         errors.append("Explainer priority list must be specified in strict mode")
 
     if config.explainers.strategy != "first_compatible":
-        errors.append("Explainer strategy must be 'first_compatible' for determinism in strict mode")
+        errors.append(
+            "Explainer strategy must be 'first_compatible' for determinism in strict mode"
+        )
 
     # Check manifest configuration
     if not config.manifest.enabled:
@@ -101,10 +103,12 @@ def validate_strict_mode(config: AuditConfig) -> None:
 
     # Check recourse if enabled
     if config.recourse.enabled and not config.recourse.immutable_features:
-        errors.append("Immutable features must be specified when recourse is enabled in strict mode")
+        errors.append(
+            "Immutable features must be specified when recourse is enabled in strict mode"
+        )
 
     # Convert warnings to errors
-    warnings.simplefilter('error')
+    warnings.simplefilter("error")
 
     # Report all errors
     if errors:
@@ -128,19 +132,19 @@ def validate_deterministic_config(config: dict[str, Any]) -> bool:
     deterministic = True
 
     # Check for random elements
-    if config.get('reproducibility', {}).get('random_seed') is None:
+    if config.get("reproducibility", {}).get("random_seed") is None:
         logger.warning("No random seed specified - results may vary")
         deterministic = False
 
     # Check for sorted operations
-    explainer_priority = config.get('explainers', {}).get('priority', [])
+    explainer_priority = config.get("explainers", {}).get("priority", [])
     if not explainer_priority:
         logger.warning("No explainer priority specified - selection may vary")
         deterministic = False
 
     # Check for unordered collections
-    metrics = config.get('metrics', {})
-    for category in ['performance', 'fairness', 'drift']:
+    metrics = config.get("metrics", {})
+    for category in ["performance", "fairness", "drift"]:
         if category in metrics and isinstance(metrics[category], set):
             logger.warning(f"Metrics in '{category}' use set - order may vary")
             deterministic = False
@@ -165,6 +169,7 @@ def validate_reproducible_environment() -> bool:
     # Check for known non-deterministic libraries
     try:
         import tensorflow
+
         issues.append("TensorFlow detected - may introduce randomness")
         reproducible = False
     except ImportError:

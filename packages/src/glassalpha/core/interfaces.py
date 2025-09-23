@@ -61,10 +61,7 @@ class ExplainerInterface(Protocol):
     priority: int  # Higher = preferred
 
     def explain(
-        self,
-        model: ModelInterface,
-        X: pd.DataFrame,
-        y: np.ndarray | None = None
+        self, model: ModelInterface, X: pd.DataFrame, y: np.ndarray | None = None
     ) -> dict[str, Any]:
         """Generate explanations for the model.
 
@@ -105,10 +102,7 @@ class MetricInterface(Protocol):
     version: str
 
     def compute(
-        self,
-        y_true: np.ndarray,
-        y_pred: np.ndarray,
-        sensitive_features: pd.DataFrame | None = None
+        self, y_true: np.ndarray, y_pred: np.ndarray, sensitive_features: pd.DataFrame | None = None
     ) -> dict[str, float]:
         """Compute metric values.
 

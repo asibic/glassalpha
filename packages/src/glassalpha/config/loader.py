@@ -41,10 +41,7 @@ def load_yaml(path: str | Path) -> dict[str, Any]:
         raise ValueError(f"Invalid YAML in {path}: {e}") from e
 
 
-def merge_configs(
-    base: dict[str, Any],
-    override: dict[str, Any]
-) -> dict[str, Any]:
+def merge_configs(base: dict[str, Any], override: dict[str, Any]) -> dict[str, Any]:
     """Merge two configuration dictionaries.
 
     Args:
@@ -69,8 +66,7 @@ def merge_configs(
 
 
 def apply_profile_defaults(
-    config: dict[str, Any],
-    profile_name: str | None = None
+    config: dict[str, Any], profile_name: str | None = None
 ) -> dict[str, Any]:
     """Apply audit profile defaults to configuration.
 
@@ -82,7 +78,7 @@ def apply_profile_defaults(
         Configuration with profile defaults applied
 
     """
-    profile_name = profile_name or config.get('audit_profile')
+    profile_name = profile_name or config.get("audit_profile")
     if not profile_name:
         logger.warning("No audit profile specified, using raw config")
         return config
@@ -94,14 +90,14 @@ def apply_profile_defaults(
         return config
 
     # Get default config from profile
-    if hasattr(profile_cls, 'get_default_config'):
+    if hasattr(profile_cls, "get_default_config"):
         default_config = profile_cls.get_default_config()
         # Merge with user config (user config takes precedence)
         config = merge_configs(default_config, config)
         logger.info(f"Applied defaults from profile '{profile_name}'")
 
     # Validate against profile requirements
-    if hasattr(profile_cls, 'validate_config'):
+    if hasattr(profile_cls, "validate_config"):
         try:
             profile_cls.validate_config(config)
             logger.info(f"Configuration validated against profile '{profile_name}'")
@@ -143,9 +139,7 @@ def validate_config(config: dict[str, Any] | AuditConfig) -> AuditConfig:
 
 
 def load_config(
-    config_dict: dict[str, Any],
-    profile_name: str | None = None,
-    strict: bool = False
+    config_dict: dict[str, Any], profile_name: str | None = None, strict: bool = False
 ) -> AuditConfig:
     """Load configuration from dictionary.
 
@@ -160,11 +154,11 @@ def load_config(
     """
     # Override profile if specified
     if profile_name:
-        config_dict['audit_profile'] = profile_name
+        config_dict["audit_profile"] = profile_name
 
     # Override strict mode if specified
     if strict:
-        config_dict['strict_mode'] = True
+        config_dict["strict_mode"] = True
 
     # Apply defaults and validate
     config_dict = apply_profile_defaults(config_dict)
@@ -173,6 +167,7 @@ def load_config(
     # Apply strict mode validation if enabled
     if audit_config.strict_mode or strict:
         from .strict import validate_strict_mode
+
         validate_strict_mode(audit_config)
 
     return audit_config
@@ -182,7 +177,7 @@ def load_config_from_file(
     path: str | Path,
     override_path: str | Path | None = None,
     profile_name: str | None = None,
-    strict: bool = False
+    strict: bool = False,
 ) -> AuditConfig:
     """Load configuration from YAML file.
 
@@ -215,11 +210,7 @@ def load_config_from_file(
     return load_config(config_dict, profile_name, strict)
 
 
-def save_config(
-    config: AuditConfig,
-    path: str | Path,
-    include_defaults: bool = False
-) -> None:
+def save_config(config: AuditConfig, path: str | Path, include_defaults: bool = False) -> None:
     """Save configuration to YAML file.
 
     Args:
@@ -231,10 +222,12 @@ def save_config(
     path = Path(path)
 
     # Convert to dictionary - use ternary for cleaner code
-    config_dict = config.model_dump() if include_defaults else config.model_dump(exclude_defaults=True)
+    config_dict = (
+        config.model_dump() if include_defaults else config.model_dump(exclude_defaults=True)
+    )
 
     # Write YAML
-    with open(path, 'w') as f:
+    with open(path, "w") as f:
         yaml.safe_dump(config_dict, f, default_flow_style=False, sort_keys=False)
 
     logger.info(f"Configuration saved to {path}")

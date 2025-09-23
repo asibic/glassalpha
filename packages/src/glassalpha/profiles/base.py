@@ -62,7 +62,7 @@ class BaseAuditProfile:
 
         """
         # Check model type is compatible
-        model_type = config.get('model', {}).get('type')
+        model_type = config.get("model", {}).get("type")
         if model_type and model_type not in cls.compatible_models:
             raise ValueError(
                 f"Model type '{model_type}' not compatible with "
@@ -70,10 +70,10 @@ class BaseAuditProfile:
             )
 
         # Check required fields
-        if 'model' not in config:
+        if "model" not in config:
             raise ValueError(f"Profile '{cls.name}' requires 'model' configuration")
 
-        if 'data' not in config:
+        if "data" not in config:
             raise ValueError(f"Profile '{cls.name}' requires 'data' configuration")
 
         return True

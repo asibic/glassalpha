@@ -32,15 +32,11 @@ class XGBoostWrapper:
         "supports_shap": True,
         "supports_feature_importance": True,
         "supports_proba": True,
-        "data_modality": "tabular"
+        "data_modality": "tabular",
     }
     version = "1.0.0"
 
-    def __init__(
-        self,
-        model_path: str | Path | None = None,
-        model: xgb.Booster | None = None
-    ):
+    def __init__(self, model_path: str | Path | None = None, model: xgb.Booster | None = None):
         """Initialize XGBoost wrapper.
 
         Args:
@@ -97,6 +93,7 @@ class XGBoostWrapper:
                 config = self.model.save_config()
                 if '"num_class"' in config:
                     import json
+
                     config_dict = json.loads(config)
                     learner = config_dict.get("learner", {})
                     learner_params = learner.get("learner_model_param", {})
@@ -210,7 +207,9 @@ class XGBoostWrapper:
         # Get importance scores
         importance = self.model.get_score(importance_type=importance_type)
 
-        logger.debug(f"Extracted {importance_type} feature importance for {len(importance)} features")
+        logger.debug(
+            f"Extracted {importance_type} feature importance for {len(importance)} features"
+        )
         return importance
 
     def save(self, path: str | Path):
@@ -233,4 +232,6 @@ class XGBoostWrapper:
     def __repr__(self) -> str:
         """String representation of the wrapper."""
         status = "loaded" if self.model else "not loaded"
-        return f"XGBoostWrapper(status={status}, n_classes={self.n_classes}, version={self.version})"
+        return (
+            f"XGBoostWrapper(status={status}, n_classes={self.n_classes}, version={self.version})"
+        )

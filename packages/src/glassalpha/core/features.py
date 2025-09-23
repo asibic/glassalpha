@@ -42,6 +42,7 @@ def check_feature(feature_name: str, message: str | None = None):
             ...
 
     """
+
     def decorator(func: Callable) -> Callable:
         @wraps(func)
         def wrapper(*args, **kwargs):
@@ -52,5 +53,7 @@ def check_feature(feature_name: str, message: str | None = None):
                 )
                 raise FeatureNotAvailable(error_msg)
             return func(*args, **kwargs)
+
         return wrapper
+
     return decorator

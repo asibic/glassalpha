@@ -36,12 +36,10 @@ class TabularComplianceProfile(BaseAuditProfile):
         "recall",
         "f1",
         "auc_roc",
-
         # Fairness metrics
         "demographic_parity",
         "equal_opportunity",
         "statistical_parity",
-
         # Drift metrics
         "psi",  # Population Stability Index
         "kl_divergence",
@@ -61,9 +59,9 @@ class TabularComplianceProfile(BaseAuditProfile):
 
     # Explainer priority for tabular models
     explainer_priority = [
-        "treeshap",      # Best for tree models
-        "kernelshap",    # Fallback for any model
-        "noop",          # Last resort for testing
+        "treeshap",  # Best for tree models
+        "kernelshap",  # Fallback for any model
+        "noop",  # Last resort for testing
     ]
 
     @classmethod
@@ -84,46 +82,46 @@ class TabularComplianceProfile(BaseAuditProfile):
         super().validate_config(config)
 
         # Additional tabular-specific validation
-        data_config = config.get('data', {})
+        data_config = config.get("data", {})
 
         # Check for protected attributes (needed for fairness)
-        if 'protected_attributes' not in data_config:
+        if "protected_attributes" not in data_config:
             raise ValueError(
                 f"Profile '{cls.name}' requires 'protected_attributes' "
                 "in data configuration for fairness analysis"
             )
 
         # Check for schema (needed for determinism)
-        if 'schema_path' not in data_config and 'schema' not in data_config:
+        if "schema_path" not in data_config and "schema" not in data_config:
             raise ValueError(
-                f"Profile '{cls.name}' requires data schema for "
-                "deterministic validation"
+                f"Profile '{cls.name}' requires data schema for " "deterministic validation"
             )
 
         # Check explainer configuration
-        explainer_config = config.get('explainers', {})
-        if not explainer_config.get('priority'):
+        explainer_config = config.get("explainers", {})
+        if not explainer_config.get("priority"):
             # Provide default if not specified
-            config['explainers'] = config.get('explainers', {})
-            config['explainers']['priority'] = cls.explainer_priority
+            config["explainers"] = config.get("explainers", {})
+            config["explainers"]["priority"] = cls.explainer_priority
 
         # Check metrics configuration
-        metrics_config = config.get('metrics', {})
+        metrics_config = config.get("metrics", {})
         if not metrics_config:
             # Set default metrics if not specified
-            config['metrics'] = {
-                'performance': ['accuracy', 'precision', 'recall', 'f1', 'auc_roc'],
-                'fairness': ['demographic_parity', 'equal_opportunity'],
-                'drift': ['psi'],
+            config["metrics"] = {
+                "performance": ["accuracy", "precision", "recall", "f1", "auc_roc"],
+                "fairness": ["demographic_parity", "equal_opportunity"],
+                "drift": ["psi"],
             }
 
         # Validate recourse configuration if present
-        if 'recourse' in config:
-            recourse_config = config['recourse']
-            if recourse_config.get('enabled', False) and 'immutable_features' not in recourse_config:
-                raise ValueError(
-                    "Recourse requires 'immutable_features' to be specified"
-                )
+        if "recourse" in config:
+            recourse_config = config["recourse"]
+            if (
+                recourse_config.get("enabled", False)
+                and "immutable_features" not in recourse_config
+            ):
+                raise ValueError("Recourse requires 'immutable_features' to be specified")
 
         return True
 
@@ -156,8 +154,8 @@ class TabularComplianceProfile(BaseAuditProfile):
                     },
                     "kernelshap": {
                         "n_samples": 100,
-                    }
-                }
+                    },
+                },
             },
             "metrics": {
                 "performance": ["accuracy", "precision", "recall", "f1", "auc_roc"],

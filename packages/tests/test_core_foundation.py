@@ -28,7 +28,8 @@ from glassalpha.core import (
 def test_interfaces_are_protocols():
     """Verify interfaces use Protocol pattern."""
     from glassalpha.core.interfaces import ModelInterface
-    assert hasattr(ModelInterface, '__subclasshook__')
+
+    assert hasattr(ModelInterface, "__subclasshook__")
 
 
 def test_passthrough_model_works():
@@ -91,16 +92,8 @@ def test_registry_registration():
 
 def test_deterministic_explainer_selection():
     """Test explainer selection is deterministic."""
-    config1 = {
-        "explainers": {
-            "priority": ["noop", "nonexistent"]
-        }
-    }
-    config2 = {
-        "explainers": {
-            "priority": ["noop", "nonexistent"]  # Same order
-        }
-    }
+    config1 = {"explainers": {"priority": ["noop", "nonexistent"]}}
+    config2 = {"explainers": {"priority": ["noop", "nonexistent"]}}  # Same order
 
     selected1 = select_explainer("xgboost", config1)
     selected2 = select_explainer("xgboost", config2)
@@ -134,6 +127,7 @@ def test_enterprise_feature_flag():
 
 def test_feature_gating_decorator():
     """Test feature gating works correctly."""
+
     @check_feature("test_feature")
     def enterprise_only_function():
         return "enterprise_result"
@@ -151,6 +145,7 @@ def test_feature_gating_decorator():
 
 def test_registry_priority_selection():
     """Test priority-based selection with fallback."""
+
     # Register a higher priority explainer
     @ExplainerRegistry.register("test_explainer", priority=100)
     class TestExplainer:
@@ -158,11 +153,7 @@ def test_registry_priority_selection():
         version = "1.0.0"
         priority = 100
 
-    config = {
-        "explainers": {
-            "priority": ["test_explainer", "noop"]
-        }
-    }
+    config = {"explainers": {"priority": ["test_explainer", "noop"]}}
 
     # Should select test_explainer for compatible model
     selected = select_explainer("test_model", config)
@@ -175,6 +166,7 @@ def test_registry_priority_selection():
 
 def test_enterprise_component_filtering():
     """Test enterprise components are filtered correctly."""
+
     # Register an enterprise component
     @MetricRegistry.register("enterprise_metric", enterprise=True)
     class EnterpriseMetric:

@@ -25,7 +25,7 @@ class PassThroughModel:
     capabilities = {
         "supports_shap": True,  # Works with any explainer
         "supports_proba": True,
-        "data_modality": "any"
+        "data_modality": "any",
     }
     version = "1.0.0"
 
@@ -85,7 +85,7 @@ class NoOpExplainer:
     capabilities = {
         "supported_models": ["all"],  # Works with any model
         "explanation_type": "none",
-        "data_modality": "any"
+        "data_modality": "any",
     }
     version = "1.0.0"
     priority = -100  # Lowest priority fallback
@@ -95,10 +95,7 @@ class NoOpExplainer:
         logger.info("NoOpExplainer initialized")
 
     def explain(
-        self,
-        model: ModelInterface,
-        X: pd.DataFrame,
-        y: np.ndarray | None = None
+        self, model: ModelInterface, X: pd.DataFrame, y: np.ndarray | None = None
     ) -> dict[str, Any]:
         """Return minimal explanation structure.
 
@@ -120,7 +117,7 @@ class NoOpExplainer:
             "shap_values": np.zeros((n_samples, n_features)),
             "feature_importance": np.zeros(n_features),
             "base_value": 0.0,
-            "explainer_type": "noop"
+            "explainer_type": "noop",
         }
 
     def supports_model(self, model: ModelInterface) -> bool:
@@ -152,10 +149,7 @@ class NoOpMetric:
         logger.info("NoOpMetric initialized")
 
     def compute(
-        self,
-        y_true: np.ndarray,
-        y_pred: np.ndarray,
-        sensitive_features: pd.DataFrame | None = None
+        self, y_true: np.ndarray, y_pred: np.ndarray, sensitive_features: pd.DataFrame | None = None
     ) -> dict[str, float]:
         """Return placeholder metrics.
 
@@ -174,7 +168,7 @@ class NoOpMetric:
             "noop_metric": 0.0,
             "samples_processed": len(y_true),
             "unique_predictions": len(np.unique(y_pred)),
-            "status": "placeholder"
+            "status": "placeholder",
         }
 
     def get_metric_names(self) -> list[str]:

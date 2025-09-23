@@ -11,8 +11,8 @@ import json
 import sys
 from unittest.mock import MagicMock
 
-sys.modules['pandas'] = MagicMock()
-sys.modules['numpy'] = MagicMock()
+sys.modules["pandas"] = MagicMock()
+sys.modules["numpy"] = MagicMock()
 
 from glassalpha.core import (
     ExplainerRegistry,
@@ -34,11 +34,7 @@ class TestDeterministicSelection:
 
     def test_explainer_selection_is_deterministic(self):
         """Test that explainer selection is deterministic with same config."""
-        config = {
-            "explainers": {
-                "priority": ["noop", "nonexistent", "another_fake"]
-            }
-        }
+        config = {"explainers": {"priority": ["noop", "nonexistent", "another_fake"]}}
 
         # Run selection multiple times
         results = []
@@ -52,6 +48,7 @@ class TestDeterministicSelection:
 
     def test_priority_order_respected(self):
         """Test that priority order is respected in selection."""
+
         # Register additional test explainers
         @ExplainerRegistry.register("test_high_priority", priority=100)
         class TestHighPriority:
@@ -66,11 +63,7 @@ class TestDeterministicSelection:
             priority = 1
 
         # Config with specific priority
-        config = {
-            "explainers": {
-                "priority": ["test_low_priority", "test_high_priority", "noop"]
-            }
-        }
+        config = {"explainers": {"priority": ["test_low_priority", "test_high_priority", "noop"]}}
 
         # Should select based on config priority, not internal priority
         selected = select_explainer("xgboost", config)
@@ -78,17 +71,14 @@ class TestDeterministicSelection:
 
     def test_fallback_to_noop(self):
         """Test fallback to NoOp explainer when others unavailable."""
-        config = {
-            "explainers": {
-                "priority": ["nonexistent1", "nonexistent2", "noop"]
-            }
-        }
+        config = {"explainers": {"priority": ["nonexistent1", "nonexistent2", "noop"]}}
 
         selected = select_explainer("unknown_model", config)
         assert selected == "noop", "Should fallback to noop explainer"
 
     def test_selection_with_model_compatibility(self):
         """Test that model compatibility affects selection."""
+
         # Register model-specific explainer
         @ExplainerRegistry.register("test_specific", priority=50)
         class TestSpecific:
@@ -96,11 +86,7 @@ class TestDeterministicSelection:
             version = "1.0.0"
             priority = 50
 
-        config = {
-            "explainers": {
-                "priority": ["test_specific", "noop"]
-            }
-        }
+        config = {"explainers": {"priority": ["test_specific", "noop"]}}
 
         # Should skip incompatible explainer
         selected = select_explainer("different_model", config)
@@ -112,11 +98,7 @@ class TestDeterministicSelection:
 
     def test_empty_priority_list(self):
         """Test behavior with empty priority list."""
-        config = {
-            "explainers": {
-                "priority": []
-            }
-        }
+        config = {"explainers": {"priority": []}}
 
         # Should fall back to all registered explainers by priority
         selected = select_explainer("xgboost", config)
@@ -124,29 +106,15 @@ class TestDeterministicSelection:
 
     def test_selection_hash_consistency(self):
         """Test that same config produces same selection hash."""
-        config1 = {
-            "explainers": {
-                "priority": ["noop", "test1", "test2"]
-            }
-        }
+        config1 = {"explainers": {"priority": ["noop", "test1", "test2"]}}
 
-        config2 = {
-            "explainers": {
-                "priority": ["noop", "test1", "test2"]  # Same
-            }
-        }
+        config2 = {"explainers": {"priority": ["noop", "test1", "test2"]}}  # Same
 
-        config3 = {
-            "explainers": {
-                "priority": ["test1", "noop", "test2"]  # Different order
-            }
-        }
+        config3 = {"explainers": {"priority": ["test1", "noop", "test2"]}}  # Different order
 
         # Hash the config to ensure determinism
         def config_hash(cfg):
-            return hashlib.sha256(
-                json.dumps(cfg, sort_keys=True).encode()
-            ).hexdigest()
+            return hashlib.sha256(json.dumps(cfg, sort_keys=True).encode()).hexdigest()
 
         hash1 = config_hash(config1)
         hash2 = config_hash(config2)
@@ -178,9 +146,7 @@ class TestDeterministicSelection:
     def test_selection_with_missing_registry_entry(self):
         """Test graceful handling of missing registry entries."""
         config = {
-            "explainers": {
-                "priority": ["definitely_not_registered", "also_not_there", "noop"]
-            }
+            "explainers": {"priority": ["definitely_not_registered", "also_not_there", "noop"]}
         }
 
         # Should gracefully skip missing and select noop
@@ -191,11 +157,7 @@ class TestDeterministicSelection:
         """Test that concurrent selections are still deterministic."""
         import threading
 
-        config = {
-            "explainers": {
-                "priority": ["noop"]
-            }
-        }
+        config = {"explainers": {"priority": ["noop"]}}
 
         results = []
         lock = threading.Lock()
@@ -226,6 +188,7 @@ class TestMetricSelection:
 
     def test_metric_registry_determinism(self):
         """Test that metric selection is deterministic."""
+
         # Register test metrics
         @MetricRegistry.register("test_metric1", priority=10)
         class TestMetric1:

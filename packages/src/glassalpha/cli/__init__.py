@@ -14,6 +14,7 @@ __all__ = [
     "list_components_cmd",
 ]
 
+
 # Entry point for the CLI
 def main():
     """Main CLI entry point."""

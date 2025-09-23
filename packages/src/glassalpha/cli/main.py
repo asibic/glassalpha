@@ -17,8 +17,7 @@ from ..core import __version__
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 
 # Main CLI app
@@ -41,6 +40,7 @@ monitor_app = typer.Typer(
     help="Monitoring operations (Enterprise only)",
     no_args_is_help=True,
 )
+
 
 # Version callback
 def version_callback(value: bool):
@@ -96,6 +96,7 @@ from .commands import audit, list_components_cmd, validate
 app.command()(audit)
 app.command("validate")(validate)
 app.command("list", help="List available components")(list_components_cmd)
+
 
 # Dashboard commands (enterprise stubs)
 @dashboard_app.command("serve")

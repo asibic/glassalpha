@@ -9,7 +9,7 @@ from typing import Any, TypeVar
 
 logger = logging.getLogger(__name__)
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 class ComponentRegistry:
@@ -26,13 +26,7 @@ class ComponentRegistry:
         self._registry: dict[str, type] = {}
         self._metadata: dict[str, dict[str, Any]] = {}
 
-    def register(
-        self,
-        name: str,
-        priority: int = 0,
-        enterprise: bool = False,
-        **metadata
-    ):
+    def register(self, name: str, priority: int = 0, enterprise: bool = False, **metadata):
         """Decorator to register a component.
 
         Args:
@@ -45,18 +39,13 @@ class ComponentRegistry:
             Decorator function
 
         """
+
         def decorator(cls: type[T]) -> type[T]:
             if name in self._registry:
-                logger.warning(
-                    f"Overwriting existing {self.component_type} '{name}'"
-                )
+                logger.warning(f"Overwriting existing {self.component_type} '{name}'")
 
             self._registry[name] = cls
-            self._metadata[name] = {
-                'priority': priority,
-                'enterprise': enterprise,
-                **metadata
-            }
+            self._metadata[name] = {"priority": priority, "enterprise": enterprise, **metadata}
 
             logger.debug(f"Registered {self.component_type} '{name}'")
             return cls
@@ -91,14 +80,10 @@ class ComponentRegistry:
         return {
             name: cls
             for name, cls in self._registry.items()
-            if not self._metadata[name].get('enterprise', False)
+            if not self._metadata[name].get("enterprise", False)
         }
 
-    def select_by_priority(
-        self,
-        names: list[str],
-        filter_fn: Any | None = None
-    ) -> str | None:
+    def select_by_priority(self, names: list[str], filter_fn: Any | None = None) -> str | None:
         """Select component by priority order.
 
         Args:
@@ -117,7 +102,7 @@ class ComponentRegistry:
                 continue
 
             # Check enterprise feature
-            if self._metadata[name].get('enterprise', False) and not is_enterprise():
+            if self._metadata[name].get("enterprise", False) and not is_enterprise():
                 logger.debug(f"{self.component_type} '{name}' requires enterprise license")
                 continue
 
@@ -154,10 +139,7 @@ DataRegistry = ComponentRegistry("data_handler")
 ProfileRegistry = ComponentRegistry("audit_profile")
 
 
-def select_explainer(
-    model_type: str,
-    config: dict[str, Any]
-) -> str | None:
+def select_explainer(model_type: str, config: dict[str, Any]) -> str | None:
     """Select appropriate explainer based on model and config.
 
     This ensures deterministic selection based on configuration priorities.
@@ -171,23 +153,23 @@ def select_explainer(
 
     """
     # Get priority list from config
-    explainer_config = config.get('explainers', {})
-    priority_list = explainer_config.get('priority', [])
+    explainer_config = config.get("explainers", {})
+    priority_list = explainer_config.get("priority", [])
 
     if not priority_list:
         # Fall back to all registered explainers by priority
         all_explainers = ExplainerRegistry.get_all()
         priority_list = sorted(
             all_explainers.keys(),
-            key=lambda x: ExplainerRegistry.get_metadata(x).get('priority', 0),
-            reverse=True
+            key=lambda x: ExplainerRegistry.get_metadata(x).get("priority", 0),
+            reverse=True,
         )
 
     # Filter function to check model compatibility
     def is_compatible(explainer_cls):
-        if hasattr(explainer_cls, 'capabilities'):
-            supported_models = explainer_cls.capabilities.get('supported_models', [])
-            if 'all' in supported_models or model_type in supported_models:
+        if hasattr(explainer_cls, "capabilities"):
+            supported_models = explainer_cls.capabilities.get("supported_models", [])
+            if "all" in supported_models or model_type in supported_models:
                 return True
         return False
 
@@ -200,8 +182,7 @@ def select_explainer(
 
 
 def list_components(
-    component_type: str = None,
-    include_enterprise: bool = False
+    component_type: str = None, include_enterprise: bool = False
 ) -> dict[str, list[str]]:
     """List all registered components.
 
@@ -214,11 +195,11 @@ def list_components(
 
     """
     registries = {
-        'models': ModelRegistry,
-        'explainers': ExplainerRegistry,
-        'metrics': MetricRegistry,
-        'data_handlers': DataRegistry,
-        'profiles': ProfileRegistry
+        "models": ModelRegistry,
+        "explainers": ExplainerRegistry,
+        "metrics": MetricRegistry,
+        "data_handlers": DataRegistry,
+        "profiles": ProfileRegistry,
     }
 
     if component_type:
