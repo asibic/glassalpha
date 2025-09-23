@@ -120,11 +120,10 @@ class TabularComplianceProfile(BaseAuditProfile):
         # Validate recourse configuration if present
         if 'recourse' in config:
             recourse_config = config['recourse']
-            if recourse_config.get('enabled', False):
-                if 'immutable_features' not in recourse_config:
-                    raise ValueError(
-                        "Recourse requires 'immutable_features' to be specified"
-                    )
+            if recourse_config.get('enabled', False) and 'immutable_features' not in recourse_config:
+                raise ValueError(
+                    "Recourse requires 'immutable_features' to be specified"
+                )
 
         return True
 

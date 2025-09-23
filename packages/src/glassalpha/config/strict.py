@@ -100,9 +100,8 @@ def validate_strict_mode(config: AuditConfig) -> None:
         errors.append("Fairness metrics must be specified in strict mode")
 
     # Check recourse if enabled
-    if config.recourse.enabled:
-        if not config.recourse.immutable_features:
-            errors.append("Immutable features must be specified when recourse is enabled in strict mode")
+    if config.recourse.enabled and not config.recourse.immutable_features:
+        errors.append("Immutable features must be specified when recourse is enabled in strict mode")
 
     # Convert warnings to errors
     warnings.simplefilter('error')

@@ -287,9 +287,8 @@ class TestEnterpriseFeatureIsolation:
             issues = []
 
             # Check for enterprise-only report templates
-            if config.get('report', {}).get('template') == 'eu_ai_act':
-                if not is_enterprise:
-                    issues.append("EU AI Act template requires enterprise license")
+            if config.get('report', {}).get('template') == 'eu_ai_act' and not is_enterprise:
+                issues.append("EU AI Act template requires enterprise license")
 
             # Check for enterprise-only explainers
             explainer_priority = config.get('explainers', {}).get('priority', [])
