@@ -1,6 +1,6 @@
 # Contributing to GlassAlpha
 
-Thanks you for your interest in contributing to GlassAlpha! This guide focuses on **audit-first development**.
+Thanks for your interest in contributing to GlassAlpha! This guide focuses on **audit-first development**.
 
 ## Development Focus
 
