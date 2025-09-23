@@ -60,9 +60,7 @@ class ExplainerInterface(Protocol):
     version: str
     priority: int  # Higher = preferred
 
-    def explain(
-        self, model: ModelInterface, X: pd.DataFrame, y: np.ndarray | None = None
-    ) -> dict[str, Any]:
+    def explain(self, model: ModelInterface, X: pd.DataFrame, y: np.ndarray | None = None) -> dict[str, Any]:
         """Generate explanations for the model.
 
         Args:

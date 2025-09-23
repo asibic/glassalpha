@@ -94,9 +94,7 @@ class NoOpExplainer:
         """Initialize NoOp explainer."""
         logger.info("NoOpExplainer initialized")
 
-    def explain(
-        self, model: ModelInterface, X: pd.DataFrame, y: np.ndarray | None = None
-    ) -> dict[str, Any]:
+    def explain(self, model: ModelInterface, X: pd.DataFrame, y: np.ndarray | None = None) -> dict[str, Any]:
         """Return minimal explanation structure.
 
         Args:

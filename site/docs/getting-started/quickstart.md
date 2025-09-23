@@ -103,7 +103,7 @@ model:
     learning_rate: 0.1
 
 data:
-  train_path: german_train.csv  
+  train_path: german_train.csv
   test_path: german_test.csv
   target_column: default
 
@@ -112,7 +112,7 @@ audit:
     - gender
     - age_group
   confidence_level: 0.95
-  
+
 reproducibility:
   random_seed: 42
   track_git: true
@@ -128,7 +128,7 @@ reproducibility:
 ## Next Steps
 
 - 📊 [Target Example: German Credit](../examples/german-credit-audit.md)
-- ⚙️ [Design Doc: Configuration](configuration.md)  
+- ⚙️ [Design Doc: Configuration](configuration.md)
 - 🏛️ [Vision: Regulatory Compliance](../compliance/overview.md)
 - 👥 [Contributing Guidelines](../contributing.md)
 

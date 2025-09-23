@@ -34,14 +34,14 @@ If you fork or create a derivative work, you must:
 
 ## Examples
 
-✅ **Acceptable**: 
+✅ **Acceptable**:
 - "AuditKit - Based on GlassAlpha technology"
 - "ComplianceTools (powered by GlassAlpha)"
 - "MyProject uses GlassAlpha for audit generation"
 
 ❌ **Not Acceptable**:
 - "GlassAlpha Pro"
-- "Glass Alpha Tools"  
+- "Glass Alpha Tools"
 - "Glass Beta"
 - "Alpha Glass Toolkit"
 - "GlassAlpha Enterprise Edition" (unless officially released)

@@ -8,7 +8,8 @@ needing pandas, numpy, etc.
 import os
 import sys
 
-sys.path.insert(0, 'src')
+sys.path.insert(0, "src")
+
 
 # First, let's create mock versions of pandas/numpy for demo
 class MockDataFrame:
@@ -17,8 +18,10 @@ class MockDataFrame:
     def __init__(self, data):
         self.data = data
         self.shape = (len(next(iter(data.values()))), len(data))
+
     def __len__(self):
         return self.shape[0]
+
 
 class MockArray:
     """Minimal numpy array replacement for demo."""
@@ -26,20 +29,22 @@ class MockArray:
     def __init__(self, data):
         self.data = data
         self.shape = (len(data),) if isinstance(data[0], (int, float)) else (len(data), len(data[0]))
+
     def __len__(self):
         return len(self.data)
+
 
 # Mock the imports in our modules
 import sys
 
-sys.modules['pandas'] = type(sys)('pandas')
-sys.modules['pandas'].DataFrame = MockDataFrame
-sys.modules['numpy'] = type(sys)('numpy')
-sys.modules['numpy'].ndarray = MockArray
-sys.modules['numpy'].array = lambda x: MockArray(x)
-sys.modules['numpy'].zeros = lambda shape: MockArray([[0] * shape[1] for _ in range(shape[0])])
-sys.modules['numpy'].full = lambda n, val: MockArray([val] * n)
-sys.modules['numpy'].unique = lambda x: set(x.data)
+sys.modules["pandas"] = type(sys)("pandas")
+sys.modules["pandas"].DataFrame = MockDataFrame
+sys.modules["numpy"] = type(sys)("numpy")
+sys.modules["numpy"].ndarray = MockArray
+sys.modules["numpy"].array = lambda x: MockArray(x)
+sys.modules["numpy"].zeros = lambda shape: MockArray([[0] * shape[1] for _ in range(shape[0])])
+sys.modules["numpy"].full = lambda n, val: MockArray([val] * n)
+sys.modules["numpy"].unique = lambda x: set(x.data)
 
 # Now import our components
 from glassalpha.core import (
@@ -99,11 +104,11 @@ def main():
     print(f"   Enterprise mode: {is_enterprise()}")
 
     # Set license key
-    os.environ['GLASSALPHA_LICENSE_KEY'] = 'test-key'
+    os.environ["GLASSALPHA_LICENSE_KEY"] = "test-key"
     print(f"   With license key: {is_enterprise()}")
 
     # Clean up
-    del os.environ['GLASSALPHA_LICENSE_KEY']
+    del os.environ["GLASSALPHA_LICENSE_KEY"]
     print(f"   After removing key: {is_enterprise()}")
 
     # 6. Test enterprise filtering
@@ -133,6 +138,7 @@ def main():
     print("   • NoOp implementations registered")
     print("\nThe architecture foundation is ready for Phase 1!")
     print("=" * 60)
+
 
 if __name__ == "__main__":
     main()

@@ -70,7 +70,7 @@ class XGBoostWrapper:
         "data_modality": "tabular"
     }
     version = "1.0.0"
-    
+
     def predict(self, X):
         # Implementation
         pass
@@ -88,7 +88,7 @@ class TreeSHAPExplainer:
     }
     priority = 100
     version = "1.0.0"
-    
+
     def explain(self, model, X, y=None):
         # Implementation
         pass
@@ -103,7 +103,7 @@ from ...core.registry import MetricRegistry
 class AccuracyMetric:
     metric_type = "performance"
     version = "1.0.0"
-    
+
     def compute(self, y_true, y_pred, sensitive_features=None):
         # Implementation
         pass
@@ -171,4 +171,3 @@ glassalpha audit --config configs/example_audit.yaml --out test.pdf --dry-run
 ---
 
 **You have a solid foundation. Time to build on it!**
-

@@ -63,7 +63,7 @@ version = "1.0.0"
 license = {text = "Apache-2.0"}
 dependencies = [
     "numpy>=1.24.0",
-    "pandas>=2.0.0", 
+    "pandas>=2.0.0",
     "scikit-learn>=1.3.0",
     "xgboost>=2.0.0",
     "lightgbm>=4.0.0",
@@ -107,7 +107,7 @@ dependencies = [
    ```python
    # In enterprise package
    from glassalpha.core import ExplainerRegistry
-   
+
    @ExplainerRegistry.register("deep_shap", enterprise=True)
    class DeepSHAPExplainer:
        ...
@@ -118,7 +118,7 @@ dependencies = [
    # Enterprise commands in separate module
    from glassalpha.cli import app
    from glassalpha_enterprise.cli import add_enterprise_commands
-   
+
    if is_enterprise():
        add_enterprise_commands(app)
    ```
@@ -193,7 +193,7 @@ def is_enterprise():
     license_key = os.environ.get("GLASSALPHA_LICENSE_KEY")
     if not license_key:
         return False
-    
+
     # Validate with license server
     return validate_license(license_key)
 ```
@@ -218,7 +218,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: pytest tests/ -m "not enterprise"
-  
+
   test-enterprise:
     runs-on: ubuntu-latest
     env:

@@ -49,9 +49,7 @@ class TreeSHAPExplainer:
         self.base_value = None
         logger.info("TreeSHAPExplainer initialized")
 
-    def explain(
-        self, model: ModelInterface, X: pd.DataFrame, y: np.ndarray | None = None
-    ) -> dict[str, Any]:
+    def explain(self, model: ModelInterface, X: pd.DataFrame, y: np.ndarray | None = None) -> dict[str, Any]:
         """Generate SHAP explanations for the model.
 
         Args:
@@ -126,9 +124,7 @@ class TreeSHAPExplainer:
                     # Binary classification - use positive class
                     shap_values_array = shap_values[1]
                     base_value_scalar = (
-                        self.base_value[1]
-                        if isinstance(self.base_value, np.ndarray)
-                        else self.base_value
+                        self.base_value[1] if isinstance(self.base_value, np.ndarray) else self.base_value
                     )
                 else:
                     # Multi-class - would need special handling
@@ -148,23 +144,18 @@ class TreeSHAPExplainer:
             # Calculate global feature importance (mean absolute SHAP values)
             if isinstance(shap_values_array, list):
                 # Multi-class case - average across classes
-                feature_importance = np.mean(
-                    [np.abs(sv).mean(axis=0) for sv in shap_values_array], axis=0
-                )
+                feature_importance = np.mean([np.abs(sv).mean(axis=0) for sv in shap_values_array], axis=0)
             else:
                 feature_importance = np.abs(shap_values_array).mean(axis=0)
 
             # Create feature importance dictionary
             feature_names = list(X.columns)
             feature_importance_dict = {
-                name: float(importance)
-                for name, importance in zip(feature_names, feature_importance, strict=False)
+                name: float(importance) for name, importance in zip(feature_names, feature_importance, strict=False)
             }
 
             # Sort by importance
-            feature_importance_dict = dict(
-                sorted(feature_importance_dict.items(), key=lambda x: x[1], reverse=True)
-            )
+            feature_importance_dict = dict(sorted(feature_importance_dict.items(), key=lambda x: x[1], reverse=True))
 
             logger.info("SHAP explanation completed successfully")
 

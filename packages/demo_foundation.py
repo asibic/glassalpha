@@ -12,7 +12,7 @@ Run this to see the architecture patterns in action:
 import os
 import sys
 
-sys.path.insert(0, 'src')
+sys.path.insert(0, "src")
 
 import numpy as np
 import pandas as pd
@@ -69,11 +69,7 @@ def main():
 
     # 5. Test Deterministic Selection
     print("\n5. DETERMINISTIC EXPLAINER SELECTION:")
-    config = {
-        "explainers": {
-            "priority": ["noop", "nonexistent"]
-        }
-    }
+    config = {"explainers": {"priority": ["noop", "nonexistent"]}}
     selected1 = select_explainer("xgboost", config)
     selected2 = select_explainer("xgboost", config)
     print(f"   First selection: {selected1}")
@@ -86,9 +82,9 @@ def main():
     print(f"   License env var: {os.environ.get('GLASSALPHA_LICENSE_KEY', 'Not set')}")
 
     # Test with license
-    os.environ['GLASSALPHA_LICENSE_KEY'] = 'demo-key'
+    os.environ["GLASSALPHA_LICENSE_KEY"] = "demo-key"
     print(f"   After setting license: {is_enterprise()}")
-    del os.environ['GLASSALPHA_LICENSE_KEY']  # Clean up
+    del os.environ["GLASSALPHA_LICENSE_KEY"]  # Clean up
 
     # 7. Show how plugins work together
     print("\n7. FULL PIPELINE DEMO:")
@@ -117,6 +113,7 @@ def main():
     print("\n" + "=" * 60)
     print("✅ Core foundation is working correctly!")
     print("=" * 60)
+
 
 if __name__ == "__main__":
     main()

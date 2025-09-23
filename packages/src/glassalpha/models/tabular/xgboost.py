@@ -207,9 +207,7 @@ class XGBoostWrapper:
         # Get importance scores
         importance = self.model.get_score(importance_type=importance_type)
 
-        logger.debug(
-            f"Extracted {importance_type} feature importance for {len(importance)} features"
-        )
+        logger.debug(f"Extracted {importance_type} feature importance for {len(importance)} features")
         return importance
 
     def save(self, path: str | Path):
@@ -232,6 +230,4 @@ class XGBoostWrapper:
     def __repr__(self) -> str:
         """String representation of the wrapper."""
         status = "loaded" if self.model else "not loaded"
-        return (
-            f"XGBoostWrapper(status={status}, n_classes={self.n_classes}, version={self.version})"
-        )
+        return f"XGBoostWrapper(status={status}, n_classes={self.n_classes}, version={self.version})"

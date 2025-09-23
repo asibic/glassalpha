@@ -26,7 +26,7 @@ Our initial development targets common requirements across multiple frameworks:
 - **EEOC Guidelines** - Employment decisions with Four-Fifths Rule compliance
 - **SR 11-7** - Model risk management for financial services
 
-#### European Union  
+#### European Union
 - **GDPR Article 22** - Right to explanation for automated decision-making
 - **AI Act** - Documentation requirements for high-risk AI systems
 
@@ -67,7 +67,7 @@ Our design targets these core capabilities:
 
 ### 2. Complete Audit Trail
 - Git commit SHA for code version
-- Dataset fingerprints (SHA-256)  
+- Dataset fingerprints (SHA-256)
 - Configuration hashes
 - Timestamp and environment info
 

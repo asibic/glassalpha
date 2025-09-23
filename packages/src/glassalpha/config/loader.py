@@ -65,9 +65,7 @@ def merge_configs(base: dict[str, Any], override: dict[str, Any]) -> dict[str, A
     return result
 
 
-def apply_profile_defaults(
-    config: dict[str, Any], profile_name: str | None = None
-) -> dict[str, Any]:
+def apply_profile_defaults(config: dict[str, Any], profile_name: str | None = None) -> dict[str, Any]:
     """Apply audit profile defaults to configuration.
 
     Args:
@@ -138,9 +136,7 @@ def validate_config(config: dict[str, Any] | AuditConfig) -> AuditConfig:
         raise ValueError(f"Invalid configuration: {e}") from e
 
 
-def load_config(
-    config_dict: dict[str, Any], profile_name: str | None = None, strict: bool = False
-) -> AuditConfig:
+def load_config(config_dict: dict[str, Any], profile_name: str | None = None, strict: bool = False) -> AuditConfig:
     """Load configuration from dictionary.
 
     Args:
@@ -222,9 +218,7 @@ def save_config(config: AuditConfig, path: str | Path, include_defaults: bool = 
     path = Path(path)
 
     # Convert to dictionary - use ternary for cleaner code
-    config_dict = (
-        config.model_dump() if include_defaults else config.model_dump(exclude_defaults=True)
-    )
+    config_dict = config.model_dump() if include_defaults else config.model_dump(exclude_defaults=True)
 
     # Write YAML
     with open(path, "w") as f:

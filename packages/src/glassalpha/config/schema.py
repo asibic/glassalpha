@@ -17,9 +17,7 @@ class ModelConfig(BaseModel):
 
     type: str = Field(..., description="Model type (xgboost, lightgbm, logistic_regression, etc.)")
     path: Path | None = Field(None, description="Path to saved model file")
-    params: dict[str, Any] | None = Field(
-        default_factory=dict, description="Additional model parameters"
-    )
+    params: dict[str, Any] | None = Field(default_factory=dict, description="Additional model parameters")
 
     @field_validator("type")
     @classmethod
@@ -55,15 +53,9 @@ class ExplainerConfig(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    strategy: str = Field(
-        "first_compatible", description="Selection strategy (first_compatible, best_score)"
-    )
-    priority: list[str] = Field(
-        default_factory=list, description="Ordered list of explainer preferences"
-    )
-    config: dict[str, dict[str, Any]] = Field(
-        default_factory=dict, description="Per-explainer configuration"
-    )
+    strategy: str = Field("first_compatible", description="Selection strategy (first_compatible, best_score)")
+    priority: list[str] = Field(default_factory=list, description="Ordered list of explainer preferences")
+    config: dict[str, dict[str, Any]] = Field(default_factory=dict, description="Per-explainer configuration")
     enabled: bool = Field(True, description="Whether to generate explanations")
 
 
@@ -74,9 +66,7 @@ class MetricCategory(BaseModel):
 
     enabled: bool = Field(True, description="Whether to compute these metrics")
     metrics: list[str] = Field(default_factory=list, description="Metric names")
-    config: dict[str, Any] = Field(
-        default_factory=dict, description="Category-specific configuration"
-    )
+    config: dict[str, Any] = Field(default_factory=dict, description="Category-specific configuration")
 
 
 class MetricsConfig(BaseModel):
@@ -85,9 +75,7 @@ class MetricsConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     performance: list[str] | MetricCategory = Field(
-        default_factory=lambda: MetricCategory(
-            metrics=["accuracy", "precision", "recall", "f1", "auc_roc"]
-        ),
+        default_factory=lambda: MetricCategory(metrics=["accuracy", "precision", "recall", "f1", "auc_roc"]),
         description="Performance metrics",
     )
     fairness: list[str] | MetricCategory = Field(
@@ -114,9 +102,7 @@ class RecourseConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     enabled: bool = Field(False, description="Whether to generate recourse")
-    immutable_features: list[str] = Field(
-        default_factory=list, description="Features that cannot be changed"
-    )
+    immutable_features: list[str] = Field(default_factory=list, description="Features that cannot be changed")
     monotonic_constraints: dict[str, str] = Field(
         default_factory=dict, description="Monotonic constraints (increase_only, decrease_only)"
     )
@@ -131,8 +117,7 @@ class RecourseConfig(BaseModel):
         for feature, constraint in v.items():
             if constraint not in valid_constraints:
                 raise ValueError(
-                    f"Invalid constraint '{constraint}' for feature '{feature}'. "
-                    f"Must be one of {valid_constraints}"
+                    f"Invalid constraint '{constraint}' for feature '{feature}'. Must be one of {valid_constraints}"
                 )
         return v
 
@@ -157,9 +142,7 @@ class ReportConfig(BaseModel):
         ],
         description="Report sections to include",
     )
-    custom_branding: dict[str, Any] | None = Field(
-        None, description="Custom branding configuration (enterprise only)"
-    )
+    custom_branding: dict[str, Any] | None = Field(None, description="Custom branding configuration (enterprise only)")
 
 
 class ReproducibilityConfig(BaseModel):
@@ -190,9 +173,7 @@ class ManifestConfig(BaseModel):
     include_config_hash: bool = Field(True, description="Include configuration hash")
     include_data_hash: bool = Field(True, description="Include data hash")
     include_model_hash: bool = Field(True, description="Include model hash")
-    output_path: Path | None = Field(
-        None, description="Path to save manifest (default: alongside report)"
-    )
+    output_path: Path | None = Field(None, description="Path to save manifest (default: alongside report)")
 
 
 class AuditConfig(BaseModel):
@@ -206,22 +187,14 @@ class AuditConfig(BaseModel):
     data: DataConfig = Field(..., description="Data configuration")
 
     # Optional fields with defaults
-    explainers: ExplainerConfig = Field(
-        default_factory=ExplainerConfig, description="Explainer configuration"
-    )
-    metrics: MetricsConfig = Field(
-        default_factory=MetricsConfig, description="Metrics configuration"
-    )
-    recourse: RecourseConfig = Field(
-        default_factory=RecourseConfig, description="Recourse configuration"
-    )
+    explainers: ExplainerConfig = Field(default_factory=ExplainerConfig, description="Explainer configuration")
+    metrics: MetricsConfig = Field(default_factory=MetricsConfig, description="Metrics configuration")
+    recourse: RecourseConfig = Field(default_factory=RecourseConfig, description="Recourse configuration")
     report: ReportConfig = Field(default_factory=ReportConfig, description="Report configuration")
     reproducibility: ReproducibilityConfig = Field(
         default_factory=ReproducibilityConfig, description="Reproducibility configuration"
     )
-    manifest: ManifestConfig = Field(
-        default_factory=ManifestConfig, description="Manifest configuration"
-    )
+    manifest: ManifestConfig = Field(default_factory=ManifestConfig, description="Manifest configuration")
 
     # Mode flags
     strict_mode: bool = Field(False, description="Enable strict mode for regulatory compliance")

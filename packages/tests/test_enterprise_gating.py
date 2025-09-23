@@ -186,9 +186,7 @@ class TestEnterpriseComponentFiltering:
             from glassalpha.core import select_explainer
 
             selected = select_explainer("xgboost", config)
-            assert (
-                selected == "enterprise_premium"
-            ), "Should select enterprise component with license"
+            assert selected == "enterprise_premium", "Should select enterprise component with license"
         finally:
             del os.environ["GLASSALPHA_LICENSE_KEY"]
 
@@ -212,9 +210,7 @@ class TestEnterpriseComponentFiltering:
         assert "metric_enterprise" not in oss_metrics
 
         # Simulate component selection (simplified)
-        available = [
-            name for name in ["metric_enterprise", "metric_oss", "noop"] if name in oss_metrics
-        ]
+        available = [name for name in ["metric_enterprise", "metric_oss", "noop"] if name in oss_metrics]
         assert "metric_enterprise" not in available
         assert "metric_oss" in available
 

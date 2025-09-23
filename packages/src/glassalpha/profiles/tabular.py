@@ -87,15 +87,12 @@ class TabularComplianceProfile(BaseAuditProfile):
         # Check for protected attributes (needed for fairness)
         if "protected_attributes" not in data_config:
             raise ValueError(
-                f"Profile '{cls.name}' requires 'protected_attributes' "
-                "in data configuration for fairness analysis"
+                f"Profile '{cls.name}' requires 'protected_attributes' in data configuration for fairness analysis"
             )
 
         # Check for schema (needed for determinism)
         if "schema_path" not in data_config and "schema" not in data_config:
-            raise ValueError(
-                f"Profile '{cls.name}' requires data schema for " "deterministic validation"
-            )
+            raise ValueError(f"Profile '{cls.name}' requires data schema for deterministic validation")
 
         # Check explainer configuration
         explainer_config = config.get("explainers", {})
@@ -117,10 +114,7 @@ class TabularComplianceProfile(BaseAuditProfile):
         # Validate recourse configuration if present
         if "recourse" in config:
             recourse_config = config["recourse"]
-            if (
-                recourse_config.get("enabled", False)
-                and "immutable_features" not in recourse_config
-            ):
+            if recourse_config.get("enabled", False) and "immutable_features" not in recourse_config:
                 raise ValueError("Recourse requires 'immutable_features' to be specified")
 
         return True

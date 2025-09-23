@@ -12,17 +12,19 @@ This demonstrates:
 import os
 import sys
 
-sys.path.insert(0, 'src')
+sys.path.insert(0, "src")
 
 # Mock imports as before
-sys.modules['pandas'] = type(sys)('pandas')
-sys.modules['numpy'] = type(sys)('numpy')
-sys.modules['pandas'].DataFrame = lambda x: x
-sys.modules['numpy'].ndarray = list
-sys.modules['numpy'].array = lambda x: x
-sys.modules['numpy'].zeros = lambda shape: [[0] * shape[1] for _ in range(shape[0])] if len(shape) > 1 else [0] * shape[0]
-sys.modules['numpy'].full = lambda n, val: [val] * n
-sys.modules['numpy'].unique = lambda x: set(x) if hasattr(x, '__iter__') else {x}
+sys.modules["pandas"] = type(sys)("pandas")
+sys.modules["numpy"] = type(sys)("numpy")
+sys.modules["pandas"].DataFrame = lambda x: x
+sys.modules["numpy"].ndarray = list
+sys.modules["numpy"].array = lambda x: x
+sys.modules["numpy"].zeros = lambda shape: (
+    [[0] * shape[1] for _ in range(shape[0])] if len(shape) > 1 else [0] * shape[0]
+)
+sys.modules["numpy"].full = lambda n, val: [val] * n
+sys.modules["numpy"].unique = lambda x: set(x) if hasattr(x, "__iter__") else {x}
 
 import logging
 
@@ -62,19 +64,14 @@ def main():
     # Minimal config
     minimal_config = {
         "audit_profile": "tabular_compliance",
-        "model": {
-            "type": "xgboost",
-            "path": "/path/to/model.pkl"
-        },
+        "model": {"type": "xgboost", "path": "/path/to/model.pkl"},
         "data": {
             "path": "/path/to/data.csv",
             "schema_path": "/path/to/schema.yaml",
             "protected_attributes": ["age", "gender"],
-            "target_column": "outcome"
+            "target_column": "outcome",
         },
-        "explainers": {
-            "priority": ["treeshap", "noop"]
-        }
+        "explainers": {"priority": ["treeshap", "noop"]},
     }
 
     try:
@@ -101,8 +98,8 @@ def main():
         "data": {
             "path": "/path/to/data.csv",
             # Missing schema!
-            "protected_attributes": []
-        }
+            "protected_attributes": [],
+        },
     }
 
     try:
@@ -110,7 +107,7 @@ def main():
         print("   ✗ Should have failed strict validation!")
     except StrictModeError as e:
         print("   ✓ Strict mode correctly rejected incomplete config")
-        error_lines = str(e).split('\n')[:3]
+        error_lines = str(e).split("\n")[:3]
         for line in error_lines:
             if line.strip():
                 print(f"     {line}")
@@ -120,11 +117,7 @@ def main():
     # 5. Test deterministic selection
     print("\n5. DETERMINISTIC COMPONENT SELECTION:")
 
-    config_dict = {
-        "explainers": {
-            "priority": ["nonexistent", "noop"]  # First doesn't exist
-        }
-    }
+    config_dict = {"explainers": {"priority": ["nonexistent", "noop"]}}  # First doesn't exist
 
     selected = select_explainer("xgboost", config_dict)
     print(f"   Selected explainer: {selected}")
@@ -139,9 +132,9 @@ def main():
     print(f"   Enterprise mode: {is_enterprise()}")
 
     # Simulate enterprise
-    os.environ['GLASSALPHA_LICENSE_KEY'] = 'demo-key'
+    os.environ["GLASSALPHA_LICENSE_KEY"] = "demo-key"
     print(f"   With license: {is_enterprise()}")
-    del os.environ['GLASSALPHA_LICENSE_KEY']
+    del os.environ["GLASSALPHA_LICENSE_KEY"]
 
     # 7. Simulate CLI commands
     print("\n7. CLI COMMAND STRUCTURE (simulated):")
@@ -151,7 +144,7 @@ def main():
         "glassalpha validate --config audit.yaml",
         "glassalpha list models",
         "glassalpha dashboard serve  # Enterprise only",
-        "glassalpha monitor drift    # Enterprise only"
+        "glassalpha monitor drift    # Enterprise only",
     ]
     for cmd in commands:
         print(f"   $ {cmd}")
@@ -183,6 +176,7 @@ def main():
 
     print("\n🚀 Ready to implement actual ML components!")
     print("=" * 60)
+
 
 if __name__ == "__main__":
     main()

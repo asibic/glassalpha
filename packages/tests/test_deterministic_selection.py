@@ -145,9 +145,7 @@ class TestDeterministicSelection:
 
     def test_selection_with_missing_registry_entry(self):
         """Test graceful handling of missing registry entries."""
-        config = {
-            "explainers": {"priority": ["definitely_not_registered", "also_not_there", "noop"]}
-        }
+        config = {"explainers": {"priority": ["definitely_not_registered", "also_not_there", "noop"]}}
 
         # Should gracefully skip missing and select noop
         selected = select_explainer("xgboost", config)

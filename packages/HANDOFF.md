@@ -8,16 +8,16 @@
 - **Core Interfaces** (`src/glassalpha/core/interfaces.py`)
   - ModelInterface, ExplainerInterface, MetricInterface protocols
   - All use Python's `typing.Protocol` for flexibility
-  
+
 - **Registry System** (`src/glassalpha/core/registry.py`)
   - Component registration with `@register` decorator
   - Deterministic plugin selection via priority lists
   - Enterprise filtering support
-  
+
 - **NoOp Components** (`src/glassalpha/core/noop_components.py`)
   - PassThroughModel, NoOpExplainer, NoOpMetric
   - These prove the architecture patterns work
-  
+
 - **Feature Flags** (`src/glassalpha/core/features.py`)
   - Simple `GLASSALPHA_LICENSE_KEY` environment variable check
   - `@check_feature` decorator for enterprise gating
@@ -25,17 +25,17 @@
 #### Phase 1 Foundation
 - **Audit Profiles** (`src/glassalpha/profiles/`)
   - TabularComplianceProfile defines valid component combinations
-  
+
 - **Configuration System** (`src/glassalpha/config/`)
   - Pydantic schemas for validation
   - YAML loading with profile support
   - Strict mode for regulatory compliance
-  
+
 - **CLI Structure** (`src/glassalpha/cli/`)
   - Typer app with command groups
   - Commands: audit, validate, list
   - --strict flag implemented
-  
+
 - **Tests** (`tests/`)
   - Deterministic selection tests
   - Enterprise feature gating tests
@@ -67,38 +67,38 @@ from ...core.interfaces import ModelInterface
 @ModelRegistry.register("xgboost")
 class XGBoostWrapper:
     """Wrapper for XGBoost models."""
-    
+
     capabilities = {
         "supports_shap": True,
         "supports_feature_importance": True,
         "data_modality": "tabular"
     }
     version = "1.0.0"
-    
+
     def __init__(self, model_path: str = None):
         self.model = None
         if model_path:
             self.load(model_path)
-    
+
     def load(self, path: str):
         """Load XGBoost model from file."""
         self.model = xgb.Booster()
         self.model.load_model(path)
-    
+
     def predict(self, X: pd.DataFrame) -> np.ndarray:
         """Generate predictions."""
         dmatrix = xgb.DMatrix(X)
         return self.model.predict(dmatrix)
-    
+
     def predict_proba(self, X: pd.DataFrame) -> np.ndarray:
         """Generate probability predictions."""
         preds = self.predict(X)
         # For binary classification
         return np.column_stack([1 - preds, preds])
-    
+
     def get_model_type(self) -> str:
         return "xgboost"
-    
+
     def get_capabilities(self) -> Dict[str, Any]:
         return self.capabilities
 ```
@@ -118,14 +118,14 @@ from ...core.interfaces import ExplainerInterface, ModelInterface
 @ExplainerRegistry.register("treeshap", priority=100)
 class TreeSHAPExplainer:
     """TreeSHAP explainer for tree-based models."""
-    
+
     capabilities = {
         "supported_models": ["xgboost", "lightgbm", "random_forest"],
         "explanation_type": "shap_values"
     }
     version = "1.0.0"
     priority = 100
-    
+
     def explain(
         self,
         model: ModelInterface,
@@ -133,17 +133,17 @@ class TreeSHAPExplainer:
         y: Optional[np.ndarray] = None
     ) -> Dict[str, Any]:
         """Generate SHAP explanations."""
-        
+
         # Create SHAP explainer
         if model.get_model_type() == "xgboost":
             explainer = shap.TreeExplainer(model.model)
         else:
             # Fallback for other tree models
             explainer = shap.TreeExplainer(model.model)
-        
+
         # Calculate SHAP values
         shap_values = explainer.shap_values(X)
-        
+
         return {
             "status": "success",
             "shap_values": shap_values,
@@ -151,11 +151,11 @@ class TreeSHAPExplainer:
             "feature_importance": np.abs(shap_values).mean(axis=0),
             "explainer_type": "treeshap"
         }
-    
+
     def supports_model(self, model: ModelInterface) -> bool:
         """Check if this explainer supports the model."""
         return model.get_model_type() in self.capabilities["supported_models"]
-    
+
     def get_explanation_type(self) -> str:
         return "shap_values"
 ```
@@ -262,7 +262,7 @@ You'll know Phase 1 is complete when:
 ## 📝 Important Files to Reference
 
 - **Architecture Rules**: `.cursor/rules/architecture.mdc`
-- **Phase 1 Priorities**: `.cursor/rules/phase1_priorities.mdc` 
+- **Phase 1 Priorities**: `.cursor/rules/phase1_priorities.mdc`
 - **Example Config**: `configs/example_audit.yaml`
 - **Package Structure**: `PACKAGE_STRUCTURE.md`
 - **Core Tests**: `tests/test_core_foundation.py`
@@ -293,4 +293,3 @@ glassalpha audit --config configs/german_credit.yaml --out audit.pdf --strict
 ---
 
 **The architecture foundation is complete and proven. All patterns work. You're ready to implement the actual ML components!**
-

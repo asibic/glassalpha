@@ -7,7 +7,7 @@ GlassAlpha is built as an **extensible framework** for AI compliance and interpr
 ### Core Design Principles
 
 1. **Plugin Architecture**: All components (models, explainers, metrics) use dynamic registration
-2. **Deterministic Behavior**: Configuration-driven with reproducible results  
+2. **Deterministic Behavior**: Configuration-driven with reproducible results
 3. **Clear OSS/Enterprise Separation**: Core functionality is open-source, advanced features are commercial
 4. **Modality-Agnostic Interfaces**: Designed to support tabular, text, and vision models
 
@@ -15,7 +15,7 @@ GlassAlpha is built as an **extensible framework** for AI compliance and interpr
 
 ### Phase 1 (Current Focus)
 - ✅ XGBoost, LightGBM, LogisticRegression support
-- ✅ TreeSHAP explainability  
+- ✅ TreeSHAP explainability
 - ✅ Fairness metrics (demographic parity, equal opportunity)
 - ✅ Basic recourse (immutables, monotonicity)
 - ✅ Deterministic PDF audit reports

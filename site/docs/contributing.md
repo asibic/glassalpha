@@ -6,7 +6,7 @@ Thank you for your interest in contributing to GlassAlpha! This guide focuses on
 
 !!! info "Contribution Guidelines"
     Contributions should focus on: **"Does this directly improve audit PDF quality, usability, or reproducibility?"**
-    
+
     - Features should align with audit-first approach
     - Avoid complexity without clear user value
 
@@ -69,10 +69,10 @@ def test_feature_importance_calculation():
     # Arrange
     values = np.array([0.1, 0.2, 0.3])
     features = ['f1', 'f2', 'f3']
-    
+
     # Act
     result = calculate_importance(values, features, normalize=True)
-    
+
     # Assert
     assert sum(result.values()) == pytest.approx(1.0)
 ```
@@ -158,18 +158,18 @@ def explain_prediction(
     background: Optional[pd.DataFrame] = None
 ) -> Explanation:
     """Generate explanation for a single prediction.
-    
+
     Args:
         model: Trained model object supporting .predict()
         instance: Single data instance to explain
         background: Background dataset for SHAP. If None, uses training data.
-    
+
     Returns:
         Explanation object containing SHAP values and visualizations.
-    
+
     Raises:
         ValueError: If instance shape doesn't match model input.
-    
+
     Example:
         >>> exp = explain_prediction(model, X_test.iloc[0])
         >>> exp.plot_waterfall()

@@ -12,7 +12,8 @@ def main():
 
     # Show project structure
     print("\n📁 PROJECT STRUCTURE CREATED:")
-    print("""
+    print(
+        """
     packages/src/glassalpha/
     ├── core/                     # ✅ Phase 0 - Architecture Foundation
     │   ├── __init__.py
@@ -36,10 +37,12 @@ def main():
         ├── __init__.py
         ├── main.py              # Typer app with command groups
         └── commands.py          # audit, validate, list commands
-    """)
+    """
+    )
 
     print("\n✅ PHASE 0 ACHIEVEMENTS (Architecture Foundation):")
-    print("""
+    print(
+        """
     1. Protocol Interfaces (arch-1)
        - ModelInterface, ExplainerInterface, MetricInterface
        - AuditProfileInterface, DataInterface
@@ -69,10 +72,12 @@ def main():
        - Feature matrix in site/docs/enterprise-features.md
        - Clear OSS vs Enterprise boundaries
        - Pricing and support tiers defined
-    """)
+    """
+    )
 
     print("\n✅ PHASE 1 ACHIEVEMENTS (Core Implementation):")
-    print("""
+    print(
+        """
     1. Configuration System (config-1)
        - Pydantic-based schema validation
        - YAML loading with profile defaults
@@ -90,14 +95,16 @@ def main():
        - Requires all fields for compliance
        - Converts warnings to errors
        - Complete manifest generation
-    """)
+    """
+    )
 
     print("\n📊 COMPLETION STATUS:")
     completed = 14
     total = 16
     percentage = (completed / total) * 100
 
-    print(f"""
+    print(
+        f"""
     Completed: {completed}/{total} TODOs ({percentage:.0f}%)
 
     ✅ Completed:
@@ -115,19 +122,23 @@ def main():
        - test-1: Tests for deterministic selection
        - test-2: Tests for enterprise gating
        - arch-4: OSS/Enterprise package split (deferrable)
-    """)
+    """
+    )
 
     print("\n🎯 KEY ARCHITECTURE BENEFITS:")
-    print("""
+    print(
+        """
     1. Extensibility: Add new models/explainers without changing core
     2. Determinism: Guaranteed reproducible results for compliance
     3. Modularity: Clean separation of concerns
     4. Future-proof: Ready for LLMs, vision models, etc.
     5. Revenue protection: Clear OSS/Enterprise boundaries
-    """)
+    """
+    )
 
     print("\n📝 EXAMPLE USAGE:")
-    print("""
+    print(
+        """
     # Basic audit
     $ glassalpha audit --config audit.yaml --output report.pdf
 
@@ -143,10 +154,12 @@ def main():
     # Enterprise features (with license)
     $ export GLASSALPHA_LICENSE_KEY="your-key"
     $ glassalpha dashboard serve
-    """)
+    """
+    )
 
     print("\n🚀 NEXT STEPS:")
-    print("""
+    print(
+        """
     1. Implement actual ML components:
        - XGBoost, LightGBM wrappers
        - TreeSHAP explainer
@@ -161,12 +174,14 @@ def main():
        - Template system
        - Deterministic plots
        - Complete manifest
-    """)
+    """
+    )
 
     print("\n" + "=" * 70)
     print("The architecture is solid and ready for implementation!")
     print("All patterns are proven to work with the NoOp components.")
     print("=" * 70 + "\n")
+
 
 if __name__ == "__main__":
     main()

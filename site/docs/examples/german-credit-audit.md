@@ -69,19 +69,19 @@ audit:
     - foreign_worker:
         column: foreign_worker
         groups: [0, 1]
-        
+
   fairness_metrics:
     - demographic_parity
-    - equalized_odds  
+    - equalized_odds
     - equal_opportunity
-    
+
   confidence_level: 0.95
-  
+
 explainability:
   shap_values: true
   feature_importance: true
   waterfall_plots: 10  # Top 10 most important predictions
-  
+
 reproducibility:
   random_seed: 42
   track_git: true
@@ -104,7 +104,7 @@ glassalpha audit --config german_credit_audit.yaml --out german_credit_complete_
    - Key fairness findings
    - Regulatory compliance status
 
-2. **Data Analysis** 
+2. **Data Analysis**
    - Dataset statistics and distributions
    - Protected attribute analysis
    - Feature correlation matrix
@@ -136,7 +136,7 @@ glassalpha audit --config german_credit_audit.yaml --out german_credit_complete_
 This audit addresses common compliance requirements:
 
 - **Fair Credit Reporting Act (FCRA)**
-- **Equal Credit Opportunity Act (ECOA)** 
+- **Equal Credit Opportunity Act (ECOA)**
 - **EU GDPR Article 22** (Automated Decision-Making)
 - **Basel III** (Model Risk Management)
 

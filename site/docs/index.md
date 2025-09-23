@@ -14,7 +14,7 @@ Our target is simple, powerful audit generation:
     ```bash
     # Future CLI interface (not yet available)
     glassalpha audit --config configs/german_credit.yaml --out my_audit.pdf
-    
+
     # Will produce byte-identical PDF audits with complete lineage tracking
     ```
     **Goal:** Generate deterministic audit PDFs for XGBoost, LightGBM, and Logistic Regression models.
@@ -26,7 +26,7 @@ Our target is simple, powerful audit generation:
 - **Planned: Complete lineage** - Git SHA, config hash, data hash, seeds will be recorded
 - **Planned: Professional formatting** - Publication-quality reports with visualizations
 
-### On-Premise First Design 
+### On-Premise First Design
 - **No external dependencies** - Will run completely offline
 - **File-based approach** - No databases or complex infrastructure needed
 - **Full reproducibility** - Immutable run manifests for audit trails
@@ -55,7 +55,7 @@ Audit reports will include:
    - Confusion matrices and performance curves
    - Cross-validation results
 
-2. **TreeSHAP Explanations** 
+2. **TreeSHAP Explanations**
    - Feature importance rankings
    - Individual prediction explanations
    - Waterfall plots for key decisions
@@ -95,7 +95,7 @@ We're actively building the audit generation system. Here's how you can help:
 
 ### Priority Areas
 1. **Core Audit Engine** - PDF generation pipeline
-2. **TreeSHAP Integration** - Model explanation system  
+2. **TreeSHAP Integration** - Model explanation system
 3. **Fairness Metrics** - Bias detection implementation
 4. **CLI Interface** - Command-line tool development
 5. **Test Coverage** - Example datasets and validation
@@ -107,17 +107,17 @@ We're actively building the audit generation system. Here's how you can help:
 model:
   type: xgboost
   target_column: default
-  
+
 data:
   train_path: german_credit_train.csv
   test_path: german_credit_test.csv
-  
+
 audit:
   protected_attributes:
     - gender
     - age_group
   confidence_level: 0.95
-  
+
 reproducibility:
   random_seed: 42
 ```
@@ -135,7 +135,7 @@ This configuration format is being designed to support deterministic, reproducib
 
 - [Development Guide](getting-started/quickstart.md) - Set up your development environment
 - [Design: Configuration Schema](getting-started/configuration.md) - Planned YAML structure
-- [Vision: Regulatory Compliance](compliance/overview.md) - Target compliance frameworks  
+- [Vision: Regulatory Compliance](compliance/overview.md) - Target compliance frameworks
 - [Contributing](contributing.md) - Help build GlassAlpha
 
 ## Development Status

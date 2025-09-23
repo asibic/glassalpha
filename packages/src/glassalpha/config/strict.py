@@ -73,9 +73,7 @@ def validate_strict_mode(config: AuditConfig) -> None:
         errors.append("Explainer priority list must be specified in strict mode")
 
     if config.explainers.strategy != "first_compatible":
-        errors.append(
-            "Explainer strategy must be 'first_compatible' for determinism in strict mode"
-        )
+        errors.append("Explainer strategy must be 'first_compatible' for determinism in strict mode")
 
     # Check manifest configuration
     if not config.manifest.enabled:
@@ -103,9 +101,7 @@ def validate_strict_mode(config: AuditConfig) -> None:
 
     # Check recourse if enabled
     if config.recourse.enabled and not config.recourse.immutable_features:
-        errors.append(
-            "Immutable features must be specified when recourse is enabled in strict mode"
-        )
+        errors.append("Immutable features must be specified when recourse is enabled in strict mode")
 
     # Convert warnings to errors
     warnings.simplefilter("error")

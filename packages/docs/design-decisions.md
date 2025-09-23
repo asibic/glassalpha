@@ -4,7 +4,7 @@
 
 **Decision**: Use `raise typer.Exit(1) from None` in CLI exception handlers
 
-**Rationale**: 
+**Rationale**:
 - CLI applications should provide clean, user-friendly error messages
 - End users don't need to see Python stack traces for common errors like "file not found"
 - The `from None` explicitly suppresses the chain while satisfying linter requirements
@@ -21,9 +21,9 @@ except FileNotFoundError as e:
     typer.secho(f"Error: {e}", fg=typer.colors.RED, err=True)
     raise typer.Exit(1) from None  # User sees: "Error: File not found: config.yaml"
 
-# BAD - Scary for users  
+# BAD - Scary for users
 except FileNotFoundError as e:
-    typer.secho(f"Error: {e}", fg=typer.colors.RED, err=True)  
+    typer.secho(f"Error: {e}", fg=typer.colors.RED, err=True)
     raise typer.Exit(1) from e  # User sees: Full Python traceback + file paths
 ```
 
@@ -48,7 +48,7 @@ except FileNotFoundError as e:
 def command(
     config: Path = typer.Option(  # B008 warning, but necessary
         ...,
-        "--config", 
+        "--config",
         help="Configuration file",
         exists=True  # This validation requires the function call
     )
@@ -92,7 +92,7 @@ from glassalpha.core import ModelRegistry  # E402 warning, but necessary
 
 **Rationale**:
 - The import is used to detect if tensorflow is in the environment
-- This affects reproducibility warnings in strict mode  
+- This affects reproducibility warnings in strict mode
 - The import is intentional, even though the module isn't directly used
 
 **Example**:
@@ -116,6 +116,6 @@ except ImportError:
 
 **Implementation**: Use per-file ignores in `pyproject.toml` to disable specific rules where they conflict with intentional design patterns.
 
-**Key Files**: 
+**Key Files**:
 - `pyproject.toml` - Per-file linter configuration
 - `src/glassalpha/cli/*.py` - Strategic comments explaining design choices

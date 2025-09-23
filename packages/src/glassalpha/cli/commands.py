@@ -90,32 +90,24 @@ def audit(
         if override_config:
             typer.echo(f"Applying overrides from: {override_config}")
 
-        audit_config = load_config_from_file(
-            config, override_path=override_config, profile_name=profile, strict=strict
-        )
+        audit_config = load_config_from_file(config, override_path=override_config, profile_name=profile, strict=strict)
 
         # Report configuration
         typer.echo(f"Audit profile: {audit_config.audit_profile}")
         typer.echo(f"Strict mode: {'ENABLED' if audit_config.strict_mode else 'disabled'}")
 
         if audit_config.strict_mode:
-            typer.secho(
-                "⚠️  Strict mode enabled - enforcing regulatory compliance", fg=typer.colors.YELLOW
-            )
+            typer.secho("⚠️  Strict mode enabled - enforcing regulatory compliance", fg=typer.colors.YELLOW)
 
         # Validate components exist
         available = list_components()
         model_type = audit_config.model.type
 
         if model_type not in available.get("models", []) and model_type != "passthrough":
-            typer.secho(
-                f"Warning: Model type '{model_type}' not found in registry", fg=typer.colors.YELLOW
-            )
+            typer.secho(f"Warning: Model type '{model_type}' not found in registry", fg=typer.colors.YELLOW)
 
         if dry_run:
-            typer.secho(
-                "✓ Configuration valid (dry run - no report generated)", fg=typer.colors.GREEN
-            )
+            typer.secho("✓ Configuration valid (dry run - no report generated)", fg=typer.colors.GREEN)
             return
 
         # TODO: Implement actual audit pipeline
@@ -123,9 +115,7 @@ def audit(
         typer.echo(f"Output: {output}")
 
         # Placeholder for actual implementation
-        typer.secho(
-            "\n⚠️  Note: Audit pipeline implementation pending (Phase 1)", fg=typer.colors.YELLOW
-        )
+        typer.secho("\n⚠️  Note: Audit pipeline implementation pending (Phase 1)", fg=typer.colors.YELLOW)
 
         # Simulate success
         typer.secho(f"\n✓ Audit report would be generated at: {output}", fg=typer.colors.GREEN)
@@ -201,9 +191,7 @@ def validate(
 
         # Show warnings if any
         if not audit_config.reproducibility.random_seed:
-            typer.secho(
-                "Warning: No random seed specified - results may vary", fg=typer.colors.YELLOW
-            )
+            typer.secho("Warning: No random seed specified - results may vary", fg=typer.colors.YELLOW)
 
         if not audit_config.data.protected_attributes:
             typer.secho(
@@ -260,9 +248,7 @@ def list_components_cmd(
     """
     from ..core import list_components
 
-    components = list_components(
-        component_type=component_type, include_enterprise=include_enterprise
-    )
+    components = list_components(component_type=component_type, include_enterprise=include_enterprise)
 
     if not components:
         typer.echo(f"No components found for type: {component_type}")
@@ -286,6 +272,4 @@ def list_components_cmd(
 
     if include_enterprise:
         typer.echo("\n" + "=" * 40)
-        typer.secho(
-            "Note: Enterprise components require a valid license key", fg=typer.colors.YELLOW
-        )
+        typer.secho("Note: Enterprise components require a valid license key", fg=typer.colors.YELLOW)

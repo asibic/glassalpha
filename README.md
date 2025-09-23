@@ -15,7 +15,7 @@ Glass Alpha provides **deterministic, regulator-ready audit reports** with compl
 ## Status & Scope
 
 **Phase 1 Focus** (Current Development):
-- ✅ One-command PDF audit generation  
+- ✅ One-command PDF audit generation
 - ✅ XGBoost, LightGBM, LogisticRegression support
 - ✅ TreeSHAP explainability + fairness metrics
 - ✅ Deterministic, reproducible outputs
@@ -49,7 +49,7 @@ glassalpha audit --config configs/audit.yaml --out audit.pdf --strict
 
 - **`packages/`**: Core Python package ([detailed README](packages/README.md))
   - Plugin architecture with OSS/Enterprise separation
-  - Protocol-based interfaces for extensibility  
+  - Protocol-based interfaces for extensibility
   - Deterministic component selection
 - **`site/`**: Documentation (MkDocs)
 - **`configs/`**: Example audit configurations
@@ -77,7 +77,7 @@ See [CONTRIBUTING](site/docs/contributing.md) for development guidelines.
 ## Documentation
 
 - **Quick Reference**: [packages/README.md](packages/README.md)
-- **Full Docs**: [site/docs/](site/docs/) 
+- **Full Docs**: [site/docs/](site/docs/)
 - **Examples**: Coming soon in Phase 1
 
 ## License & Business Model
@@ -87,7 +87,7 @@ See [CONTRIBUTING](site/docs/contributing.md) for development guidelines.
 - **Brand**: "Glass Alpha" trademark - see [TRADEMARK.md](TRADEMARK.md)
 
 **Support**:
-- OSS: GitHub Issues  
+- OSS: GitHub Issues
 - Enterprise: Priority support with SLA
 
 ---

@@ -19,7 +19,7 @@ The Adult Income dataset contains 48,842 census records with demographic and emp
 
 ## Dataset Details
 
-- **Size**: 48,842 instances, 14 attributes  
+- **Size**: 48,842 instances, 14 attributes
 - **Target**: Binary (income >$50K or ≤$50K)
 - **Protected Attributes**: Race, gender, age, native country
 - **Use Case**: Employment screening, hiring bias detection
@@ -66,20 +66,20 @@ audit:
         groups: ["White", "Black", "Asian-Pac-Islander", "Amer-Indian-Eskimo", "Other"]
     - gender:
         column: gender
-        groups: ["Male", "Female"]  
+        groups: ["Male", "Female"]
     - age_group:
         column: age
         groups: [0, 25, 35, 45, 55, 100]
     - country_origin:
         column: native_country
         groups: ["United-States", "Other"]
-        
+
   fairness_metrics:
     - statistical_parity
     - equal_opportunity
     - equalized_odds
     - predictive_parity
-    
+
   disparate_impact_threshold: 0.8  # 80% rule
   confidence_level: 0.95
 
@@ -127,7 +127,7 @@ glassalpha audit --config adult_income_audit.yaml --out adult_income_hiring_audi
 
 4. **Bias Detection Analysis**
    - Statistical parity ratios
-   - Equal opportunity differences  
+   - Equal opportunity differences
    - 80% rule compliance check
    - Disparate impact calculations
 
@@ -147,7 +147,7 @@ This audit addresses employment law requirements:
 
 - **Title VII** (Civil Rights Act 1964)
 - **EEOC Uniform Guidelines** (Four-Fifths Rule)
-- **ADA** (Americans with Disabilities Act)  
+- **ADA** (Americans with Disabilities Act)
 - **ADEA** (Age Discrimination in Employment Act)
 - **EU GDPR** (Automated Decision-Making)
 
@@ -169,7 +169,7 @@ This audit addresses employment law requirements:
 
 This example will showcase GlassAlpha's ability to:
 1. **Detect bias** - Identify when models fail the Four-Fifths Rule
-2. **Explain disparities** - Show which features drive unfair outcomes  
+2. **Explain disparities** - Show which features drive unfair outcomes
 3. **Suggest mitigations** - Provide actionable recommendations
 
 ## Mitigation Strategies
@@ -184,5 +184,5 @@ The audit report will include actionable recommendations:
 ## Next Steps
 
 - [German Credit Audit](german-credit-audit.md) - Financial lending example
-- [Regulatory Compliance](../compliance/overview.md) - Compliance requirements  
+- [Regulatory Compliance](../compliance/overview.md) - Compliance requirements
 - [Legal Compliance](../compliance/overview.md) - Regulatory requirements

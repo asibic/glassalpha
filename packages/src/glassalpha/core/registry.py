@@ -77,11 +77,7 @@ class ComponentRegistry:
         if include_enterprise:
             return self._registry.copy()
 
-        return {
-            name: cls
-            for name, cls in self._registry.items()
-            if not self._metadata[name].get("enterprise", False)
-        }
+        return {name: cls for name, cls in self._registry.items() if not self._metadata[name].get("enterprise", False)}
 
     def select_by_priority(self, names: list[str], filter_fn: Any | None = None) -> str | None:
         """Select component by priority order.
@@ -181,9 +177,7 @@ def select_explainer(model_type: str, config: dict[str, Any]) -> str | None:
     return selected
 
 
-def list_components(
-    component_type: str = None, include_enterprise: bool = False
-) -> dict[str, list[str]]:
+def list_components(component_type: str = None, include_enterprise: bool = False) -> dict[str, list[str]]:
     """List all registered components.
 
     Args:

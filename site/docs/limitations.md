@@ -11,7 +11,7 @@ GlassAlpha follows an **audit-first** approach, prioritizing regulatory complian
 
 **What we're building:**
 - Deterministic PDF audit report generation
-- TreeSHAP explanations for tabular models (XGBoost, LightGBM, LogisticRegression)  
+- TreeSHAP explanations for tabular models (XGBoost, LightGBM, LogisticRegression)
 - Basic fairness metrics (demographic parity, equalized odds)
 - Complete reproducibility with lineage tracking
 - Simple CLI interface with YAML configuration

@@ -43,7 +43,7 @@ Glass Alpha follows these security principles:
 ## Security Features
 
 - **Local Processing**: All model analysis happens on your infrastructure
-- **No Data Transmission**: Your data never leaves your environment  
+- **No Data Transmission**: Your data never leaves your environment
 - **Audit Trail**: Complete lineage tracking with cryptographic hashes
 - **Deterministic Output**: Identical results for compliance verification
 

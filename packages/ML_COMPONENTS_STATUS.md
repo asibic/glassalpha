@@ -53,7 +53,7 @@ src/glassalpha/
 
 ```python
 Models: ['passthrough', 'xgboost']
-Explainers: ['noop', 'treeshap']  
+Explainers: ['noop', 'treeshap']
 Metrics: ['noop']
 ```
 
