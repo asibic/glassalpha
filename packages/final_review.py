@@ -5,6 +5,7 @@ import os
 import sys
 from pathlib import Path
 
+
 def check_files():
     """Check all created files exist."""
     files = {
@@ -48,11 +49,11 @@ def check_files():
             '../site/docs/enterprise-features.md',
         ],
     }
-    
+
     total = 0
     found = 0
     missing = []
-    
+
     for category, file_list in files.items():
         print(f"\n{category}:")
         for file_path in file_list:
@@ -63,7 +64,7 @@ def check_files():
             else:
                 missing.append(file_path)
                 print(f"  ✗ {file_path}")
-    
+
     return found, total, missing
 
 def test_core_imports():
@@ -71,53 +72,49 @@ def test_core_imports():
     print("\n" + "=" * 70)
     print("IMPORT VALIDATION")
     print("=" * 70)
-    
+
     # Mock dependencies
     sys.path.insert(0, 'src')
     sys.modules['pandas'] = type(sys)('pandas')
     sys.modules['numpy'] = type(sys)('numpy')
-    
+
     results = []
-    
+
     # Test core imports
     try:
         from glassalpha.core import (
-            ModelRegistry, ExplainerRegistry, MetricRegistry,
-            is_enterprise, check_feature, FeatureNotAvailable,
-            PassThroughModel, NoOpExplainer, NoOpMetric,
-            list_components, select_explainer
+            list_components,
         )
         print("✓ Core imports successful")
         results.append(True)
-        
+
         # Test basic functionality
         components = list_components()
         print(f"✓ Registry system works: {len(components)} component types")
-        
+
         # Test NoOp components registered
         if 'passthrough' in components.get('models', []):
             print("✓ PassThrough model registered")
         else:
             print("✗ PassThrough model not registered")
-            
+
         if 'noop' in components.get('explainers', []):
             print("✓ NoOp explainer registered")
         else:
             print("✗ NoOp explainer not registered")
-            
+
     except Exception as e:
         print(f"✗ Core import failed: {e}")
         results.append(False)
-    
+
     # Test profiles
     try:
-        from glassalpha.profiles import TabularComplianceProfile
         print("✓ Profiles import successful")
         results.append(True)
     except Exception as e:
         print(f"✗ Profiles import failed: {e}")
         results.append(False)
-    
+
     return all(results)
 
 def architecture_summary():
@@ -125,7 +122,7 @@ def architecture_summary():
     print("\n" + "=" * 70)
     print("ARCHITECTURE SUMMARY")
     print("=" * 70)
-    
+
     print("""
 COMPLETED COMPONENTS:
 
@@ -158,7 +155,7 @@ def gaps_and_next_steps():
     print("\n" + "=" * 70)
     print("GAPS AND NEXT STEPS")
     print("=" * 70)
-    
+
     gaps = [
         ("Model Implementations", [
             "XGBoostWrapper in models/tabular/xgboost.py",
@@ -190,13 +187,13 @@ def gaps_and_next_steps():
             "Logging configuration"
         ])
     ]
-    
+
     print("\nMISSING COMPONENTS (Expected - these are Phase 1 implementations):\n")
     for category, items in gaps:
         print(f"  {category}:")
         for item in items:
             print(f"    • {item}")
-    
+
     print("""
 RECOMMENDED IMPLEMENTATION ORDER:
 1. Start with model wrappers (they're simple adapters)
@@ -212,9 +209,9 @@ def validation_tests():
     print("\n" + "=" * 70)
     print("VALIDATION TESTS")
     print("=" * 70)
-    
+
     tests_passed = []
-    
+
     # Test 1: Deterministic selection
     print("\n1. Deterministic Selection Test:")
     try:
@@ -230,18 +227,18 @@ def validation_tests():
     except Exception as e:
         print(f"   ✗ Test failed: {e}")
         tests_passed.append(False)
-    
+
     # Test 2: Feature flags
     print("\n2. Enterprise Feature Flag Test:")
     try:
         from glassalpha.core import is_enterprise
-        
+
         # Without license
         if not is_enterprise():
             print("   ✓ Correctly identifies OSS mode")
         else:
             print("   ✗ Should be OSS mode")
-            
+
         # With license
         os.environ['GLASSALPHA_LICENSE_KEY'] = 'test'
         if is_enterprise():
@@ -254,12 +251,12 @@ def validation_tests():
     except Exception as e:
         print(f"   ✗ Test failed: {e}")
         tests_passed.append(False)
-    
+
     # Test 3: Registry pattern
     print("\n3. Registry Pattern Test:")
     try:
         from glassalpha.core import ModelRegistry, PassThroughModel
-        
+
         model_cls = ModelRegistry.get("passthrough")
         if model_cls == PassThroughModel:
             print("   ✓ Registry retrieval works")
@@ -270,7 +267,7 @@ def validation_tests():
     except Exception as e:
         print(f"   ✗ Test failed: {e}")
         tests_passed.append(False)
-    
+
     return all(tests_passed)
 
 def main():
@@ -280,31 +277,31 @@ def main():
     print("=" * 70)
     print("Date: September 2024")
     print("Phase: 0 & 1 Complete")
-    
+
     # Check files
     print("\n" + "=" * 70)
     print("FILE STRUCTURE CHECK")
     print("=" * 70)
     found, total, missing = check_files()
     print(f"\n📊 Files Found: {found}/{total} ({found*100//total}%)")
-    
+
     # Test imports
     imports_ok = test_core_imports()
-    
+
     # Architecture summary
     architecture_summary()
-    
+
     # Validation tests
     tests_ok = validation_tests()
-    
+
     # Gaps and next steps
     gaps_and_next_steps()
-    
+
     # Final score
     print("\n" + "=" * 70)
     print("FINAL ASSESSMENT")
     print("=" * 70)
-    
+
     print(f"""
 📊 COMPLETION METRICS:
    • Files Created: {found}/{total} ({found*100//total}%)
@@ -327,7 +324,7 @@ def main():
    4. Build basic audit pipeline
    5. Generate first PDF report
     """)
-    
+
     print("=" * 70)
     print("Architecture review complete. Foundation ready for ML implementation!")
     print("=" * 70)

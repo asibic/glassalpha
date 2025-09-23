@@ -2,12 +2,16 @@
 
 This module sets up the command groups and structure for the Glass Alpha CLI,
 enabling future expansion without breaking changes.
+
+ARCHITECTURE NOTE: Uses Typer function-call defaults (B008 lint rule)
+which is the documented Typer pattern. Also uses clean CLI exception
+handling with 'from None' to hide Python internals from end users.
 """
 
-import typer
-from typing import Optional
-from pathlib import Path
 import logging
+from pathlib import Path
+
+import typer
 
 from ..core import __version__
 
@@ -48,7 +52,7 @@ def version_callback(value: bool):
 
 @app.callback()
 def main_callback(
-    version: Optional[bool] = typer.Option(
+    version: bool | None = typer.Option(
         None,
         "--version",
         "-V",
@@ -70,7 +74,7 @@ def main_callback(
     ),
 ):
     """Glass Alpha - Transparent, auditable, regulator-ready ML audits.
-    
+
     Use 'glassalpha COMMAND --help' for more information on a command.
     """
     # Set logging level based on flags
@@ -86,7 +90,7 @@ app.add_typer(dashboard_app, name="dashboard")
 app.add_typer(monitor_app, name="monitor")
 
 # Import and register commands
-from .commands import audit, validate, list_components_cmd
+from .commands import audit, list_components_cmd, validate
 
 # Register main commands
 app.command()(audit)
@@ -101,18 +105,19 @@ def dashboard_serve(
 ):
     """Start the monitoring dashboard (Enterprise only)."""
     from ..core.features import check_feature
-    
+
     @check_feature("dashboard")
     def _serve():
         typer.echo(f"Starting dashboard on {host}:{port}")
         # Future implementation
         typer.echo("Dashboard feature coming in Phase 2")
-    
+
     try:
         _serve()
     except Exception as e:
         typer.secho(str(e), fg=typer.colors.RED, err=True)
-        raise typer.Exit(1)
+        # CLI design: Clean error messages for enterprise feature failures
+        raise typer.Exit(1) from None
 
 
 @monitor_app.command("drift")
@@ -122,18 +127,19 @@ def monitor_drift(
 ):
     """Monitor model drift (Enterprise only)."""
     from ..core.features import check_feature
-    
+
     @check_feature("monitoring")
     def _monitor():
         typer.echo(f"Monitoring drift from {baseline}")
         # Future implementation
         typer.echo("Monitoring feature coming in Phase 2")
-    
+
     try:
         _monitor()
     except Exception as e:
         typer.secho(str(e), fg=typer.colors.RED, err=True)
-        raise typer.Exit(1)
+        # Intentional: Hide Python internals from CLI users
+        raise typer.Exit(1) from None
 
 
 if __name__ == "__main__":

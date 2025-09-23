@@ -4,12 +4,12 @@ This module provides the Typer-based CLI with command groups
 for extensibility and clean organization.
 """
 
+from .commands import audit, list_components_cmd, validate
 from .main import app
-from .commands import audit, validate, list_components_cmd
 
 __all__ = [
     "app",
-    "audit", 
+    "audit",
     "validate",
     "list_components_cmd",
 ]

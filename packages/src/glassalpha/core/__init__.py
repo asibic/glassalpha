@@ -4,41 +4,39 @@ This module provides the foundational interfaces, registries, and
 feature management system that enable the plugin architecture.
 """
 
+from .features import (
+    FeatureNotAvailable,
+    check_feature,
+    is_enterprise,
+)
 from .interfaces import (
-    ModelInterface,
+    AuditProfileInterface,
+    DataInterface,
     ExplainerInterface,
     MetricInterface,
-    DataInterface,
-    AuditProfileInterface,
-)
-
-from .registry import (
-    ModelRegistry,
-    ExplainerRegistry,
-    MetricRegistry,
-    DataRegistry,
-    ProfileRegistry,
-    select_explainer,
-    list_components,
-)
-
-from .features import (
-    is_enterprise,
-    check_feature,
-    FeatureNotAvailable,
+    ModelInterface,
 )
 
 # Import NoOp components to auto-register them
 from .noop_components import (
-    PassThroughModel,
     NoOpExplainer,
     NoOpMetric,
+    PassThroughModel,
+)
+from .registry import (
+    DataRegistry,
+    ExplainerRegistry,
+    MetricRegistry,
+    ModelRegistry,
+    ProfileRegistry,
+    list_components,
+    select_explainer,
 )
 
 __all__ = [
     # Interfaces
     "ModelInterface",
-    "ExplainerInterface", 
+    "ExplainerInterface",
     "MetricInterface",
     "DataInterface",
     "AuditProfileInterface",

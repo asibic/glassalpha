@@ -4,34 +4,32 @@ This module provides YAML-based configuration with Pydantic validation,
 supporting audit profiles, plugin priorities, and strict mode.
 """
 
-from .schema import (
-    AuditConfig,
-    ModelConfig,
-    DataConfig,
-    ExplainerConfig,
-    MetricsConfig,
-    RecourseConfig,
-    ReportConfig,
-    ReproducibilityConfig,
-    ManifestConfig,
-)
-
 from .loader import (
     load_config,
     load_config_from_file,
     validate_config,
 )
-
+from .schema import (
+    AuditConfig,
+    DataConfig,
+    ExplainerConfig,
+    ManifestConfig,
+    MetricsConfig,
+    ModelConfig,
+    RecourseConfig,
+    ReportConfig,
+    ReproducibilityConfig,
+)
 from .strict import (
-    validate_strict_mode,
     StrictModeError,
+    validate_strict_mode,
 )
 
 __all__ = [
     # Config schemas
     "AuditConfig",
     "ModelConfig",
-    "DataConfig", 
+    "DataConfig",
     "ExplainerConfig",
     "MetricsConfig",
     "RecourseConfig",

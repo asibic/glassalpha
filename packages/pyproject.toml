@@ -84,6 +84,17 @@ select = [
 ]
 ignore = ["D203", "D213"]  # Conflicting docstring rules
 
+# Per-file ignores for intentional design patterns
+[tool.ruff.lint.per-file-ignores]
+# CLI files use clean error handling + Typer patterns
+"src/**/cli/*.py" = ["B904", "B008"]  # Clean UX exception handling + Typer defaults
+# Test files need module-level imports for mocking dependencies
+"tests/*.py" = ["E402"]  # Allow imports not at top for dependency mocking
+# Demo files are intentionally less strict for educational purposes
+"demo_*.py" = ["D103", "E402", "E501", "D107", "D105"]  # Allow missing docstrings, long lines
+# Config validation uses intentional tensorflow import for detection
+"src/**/config/strict.py" = ["F401"]  # tensorflow import is used for environment detection
+
 [tool.mypy]
 python_version = "3.11"
 strict = true
