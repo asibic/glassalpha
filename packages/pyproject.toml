@@ -71,7 +71,7 @@ requires = ["hatchling>=1.21.0"]
 build-backend = "hatchling.build"
 
 [tool.ruff]
-line-length = 100
+line-length = 120  # Modern standard (vs outdated 100) - matches industry practice
 target-version = "py311"
 extend-include = ["*.pyi"]
 extend-exclude = ["glassalpha-enterprise/"]  # Enterprise code has separate config
@@ -87,12 +87,15 @@ select = [
     "SIM", # flake8-simplify
     "D",   # pydocstyle
 ]
-ignore = ["D203", "D213"]  # Conflicting docstring rules
+ignore = [
+    "D203", "D213",  # Conflicting docstring rules
+    "D401",          # Docstring mood - pure style preference ("Creates X" vs "Create X")
+]
 
 # Per-file ignores for intentional design patterns
 [tool.ruff.lint.per-file-ignores]
-# CLI files use clean error handling + Typer patterns
-"src/**/cli/*.py" = ["B904", "B008"]  # Clean UX exception handling + Typer defaults
+# CLI files use clean error handling + Typer patterns + late imports for command registration
+"src/**/cli/*.py" = ["B904", "B008", "E402"]  # Clean UX exception handling + Typer defaults + late imports
 # Test files need module-level imports for mocking dependencies
 "tests/*.py" = ["E402"]  # Allow imports not at top for dependency mocking
 # Demo files are intentionally less strict for educational purposes
