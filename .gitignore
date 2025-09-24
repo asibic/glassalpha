@@ -58,10 +58,16 @@ site/site/
 # Remove all rules for now until they are useful for contributors
 .cursor/
 
-# Keep some cursor rules private until ready
+# Remove cursor rules until ready
 .cursor/rules/project_overview.mdc
 .cursor/rules/phase1_priorities.mdc
 .cursor/rules/guardrails.mdc
+
+# Remove temp setup docs
+ML_COMPONENTS_STATUS.md
+HANDOFF.md
+NEXT_STEPS.md
+PACKAGE_STRUCTURE.md
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
