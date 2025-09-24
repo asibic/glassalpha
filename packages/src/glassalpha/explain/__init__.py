@@ -1,1 +1,1 @@
-"""Explainer modules for Glass Alpha."""
+"""Explainer modules for GlassAlpha."""

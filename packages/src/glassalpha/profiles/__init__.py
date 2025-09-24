@@ -1,4 +1,4 @@
-"""Audit profile system for Glass Alpha.
+"""Audit profile system for GlassAlpha.
 
 Profiles define valid component combinations for different audit types,
 ensuring appropriate metrics, explainers, and report templates are used.

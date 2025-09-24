@@ -1,7 +1,7 @@
-"""LightGBM model wrapper for Glass Alpha.
+"""LightGBM model wrapper for GlassAlpha.
 
 This wrapper implements the ModelInterface protocol and enables LightGBM models
-to work within the Glass Alpha pipeline. It supports SHAP explanations and
+to work within the GlassAlpha pipeline. It supports SHAP explanations and
 provides feature importance capabilities.
 """
 
@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 class LightGBMWrapper:
     """Wrapper for LightGBM models implementing ModelInterface protocol.
 
-    This class wraps LightGBM models to make them compatible with the Glass Alpha
+    This class wraps LightGBM models to make them compatible with the GlassAlpha
     audit pipeline. It supports loading pre-trained models, predictions, and
     capability declaration for plugin selection.
     """

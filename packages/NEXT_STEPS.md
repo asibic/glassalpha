@@ -1,4 +1,4 @@
-# Glass Alpha - Next Steps Quick Reference
+# GlassAlpha - Next Steps Quick Reference
 
 ## 🚀 Quick Start for New Conversation
 

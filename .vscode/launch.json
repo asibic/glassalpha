@@ -27,7 +27,7 @@
       }
     },
     {
-      "name": "Glass Alpha CLI: Audit",
+      "name": "GlassAlpha CLI: Audit",
       "type": "python",
       "request": "launch",
       "module": "glassalpha.cli.main",

@@ -1,14 +1,14 @@
-# Glass Alpha
+# GlassAlpha
 
 **Open-source AI compliance toolkit for transparent, auditable, and regulator-ready ML models.**
 
 > ⚠️ **Pre-Alpha Status**: GlassAlpha is under active development. Core functionality is being built to deliver deterministic, regulator-ready PDF audits.
 
-## Why Glass Alpha?
+## Why GlassAlpha?
 
 As AI regulations tighten globally (EU AI Act, CFPB guidance), organizations need **transparent, auditable ML systems**. Most existing audit tools are either academic research code, enterprise SaaS platforms with vendor lock-in, or custom internal tools that lack reproducibility.
 
-Glass Alpha provides **deterministic, regulator-ready audit reports** with complete lineage tracking. Run the same config twice, get byte-identical PDFs. Every decision is explainable, every metric is reproducible, every audit trail is complete.
+GlassAlpha provides **deterministic, regulator-ready audit reports** with complete lineage tracking. Run the same config twice, get byte-identical PDFs. Every decision is explainable, every metric is reproducible, every audit trail is complete.
 
 **Why Open Source**: Compliance tools require trust. Open source code means regulators, auditors, and your team can verify exactly how conclusions were reached.
 
@@ -56,7 +56,7 @@ glassalpha audit --config configs/audit.yaml --out audit.pdf --strict
 
 ## Architecture Highlights
 
-Glass Alpha is built as an **extensible framework**:
+GlassAlpha is built as an **extensible framework**:
 - **Plugin Architecture**: Models, explainers, and metrics use dynamic registration
 - **OSS/Enterprise Split**: Core functionality open-source, advanced features commercial
 - **Deterministic Behavior**: Configuration-driven with reproducible results
@@ -84,7 +84,7 @@ See [CONTRIBUTING](site/docs/contributing.md) for development guidelines.
 
 - **Core Library**: Apache 2.0 License ([LICENSE](LICENSE))
 - **Enterprise Extensions**: Commercial license for advanced features
-- **Brand**: "Glass Alpha" trademark - see [TRADEMARK.md](TRADEMARK.md)
+- **Brand**: "GlassAlpha" trademark - see [TRADEMARK.md](TRADEMARK.md)
 
 **Support**:
 - OSS: GitHub Issues

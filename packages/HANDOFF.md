@@ -1,4 +1,4 @@
-# Glass Alpha - Handoff Document for Next Conversation
+# GlassAlpha - Handoff Document for Next Conversation
 
 ## Current Status (September 2024)
 

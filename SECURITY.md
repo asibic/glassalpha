@@ -33,7 +33,7 @@ If you discover a security vulnerability in GlassAlpha, please help us protect o
 
 ## Security Design Principles
 
-Glass Alpha follows these security principles:
+GlassAlpha follows these security principles:
 
 - **On-Premise First**: No external network calls or cloud dependencies by design
 - **Privacy by Default**: No telemetry collection (opt-in only via `GLASSALPHA_TELEMETRY=on`)

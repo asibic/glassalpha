@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Summary of completed Glass Alpha architecture.
+"""Summary of completed GlassAlpha architecture.
 
 This shows what has been built without requiring external dependencies.
 """
@@ -7,7 +7,7 @@ This shows what has been built without requiring external dependencies.
 
 def main():
     print("\n" + "=" * 70)
-    print("GLASS ALPHA ARCHITECTURE - PHASE 0 & PHASE 1 COMPLETE")
+    print("GlassAlpha ARCHITECTURE - PHASE 0 & PHASE 1 COMPLETE")
     print("=" * 70)
 
     # Show project structure

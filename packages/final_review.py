@@ -288,7 +288,7 @@ def validation_tests():
 def main():
     """Run complete review."""
     print("\n" + "=" * 70)
-    print("GLASS ALPHA - FINAL ARCHITECTURE REVIEW")
+    print("GlassAlpha - FINAL ARCHITECTURE REVIEW")
     print("=" * 70)
     print("Date: September 2024")
     print("Phase: 0 & 1 Complete")

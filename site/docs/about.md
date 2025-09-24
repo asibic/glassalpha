@@ -1,8 +1,8 @@
-# About Glass Alpha
+# About GlassAlpha
 
 GlassAlpha is built as an **extensible framework** for AI compliance and interpretability, starting with tabular ML models in Phase 1 and designed to expand to LLMs and multimodal systems.
 
-## Why Glass Alpha?
+## Why GlassAlpha?
 
 ### The Problem
 
@@ -16,7 +16,7 @@ These organizations need **transparent, auditable ML systems**. But most ML mode
 
 ### The Solution
 
-Glass Alpha provides **deterministic, regulator-ready audit reports** with complete lineage tracking. Run the same config twice, get byte-identical PDFs. Every decision is explainable, every metric is reproducible, every audit trail is complete.
+GlassAlpha provides **deterministic, regulator-ready audit reports** with complete lineage tracking. Run the same config twice, get byte-identical PDFs. Every decision is explainable, every metric is reproducible, every audit trail is complete.
 
 ### Who This Helps
 

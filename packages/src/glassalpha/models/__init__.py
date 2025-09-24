@@ -1,1 +1,1 @@
-"""Model wrappers for Glass Alpha."""
+"""Model wrappers for GlassAlpha."""

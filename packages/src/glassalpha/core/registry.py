@@ -1,7 +1,7 @@
 """Component registry system for plugin architecture.
 
 This module provides the registration and discovery mechanism for all
-Glass Alpha components, ensuring deterministic selection and extensibility.
+GlassAlpha components, ensuring deterministic selection and extensibility.
 """
 
 import logging

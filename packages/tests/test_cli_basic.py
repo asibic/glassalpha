@@ -17,7 +17,7 @@ def test_cli_app_loads():
     runner = CliRunner()
     result = runner.invoke(app, ["--help"])
     assert result.exit_code == 0
-    assert "Glass Alpha - AI Compliance Toolkit" in result.stdout
+    assert "GlassAlpha - AI Compliance Toolkit" in result.stdout
 
 
 def test_version_command():

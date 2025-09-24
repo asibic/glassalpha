@@ -1,6 +1,6 @@
 """Main CLI application using Typer.
 
-This module sets up the command groups and structure for the Glass Alpha CLI,
+This module sets up the command groups and structure for the GlassAlpha CLI,
 enabling future expansion without breaking changes.
 
 ARCHITECTURE NOTE: Uses Typer function-call defaults (B008 lint rule)
@@ -21,7 +21,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(level
 # Main CLI app
 app = typer.Typer(
     name="glassalpha",
-    help="Glass Alpha - AI Compliance Toolkit",
+    help="GlassAlpha - AI Compliance Toolkit",
     add_completion=False,
     no_args_is_help=True,
     pretty_exceptions_enable=True,
@@ -44,7 +44,7 @@ monitor_app = typer.Typer(
 def version_callback(value: bool):
     """Print version and exit."""
     if value:
-        typer.echo(f"Glass Alpha version {__version__}")
+        typer.echo(f"GlassAlpha version {__version__}")
         raise typer.Exit()
 
 
@@ -71,7 +71,7 @@ def main_callback(
         help="Suppress non-error output",
     ),
 ):
-    """Glass Alpha - Transparent, auditable, regulator-ready ML audits.
+    """GlassAlpha - Transparent, auditable, regulator-ready ML audits.
 
     Use 'glassalpha COMMAND --help' for more information on a command.
     """

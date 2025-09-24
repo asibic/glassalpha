@@ -42,7 +42,7 @@ from glassalpha.profiles import TabularComplianceProfile
 
 def main():
     print("\n" + "=" * 60)
-    print("Glass Alpha Integration Demo")
+    print("GlassAlpha Integration Demo")
     print("=" * 60)
 
     # 1. Show registered components

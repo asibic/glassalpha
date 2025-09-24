@@ -1,4 +1,4 @@
-"""Configuration system for Glass Alpha.
+"""Configuration system for GlassAlpha.
 
 This module provides YAML-based configuration with Pydantic validation,
 supporting audit profiles, plugin priorities, and strict mode.

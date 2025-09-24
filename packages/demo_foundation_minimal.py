@@ -59,7 +59,7 @@ from glassalpha.core import (
 
 def main():
     print("=" * 60)
-    print("Glass Alpha Core Foundation Demo (Minimal)")
+    print("GlassAlpha Core Foundation Demo (Minimal)")
     print("=" * 60)
 
     # 1. Show registry pattern works

@@ -33,7 +33,7 @@ from glassalpha.core import (
 
 def main():
     print("=" * 60)
-    print("Glass Alpha Core Foundation Demo")
+    print("GlassAlpha Core Foundation Demo")
     print("=" * 60)
 
     # 1. Show registered components

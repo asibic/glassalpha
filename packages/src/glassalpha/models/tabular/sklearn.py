@@ -1,7 +1,7 @@
-"""Scikit-learn model wrappers for Glass Alpha.
+"""Scikit-learn model wrappers for GlassAlpha.
 
 This module provides wrappers for scikit-learn models to make them compatible
-with the Glass Alpha audit pipeline. It supports SHAP explanations and
+with the GlassAlpha audit pipeline. It supports SHAP explanations and
 provides model-specific feature importance capabilities.
 """
 
@@ -26,7 +26,7 @@ class LogisticRegressionWrapper:
     """Wrapper for scikit-learn LogisticRegression models implementing ModelInterface protocol.
 
     This class wraps sklearn LogisticRegression models to make them compatible with the
-    Glass Alpha audit pipeline. It supports loading pre-trained models, predictions, and
+    GlassAlpha audit pipeline. It supports loading pre-trained models, predictions, and
     capability declaration for plugin selection.
     """
 

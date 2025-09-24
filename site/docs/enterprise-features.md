@@ -1,6 +1,6 @@
 # Feature Comparison: OSS vs Enterprise
 
-Glass Alpha offers a powerful open-source foundation with enterprise extensions for organizations requiring advanced capabilities, support, and compliance features.
+GlassAlpha offers a powerful open-source foundation with enterprise extensions for organizations requiring advanced capabilities, support, and compliance features.
 
 ## Feature Matrix
 

@@ -1,6 +1,6 @@
 """Configuration schema definitions using Pydantic.
 
-This module defines the structure and validation for Glass Alpha
+This module defines the structure and validation for GlassAlpha
 configuration files, ensuring type safety and consistency.
 """
 

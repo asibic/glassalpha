@@ -1,4 +1,4 @@
-"""Core architecture components for Glass Alpha.
+"""Core architecture components for GlassAlpha.
 
 This module provides the foundational interfaces, registries, and
 feature management system that enable the plugin architecture.

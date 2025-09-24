@@ -1,4 +1,4 @@
-"""Core protocol definitions for Glass Alpha components.
+"""Core protocol definitions for GlassAlpha components.
 
 These protocols define the interfaces that all implementations must follow,
 enabling the plugin architecture and future extensibility.

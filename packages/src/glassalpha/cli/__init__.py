@@ -1,4 +1,4 @@
-"""Command-line interface for Glass Alpha.
+"""Command-line interface for GlassAlpha.
 
 This module provides the Typer-based CLI with command groups
 for extensibility and clean organization.

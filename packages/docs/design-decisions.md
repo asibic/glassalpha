@@ -1,4 +1,4 @@
-# Glass Alpha Design Decisions
+# GlassAlpha Design Decisions
 
 ## CLI Error Handling (September 2024)
 

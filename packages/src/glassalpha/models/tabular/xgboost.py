@@ -1,7 +1,7 @@
-"""XGBoost model wrapper for Glass Alpha.
+"""XGBoost model wrapper for GlassAlpha.
 
 This wrapper implements the ModelInterface protocol and enables XGBoost models
-to work within the Glass Alpha pipeline. It supports SHAP explanations and
+to work within the GlassAlpha pipeline. It supports SHAP explanations and
 provides feature importance capabilities.
 """
 
@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 class XGBoostWrapper:
     """Wrapper for XGBoost models implementing ModelInterface protocol.
 
-    This class wraps XGBoost models to make them compatible with the Glass Alpha
+    This class wraps XGBoost models to make them compatible with the GlassAlpha
     audit pipeline. It supports loading pre-trained models, predictions, and
     capability declaration for plugin selection.
     """

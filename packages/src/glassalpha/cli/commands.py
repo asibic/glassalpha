@@ -1,4 +1,4 @@
-"""CLI commands for Glass Alpha.
+"""CLI commands for GlassAlpha.
 
 This module implements the main commands available in the CLI,
 including the core audit command with strict mode support.
@@ -63,7 +63,7 @@ def audit(
 ):
     """Generate a compliance audit PDF report.
 
-    This is the main command for Glass Alpha. It loads a configuration file,
+    This is the main command for GlassAlpha. It loads a configuration file,
     runs the audit pipeline, and generates a deterministic PDF report.
 
     Examples:
@@ -82,7 +82,7 @@ def audit(
         from ..config import load_config_from_file
         from ..core import list_components
 
-        typer.echo("Glass Alpha Audit Generation")
+        typer.echo("GlassAlpha Audit Generation")
         typer.echo(f"{'=' * 40}")
 
         # Load configuration
