@@ -63,12 +63,6 @@ site/site/
 .cursor/rules/phase1_priorities.mdc
 .cursor/rules/guardrails.mdc
 
-# Remove temp setup docs
-ML_COMPONENTS_STATUS.md
-HANDOFF.md
-NEXT_STEPS.md
-PACKAGE_STRUCTURE.md
-
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]

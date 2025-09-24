@@ -31,7 +31,17 @@ src/glassalpha/
 - ✅ Provides predictions and probabilities
 - ✅ Declares capabilities for plugin selection
 - ✅ Includes feature importance extraction
-- ✅ Successfully registers with ModelRegistry
+- ✅ Successfully registers with ModelRegistry (priority=100)
+
+#### LightGBMWrapper (`models/tabular/lightgbm.py`)
+- ✅ Follows same pattern as XGBoostWrapper
+- ✅ Implements ModelInterface protocol
+- ✅ Supports loading pre-trained models from file or direct initialization
+- ✅ Provides predictions and probabilities
+- ✅ Declares capabilities for plugin selection
+- ✅ Includes feature importance extraction (split/gain types)
+- ✅ Successfully registers with ModelRegistry (priority=90)
+- ✅ Verified compatibility with TreeSHAPExplainer
 
 #### TreeSHAPExplainer (`explain/shap/tree.py`)
 - ✅ Follows NoOpExplainer pattern
@@ -41,18 +51,21 @@ src/glassalpha/
 - ✅ Provides global and local explanations
 - ✅ Successfully registers with ExplainerRegistry
 - ✅ Priority system ensures it's selected first for tree models
+- ✅ Verified working with both XGBoost and LightGBM
 
 ### 4. Verified Integration
 - ✅ Components register correctly with registry system
 - ✅ XGBoostWrapper and TreeSHAPExplainer work together
-- ✅ End-to-end demo shows training, wrapping, and explaining
-- ✅ SHAP values computed successfully
+- ✅ LightGBMWrapper and TreeSHAPExplainer work together
+- ✅ End-to-end demos show training, wrapping, and explaining
+- ✅ SHAP values computed successfully for both tree models
 - ✅ Feature importance extracted and ranked
+- ✅ Priority system ensures TreeSHAP is selected for tree models
 
 ## 📊 Current Registry Status
 
 ```python
-Models: ['passthrough', 'xgboost']
+Models: ['passthrough', 'xgboost', 'lightgbm']
 Explainers: ['noop', 'treeshap']
 Metrics: ['noop']
 ```
@@ -60,11 +73,10 @@ Metrics: ['noop']
 ## 🎯 Next Priority Tasks
 
 ### Immediate Next Steps (Week 2-3)
-1. **LightGBMWrapper** - Similar pattern to XGBoostWrapper
-2. **LogisticRegressionWrapper** - For sklearn models
-3. **KernelSHAPExplainer** - Fallback for non-tree models
-4. **Performance Metrics** - Accuracy, Precision, Recall, F1, AUC
-5. **Fairness Metrics** - Demographic parity, Equal opportunity
+1. **LogisticRegressionWrapper** - For sklearn models
+2. **KernelSHAPExplainer** - Fallback for non-tree models
+3. **Performance Metrics** - Accuracy, Precision, Recall, F1, AUC
+4. **Fairness Metrics** - Demographic parity, Equal opportunity
 
 ### Integration Tasks (Week 3-4)
 6. **Data Module** - Tabular data loader with schema validation
