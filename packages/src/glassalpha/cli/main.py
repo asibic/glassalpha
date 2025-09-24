@@ -13,7 +13,7 @@ from pathlib import Path
 
 import typer
 
-from ..core import __version__
+from .. import __version__
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
