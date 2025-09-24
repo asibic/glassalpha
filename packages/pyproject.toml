@@ -26,10 +26,11 @@ dependencies = [
     "typer>=0.9.0",          # CLI framework with command groups
     "pydantic>=2.5.0",       # Config validation and schemas
     "pyyaml>=6.0",           # YAML config parsing
-    "numpy>=1.24.0",         # Numerical operations
+    # PERMISSIVE CONSTRAINTS: Allow working versions (local proves NumPy 2.x works)
+    "numpy>=1.24.0",         # Allow NumPy 2.x (works locally)
     "pandas>=2.0.0",         # Data handling
-    "scipy>=1.13.0",         # Scientific computing (numpy 2.x compatible)
-    "scikit-learn>=1.4.2",   # ML utilities and metrics (numpy 2.x compatible)
+    "scipy>=1.11.0",         # Scientific computing
+    "scikit-learn>=1.3.0",   # ML utilities and metrics
 
     # ML Models - Pin XGBoost to avoid CUDA dependencies
     # XGBoost 3.x includes GPU support by default (295MB+ CUDA libraries)

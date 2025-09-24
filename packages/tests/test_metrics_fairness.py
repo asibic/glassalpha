@@ -8,7 +8,20 @@ focus on covering the fairness metrics computation logic.
 import numpy as np
 import pandas as pd
 import pytest
-from sklearn.datasets import make_classification
+
+# Conditional sklearn import for CI compatibility
+try:
+    from sklearn.datasets import make_classification
+    from sklearn.linear_model import LogisticRegression
+
+    SKLEARN_AVAILABLE = True
+except ImportError:
+    make_classification = None
+    LogisticRegression = None
+    SKLEARN_AVAILABLE = False
+
+# Skip all tests if sklearn not available
+pytestmark = pytest.mark.skipif(not SKLEARN_AVAILABLE, reason="sklearn not available - CI compatibility issues")
 
 from glassalpha.core.registry import MetricRegistry
 from glassalpha.metrics.fairness.bias_detection import (

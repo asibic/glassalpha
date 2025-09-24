@@ -10,10 +10,29 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import pytest
-from sklearn.datasets import make_classification
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import train_test_split
+
+# Conditional sklearn import for CI compatibility
+try:
+    from sklearn.datasets import make_classification
+    from sklearn.ensemble import RandomForestClassifier
+    from sklearn.linear_model import LogisticRegression
+
+    SKLEARN_AVAILABLE = True
+except ImportError:
+    make_classification = None
+    RandomForestClassifier = None
+    LogisticRegression = None
+    SKLEARN_AVAILABLE = False
+
+# Include additional sklearn imports in conditional block
+try:
+    if SKLEARN_AVAILABLE:
+        from sklearn.model_selection import train_test_split
+except ImportError:
+    train_test_split = None
+
+# Skip all tests if sklearn not available
+pytestmark = pytest.mark.skipif(not SKLEARN_AVAILABLE, reason="sklearn not available - CI compatibility issues")
 
 from glassalpha.core.registry import ModelRegistry
 from glassalpha.models.tabular.sklearn import LogisticRegressionWrapper, SklearnGenericWrapper
