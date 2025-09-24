@@ -23,7 +23,6 @@ from glassalpha.utils.hashing import (
     hash_dataframe,
     hash_file,
     hash_model,
-    hash_numpy_array,
     hash_object,
 )
 from glassalpha.utils.manifest import (
@@ -817,8 +816,8 @@ class TestUtilsIntegration:
         np.testing.assert_array_equal(data1, data2)
 
         # Hashes should be identical
-        hash1 = hash_numpy_array(data1)
-        hash2 = hash_numpy_array(data2)
+        hash1 = hash_array(data1)
+        hash2 = hash_array(data2)
         assert hash1 == hash2
 
     def test_full_audit_manifest_workflow(self, sample_config, sample_dataframe, tmp_path):
@@ -896,8 +895,8 @@ class TestUtilsIntegration:
         np.testing.assert_array_equal(data1, data2)
 
         # Hashes should be identical
-        hash1 = hash_numpy_array(data1)
-        hash2 = hash_numpy_array(data2)
+        hash1 = hash_array(data1)
+        hash2 = hash_array(data2)
         assert hash1 == hash2
 
         # Config hashes should be identical
