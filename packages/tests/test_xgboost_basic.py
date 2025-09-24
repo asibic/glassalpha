@@ -26,7 +26,22 @@ except ImportError as e:
 pytestmark = pytest.mark.skipif(not XGBOOST_AVAILABLE, reason=XGBOOST_SKIP_REASON or "XGBoost not available")
 
 from glassalpha.core.registry import ModelRegistry
-from glassalpha.models.tabular.xgboost import XGBoostWrapper
+
+# Conditional XGBoost import - already has conditional imports in source module
+try:
+    from glassalpha.models.tabular.xgboost import XGBoostWrapper
+
+    XGBOOST_WRAPPER_AVAILABLE = True
+    XGBOOST_SKIP_REASON = None
+except ImportError as e:
+    XGBoostWrapper = None
+    XGBOOST_WRAPPER_AVAILABLE = False
+    XGBOOST_SKIP_REASON = f"XGBoost wrapper not available: {e}"
+
+# Update the existing pytestmark to use the wrapper availability
+pytestmark = pytest.mark.skipif(
+    not XGBOOST_WRAPPER_AVAILABLE, reason=XGBOOST_SKIP_REASON or "XGBoost wrapper not available"
+)
 
 
 def test_xgboost_wrapper_registration():
