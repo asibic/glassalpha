@@ -1,7 +1,7 @@
 #!/bin/bash
 # Set up Git aliases to prevent pre-commit hook failures
 
-echo "🔧 Setting up Git aliases for Glass Alpha..."
+echo "🔧 Setting up Git aliases for GlassAlpha..."
 
 # Add git alias for safe commits
 git config alias.safe-commit '!f() {

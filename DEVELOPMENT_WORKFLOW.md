@@ -1,4 +1,4 @@
-# Glass Alpha - Development Workflow
+# GlassAlpha - Development Workflow
 
 This document explains how to prevent pre-commit hook failures and maintain code quality.
 
@@ -147,4 +147,4 @@ After implementing these solutions:
 ---
 
 *Last updated: September 2025*
-*All solutions tested and working on macOS with Glass Alpha project*
+*All solutions tested and working on macOS with GlassAlpha project*

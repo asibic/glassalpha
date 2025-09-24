@@ -1,10 +1,10 @@
 #!/bin/bash
-# Glass Alpha - Pre-commit Linting and Fixing Script
+# GlassAlpha - Pre-commit Linting and Fixing Script
 # Run this before any git commit to prevent pre-commit hook failures
 
 set -e  # Exit on any error
 
-echo "🔍 Glass Alpha - Pre-commit Linting & Auto-fix"
+echo "🔍 GlassAlpha - Pre-commit Linting & Auto-fix"
 echo "=============================================="
 
 # Navigate to packages directory
