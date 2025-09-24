@@ -15,6 +15,11 @@ from .renderer import (
     AuditReportRenderer,
     render_audit_report,
 )
+from .renderers import (
+    AuditPDFRenderer,
+    render_audit_pdf,
+)
+from .renderers.pdf import PDFConfig
 
 __all__ = [
     "AuditPlotter",
@@ -24,4 +29,7 @@ __all__ = [
     "plot_drift_analysis",
     "AuditReportRenderer",
     "render_audit_report",
+    "AuditPDFRenderer",
+    "render_audit_pdf",
+    "PDFConfig",
 ]

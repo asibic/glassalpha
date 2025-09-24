@@ -1,0 +1,479 @@
+"""Professional PDF renderer for audit reports using WeasyPrint.
+
+This module provides high-quality PDF generation from HTML audit templates,
+with professional styling, page layout, and regulatory compliance features.
+"""
+
+import logging
+import warnings
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Any
+
+import weasyprint
+from weasyprint import CSS, HTML
+
+from ...pipeline.audit import AuditResults
+from ..renderer import AuditReportRenderer
+
+# Suppress WeasyPrint warnings for cleaner output
+warnings.filterwarnings("ignore", category=UserWarning, module="weasyprint")
+
+logger = logging.getLogger(__name__)
+
+
+@dataclass
+class PDFConfig:
+    """Configuration for PDF generation."""
+
+    # Page layout
+    page_size: str = "A4"  # A4, Letter, Legal, A3
+    page_orientation: str = "portrait"  # portrait, landscape
+
+    # Margins (in inches)
+    margin_top: float = 0.75
+    margin_bottom: float = 0.75
+    margin_left: float = 0.75
+    margin_right: float = 0.75
+
+    # PDF metadata
+    title: str = "ML Model Audit Report"
+    author: str = "GlassAlpha"
+    subject: str = "Machine Learning Model Audit"
+    creator: str = "GlassAlpha Audit Toolkit"
+
+    # Quality settings
+    optimize_size: bool = True
+    image_quality: int = 95  # JPEG quality for embedded images
+
+    # Advanced options
+    enable_forms: bool = False
+    enable_javascript: bool = False
+    enable_annotations: bool = False
+
+
+class AuditPDFRenderer:
+    """Professional PDF renderer for audit reports."""
+
+    def __init__(self, config: PDFConfig | None = None):
+        """Initialize PDF renderer with configuration.
+
+        Args:
+            config: PDF generation configuration
+
+        """
+        self.config = config or PDFConfig()
+        self.html_renderer = AuditReportRenderer()
+
+        logger.info(f"Initialized PDF renderer with page size: {self.config.page_size}")
+
+    def render_audit_pdf(
+        self,
+        audit_results: AuditResults,
+        output_path: Path,
+        template_name: str = "standard_audit.html",
+        **template_vars: Any,
+    ) -> Path:
+        """Render complete audit report as PDF.
+
+        Args:
+            audit_results: Complete audit results from pipeline
+            output_path: Path where PDF should be saved
+            template_name: HTML template to use
+            **template_vars: Additional template variables
+
+        Returns:
+            Path to generated PDF file
+
+        """
+        logger.info(f"Rendering audit PDF to: {output_path}")
+
+        # Ensure output directory exists
+        output_path = Path(output_path)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+
+        try:
+            # Generate HTML content with embedded plots
+            html_content = self.html_renderer.render_audit_report(
+                audit_results=audit_results,
+                template_name=template_name,
+                embed_plots=True,  # Essential for self-contained PDF
+                **template_vars,
+            )
+
+            logger.debug(f"Generated HTML content: {len(html_content):,} characters")
+
+            # Create WeasyPrint HTML object
+            html_doc = HTML(string=html_content, base_url=str(self.html_renderer.template_dir))
+
+            # Generate additional CSS for PDF optimization
+            pdf_css = self._generate_pdf_css()
+            css_doc = CSS(string=pdf_css)
+
+            # Render PDF with custom configuration
+            pdf_document = html_doc.render(stylesheets=[css_doc])
+
+            # Write PDF to file with metadata
+            pdf_document.write_pdf(
+                target=str(output_path),
+                pdf_version="1.4",  # Good compatibility
+                pdf_identifier=False,  # Deterministic output
+                pdf_variant="pdf/a-1b" if self.config.optimize_size else None,
+                optimize_size=self.config.optimize_size,
+                presentational_hints=True,
+                font_config=None,  # Use system fonts
+                counter_style=weasyprint.css.get_all_computed_styles,
+            )
+
+            # Set PDF metadata
+            self._set_pdf_metadata(output_path)
+
+            file_size = output_path.stat().st_size
+            logger.info(f"Successfully generated PDF: {output_path} ({file_size:,} bytes)")
+
+            return output_path
+
+        except Exception as e:
+            logger.error(f"Failed to generate PDF: {e}")
+            raise RuntimeError(f"PDF generation failed: {e}") from e
+
+    def _generate_pdf_css(self) -> str:
+        """Generate additional CSS optimized for PDF output.
+
+        Returns:
+            CSS string for PDF-specific styling
+
+        """
+        css = f"""
+        /* PDF-specific styling */
+        @page {{
+            size: {self.config.page_size} {self.config.page_orientation};
+            margin-top: {self.config.margin_top}in;
+            margin-bottom: {self.config.margin_bottom}in;
+            margin-left: {self.config.margin_left}in;
+            margin-right: {self.config.margin_right}in;
+
+            @top-left {{
+                content: "{self.config.title}";
+                font-size: 9pt;
+                color: #666;
+                font-family: 'Segoe UI', Arial, sans-serif;
+            }}
+
+            @top-right {{
+                content: "Page " counter(page) " of " counter(pages);
+                font-size: 9pt;
+                color: #666;
+                font-family: 'Segoe UI', Arial, sans-serif;
+            }}
+
+            @bottom-center {{
+                content: "Generated by GlassAlpha - Confidential";
+                font-size: 8pt;
+                color: #999;
+                font-family: 'Segoe UI', Arial, sans-serif;
+            }}
+        }}
+
+        /* Enhanced print styles */
+        body {{
+            font-size: 10pt;
+            line-height: 1.4;
+            color: #000;
+            background: white;
+        }}
+
+        /* Ensure proper page breaks */
+        .page-break {{
+            page-break-before: always;
+            break-before: page;
+        }}
+
+        .no-break {{
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }}
+
+        /* Optimize tables for PDF */
+        table {{
+            page-break-inside: avoid;
+            border-collapse: collapse;
+            width: 100%;
+        }}
+
+        thead {{
+            display: table-header-group;
+        }}
+
+        tfoot {{
+            display: table-footer-group;
+        }}
+
+        tr {{
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }}
+
+        /* Enhanced section styling */
+        .section {{
+            page-break-inside: avoid;
+            break-inside: avoid;
+            margin-bottom: 1.5rem;
+        }}
+
+        h1, h2, h3, h4 {{
+            page-break-after: avoid;
+            break-after: avoid;
+            color: #2E3440;
+        }}
+
+        /* Optimize images for PDF */
+        img {{
+            max-width: 100%;
+            height: auto;
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }}
+
+        .plot-container {{
+            page-break-inside: avoid;
+            break-inside: avoid;
+            margin: 1rem 0;
+            text-align: center;
+        }}
+
+        /* Status indicators - ensure good contrast */
+        .status-indicator {{
+            font-weight: bold;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-size: 8pt;
+        }}
+
+        .status-pass {{
+            background-color: #A3BE8C !important;
+            color: white !important;
+        }}
+
+        .status-fail {{
+            background-color: #BF616A !important;
+            color: white !important;
+        }}
+
+        .status-warning {{
+            background-color: #EBCB8B !important;
+            color: #2E3440 !important;
+        }}
+
+        /* Callout boxes */
+        .callout {{
+            page-break-inside: avoid;
+            break-inside: avoid;
+            border: 1pt solid #ddd;
+            border-radius: 4pt;
+            padding: 0.75rem;
+            margin: 0.5rem 0;
+        }}
+
+        .callout-warning {{
+            border-left: 4pt solid #EBCB8B !important;
+            background-color: #fff8e6 !important;
+        }}
+
+        .callout-danger {{
+            border-left: 4pt solid #BF616A !important;
+            background-color: #ffebee !important;
+        }}
+
+        .callout-success {{
+            border-left: 4pt solid #A3BE8C !important;
+            background-color: #e8f5e8 !important;
+        }}
+
+        .callout-info {{
+            border-left: 4pt solid #5E81AC !important;
+            background-color: #e3f2fd !important;
+        }}
+
+        /* Code and monospace */
+        code {{
+            font-family: 'Courier New', 'Monaco', monospace;
+            font-size: 8pt;
+            background-color: #f5f5f5;
+            padding: 0.1rem 0.2rem;
+            border-radius: 2pt;
+            border: 1pt solid #ddd;
+        }}
+
+        /* Two-column layout for PDF */
+        .two-column {{
+            display: block; /* Simplified for PDF */
+        }}
+
+        .two-column > div {{
+            margin-bottom: 1rem;
+        }}
+
+        /* Footer styling */
+        .footer {{
+            border-top: 1pt solid #ddd;
+            margin-top: 2rem;
+            padding-top: 1rem;
+            font-size: 8pt;
+            color: #666;
+        }}
+
+        /* Hyperlink styling for PDF */
+        a {{
+            color: #5E81AC;
+            text-decoration: none;
+        }}
+
+        /* Badge styling */
+        .badge {{
+            font-weight: bold;
+            padding: 0.1rem 0.3rem;
+            border-radius: 2pt;
+            font-size: 7pt;
+            text-transform: uppercase;
+        }}
+
+        .badge-primary {{
+            background-color: #2E3440 !important;
+            color: white !important;
+        }}
+
+        .badge-success {{
+            background-color: #A3BE8C !important;
+            color: white !important;
+        }}
+
+        .badge-warning {{
+            background-color: #EBCB8B !important;
+            color: #2E3440 !important;
+        }}
+
+        .badge-danger {{
+            background-color: #BF616A !important;
+            color: white !important;
+        }}
+        """
+
+        return css
+
+    def _set_pdf_metadata(self, pdf_path: Path) -> None:
+        """Set PDF metadata for professional appearance.
+
+        Args:
+            pdf_path: Path to the generated PDF file
+
+        """
+        try:
+            # Import PyPDF2 for metadata manipulation
+            try:
+                import PyPDF2
+
+                # Read the PDF
+                with open(pdf_path, "rb") as file:
+                    reader = PyPDF2.PdfReader(file)
+                    writer = PyPDF2.PdfWriter()
+
+                    # Copy all pages
+                    for page in reader.pages:
+                        writer.add_page(page)
+
+                    # Add metadata
+                    metadata = {
+                        "/Title": self.config.title,
+                        "/Author": self.config.author,
+                        "/Subject": self.config.subject,
+                        "/Creator": self.config.creator,
+                        "/Producer": "GlassAlpha PDF Renderer",
+                        "/Keywords": "ML,Audit,Compliance,SHAP,Fairness,Bias,AI",
+                    }
+                    writer.add_metadata(metadata)
+
+                    # Write the updated PDF
+                    with open(pdf_path, "wb") as output_file:
+                        writer.write(output_file)
+
+                logger.debug("PDF metadata set successfully")
+
+            except ImportError:
+                logger.warning("PyPDF2 not available - PDF metadata not set")
+
+        except Exception as e:
+            logger.warning(f"Failed to set PDF metadata: {e}")
+
+    def convert_html_to_pdf(self, html_content: str, output_path: Path, base_url: str | None = None) -> Path:
+        """Convert HTML content directly to PDF.
+
+        Args:
+            html_content: HTML content string
+            output_path: Path where PDF should be saved
+            base_url: Base URL for resolving relative paths
+
+        Returns:
+            Path to generated PDF file
+
+        """
+        logger.info(f"Converting HTML to PDF: {output_path}")
+
+        output_path = Path(output_path)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+
+        try:
+            # Create WeasyPrint HTML object
+            html_doc = HTML(string=html_content, base_url=base_url)
+
+            # Generate PDF CSS
+            pdf_css = self._generate_pdf_css()
+            css_doc = CSS(string=pdf_css)
+
+            # Render to PDF
+            pdf_document = html_doc.render(stylesheets=[css_doc])
+
+            pdf_document.write_pdf(
+                target=str(output_path),
+                pdf_version="1.4",
+                pdf_identifier=False,
+                optimize_size=self.config.optimize_size,
+            )
+
+            # Set metadata
+            self._set_pdf_metadata(output_path)
+
+            file_size = output_path.stat().st_size
+            logger.info(f"HTML to PDF conversion complete: {file_size:,} bytes")
+
+            return output_path
+
+        except Exception as e:
+            logger.error(f"HTML to PDF conversion failed: {e}")
+            raise RuntimeError(f"PDF conversion failed: {e}") from e
+
+
+def render_audit_pdf(
+    audit_results: AuditResults,
+    output_path: Path,
+    config: PDFConfig | None = None,
+    template_name: str = "standard_audit.html",
+    **template_vars: Any,
+) -> Path:
+    """Convenience function to render audit report as PDF.
+
+    Args:
+        audit_results: Complete audit results from pipeline
+        output_path: Path where PDF should be saved
+        config: PDF generation configuration
+        template_name: HTML template to use
+        **template_vars: Additional template variables
+
+    Returns:
+        Path to generated PDF file
+
+    """
+    renderer = AuditPDFRenderer(config=config)
+    return renderer.render_audit_pdf(
+        audit_results=audit_results, output_path=output_path, template_name=template_name, **template_vars
+    )
