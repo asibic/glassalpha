@@ -54,7 +54,7 @@ if SKLEARN_AVAILABLE:
     }
     version = "1.0.0"
 
-    def __init__(self, model_path: str | Path | None = None, model: LogisticRegression | None = None):  # noqa: D417
+    def __init__(self, model_path: str | Path | None = None, model: LogisticRegression | None = None):
         """Initialize LogisticRegression wrapper.
 
         Args:
@@ -77,7 +77,7 @@ if SKLEARN_AVAILABLE:
         else:
             logger.info("LogisticRegressionWrapper initialized without model")
 
-    def load(self, path: str | Path):  # noqa: D417
+    def load(self, path: str | Path):
         """Load sklearn model from file.
 
         Args:
@@ -130,7 +130,7 @@ if SKLEARN_AVAILABLE:
                 logger.debug("Could not determine number of classes, defaulting to binary")
                 self.n_classes = 2
 
-    def predict(self, X: pd.DataFrame) -> np.ndarray:  # noqa: D417
+    def predict(self, X: pd.DataFrame) -> np.ndarray:
         """Generate predictions for input data.
 
         Args:
@@ -153,7 +153,7 @@ if SKLEARN_AVAILABLE:
         logger.debug(f"Generated predictions for {len(X)} samples")
         return predictions
 
-    def predict_proba(self, X: pd.DataFrame) -> np.ndarray:  # noqa: D417
+    def predict_proba(self, X: pd.DataFrame) -> np.ndarray:
         """Generate probability predictions for input data.
 
         Args:
@@ -190,7 +190,7 @@ if SKLEARN_AVAILABLE:
         """
         return self.capabilities
 
-    def get_feature_importance(self, importance_type: str = "coef") -> dict[str, float]:  # noqa: D417
+    def get_feature_importance(self, importance_type: str = "coef") -> dict[str, float]:
         """Get feature importance scores from the model.
 
         Args:
@@ -239,7 +239,7 @@ if SKLEARN_AVAILABLE:
         logger.debug(f"Extracted {importance_type} feature importance for {len(importance_dict)} features")
         return importance_dict
 
-    def save(self, path: str | Path, use_joblib: bool = True):  # noqa: D417
+    def save(self, path: str | Path, use_joblib: bool = True):
         """Save the model to file.
 
         Args:
@@ -324,7 +324,7 @@ if SKLEARN_AVAILABLE:
     }
     version = "1.0.0"
 
-    def __init__(self, model_path: str | Path | None = None, model: BaseEstimator | None = None):  # noqa: D417
+    def __init__(self, model_path: str | Path | None = None, model: BaseEstimator | None = None):
         """Initialize generic sklearn wrapper.
 
         Args:
@@ -348,7 +348,7 @@ if SKLEARN_AVAILABLE:
         else:
             logger.info("SklearnGenericWrapper initialized without model")
 
-    def load(self, path: str | Path):  # noqa: D417
+    def load(self, path: str | Path):
         """Load sklearn model from file."""
         path = Path(path)
         if not path.exists():
@@ -405,7 +405,7 @@ if SKLEARN_AVAILABLE:
             )
             self.capabilities["supports_feature_importance"] = has_importance
 
-    def predict(self, X: pd.DataFrame) -> np.ndarray:  # noqa: D417
+    def predict(self, X: pd.DataFrame) -> np.ndarray:
         """Generate predictions for input data."""
         if self.model is None:
             raise ValueError("Model not loaded. Load a model first.")
@@ -414,7 +414,7 @@ if SKLEARN_AVAILABLE:
         logger.debug(f"Generated predictions for {len(X)} samples")
         return predictions
 
-    def predict_proba(self, X: pd.DataFrame) -> np.ndarray:  # noqa: D417
+    def predict_proba(self, X: pd.DataFrame) -> np.ndarray:
         """Generate probability predictions for input data."""
         if self.model is None:
             raise ValueError("Model not loaded. Load a model first.")
@@ -466,7 +466,7 @@ if SKLEARN_AVAILABLE:
         logger.debug(f"Extracted feature importance for {len(importance_dict)} features")
         return importance_dict
 
-    def save(self, path: str | Path, use_joblib: bool = True):  # noqa: D417
+    def save(self, path: str | Path, use_joblib: bool = True):
         """Save the model to file."""
         if self.model is None:
             raise ValueError("No model to save")
