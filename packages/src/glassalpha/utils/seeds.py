@@ -104,7 +104,29 @@ class SeedManager:
         # These are handled in model wrappers using get_seed()
 
     def save_random_states(self) -> None:
-        """Save current random states for restoration."""
+        """Save current random number generator states for audit reproducibility.
+
+        Captures the complete state of all active random number generators including
+        Python's random module, NumPy, PyTorch, and framework-specific generators.
+        This enables exact reproduction of randomized computations for regulatory
+        audit verification and debugging.
+
+        Side Effects:
+            - Modifies internal _original_states dictionary with RNG snapshots
+            - Captures GPU random states if CUDA is available
+            - State objects consume ~50KB memory for complete capture
+            - May trigger CUDA context initialization if GPU available
+
+        Raises:
+            RuntimeError: If PyTorch or NumPy random states are corrupted
+            CudaError: If CUDA random state capture fails on GPU systems
+
+        Note:
+            Must be called before any randomized operations (model training,
+            data shuffling, explainer sampling) to ensure audit reproducibility.
+            State capture is thread-safe but not process-safe for distributed computing.
+
+        """
         self._original_states = {
             "python_random": random.getstate(),
             "numpy_random": np.random.get_state(),

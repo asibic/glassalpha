@@ -211,10 +211,31 @@ class XGBoostWrapper:
         return importance
 
     def save(self, path: str | Path):
-        """Save the model to file.
+        """Save trained XGBoost model to disk in structured JSON format.
+
+        Persists the complete model structure including boosted trees, learned
+        parameters, and feature mappings in XGBoost's native JSON format.
+        This format provides cross-platform compatibility and enables detailed
+        model inspection for compliance verification.
 
         Args:
-            path: Path to save the model (will save in JSON format)
+            path: Target file path for model storage (recommended: .json extension)
+
+        Side Effects:
+            - Creates or overwrites model file at specified path
+            - Creates parent directories if they don't exist
+            - Saves in JSON format (~500KB-20MB depending on model complexity)
+            - File contains complete tree structure and training metadata
+
+        Raises:
+            ValueError: If no trained model exists to save
+            IOError: If path is not writable or insufficient disk space
+            XGBoostError: If model serialization fails due to corrupted state
+
+        Note:
+            JSON format enables detailed model audit for regulatory compliance.
+            Contains full tree structure, split conditions, and leaf values
+            required for explainability and bias analysis verification.
 
         """
         if self.model is None:

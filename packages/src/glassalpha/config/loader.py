@@ -207,12 +207,29 @@ def load_config_from_file(
 
 
 def save_config(config: AuditConfig, path: str | Path, include_defaults: bool = False) -> None:
-    """Save configuration to YAML file.
+    """Save audit configuration to YAML file for reproducible compliance audits.
+
+    Serializes the complete audit configuration including model settings,
+    data parameters, and compliance policies to enable audit trail documentation
+    and configuration version control.
 
     Args:
-        config: Configuration object
-        path: Path to save file
-        include_defaults: Whether to include default values
+        config: Complete audit configuration object with validated settings
+        path: Target file path for configuration storage
+        include_defaults: Include default values for complete audit trail documentation
+
+    Side Effects:
+        - Creates or overwrites YAML file at specified path
+        - May create parent directories if they don't exist
+        - File written with UTF-8 encoding for international compliance
+
+    Raises:
+        IOError: If path is not writable or insufficient disk space
+        ValidationError: If configuration contains invalid settings
+
+    Note:
+        For regulatory compliance, always save with include_defaults=True to
+        maintain complete audit trail of configuration decisions.
 
     """
     path = Path(path)

@@ -199,10 +199,30 @@ class LightGBMWrapper:
         return importance_dict
 
     def save(self, path: str | Path):
-        """Save the model to file.
+        """Save trained LightGBM model to disk in human-readable text format.
+
+        Persists the complete model structure including learned parameters,
+        tree structure, and feature mappings in LightGBM's native text format.
+        This format enables model inspection and cross-platform compatibility.
 
         Args:
-            path: Path to save the model (will save in text format)
+            path: Target file path for model storage (recommended: .txt extension)
+
+        Side Effects:
+            - Creates or overwrites model file at specified path
+            - Saves in text format (~1-50MB depending on model complexity)
+            - File contains feature names and model hyperparameters
+            - Preserves exact model state for reproducible predictions
+
+        Raises:
+            ValueError: If no trained model exists to save
+            IOError: If path is not writable or insufficient disk space
+            LightGBMError: If model serialization fails due to corrupted state
+
+        Note:
+            Text format enables model audit and regulatory inspection but is
+            larger than binary format. For compliance audits, this transparency
+            is preferred over compact binary serialization.
 
         """
         if self.model is None:

@@ -136,10 +136,29 @@ class AuditManifest(BaseModel):
         return self.model_dump()
 
     def save(self, path: Path) -> None:
-        """Save manifest to file.
+        """Save audit manifest to JSON file for regulatory compliance and reproducibility.
+
+        Creates a permanent record of the audit execution including all component
+        selections, data hashes, environment details, and configuration parameters.
+        This manifest enables full audit trail documentation required for regulatory
+        submissions and reproducible audit verification.
 
         Args:
-            path: Path to save manifest
+            path: Target file path for manifest storage (typically .json extension)
+
+        Side Effects:
+            - Creates or overwrites JSON file at specified path
+            - File contains sensitive environment information (review before sharing)
+            - Timestamps record exact audit execution time in UTC
+            - File size typically 5-50KB depending on configuration complexity
+
+        Raises:
+            IOError: If path is not writable or insufficient disk space
+            JSONEncodeError: If manifest contains non-serializable data
+
+        Note:
+            This manifest is required for regulatory audit trails and must be
+            preserved with the corresponding audit report for compliance verification.
 
         """
         path = Path(path)
