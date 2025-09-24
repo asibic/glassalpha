@@ -18,6 +18,178 @@ import typer
 logger = logging.getLogger(__name__)
 
 
+def _ensure_components_loaded() -> None:
+    """Ensure all required components are imported and registered."""
+    try:
+        # Import model modules to trigger registration
+        from ..explain.shap import kernel, tree  # noqa: F401
+        from ..metrics.fairness import bias_detection  # noqa: F401
+        from ..metrics.performance import classification  # noqa: F401
+        from ..models.tabular import lightgbm, sklearn, xgboost  # noqa: F401
+
+        logger.debug("All component modules imported and registered")
+    except ImportError as e:
+        logger.warning(f"Some components could not be imported: {e}")
+
+
+def _run_audit_pipeline(config, output_path: Path) -> None:
+    """Execute the complete audit pipeline and generate PDF report.
+
+    Args:
+        config: Validated audit configuration
+        output_path: Path where PDF report should be saved
+
+    """
+    import time
+    from datetime import datetime
+
+    # Import here to avoid circular imports and startup overhead
+    from ..pipeline.audit import run_audit_pipeline
+    from ..report import PDFConfig, render_audit_pdf
+
+    start_time = time.time()
+
+    try:
+        # Step 1: Run audit pipeline
+        typer.echo("  Loading data and initializing components...")
+
+        # Run the actual audit pipeline
+        audit_results = run_audit_pipeline(config)
+
+        if not audit_results.success:
+            typer.secho(f"❌ Audit pipeline failed: {audit_results.error_message}", fg=typer.colors.RED, err=True)
+            raise typer.Exit(1)
+
+        pipeline_time = time.time() - start_time
+        typer.secho(f"✓ Audit pipeline completed in {pipeline_time:.2f}s", fg=typer.colors.GREEN)
+
+        # Show audit summary
+        _display_audit_summary(audit_results)
+
+        # Step 2: Generate PDF report
+        typer.echo(f"\nGenerating PDF report: {output_path}")
+
+        # Create PDF configuration
+        pdf_config = PDFConfig(
+            page_size="A4",
+            title="ML Model Audit Report",
+            author="GlassAlpha",
+            subject="Machine Learning Model Compliance Assessment",
+            optimize_size=True,
+        )
+
+        # Generate PDF
+        pdf_start = time.time()
+        pdf_path = render_audit_pdf(
+            audit_results=audit_results,
+            output_path=output_path,
+            config=pdf_config,
+            report_title=f"ML Model Audit Report - {datetime.now().strftime('%Y-%m-%d')}",
+            generation_date=datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC"),
+        )
+
+        pdf_time = time.time() - pdf_start
+        file_size = pdf_path.stat().st_size
+
+        # Success message
+        total_time = time.time() - start_time
+        typer.echo("\n🎉 Audit Report Generated Successfully!")
+        typer.echo(f"{'=' * 50}")
+        typer.secho(f"📁 Output: {pdf_path}", fg=typer.colors.GREEN)
+        typer.echo(f"📊 Size: {file_size:,} bytes ({file_size / 1024:.1f} KB)")
+        typer.echo(f"⏱️  Total time: {total_time:.2f}s")
+        typer.echo(f"   • Pipeline: {pipeline_time:.2f}s")
+        typer.echo(f"   • PDF generation: {pdf_time:.2f}s")
+
+        # Regulatory compliance message
+        if config.strict_mode:
+            typer.secho("\n🛡️  Strict mode: Report meets regulatory compliance requirements", fg=typer.colors.YELLOW)
+
+        typer.echo("\nThe audit report is ready for review and regulatory submission.")
+
+    except Exception as e:
+        typer.secho(f"\n❌ Audit failed: {str(e)}", fg=typer.colors.RED, err=True)
+
+        # Show more details in verbose mode
+        if "--verbose" in sys.argv or "-v" in sys.argv:
+            logger.exception("Detailed audit failure information:")
+
+        raise typer.Exit(1)
+
+
+def _display_audit_summary(audit_results) -> None:
+    """Display a summary of audit results."""
+    typer.echo("\n📊 Audit Summary:")
+
+    # Model performance
+    if audit_results.model_performance:
+        perf_count = len(
+            [m for m in audit_results.model_performance.values() if isinstance(m, dict) and "error" not in m]
+        )
+        typer.echo(f"  ✅ Performance metrics: {perf_count} computed")
+
+        # Show key metrics
+        for name, result in audit_results.model_performance.items():
+            if isinstance(result, dict) and "accuracy" in result:
+                accuracy = result["accuracy"]
+                status = "✅" if accuracy > 0.8 else "⚠️" if accuracy > 0.6 else "❌"
+                typer.echo(f"     {status} {name}: {accuracy:.1%}")
+                break
+
+    # Fairness analysis
+    if audit_results.fairness_analysis:
+        bias_detected = []
+        total_metrics = 0
+        failed_metrics = 0
+
+        for attr, metrics in audit_results.fairness_analysis.items():
+            for metric, result in metrics.items():
+                total_metrics += 1
+                if isinstance(result, dict):
+                    if "error" in result:
+                        failed_metrics += 1
+                    elif result.get("is_fair") is False:
+                        bias_detected.append(f"{attr}.{metric}")
+
+        computed_metrics = total_metrics - failed_metrics
+        typer.echo(f"  ⚖️  Fairness metrics: {computed_metrics}/{total_metrics} computed")
+
+        if bias_detected:
+            typer.secho(f"     ⚠️  Bias detected in: {', '.join(bias_detected[:2])}", fg=typer.colors.YELLOW)
+        elif computed_metrics > 0:
+            typer.secho("     ✅ No bias detected", fg=typer.colors.GREEN)
+
+    # SHAP explanations
+    if audit_results.explanations:
+        has_importance = "global_importance" in audit_results.explanations
+
+        if has_importance:
+            typer.echo("  🔍 Explanations: ✅ Global feature importance")
+
+            # Show top feature
+            importance = audit_results.explanations.get("global_importance", {})
+            if importance:
+                top_feature = max(importance.items(), key=lambda x: abs(x[1]))
+                typer.echo(f"     Most important: {top_feature[0]} ({top_feature[1]:+.3f})")
+        else:
+            typer.echo("  🔍 Explanations: ❌ Not available")
+
+    # Data summary
+    if audit_results.data_summary and "shape" in audit_results.data_summary:
+        rows, cols = audit_results.data_summary["shape"]
+        typer.echo(f"  📋 Dataset: {rows:,} samples, {cols} features")
+
+    # Selected components
+    if audit_results.selected_components:
+        typer.echo(f"  🔧 Components: {len(audit_results.selected_components)} selected")
+
+        # Show model type
+        for _comp_name, comp_info in audit_results.selected_components.items():
+            if comp_info.get("type") == "model":
+                typer.echo(f"     Model: {comp_info.get('name', 'unknown')}")
+                break
+
+
 def audit(
     # Typer requires function calls in defaults - this is the documented pattern
     config: Path = typer.Option(
@@ -82,6 +254,9 @@ def audit(
         from ..config import load_config_from_file
         from ..core import list_components
 
+        # Import all component modules to trigger registration
+        _ensure_components_loaded()
+
         typer.echo("GlassAlpha Audit Generation")
         typer.echo(f"{'=' * 40}")
 
@@ -110,15 +285,9 @@ def audit(
             typer.secho("✓ Configuration valid (dry run - no report generated)", fg=typer.colors.GREEN)
             return
 
-        # TODO: Implement actual audit pipeline
-        typer.echo("\nGenerating audit report...")
-        typer.echo(f"Output: {output}")
-
-        # Placeholder for actual implementation
-        typer.secho("\n⚠️  Note: Audit pipeline implementation pending (Phase 1)", fg=typer.colors.YELLOW)
-
-        # Simulate success
-        typer.secho(f"\n✓ Audit report would be generated at: {output}", fg=typer.colors.GREEN)
+        # Run audit pipeline
+        typer.echo("\nRunning audit pipeline...")
+        _run_audit_pipeline(audit_config, output)
 
     except FileNotFoundError as e:
         typer.secho(f"Error: {e}", fg=typer.colors.RED, err=True)
