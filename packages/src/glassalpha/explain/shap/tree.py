@@ -9,7 +9,16 @@ from typing import Any
 
 import numpy as np
 import pandas as pd
-import shap
+
+# Conditional shap import with graceful fallback for CI compatibility
+try:
+    import shap
+
+    SHAP_AVAILABLE = True
+except ImportError:
+    # Fallback when shap unavailable (CI environment issues)
+    SHAP_AVAILABLE = False
+    shap = None
 
 from ...core.interfaces import ModelInterface
 from ...core.registry import ExplainerRegistry
@@ -17,14 +26,17 @@ from ...core.registry import ExplainerRegistry
 logger = logging.getLogger(__name__)
 
 
-@ExplainerRegistry.register("treeshap", priority=100)
-class TreeSHAPExplainer:
-    """TreeSHAP explainer for tree-based models.
+# Only register if shap is available
+if SHAP_AVAILABLE:
 
-    This explainer uses the TreeSHAP algorithm to compute exact SHAP values
-    for tree-based models like XGBoost, LightGBM, and Random Forest. It has
-    the highest priority for these model types as it's both exact and efficient.
-    """
+    @ExplainerRegistry.register("treeshap", priority=100)
+    class TreeSHAPExplainer:
+        """TreeSHAP explainer for tree-based models.
+
+        This explainer uses the TreeSHAP algorithm to compute exact SHAP values
+        for tree-based models like XGBoost, LightGBM, and Random Forest. It has
+        the highest priority for these model types as it's both exact and efficient.
+        """
 
     # Required class attributes for ExplainerInterface
     capabilities = {
@@ -207,3 +219,12 @@ class TreeSHAPExplainer:
     def __repr__(self) -> str:
         """String representation of the explainer."""
         return f"TreeSHAPExplainer(priority={self.priority}, version={self.version})"
+
+else:
+    # Stub class when shap unavailable
+    class TreeSHAPExplainer:
+        """Stub class when SHAP library is unavailable."""
+
+        def __init__(self, *args, **kwargs):
+            """Initialize stub - raises ImportError."""
+            raise ImportError("shap not available - install shap library or fix CI environment")

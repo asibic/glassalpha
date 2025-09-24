@@ -10,7 +10,16 @@ from typing import Any
 
 import numpy as np
 import pandas as pd
-import shap
+
+# Conditional shap import with graceful fallback for CI compatibility
+try:
+    import shap
+
+    SHAP_AVAILABLE = True
+except ImportError:
+    # Fallback when shap unavailable (CI environment issues)
+    SHAP_AVAILABLE = False
+    shap = None
 
 from ...core.interfaces import ModelInterface
 from ...core.registry import ExplainerRegistry
@@ -18,14 +27,17 @@ from ...core.registry import ExplainerRegistry
 logger = logging.getLogger(__name__)
 
 
-@ExplainerRegistry.register("kernelshap", priority=50)
-class KernelSHAPExplainer:
-    """KernelSHAP explainer for model-agnostic SHAP explanations.
+# Only register if shap is available
+if SHAP_AVAILABLE:
 
-    This explainer uses the KernelSHAP algorithm to compute approximate SHAP values
-    for any model that provides predictions. It has lower priority than TreeSHAP
-    but works with any model type including linear models, SVMs, and other sklearn models.
-    """
+    @ExplainerRegistry.register("kernelshap", priority=50)
+    class KernelSHAPExplainer:
+        """KernelSHAP explainer for model-agnostic SHAP explanations.
+
+        This explainer uses the KernelSHAP algorithm to compute approximate SHAP values
+        for any model that provides predictions. It has lower priority than TreeSHAP
+        but works with any model type including linear models, SVMs, and other sklearn models.
+        """
 
     # Required class attributes for ExplainerInterface
     capabilities = {
@@ -235,6 +247,15 @@ class KernelSHAPExplainer:
 
         """
         return "shap_values"
+
+else:
+    # Stub class when shap unavailable
+    class KernelSHAPExplainer:
+        """Stub class when SHAP library is unavailable."""
+
+        def __init__(self, *args, **kwargs):
+            """Initialize stub - raises ImportError."""
+            raise ImportError("shap not available - install shap library or fix CI environment")
 
     def __repr__(self) -> str:
         """String representation of the explainer."""

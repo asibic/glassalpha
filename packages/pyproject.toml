@@ -90,6 +90,7 @@ select = [
     "D",   # pydocstyle
 ]
 ignore = [
+    "D417",  # Self parameter documentation not required
     "D203", "D213",  # Conflicting docstring rules
     "D401",          # Docstring mood - pure style preference ("Creates X" vs "Create X")
 ]
