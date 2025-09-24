@@ -10,7 +10,20 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import pytest
-import xgboost as xgb
+
+# Conditional XGBoost import with graceful fallback
+try:
+    import xgboost as xgb
+
+    XGBOOST_AVAILABLE = True
+    XGBOOST_SKIP_REASON = None
+except ImportError as e:
+    xgb = None
+    XGBOOST_AVAILABLE = False
+    XGBOOST_SKIP_REASON = f"XGBoost not available: {e}"
+
+# Skip all tests in this module if XGBoost is not available
+pytestmark = pytest.mark.skipif(not XGBOOST_AVAILABLE, reason=XGBOOST_SKIP_REASON or "XGBoost not available")
 
 from glassalpha.core.registry import ModelRegistry
 from glassalpha.models.tabular.xgboost import XGBoostWrapper
