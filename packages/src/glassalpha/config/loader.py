@@ -124,7 +124,7 @@ def validate_config(config: dict[str, Any] | AuditConfig) -> AuditConfig:
 
     try:
         # Apply profile defaults first
-        config = apply_profile_defaults(config)
+        config = apply_profile_defaults(config, config.get("audit_profile"))
 
         # Create and validate config object
         audit_config = AuditConfig(**config)
@@ -157,7 +157,7 @@ def load_config(config_dict: dict[str, Any], profile_name: str | None = None, st
         config_dict["strict_mode"] = True
 
     # Apply defaults and validate
-    config_dict = apply_profile_defaults(config_dict)
+    config_dict = apply_profile_defaults(config_dict, config_dict.get("audit_profile"))
     audit_config = validate_config(config_dict)
 
     # Apply strict mode validation if enabled
