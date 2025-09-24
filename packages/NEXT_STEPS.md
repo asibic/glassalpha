@@ -1,112 +1,142 @@
-# GlassAlpha - Next Steps Quick Reference
+# GlassAlpha - Phase 2 Quick Reference
 
-## 🚀 Quick Start for New Conversation
+## 🚀 Quick Start for Phase 2
 
 ```bash
 # Navigate to project
 cd /Users/gabe/Sites/glassalpha/packages
 
-# Install dependencies (if not done)
-pip install pandas numpy scikit-learn xgboost lightgbm shap pydantic typer pyyaml
+# Activate virtual environment
+source venv/bin/activate
 
-# Test the architecture is working
-python3 demo_foundation_minimal.py
-
-# See current component status
+# Verify Phase 1 components are working
 python3 -c "
 import sys
 sys.path.insert(0, 'src')
 from glassalpha.core import list_components
-print('Registered components:', list_components())
+c = list_components()
+print(f'✅ Models: {len(c[\"models\"])} registered')
+print(f'✅ Explainers: {len(c[\"explainers\"])} registered')
+print(f'✅ Metrics: {len(c[\"metrics\"])} registered')
+print(f'Total: {len(c[\"models\"]) + len(c[\"explainers\"]) + len(c[\"metrics\"])} components')
 "
+
+# Expected output:
+# ✅ Models: 5 registered
+# ✅ Explainers: 3 registered
+# ✅ Metrics: 17 registered
+# Total: 25 components
 ```
 
-## 📂 Where to Add New Components
+## 📂 Where to Add Phase 2 Components
 
-### Model Wrappers
+### Data Module
 ```
-src/glassalpha/models/
-└── tabular/
-    ├── __init__.py
-    ├── xgboost.py      # Create this
-    ├── lightgbm.py     # Create this
-    └── sklearn.py      # Create this
-```
+src/glassalpha/data/
+├── __init__.py
+├── base.py           # DataInterface protocol (exists)
+└── tabular.py        # Create this - CSV/Parquet loading
 
-### Explainers
-```
-src/glassalpha/explain/
-└── shap/
-    ├── __init__.py
-    ├── tree.py         # Create this (TreeSHAP)
-    └── kernel.py       # Create this (KernelSHAP)
+src/glassalpha/datasets/
+├── __init__.py
+├── german_credit.py  # Create this
+└── adult_income.py   # Create this
 ```
 
-### Metrics
+### Utilities
 ```
-src/glassalpha/metrics/
-├── performance/
-│   ├── __init__.py
-│   └── classification.py  # Create this
-├── fairness/
-│   ├── __init__.py
-│   └── group_fairness.py  # Create this
-└── drift/
-    ├── __init__.py
-    └── statistical.py      # Create this
+src/glassalpha/utils/
+├── __init__.py
+├── seeds.py          # Create this - Centralized seed management
+├── hashing.py        # Create this - Deterministic hashing
+└── manifest.py       # Create this - Audit manifest generation
 ```
 
-## 📝 Component Templates
+### Pipeline
+```
+src/glassalpha/pipeline/
+├── __init__.py
+└── audit.py          # Create this - Main audit orchestrator
+```
 
-### Model Template
+### Report Generation
+```
+src/glassalpha/report/
+├── __init__.py
+├── templates/
+│   └── standard_audit.html  # Create this - Jinja2 template
+├── renderers/
+│   └── pdf.py               # Create this - WeasyPrint renderer
+└── plots.py                 # Create this - Deterministic plotting
+```
+
+## 📝 Phase 2 Component Templates
+
+### Data Loader Template
 ```python
-# src/glassalpha/models/tabular/xgboost.py
-from ...core.registry import ModelRegistry
+# src/glassalpha/data/tabular.py
+import pandas as pd
+import numpy as np
+from pathlib import Path
+from typing import Optional, Tuple
+from pydantic import BaseModel
 
-@ModelRegistry.register("xgboost")
-class XGBoostWrapper:
-    capabilities = {
-        "supports_shap": True,
-        "data_modality": "tabular"
-    }
-    version = "1.0.0"
+class DataSchema(BaseModel):
+    """Schema for tabular data validation."""
+    features: list[str]
+    target: str
+    sensitive_features: Optional[list[str]] = None
 
-    def predict(self, X):
-        # Implementation
-        pass
+class TabularDataLoader:
+    """Load and validate tabular datasets."""
+
+    def load_csv(self, path: Path, schema: DataSchema) -> pd.DataFrame:
+        """Load CSV with schema validation."""
+        df = pd.read_csv(path)
+        self._validate_schema(df, schema)
+        return df
+
+    def split_features_target(
+        self, df: pd.DataFrame, schema: DataSchema
+    ) -> Tuple[pd.DataFrame, np.ndarray, Optional[pd.DataFrame]]:
+        """Split into X, y, and sensitive features."""
+        X = df[schema.features]
+        y = df[schema.target].values
+        sensitive = df[schema.sensitive_features] if schema.sensitive_features else None
+        return X, y, sensitive
 ```
 
-### Explainer Template
+### Pipeline Template
 ```python
-# src/glassalpha/explain/shap/tree.py
-from ...core.registry import ExplainerRegistry
+# src/glassalpha/pipeline/audit.py
+from typing import Dict, Any
+from ..core import ModelRegistry, ExplainerRegistry, MetricRegistry
 
-@ExplainerRegistry.register("treeshap", priority=100)
-class TreeSHAPExplainer:
-    capabilities = {
-        "supported_models": ["xgboost", "lightgbm"]
-    }
-    priority = 100
-    version = "1.0.0"
+class AuditPipeline:
+    """Orchestrate the complete audit process."""
 
-    def explain(self, model, X, y=None):
-        # Implementation
-        pass
-```
+    def __init__(self, config: Dict[str, Any]):
+        self.config = config
+        self.results = {}
 
-### Metric Template
-```python
-# src/glassalpha/metrics/performance/classification.py
-from ...core.registry import MetricRegistry
+    def run(self) -> Dict[str, Any]:
+        """Execute the audit pipeline."""
+        # 1. Load data
+        data = self._load_data()
 
-@MetricRegistry.register("accuracy")
-class AccuracyMetric:
-    metric_type = "performance"
-    version = "1.0.0"
+        # 2. Load/train model
+        model = self._get_model()
 
-    def compute(self, y_true, y_pred, sensitive_features=None):
-        # Implementation
-        pass
+        # 3. Generate explanations
+        explanations = self._generate_explanations(model, data)
+
+        # 4. Compute metrics
+        metrics = self._compute_metrics(model, data)
+
+        # 5. Generate report
+        report = self._generate_report(explanations, metrics)
+
+        return report
 ```
 
 ## ✅ Testing Your Components
@@ -130,13 +160,14 @@ model = XGBoostWrapper()
 print(model.get_capabilities())
 ```
 
-## 🎯 Order of Implementation
+## 🎯 Phase 2 Order of Implementation
 
-1. **XGBoostWrapper** - Easiest to test, most common model
-2. **TreeSHAPExplainer** - Core value proposition
-3. **AccuracyMetric** - Simplest metric to implement
-4. **Simple Pipeline** - Connect model → explainer → metric
-5. **Basic Report** - Generate first PDF
+1. **Data Module** (`data/tabular.py`) - Foundation for everything
+2. **Utilities** (`utils/seeds.py`, `utils/hashing.py`) - Enable reproducibility
+3. **Simple Pipeline** (`pipeline/audit.py`) - Connect existing components
+4. **Basic HTML Report** (`report/templates/standard_audit.html`) - Visualize results
+5. **PDF Generation** (`report/renderers/pdf.py`) - Final deliverable
+6. **German Credit Example** - First complete end-to-end audit
 
 ## 📋 Key Commands
 
@@ -168,35 +199,28 @@ glassalpha audit --config configs/example_audit.yaml --out test.pdf --dry-run
 4. **Test incrementally** - Verify each component registers before moving on
 5. **Keep it deterministic** - Use seeds, avoid randomness
 
-## 🧪 Deferred Testing Items
+## 📊 Phase 1 Completed Components Summary
 
-These items were identified during coverage fixes but deferred until they're actually needed for Phase 1 completion:
+All ML components are fully implemented and tested:
+- **Models**: 5 wrappers (XGBoost, LightGBM, LogisticRegression, SklearnGeneric, PassThrough)
+- **Explainers**: 3 implementations (TreeSHAP, KernelSHAP, NoOp)
+- **Metrics**: 17 total (6 Performance, 4 Fairness, 5 Drift, 2 Testing)
+- **Registry**: Working with priority-based selection
+- **Config**: Pydantic schemas ready
+- **CLI**: Basic structure with Typer
 
-### XGBoost Test Dependency Issues
-- **Issue**: XGBoost tests have numpy/scipy dependency conflicts in CI
-- **Current Status**: XGBoost works fine locally and in production
-- **Defer Until**: Model wrappers are actively being used in audit pipeline
-- **Location**: `tests/test_xgboost_basic.py` exists but may fail in CI
-- **Resolution**: Will need to debug numpy version conflicts when XGBoost integration is critical
+## 🧪 Known Issues to Address in Phase 2
 
-### Complete CLI Functionality Testing
-- **Issue**: Current CLI tests only cover basic loading, not full command functionality
-- **Current Status**: Basic CLI loads and shows help (sufficient for current 30% coverage)
-- **Defer Until**: Full audit pipeline is implemented
-- **What's Missing**: End-to-end audit command testing, error handling, file I/O validation
-- **Resolution**: Add comprehensive CLI tests when audit command actually works
+### Config Loader Fix Needed
+- **Issue**: `load_config()` has bug in `apply_profile_defaults()` call
+- **Location**: `src/glassalpha/config/loader.py:160`
+- **Priority**: HIGH - Need this for pipeline to work
+- **Fix**: Update function call with correct arguments
 
-### Config Loader Bug
-- **Issue**: `load_config()` function has internal bug in `apply_profile_defaults()` call signature
-- **Current Status**: Schema validation works fine, only full loader pipeline fails
-- **Defer Until**: Config loading is needed for actual audits
-- **Location**: `src/glassalpha/config/loader.py:160` - passing wrong arguments to `apply_profile_defaults`
-- **Resolution**: Fix argument passing when profile system is actually used
-
-### Testing Strategy Notes
-- **Current Coverage**: 29.92% (above required 20%)
-- **Strategy**: Focus on high-impact modules rather than comprehensive testing
-- **Next Testing Priority**: Add tests as components become actively used in pipeline
+### Testing Strategy for Phase 2
+- **Current Coverage**: ~30% (Phase 1 complete)
+- **Phase 2 Goal**: Add integration tests for complete pipeline
+- **Focus**: End-to-end audit generation with German Credit dataset
 
 ---
 

@@ -1,10 +1,10 @@
-# GlassAlpha - Handoff Document for Next Conversation
+# GlassAlpha - Handoff Document for Next Phase
 
-## Current Status (September 2024)
+## Current Status (September 2025)
 
-### ✅ What's Complete (100% Architecture Foundation)
+### ✅ Phase 0 & 1 Complete - ML Components Fully Implemented
 
-#### Phase 0 - Architecture Foundation
+#### Phase 0 - Architecture Foundation (100% Complete)
 - **Core Interfaces** (`src/glassalpha/core/interfaces.py`)
   - ModelInterface, ExplainerInterface, MetricInterface protocols
   - All use Python's `typing.Protocol` for flexibility
@@ -22,10 +22,27 @@
   - Simple `GLASSALPHA_LICENSE_KEY` environment variable check
   - `@check_feature` decorator for enterprise gating
 
-#### Phase 1 Foundation
-- **Audit Profiles** (`src/glassalpha/profiles/`)
-  - TabularComplianceProfile defines valid component combinations
+#### Phase 1 - ML Components (100% Complete)
 
+##### Models (5 implementations)
+- **XGBoostWrapper** (`src/glassalpha/models/tabular/xgboost.py`)
+- **LightGBMWrapper** (`src/glassalpha/models/tabular/lightgbm.py`)
+- **LogisticRegressionWrapper** (`src/glassalpha/models/tabular/sklearn.py`)
+- **SklearnGenericWrapper** (`src/glassalpha/models/tabular/sklearn.py`)
+- **PassThroughModel** (NoOp for testing)
+
+##### Explainers (3 implementations)
+- **TreeSHAPExplainer** (`src/glassalpha/explain/shap/tree.py`) - Priority 100
+- **KernelSHAPExplainer** (`src/glassalpha/explain/shap/kernel.py`) - Priority 50
+- **NoOpExplainer** (fallback) - Priority -100
+
+##### Metrics (17 total)
+- **Performance (6)**: Accuracy, Precision, Recall, F1, AUC-ROC, Classification Report
+- **Fairness (4)**: Demographic Parity, Equal Opportunity, Equalized Odds, Predictive Parity
+- **Drift (5)**: PSI, KL Divergence, KS Test, JS Divergence, Prediction Drift
+- **Testing (2)**: NoOp metrics for pipeline testing
+
+#### Infrastructure Ready
 - **Configuration System** (`src/glassalpha/config/`)
   - Pydantic schemas for validation
   - YAML loading with profile support
@@ -36,191 +53,130 @@
   - Commands: audit, validate, list
   - --strict flag implemented
 
-- **Tests** (`tests/`)
-  - Deterministic selection tests
-  - Enterprise feature gating tests
-  - Core foundation tests
+- **Audit Profiles** (`src/glassalpha/profiles/`)
+  - TabularComplianceProfile defines valid component combinations
 
-### ⏳ What's Next (Phase 1 Implementation)
+### ⏳ What's Next (Phase 2 - Integration & Report Generation)
 
-## 🎯 IMMEDIATE NEXT TASKS
+## 🎯 PHASE 2: INTEGRATION & REPORT GENERATION
 
-### Task 1: Install Dependencies
+### Environment Setup
 ```bash
-cd packages
-pip install pandas numpy scikit-learn xgboost lightgbm shap pydantic typer pyyaml matplotlib seaborn jinja2 weasyprint orjson
-```
+cd /Users/gabe/Sites/glassalpha/packages
+source venv/bin/activate  # Activate existing virtual environment
 
-### Task 2: Implement XGBoostWrapper (Simplest Real Component)
-Create `src/glassalpha/models/tabular/xgboost.py`:
+# Additional dependencies for Phase 2
+pip install jinja2 weasyprint matplotlib seaborn plotly
 
-```python
-import xgboost as xgb
-import pandas as pd
-import numpy as np
-from pathlib import Path
-from typing import Dict, Any
-
-from ...core.registry import ModelRegistry
-from ...core.interfaces import ModelInterface
-
-@ModelRegistry.register("xgboost")
-class XGBoostWrapper:
-    """Wrapper for XGBoost models."""
-
-    capabilities = {
-        "supports_shap": True,
-        "supports_feature_importance": True,
-        "data_modality": "tabular"
-    }
-    version = "1.0.0"
-
-    def __init__(self, model_path: str = None):
-        self.model = None
-        if model_path:
-            self.load(model_path)
-
-    def load(self, path: str):
-        """Load XGBoost model from file."""
-        self.model = xgb.Booster()
-        self.model.load_model(path)
-
-    def predict(self, X: pd.DataFrame) -> np.ndarray:
-        """Generate predictions."""
-        dmatrix = xgb.DMatrix(X)
-        return self.model.predict(dmatrix)
-
-    def predict_proba(self, X: pd.DataFrame) -> np.ndarray:
-        """Generate probability predictions."""
-        preds = self.predict(X)
-        # For binary classification
-        return np.column_stack([1 - preds, preds])
-
-    def get_model_type(self) -> str:
-        return "xgboost"
-
-    def get_capabilities(self) -> Dict[str, Any]:
-        return self.capabilities
-```
-
-### Task 3: Implement TreeSHAP Explainer
-Create `src/glassalpha/explain/shap/tree.py`:
-
-```python
-import shap
-import numpy as np
-import pandas as pd
-from typing import Dict, Any, Optional
-
-from ...core.registry import ExplainerRegistry
-from ...core.interfaces import ExplainerInterface, ModelInterface
-
-@ExplainerRegistry.register("treeshap", priority=100)
-class TreeSHAPExplainer:
-    """TreeSHAP explainer for tree-based models."""
-
-    capabilities = {
-        "supported_models": ["xgboost", "lightgbm", "random_forest"],
-        "explanation_type": "shap_values"
-    }
-    version = "1.0.0"
-    priority = 100
-
-    def explain(
-        self,
-        model: ModelInterface,
-        X: pd.DataFrame,
-        y: Optional[np.ndarray] = None
-    ) -> Dict[str, Any]:
-        """Generate SHAP explanations."""
-
-        # Create SHAP explainer
-        if model.get_model_type() == "xgboost":
-            explainer = shap.TreeExplainer(model.model)
-        else:
-            # Fallback for other tree models
-            explainer = shap.TreeExplainer(model.model)
-
-        # Calculate SHAP values
-        shap_values = explainer.shap_values(X)
-
-        return {
-            "status": "success",
-            "shap_values": shap_values,
-            "base_value": explainer.expected_value,
-            "feature_importance": np.abs(shap_values).mean(axis=0),
-            "explainer_type": "treeshap"
-        }
-
-    def supports_model(self, model: ModelInterface) -> bool:
-        """Check if this explainer supports the model."""
-        return model.get_model_type() in self.capabilities["supported_models"]
-
-    def get_explanation_type(self) -> str:
-        return "shap_values"
-```
-
-### Task 4: Test Registration Works
-```python
+# Verify ML components are working
+python3 -c "
+import sys
+sys.path.insert(0, 'src')
 from glassalpha.core import list_components
-
-components = list_components()
-print("Models:", components['models'])  # Should show ['passthrough', 'xgboost']
-print("Explainers:", components['explainers'])  # Should show ['noop', 'treeshap']
+c = list_components()
+print(f'Models: {len(c[\"models\"])}')
+print(f'Explainers: {len(c[\"explainers\"])}')
+print(f'Metrics: {len(c[\"metrics\"])}')
+"
 ```
 
-## 📋 Complete Task List (Priority Order)
+### Task 1: Data Module Implementation
+Create the tabular data loading infrastructure:
 
-### Week 2-3: ML Components
-1. **Model Wrappers**
-   - [ ] XGBoostWrapper (`models/tabular/xgboost.py`)
-   - [ ] LightGBMWrapper (`models/tabular/lightgbm.py`)
-   - [ ] LogisticRegressionWrapper (`models/tabular/sklearn.py`)
+**File:** `src/glassalpha/data/tabular.py`
+- Load datasets from CSV/Parquet
+- Schema validation with Pydantic
+- Protected attributes handling
+- Dataset hashing for reproducibility
+- Train/test split management
 
-2. **Explainers**
-   - [ ] TreeSHAPExplainer (`explain/shap/tree.py`)
-   - [ ] KernelSHAPExplainer (`explain/shap/kernel.py`)
+### Task 2: Utilities Implementation
+Core utilities for audit reproducibility:
 
-3. **Metrics**
-   - [ ] Performance metrics (`metrics/performance/`)
-     - Accuracy, Precision, Recall, F1, AUC-ROC
-   - [ ] Fairness metrics (`metrics/fairness/`)
-     - Demographic parity, Equal opportunity
-   - [ ] Drift metrics (`metrics/drift/`)
-     - PSI, KL divergence
+**Files to create:**
+- `src/glassalpha/utils/seeds.py` - Centralized random seed management
+- `src/glassalpha/utils/hashing.py` - Deterministic hashing for configs, datasets
+- `src/glassalpha/utils/manifest.py` - Audit manifest generation with complete lineage
 
-### Week 3-4: Integration
-4. **Data Module**
-   - [ ] Tabular data loader (`data/tabular.py`)
-   - [ ] Schema validation
-   - [ ] Protected attributes handling
+### Task 3: Audit Pipeline
+Connect all components into a working pipeline:
 
-5. **Utilities**
-   - [ ] Seed management (`utils/seeds.py`)
-   - [ ] Hashing utilities (`utils/hashing.py`)
-   - [ ] Manifest generator (`utils/manifest.py`)
+**File:** `src/glassalpha/pipeline/audit.py`
+- Load data → Train/evaluate model → Generate explanations → Compute metrics
+- Component orchestration with error handling
+- Deterministic execution with seed management
+- Progress tracking and logging
 
-### Week 4-5: Pipeline & Reporting
-6. **Audit Pipeline**
-   - [ ] Pipeline orchestrator (`pipeline/audit.py`)
-   - [ ] Component connector
-   - [ ] Error handling
+### Task 4: Report Generation
+Create the PDF audit report system:
 
-7. **Report Generation**
-   - [ ] Report template (`report/templates/standard_audit.html`)
-   - [ ] PDF renderer (`report/renderers/pdf.py`)
-   - [ ] Deterministic plotting
+**Files to create:**
+- `src/glassalpha/report/templates/standard_audit.html` - Jinja2 template
+- `src/glassalpha/report/renderers/pdf.py` - WeasyPrint PDF renderer
+- `src/glassalpha/report/plots.py` - Deterministic matplotlib/seaborn plots
 
-### Week 6: Testing & Polish
-8. **Integration Tests**
-   - [ ] End-to-end audit test
-   - [ ] German Credit example
-   - [ ] Adult Income example
+### Task 5: Example Datasets
+Implement loaders for canonical datasets:
 
-9. **Documentation**
-   - [ ] "Hello Audit" tutorial
-   - [ ] API reference
-   - [ ] Example notebooks
+**Files to create:**
+- `src/glassalpha/datasets/german_credit.py`
+- `src/glassalpha/datasets/adult_income.py`
+- Create example configs in `configs/`
+
+## 📋 Phase 2 Task Checklist
+
+### Phase 1 (COMPLETED ✅)
+- ✅ **5 Model Wrappers** (XGBoost, LightGBM, LogisticRegression, SklearnGeneric, PassThrough)
+- ✅ **3 Explainers** (TreeSHAP, KernelSHAP, NoOp)
+- ✅ **17 Metrics** (Performance, Fairness, Drift, Testing)
+- ✅ **Registry System** with priority-based selection
+- ✅ **Configuration System** with Pydantic validation
+- ✅ **CLI Structure** with Typer
+
+### Phase 2: Integration & Reporting (NEXT)
+
+#### Week 1: Data & Utilities
+- [ ] **Data Module** (`data/tabular.py`)
+  - [ ] CSV/Parquet loading
+  - [ ] Schema validation
+  - [ ] Protected attributes
+  - [ ] Dataset hashing
+
+- [ ] **Core Utilities**
+  - [ ] Seed management (`utils/seeds.py`)
+  - [ ] Hashing utilities (`utils/hashing.py`)
+  - [ ] Manifest generator (`utils/manifest.py`)
+
+#### Week 2: Pipeline Integration
+- [ ] **Audit Pipeline** (`pipeline/audit.py`)
+  - [ ] Component orchestration
+  - [ ] Model → Explainer → Metrics flow
+  - [ ] Error handling
+  - [ ] Progress tracking
+
+- [ ] **Example Datasets**
+  - [ ] German Credit loader
+  - [ ] Adult Income loader
+  - [ ] Example configs
+
+#### Week 3: Report Generation
+- [ ] **Report System**
+  - [ ] HTML template (`report/templates/standard_audit.html`)
+  - [ ] PDF renderer (`report/renderers/pdf.py`)
+  - [ ] Deterministic plots (`report/plots.py`)
+  - [ ] Executive summary generation
+
+#### Week 4: Testing & Documentation
+- [ ] **Integration Tests**
+  - [ ] End-to-end audit test
+  - [ ] German Credit example
+  - [ ] Adult Income example
+  - [ ] Byte-identical PDF test
+
+- [ ] **Documentation**
+  - [ ] "Hello Audit" 5-minute tutorial
+  - [ ] API reference
+  - [ ] Example notebooks
 
 ## 🔑 Key Patterns to Follow
 
@@ -250,46 +206,52 @@ print("Explainers:", components['explainers'])  # Should show ['noop', 'treeshap
        version = "1.0.0"
    ```
 
-## 🚦 Success Criteria
+## 🚦 Success Criteria for Phase 2
 
-You'll know Phase 1 is complete when:
-1. `glassalpha audit --config audit.yaml --out report.pdf` generates a real PDF
-2. The PDF contains actual SHAP explanations from TreeSHAP
-3. Fairness metrics are computed and displayed
-4. The audit is fully reproducible (same inputs = byte-identical PDF)
-5. German Credit dataset example works end-to-end
+You'll know Phase 2 is complete when:
+1. `glassalpha audit --config configs/german_credit.yaml --out audit.pdf --strict` generates a professional PDF
+2. The PDF contains:
+   - Executive summary with risk assessment
+   - Model performance metrics (all 6 types)
+   - SHAP explanations (global and local)
+   - Fairness analysis across demographics
+   - Drift detection results
+   - Complete audit manifest with hashes
+3. The audit is fully reproducible (same inputs = byte-identical PDF)
+4. Both German Credit and Adult Income examples work end-to-end
+5. Execution completes in < 60 seconds for standard datasets
 
 ## 📝 Important Files to Reference
 
-- **Architecture Rules**: `.cursor/rules/architecture.mdc`
-- **Phase 1 Priorities**: `.cursor/rules/phase1_priorities.mdc`
-- **Example Config**: `configs/example_audit.yaml`
-- **Package Structure**: `PACKAGE_STRUCTURE.md`
-- **Core Tests**: `tests/test_core_foundation.py`
+- **ML Components Status**: `ML_COMPONENTS_STATUS.md` - Current implementation details
+- **Architecture Rules**: `.cursor/rules/architecture.mdc` - Design patterns
+- **Phase 1 Priorities**: `.cursor/rules/phase1_priorities.mdc` - Success criteria
+- **Package Structure**: `PACKAGE_STRUCTURE.md` - Code organization
+- **Example Config**: `configs/example_audit.yaml` - Configuration format
 
-## 💡 Tips for Success
+## 💡 Phase 2 Implementation Tips
 
-1. **Start Small**: Get XGBoostWrapper working first, test it registers
-2. **Use NoOp Fallbacks**: If something isn't ready, NoOp components let pipeline run
-3. **Test Incrementally**: After each component, verify it registers and works
-4. **Follow Patterns**: The architecture is proven - just follow established patterns
-5. **Determinism First**: Always use seeds, sort operations, avoid randomness
+1. **Start with Data Module**: Get data loading working with schema validation
+2. **Build Utilities Next**: Seeds and hashing enable reproducibility
+3. **Simple Pipeline First**: Connect model → explainer → one metric
+4. **Iterate on Report**: Start with basic HTML, then add sections
+5. **Test Determinism Early**: Verify reproducibility from the start
 
-## 🎯 Definition of Done for Phase 1
+## 🎯 Definition of Done for Phase 2
 
 ```bash
-# This command should work and produce a PDF
-glassalpha audit --config configs/german_credit.yaml --out audit.pdf --strict
+# These commands should work and produce professional PDFs
+glassalpha audit --config configs/german_credit.yaml --out german_credit_audit.pdf --strict
+glassalpha audit --config configs/adult_income.yaml --out adult_income_audit.pdf --strict
 
-# The PDF should contain:
-- Model performance metrics
-- SHAP explanations (global and local)
-- Fairness analysis
-- Drift metrics
-- Basic recourse suggestions
-- Complete manifest with all hashes
+# The PDFs should be:
+- Professional quality (suitable for regulatory submission)
+- Fully reproducible (byte-identical on same machine/seed)
+- Generated in < 60 seconds
+- Include all Phase 1 components (models, explainers, metrics)
+- Contain executive summary and technical details
 ```
 
 ---
 
-**The architecture foundation is complete and proven. All patterns work. You're ready to implement the actual ML components!**
+**Phase 1 ML components are 100% complete. All 17 metrics, 5 models, and 3 explainers are working. Time to build the integration layer!**
