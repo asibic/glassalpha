@@ -78,10 +78,29 @@ if SKLEARN_AVAILABLE:
             logger.info("LogisticRegressionWrapper initialized without model")
 
     def load(self, path: str | Path):
-        """Load sklearn model from file.
+        """Load trained scikit-learn model from saved file for inference and analysis.
+
+        Loads a previously saved scikit-learn model from disk using either joblib
+        (optimized for NumPy arrays) or pickle serialization. The complete model
+        state including fitted parameters, preprocessing steps, and metadata is
+        restored for immediate predictions and compliance analysis.
 
         Args:
-            path: Path to sklearn model file (pickle or joblib format)
+            path: Path to model file (supports .pkl, .joblib, .pickle extensions)
+
+        Raises:
+            FileNotFoundError: If the specified model file does not exist
+            PickleError: If the model file is corrupted or contains invalid pickle data
+            UnpicklingError: If model contains unsupported or unsafe serialized objects
+            OSError: If file system permissions prevent reading the model file
+            ValueError: If model file format is unrecognized or incompatible
+            ImportError: If required scikit-learn version or dependencies unavailable
+            AttributeError: If model contains references to missing classes or modules
+
+        Note:
+            Model loading attempts joblib first (faster for NumPy data), then falls
+            back to pickle. Loaded models preserve all scikit-learn functionality
+            including feature importance, coefficients, and preprocessing pipelines.
 
         """
         path = Path(path)
@@ -369,7 +388,31 @@ if SKLEARN_AVAILABLE:
             logger.info("SklearnGenericWrapper initialized without model")
 
     def load(self, path: str | Path):
-        """Load sklearn model from file."""
+        """Load trained scikit-learn model from saved file with automatic format detection.
+
+        Loads a previously saved scikit-learn model using intelligent format detection.
+        Attempts joblib loading first (optimized for NumPy arrays), then falls back
+        to standard pickle. This generic loader works with any scikit-learn estimator
+        and preserves complete model state for immediate use.
+
+        Args:
+            path: Path to model file (any format supported by joblib or pickle)
+
+        Raises:
+            FileNotFoundError: If the specified model file does not exist
+            PickleError: If both joblib and pickle loading fail due to corruption
+            UnpicklingError: If model contains unsupported serialized objects
+            OSError: If file system permissions prevent reading the model file
+            ValueError: If loaded object is not a valid scikit-learn estimator
+            ImportError: If required scikit-learn version or dependencies unavailable
+            EOFError: If model file is truncated or incomplete
+
+        Note:
+            This generic loader handles any scikit-learn estimator including complex
+            pipelines, meta-estimators, and custom transformers. Model capabilities
+            are automatically detected after loading for compatibility verification.
+
+        """
         path = Path(path)
         if not path.exists():
             raise FileNotFoundError(f"Model file not found: {path}")
@@ -487,7 +530,36 @@ if SKLEARN_AVAILABLE:
         return importance_dict
 
     def save(self, path: str | Path, use_joblib: bool = True):
-        """Save the model to file."""
+        """Save trained scikit-learn model to disk with format selection.
+
+        Persists the complete model state including all fitted parameters,
+        preprocessing steps, and metadata using either joblib (optimized for
+        NumPy arrays) or standard pickle serialization. This generic saver
+        works with any scikit-learn estimator and preserves full functionality.
+
+        Args:
+            path: Target file path for model storage (recommended: .pkl extension)
+            use_joblib: Use joblib for efficient NumPy serialization (recommended)
+
+        Side Effects:
+            - Creates or overwrites model file at specified path
+            - Creates parent directories if they don't exist
+            - File size varies by model complexity and training data size
+            - Preserves complete estimator state including hyperparameters
+
+        Raises:
+            ValueError: If no trained model exists to save
+            OSError: If file system permissions prevent writing to path
+            IOError: If insufficient disk space for model serialization
+            PickleError: If model contains non-serializable components
+            TypeError: If model object cannot be serialized by chosen method
+
+        Note:
+            Joblib provides superior performance for models with large NumPy arrays
+            but pickle offers broader compatibility. Both formats maintain full
+            model functionality for loading and inference operations.
+
+        """
         if self.model is None:
             raise ValueError("No model to save")
 

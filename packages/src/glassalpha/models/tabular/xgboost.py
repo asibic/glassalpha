@@ -60,10 +60,28 @@ class XGBoostWrapper:
             logger.info("XGBoostWrapper initialized without model")
 
     def load(self, path: str | Path):
-        """Load XGBoost model from file.
+        """Load trained XGBoost model from saved file for inference and analysis.
+
+        Loads a previously saved XGBoost booster model from disk, supporting both
+        JSON and binary formats. The complete model structure including boosted
+        trees, learned parameters, and training configuration is restored for
+        immediate use in predictions and explainability analysis.
 
         Args:
-            path: Path to XGBoost model file (JSON or binary format)
+            path: Path to XGBoost model file (supports .json, .model, .ubj extensions)
+
+        Raises:
+            FileNotFoundError: If the specified model file does not exist
+            XGBoostError: If the model file is corrupted, incompatible, or malformed
+            OSError: If file system permissions prevent reading the model file
+            ValueError: If the model file format is unrecognized by XGBoost
+            ImportError: If XGBoost library is not properly installed or configured
+            JSONDecodeError: If JSON model file contains malformed JSON data
+
+        Note:
+            Model loading restores full training context including objective function,
+            evaluation metrics, and feature importance calculations. Loaded models
+            maintain compatibility with SHAP explainers and audit requirements.
 
         """
         path = Path(path)

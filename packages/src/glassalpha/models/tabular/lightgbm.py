@@ -60,10 +60,26 @@ class LightGBMWrapper:
             logger.info("LightGBMWrapper initialized without model")
 
     def load(self, path: str | Path):
-        """Load LightGBM model from file.
+        """Load trained LightGBM model from saved file for inference or analysis.
+
+        Loads a previously saved LightGBM model from disk, supporting both text
+        and JSON formats. The model structure, learned parameters, and feature
+        mappings are restored to enable predictions and explainability analysis.
 
         Args:
-            path: Path to LightGBM model file (typically .txt or .json format)
+            path: Path to LightGBM model file (supports .txt, .json, .model extensions)
+
+        Raises:
+            FileNotFoundError: If the specified model file does not exist
+            LightGBMError: If the model file is corrupted or incompatible format
+            OSError: If file system permissions prevent reading the model file
+            ValueError: If the model file format is unrecognized or invalid
+            ImportError: If LightGBM library is not properly installed
+
+        Note:
+            Model loading preserves all training metadata including feature names,
+            categorical feature handling, and objective function configuration.
+            Loaded models are immediately ready for prediction and explanation.
 
         """
         path = Path(path)
