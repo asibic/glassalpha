@@ -9,14 +9,32 @@ import logging
 
 import numpy as np
 import pandas as pd
-from sklearn.metrics import (
-    accuracy_score,
-    classification_report,
-    f1_score,
-    precision_score,
-    recall_score,
-    roc_auc_score,
-)
+
+# Conditional sklearn import with graceful fallback for CI compatibility
+try:
+    from sklearn.metrics import (
+        accuracy_score,
+        classification_report,
+        f1_score,
+        precision_score,
+        recall_score,
+        roc_auc_score,
+    )
+
+    SKLEARN_AVAILABLE = True
+except ImportError:
+    # Fallback stubs when sklearn unavailable (CI environment issues)
+    SKLEARN_AVAILABLE = False
+
+    def _sklearn_unavailable(*args, **kwargs):
+        raise ImportError("sklearn not available - install scikit-learn or fix CI environment")
+
+    accuracy_score = _sklearn_unavailable
+    classification_report = _sklearn_unavailable
+    f1_score = _sklearn_unavailable
+    precision_score = _sklearn_unavailable
+    recall_score = _sklearn_unavailable
+    roc_auc_score = _sklearn_unavailable
 
 from ...core.registry import MetricRegistry
 from ..base import BaseMetric

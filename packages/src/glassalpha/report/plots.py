@@ -440,7 +440,10 @@ class AuditPlotter:
         """
         logger.debug("Creating confusion matrix")
 
-        from sklearn.metrics import confusion_matrix
+        try:
+            from sklearn.metrics import confusion_matrix
+        except ImportError:
+            raise ImportError("sklearn not available - install scikit-learn or fix CI environment") from None
 
         # Calculate confusion matrix
         cm = confusion_matrix(y_true, y_pred)
@@ -497,7 +500,10 @@ class AuditPlotter:
         """
         logger.debug("Creating ROC curve")
 
-        from sklearn.metrics import auc, roc_curve
+        try:
+            from sklearn.metrics import auc, roc_curve
+        except ImportError:
+            raise ImportError("sklearn not available - install scikit-learn or fix CI environment") from None
 
         # Calculate ROC curve
         fpr, tpr, _ = roc_curve(y_true, y_proba)

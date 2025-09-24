@@ -364,7 +364,10 @@ class GermanCreditDataset:
             Tuple of (train_data, test_data)
 
         """
-        from sklearn.model_selection import train_test_split
+        try:
+            from sklearn.model_selection import train_test_split
+        except ImportError:
+            raise ImportError("sklearn not available - install scikit-learn or fix CI environment") from None
 
         data = self.load_processed_data()
 
