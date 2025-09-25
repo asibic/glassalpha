@@ -79,16 +79,7 @@ extend-include = ["*.pyi"]
 extend-exclude = ["glassalpha-enterprise/"]  # Enterprise code has separate config
 
 [tool.ruff.lint]
-select = [
-    "E",   # pycodestyle errors
-    "W",   # pycodestyle warnings
-    "F",   # pyflakes
-    "I",   # isort
-    "UP",  # pyupgrade
-    "B",   # flake8-bugbear
-    "SIM", # flake8-simplify
-    "D",   # pydocstyle
-]
+select = ["ALL"]
 ignore = [
     "D417",  # Self parameter documentation not required
     "D203", "D213",  # Conflicting docstring rules
@@ -125,6 +116,9 @@ module = [
     "weasyprint.*",
 ]
 ignore_missing_imports = true
+
+[tool.setuptools.packages.find]
+where = ["src"]
 
 [tool.pytest.ini_options]
 minversion = "8.0"
