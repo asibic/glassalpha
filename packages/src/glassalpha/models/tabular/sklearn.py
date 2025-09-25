@@ -52,6 +52,7 @@ if SKLEARN_AVAILABLE:
             "data_modality": "tabular",
         }
         version = "1.0.0"  # Version expected by tests
+        model_type = "logistic_regression"  # Attribute expected by some tests
 
         def __init__(self, model_path: str | Path | None = None, model: LogisticRegression | None = None, **kwargs):
             """Initialize LogisticRegression wrapper.
@@ -343,6 +344,7 @@ if SKLEARN_AVAILABLE:
             "data_modality": "tabular",
         }
         version = "1.0.0"
+        model_type = "sklearn_generic"  # Attribute expected by some tests
 
         def __init__(self, model_path: str | Path | None = None, model: BaseEstimator | None = None, **kwargs):
             """Initialize generic sklearn wrapper."""

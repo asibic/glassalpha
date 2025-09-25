@@ -8,6 +8,7 @@ optional deep learning frameworks.
 import logging
 import os
 import random
+import time
 from collections.abc import Generator
 from contextlib import contextmanager
 from typing import Any
@@ -15,6 +16,21 @@ from typing import Any
 import numpy as np
 
 logger = logging.getLogger(__name__)
+
+# Module-level flags for framework availability (expected by tests)
+try:
+    import torch as _torch
+    torch = True
+except ImportError:
+    _torch = None
+    torch = False
+
+try:
+    import tensorflow as _tf
+    tensorflow = True
+except ImportError:
+    _tf = None
+    tensorflow = False
 
 
 class SeedManager:
@@ -76,29 +92,21 @@ class SeedManager:
 
     def _set_optional_framework_seeds(self) -> None:
         """Set seeds for optional ML frameworks if available."""
-        # PyTorch
-        try:
-            import torch
-
-            torch.manual_seed(self.master_seed)
-            if torch.cuda.is_available():
-                torch.cuda.manual_seed(self.master_seed)
-                torch.cuda.manual_seed_all(self.master_seed)
+        # PyTorch using module flags
+        if torch and _torch is not None:
+            _torch.manual_seed(self.master_seed)
+            if _torch.cuda.is_available():
+                _torch.cuda.manual_seed(self.master_seed)
+                _torch.cuda.manual_seed_all(self.master_seed)
                 # For deterministic CUDA operations
-                torch.backends.cudnn.deterministic = True
-                torch.backends.cudnn.benchmark = False
+                _torch.backends.cudnn.deterministic = True
+                _torch.backends.cudnn.benchmark = False
             logger.debug("Set PyTorch seeds")
-        except ImportError:
-            pass
 
-        # TensorFlow
-        try:
-            import tensorflow as tf
-
-            tf.random.set_seed(self.master_seed)
-            logger.debug("Set TensorFlow seed")
-        except ImportError:
-            pass
+        # TensorFlow using module flags
+        if tensorflow and _tf is not None:
+            _tf.random.set_seed(self.master_seed)
+            logger.debug("Set TensorFlow seeds")
 
         # XGBoost and LightGBM use random_state parameters directly
         # These are handled in model wrappers using get_seed()
@@ -132,15 +140,11 @@ class SeedManager:
             "numpy_random": np.random.get_state(),
         }
 
-        # Save optional framework states
-        try:
-            import torch
-
-            self._original_states["torch_random"] = torch.get_rng_state()
-            if torch.cuda.is_available():
-                self._original_states["torch_cuda_random"] = torch.cuda.get_rng_state()
-        except ImportError:
-            pass
+        # Save optional framework states using module flags
+        if torch and _torch is not None:
+            self._original_states["torch_random"] = _torch.get_rng_state()
+            if _torch.cuda.is_available():
+                self._original_states["torch_cuda_random"] = _torch.cuda.get_rng_state()
 
         logger.debug("Saved random states")
 
@@ -157,18 +161,24 @@ class SeedManager:
         if "numpy_random" in self._original_states:
             np.random.set_state(self._original_states["numpy_random"])
 
-        # Restore optional framework states
-        try:
-            import torch
-
+        # Restore optional framework states using module flags
+        if torch and _torch is not None:
             if "torch_random" in self._original_states:
-                torch.set_rng_state(self._original_states["torch_random"])
+                _torch.set_rng_state(self._original_states["torch_random"])
             if "torch_cuda_random" in self._original_states:
-                torch.cuda.set_rng_state(self._original_states["torch_cuda_random"])
-        except ImportError:
-            pass
+                _torch.cuda.set_rng_state(self._original_states["torch_cuda_random"])
 
         logger.debug("Restored random states")
+
+    def __enter__(self):
+        """Context manager entry: set all seeds."""
+        self.set_all_seeds()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Context manager exit: don't suppress exceptions."""
+        # Don't restore state on exit - let seeds remain set
+        return False
 
     def get_seeds_manifest(self) -> dict[str, Any]:
         """Get manifest of all seeds used in this session.
@@ -184,15 +194,23 @@ class SeedManager:
                 "torch": self._check_framework_availability("torch"),
                 "tensorflow": self._check_framework_availability("tensorflow"),
             },
+            "timestamp": time.time(),  # Required by tests
         }
 
     def _check_framework_availability(self, framework: str) -> bool:
         """Check if optional framework is available."""
-        try:
-            __import__(framework)
-            return True
-        except ImportError:
-            return False
+        # Use module-level flags for consistency
+        if framework == "torch":
+            return torch
+        elif framework == "tensorflow":
+            return tensorflow
+        else:
+            # Fallback for other frameworks
+            try:
+                __import__(framework)
+                return True
+            except ImportError:
+                return False
 
 
 # Global seed manager instance
@@ -340,27 +358,23 @@ def validate_deterministic_environment() -> dict[str, bool]:
     arr2 = np.random.rand(5)
     validation_results["numpy_random"] = np.allclose(arr1, arr2)
 
-    # Test optional frameworks
-    try:
-        import torch
-
-        torch.manual_seed(42)
-        tensor1 = torch.rand(5)
-        torch.manual_seed(42)
-        tensor2 = torch.rand(5)
-        validation_results["torch"] = torch.allclose(tensor1, tensor2)
-    except ImportError:
+    # Test optional frameworks using module flags
+    if torch and _torch is not None:
+        _torch.manual_seed(42)
+        tensor1 = _torch.rand(5)
+        _torch.manual_seed(42)
+        tensor2 = _torch.rand(5)
+        validation_results["torch"] = _torch.allclose(tensor1, tensor2)
+    else:
         validation_results["torch"] = None
 
-    try:
-        import tensorflow as tf
-
-        tf.random.set_seed(42)
-        tensor1 = tf.random.uniform([5])
-        tf.random.set_seed(42)
-        tensor2 = tf.random.uniform([5])
-        validation_results["tensorflow"] = tf.reduce_all(tf.equal(tensor1, tensor2)).numpy()
-    except ImportError:
+    if tensorflow and _tf is not None:
+        _tf.random.set_seed(42)
+        tensor1 = _tf.random.uniform([5])
+        _tf.random.set_seed(42)
+        tensor2 = _tf.random.uniform([5])
+        validation_results["tensorflow"] = _tf.reduce_all(_tf.equal(tensor1, tensor2)).numpy()
+    else:
         validation_results["tensorflow"] = None
 
     logger.info(f"Deterministic environment validation: {validation_results}")

@@ -64,32 +64,32 @@ if SHAP_AVAILABLE:
             self.feature_names_ = None
             logger.info("TreeSHAPExplainer initialized")
 
-    def explain(self, model: ModelInterface, X: pd.DataFrame, y: np.ndarray | None = None) -> dict[str, Any]:
-        """Generate SHAP explanations for the model.
+        def explain(self, model: ModelInterface, X: pd.DataFrame, y: np.ndarray | None = None) -> dict[str, Any]:
+            """Generate SHAP explanations for the model.
 
-        Args:
-            model: Model to explain (must be tree-based)
-            X: Input data to explain
-            y: Optional target values (not used by TreeSHAP)
+            Args:
+                model: Model to explain (must be tree-based)
+                X: Input data to explain
+                y: Optional target values (not used by TreeSHAP)
 
-        Returns:
-            Dictionary containing:
-                - status: Success or error status
-                - shap_values: SHAP values for each sample and feature
-                - base_value: Expected value (baseline) for predictions
-                - feature_importance: Global feature importance (mean absolute SHAP)
-                - explainer_type: Type of explainer used
-                - feature_names: Names of features
+            Returns:
+                Dictionary containing:
+                    - status: Success or error status
+                    - shap_values: SHAP values for each sample and feature
+                    - base_value: Expected value (baseline) for predictions
+                    - feature_importance: Global feature importance (mean absolute SHAP)
+                    - explainer_type: Type of explainer used
+                    - feature_names: Names of features
 
-        """
-        try:
-            # Check if model is supported
-            if not self.supports_model(model):
-                return {
-                    "status": "error",
-                    "reason": f"Model type '{model.get_model_type()}' not supported by TreeSHAP",
-                    "explainer_type": "treeshap",
-                }
+            """
+            try:
+                # Check if model is supported
+                if not self.supports_model(model):
+                    return {
+                        "status": "error",
+                        "reason": f"Model type '{model.get_model_type()}' not supported by TreeSHAP",
+                        "explainer_type": "treeshap",
+                    }
 
             # Get the underlying model object
             model_type = model.get_model_type()
@@ -221,38 +221,45 @@ if SHAP_AVAILABLE:
             """Aggregate local SHAP values to global feature importance."""
             return np.mean(np.abs(shap_values), axis=0)
 
-        def supports_model(self, model: ModelInterface) -> bool:
-            """Check if this explainer supports the given model.
+        @staticmethod
+        def is_compatible(model) -> bool:
+            """Check if this explainer is compatible with the given model (static method expected by tests)."""
+            model_type = model.get_model_type() if hasattr(model, 'get_model_type') else str(type(model).__name__).lower()
+            compatible_types = ["xgboost", "lightgbm", "random_forest", "decision_tree"]
+            return model_type in compatible_types
 
-            Args:
-                model: Model to check compatibility
+            def supports_model(self, model: ModelInterface) -> bool:
+                """Check if this explainer supports the given model.
+
+                Args:
+                    model: Model to check compatibility
+
+                Returns:
+                    True if model is a supported tree-based model
+
+                """
+                model_type = model.get_model_type()
+                supported = model_type in self.capabilities["supported_models"]
+
+                if supported:
+                    logger.debug(f"TreeSHAP supports model type: {model_type}")
+                else:
+                    logger.debug(f"TreeSHAP does not support model type: {model_type}")
+
+                return supported
+
+        def get_explanation_type(self) -> str:
+            """Return the type of explanation provided.
 
             Returns:
-                True if model is a supported tree-based model
+                String identifier for SHAP value explanations
 
             """
-            model_type = model.get_model_type()
-            supported = model_type in self.capabilities["supported_models"]
+            return "shap_values"
 
-            if supported:
-                logger.debug(f"TreeSHAP supports model type: {model_type}")
-            else:
-                logger.debug(f"TreeSHAP does not support model type: {model_type}")
-
-            return supported
-
-    def get_explanation_type(self) -> str:
-        """Return the type of explanation provided.
-
-        Returns:
-            String identifier for SHAP value explanations
-
-        """
-        return "shap_values"
-
-    def __repr__(self) -> str:
-        """String representation of the explainer."""
-        return f"TreeSHAPExplainer(priority={self.priority}, version={self.version})"
+        def __repr__(self) -> str:
+            """String representation of the explainer."""
+            return f"TreeSHAPExplainer(priority={self.priority}, version={self.version})"
 
 else:
     # Stub class when shap unavailable
