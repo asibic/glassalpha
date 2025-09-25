@@ -15,7 +15,7 @@ import numpy as np
 import pandas as pd
 
 from ..config import AuditConfig
-from ..core.registry import ExplainerRegistry, MetricRegistry, ModelRegistry
+from ..core.registry import MetricRegistry, ModelRegistry
 from ..data import TabularDataLoader, TabularDataSchema
 from ..utils import ManifestGenerator, get_component_seed, set_global_seed
 
@@ -122,7 +122,7 @@ class AuditPipeline:
             logger.info("Audit pipeline completed successfully")
 
         except Exception as e:
-            error_msg = f"Audit pipeline failed: {str(e)}"
+            error_msg = f"Audit pipeline failed: {e!s}"
             logger.error(error_msg)
             logger.debug(f"Full traceback: {traceback.format_exc()}")
 
@@ -312,7 +312,10 @@ class AuditPipeline:
 
         # Add model to manifest
         self.manifest_generator.add_component(
-            "model", model_type, model, config=self.config.model.model_dump() if self.config.model else {}
+            "model",
+            model_type,
+            model,
+            config=self.config.model.model_dump() if self.config.model else {},
         )
 
         return model
@@ -326,47 +329,53 @@ class AuditPipeline:
         """
         logger.info("Selecting explainer based on model capabilities")
 
-        # Get model capabilities
-        model_capabilities = self.model.get_capabilities() if hasattr(self.model, "get_capabilities") else {}
+        # Import the explainer registry to ensure it's available
+        from ..explain.registry import ExplainerRegistry
 
-        # Get explainer priorities from config
-        explainer_priorities = []
-        if hasattr(self.config, "explainers") and hasattr(self.config.explainers, "priority"):
-            explainer_priorities = self.config.explainers.priority
-        else:
-            # Use default priority order
-            explainer_priorities = ["treeshap", "kernelshap", "noop"]
-
-        # Select explainer using registry
-        selected_explainer = None
+        # First try automatic compatibility detection
+        explainer_class = ExplainerRegistry.find_compatible(self.model)
         selected_name = None
 
-        for explainer_name in explainer_priorities:
-            explainer_class = ExplainerRegistry.get(explainer_name)
-            if not explainer_class:
-                continue
+        if explainer_class:
+            # Found compatible explainer via automatic detection
+            if explainer_class.__name__ == "TreeSHAPExplainer":
+                selected_name = "treeshap"
+            elif explainer_class.__name__ == "KernelSHAPExplainer":
+                selected_name = "kernelshap"
+            else:
+                selected_name = "auto_detected"
 
-            # Check compatibility
+            logger.info(f"Auto-detected compatible explainer: {selected_name}")
+        else:
+            # No automatic compatibility found, try explicit priority order
+            logger.debug("No automatic compatibility found, trying priority order")
 
-            # Simple compatibility check - if model supports SHAP and explainer is TreeSHAP
-            if explainer_name == "treeshap" and model_capabilities.get("supports_shap", False):
-                selected_explainer = explainer_class()
-                selected_name = explainer_name
-                break
-            elif explainer_name == "kernelshap":
-                # KernelSHAP works with any model
-                selected_explainer = explainer_class()
-                selected_name = explainer_name
-                break
-            elif explainer_name == "noop":
-                # NoOp as last resort
-                selected_explainer = explainer_class()
-                selected_name = explainer_name
-                break
+            # Get explainer priorities from config
+            explainer_priorities = []
+            if hasattr(self.config, "explainers") and hasattr(self.config.explainers, "priority"):
+                explainer_priorities = self.config.explainers.priority
+            else:
+                # Use default priority order (but exclude noop - it should raise if nothing found)
+                explainer_priorities = ["treeshap", "kernelshap"]
 
-        if not selected_explainer:
+            # Try each explainer in priority order
+            for explainer_name in explainer_priorities:
+                try:
+                    explainer_class = ExplainerRegistry.get(explainer_name)
+                    if explainer_class:
+                        logger.debug(f"Trying explainer: {explainer_name}")
+                        selected_name = explainer_name
+                        break
+                except KeyError:
+                    logger.debug(f"Explainer {explainer_name} not available in registry")
+                    continue
+
+        # If no explainer found, raise error (required by tests)
+        if not explainer_class:
             raise RuntimeError("No compatible explainer found")
 
+        # Create explainer instance
+        selected_explainer = explainer_class()
         logger.info(f"Selected explainer: {selected_name}")
 
         # Store selection info
@@ -377,7 +386,10 @@ class AuditPipeline:
 
         # Add to manifest
         self.manifest_generator.add_component(
-            "explainer", selected_name, selected_explainer, priority=getattr(selected_explainer, "priority", None)
+            "explainer",
+            selected_name,
+            selected_explainer,
+            priority=getattr(selected_explainer, "priority", None),
         )
 
         return selected_explainer
@@ -403,7 +415,12 @@ class AuditPipeline:
 
         # Generate explanations with explainer seed
         with self._get_seeded_context("explainer"):
-            explanations = self.explainer.explain(self.model, X_processed)
+            # Fit explainer with model and background data (use sample of data as background)
+            background_sample = X_processed.sample(n=min(100, len(X_processed)), random_state=42)
+            self.explainer.fit(self.model, background_sample, feature_names=list(X_processed.columns))
+
+            # Generate explanations
+            explanations = self.explainer.explain(X_processed)
 
         # Process explanations
         explanation_results = {
@@ -475,11 +492,14 @@ class AuditPipeline:
 
         for name, metric_class in all_metrics.items():
             # Check if it's a performance metric
-            if (
-                hasattr(metric_class, "metric_type")
-                and metric_class.metric_type == "performance"
-                or name in ["accuracy", "precision", "recall", "f1", "auc_roc", "classification_report"]
-            ):
+            if (hasattr(metric_class, "metric_type") and metric_class.metric_type == "performance") or name in [
+                "accuracy",
+                "precision",
+                "recall",
+                "f1",
+                "auc_roc",
+                "classification_report",
+            ]:
                 performance_metrics[name] = metric_class
 
         results = {}
@@ -503,7 +523,11 @@ class AuditPipeline:
         self.results.model_performance = results
 
     def _compute_fairness_metrics(
-        self, y_true: np.ndarray, y_pred: np.ndarray, y_proba: np.ndarray, sensitive_features: pd.DataFrame
+        self,
+        y_true: np.ndarray,
+        y_pred: np.ndarray,
+        y_proba: np.ndarray,
+        sensitive_features: pd.DataFrame,
     ) -> None:
         """Compute fairness metrics.
 
@@ -522,11 +546,12 @@ class AuditPipeline:
 
         for name, metric_class in all_metrics.items():
             # Check if it's a fairness metric
-            if (
-                hasattr(metric_class, "metric_type")
-                and metric_class.metric_type == "fairness"
-                or name in ["demographic_parity", "equal_opportunity", "equalized_odds", "predictive_parity"]
-            ):
+            if (hasattr(metric_class, "metric_type") and metric_class.metric_type == "fairness") or name in [
+                "demographic_parity",
+                "equal_opportunity",
+                "equalized_odds",
+                "predictive_parity",
+            ]:
                 fairness_metrics[name] = metric_class
 
         results = {}

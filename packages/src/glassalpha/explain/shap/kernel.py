@@ -7,10 +7,10 @@ and fitting a linear model to approximate the original model locally.
 from __future__ import annotations
 
 import logging
+from collections.abc import Sequence
 from typing import Any
 
 import numpy as np
-import pandas as pd
 
 # Conditional shap import with graceful fallback for CI compatibility
 try:
@@ -22,8 +22,8 @@ except ImportError:
     SHAP_AVAILABLE = False
     shap = None
 
-from ...core.interfaces import ModelInterface
 from ...core.registry import ExplainerRegistry
+from ..base import ExplainerBase
 
 logger = logging.getLogger(__name__)
 
@@ -32,153 +32,90 @@ logger = logging.getLogger(__name__)
 if SHAP_AVAILABLE:
 
     @ExplainerRegistry.register("kernelshap", priority=50)
-    class KernelSHAPExplainer:
+    class KernelSHAPExplainer(ExplainerBase):
         """Model-agnostic SHAP explainer using KernelSHAP algorithm."""
 
         # Class attributes expected by tests
         priority = 50  # Lower than TreeSHAP
-        capabilities = {
-            "supported_models": ["all"],  # Works with any model
-            "explanation_type": "shap_values",
-            "supports_local": True,
-            "supports_global": True,
-            "data_modality": "tabular",
-        }
         version = "1.0.0"
 
-        def __init__(self, n_samples: int = 100, background_size: int = 100, link: str = "identity", **kwargs):
+        def __init__(self) -> None:
             """Initialize KernelSHAP explainer.
 
-            Args:
-                n_samples: Number of samples to use for SHAP value estimation
-                background_size: Size of background dataset for baseline
-                link: Link function for the explainer ('identity' or 'logit')
-                **kwargs: Additional parameters for explainer
-
+            Tests expect 'explainer' attribute to exist and be None before fit().
             """
-            self.n_samples = n_samples
-            self.background_size = background_size
-            self.link = link
+            # Tests expect this attribute to exist and be None before fit
             self.explainer = None
-            self.background_data = None
-            self.base_value = None
-            self.background_ = None
-            self.feature_names_ = None
-            logger.info(f"KernelSHAPExplainer initialized (n_samples={n_samples}, bg_size={background_size})")
+            self.feature_names: Sequence[str] | None = None
+            logger.info("KernelSHAPExplainer initialized")
 
-        def fit(self, background_X, feature_names=None):
-            """Fit the explainer with background data.
+        def fit(self, wrapper: Any, background_X, feature_names: Sequence[str] | None = None):
+            """Fit the explainer with a model wrapper and background data.
+
+            IMPORTANT: Tests call fit(wrapper, background_df) - wrapper is first parameter.
 
             Args:
-                background_X: Background data for SHAP
-                feature_names: Optional feature names
+                wrapper: Model wrapper with predict/predict_proba methods
+                background_X: Background data for explainer baseline
+                feature_names: Optional feature names for interpretation
+
+            Returns:
+                self: Returns self for chaining
 
             """
-            self.background_ = background_X
-            self.feature_names_ = self._extract_feature_names(background_X, feature_names)
-            # Also set the existing background_data for compatibility
-            self.background_data = background_X
+            if background_X is None or getattr(background_X, "shape", (0, 0))[0] == 0:
+                raise ValueError("KernelSHAPExplainer: background data is empty")
+
+            # Build a callable f(X) -> proba or prediction
+            if hasattr(wrapper, "predict_proba"):
+                f = lambda X: wrapper.predict_proba(X)
+                logger.debug("Using predict_proba for KernelSHAP")
+            elif hasattr(wrapper, "predict"):
+                f = lambda X: wrapper.predict(X)
+                logger.debug("Using predict for KernelSHAP")
+            else:
+                raise ValueError("KernelSHAPExplainer: wrapper lacks predict/predict_proba")
+
+            # Create KernelSHAP explainer
+            self.explainer = shap.KernelExplainer(f, background_X)
+
+            # Extract and store feature names
+            if feature_names is not None:
+                self.feature_names = list(feature_names)
+            elif hasattr(background_X, "columns"):
+                self.feature_names = list(background_X.columns)
+            else:
+                self.feature_names = None
+
             logger.debug(f"KernelSHAPExplainer fitted with {len(background_X)} background samples")
             return self
 
-        @staticmethod
-        def is_compatible(wrapper) -> bool:
-            """Check if this explainer is compatible with the given model.
+        def explain(self, X, nsamples: int = 100):
+            """Generate SHAP explanations for input data.
 
-            KernelSHAP is model-agnostic and works with any model that has predict methods.
+            Args:
+                X: Input data to explain
+                nsamples: Number of samples for KernelSHAP approximation
+
+            Returns:
+                Dictionary containing SHAP values and feature names
+
             """
-            # KernelSHAP supports any model that has predict method
-            return hasattr(wrapper, "predict")
+            if self.explainer is None:
+                raise RuntimeError("KernelSHAPExplainer: call fit() before explain()")
 
-        def supports_model(self, model: ModelInterface) -> bool:
-            """Check if this explainer supports the given model."""
-            return self.is_compatible(model)
+            logger.debug(f"Generating KernelSHAP explanations for {len(X)} samples with {nsamples} samples")
 
-        def explain(self, model: ModelInterface, X: pd.DataFrame, y=None) -> dict[str, Any]:
-            """Generate SHAP explanations for the model."""
-            try:
-                # Sample background data if needed
-                background_data = self.background_data
-                if background_data is None:
-                    # Use a sample of X as background if no background provided
-                    sample_size = min(self.background_size, len(X))
-                    background_data = X.sample(n=sample_size, random_state=42)
+            # Calculate SHAP values
+            shap_values = np.array(self.explainer.shap_values(X, nsamples=nsamples))
 
-                # Create prediction function
-                def predict_fn(data):
-                    """Wrapper function for model predictions."""
-                    try:
-                        if hasattr(model, "predict_proba"):
-                            proba = model.predict_proba(pd.DataFrame(data, columns=X.columns))
-                            # For binary classification, return probability of positive class
-                            if proba.shape[1] == 2:
-                                return proba[:, 1]
-                            # Multi-class: return all probabilities
-                            return proba
-                    except Exception:
-                        # Fall back to predict if predict_proba fails
-                        pass
-
-                    return model.predict(pd.DataFrame(data, columns=X.columns))
-
-                # Create KernelSHAP explainer
-                if self.explainer is None:
-                    self.explainer = shap.KernelExplainer(predict_fn, background_data.values)
-
-                # Limit explanation to reasonable number of samples
-                n_explain = min(len(X), self.n_samples)
-                X_sample = X.iloc[:n_explain]
-
-                # Calculate SHAP values
-                shap_values = self.explainer.shap_values(X_sample.values)
-
-                # Extract feature names
-                feature_names = self._extract_feature_names(X)
-
-                # Calculate global feature importance
-                feature_importance = self._aggregate_to_global(shap_values)
-                feature_importance_dict = dict(zip(feature_names, feature_importance, strict=False))
-
-                return {
-                    "status": "success",
-                    "shap_values": shap_values,
-                    "base_value": getattr(self.explainer, "expected_value", 0.0),
-                    "feature_importance": feature_importance_dict,
-                    "feature_names": feature_names,
-                    "explainer_type": "kernelshap",
-                    "n_samples_explained": len(X_sample),
-                    "n_features": len(feature_names),
-                    "n_background_samples": len(background_data),
-                    "kernel_samples_used": self.n_samples,
-                    "actually_computed_samples": n_explain,
-                }
-
-            except Exception as e:
-                logger.exception("Error in KernelSHAP explanation")
-                return {"status": "error", "reason": str(e), "explainer_type": "kernelshap"}
-
-        def explain_local(self, model, X, **kwargs):
-            """Generate local explanations (per-sample SHAP values)."""
-            result = self.explain(model, X)
-            if result["status"] == "success":
-                return result["shap_values"]
-            return None
-
-        def _extract_feature_names(self, X, feature_names=None):
-            """Extract feature names from data."""
-            if feature_names is not None:
-                return list(feature_names)
-            if hasattr(X, "columns"):
-                return list(X.columns)
-            return [f"feature_{i}" for i in range(X.shape[1])]
-
-        def _aggregate_to_global(self, shap_values):
-            """Aggregate local SHAP values to global feature importance."""
-            return np.mean(np.abs(shap_values), axis=0)
-
-        def get_explanation_type(self) -> str:
-            """Return the type of explanation provided."""
-            return "shap_values"
+            return {
+                "shap_values": shap_values,
+                "feature_names": self.feature_names,
+                "explainer_type": "kernelshap",
+                "n_samples_explained": len(X),
+                "kernel_samples_used": nsamples,
+            }
 
         def __repr__(self) -> str:
             """String representation of the explainer."""
