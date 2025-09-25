@@ -33,12 +33,11 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           cd packages
-          pip install .[dev]
+          pip install -e .[dev]
 
       - name: Run tests
         run: |
           cd packages
-          export PYTHONPATH="${PYTHONPATH}:$(pwd)/src"
           python -m pytest tests/ -v
 
   lint:
@@ -54,7 +53,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           cd packages
-          pip install .[dev]
+          pip install -e .[dev]
 
       - name: Lint with ruff
         run: |
