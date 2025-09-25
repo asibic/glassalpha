@@ -29,16 +29,53 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Install package with dev dependencies
+      - name: Interpreter sanity check
         run: |
-          python -m pip install --upgrade pip
           cd packages
-          pip install -e .[dev]
+          echo "=== Interpreter sanity ==="
+          which python; python -V
+          which pip; pip -V
+          python -c "import sys; print('PY:', sys.executable); print('PATH:', '\n'.join(sys.path))"
 
-      - name: Run tests
+      - name: Repo layout and case sensitivity check
         run: |
           cd packages
-          export PYTHONPATH="${PYTHONPATH}:$(pwd)/src"
+          echo "=== Repo layout ==="
+          pwd; git ls-files | sed -n '1,200p' | grep -Ei '(^|/)glassalpha(/|$)' || true
+          echo "=== Case-mismatch smoke test ==="
+          grep -R --line-number -E 'from +[Gg]lass[A-Z][a-zA-Z_]*|import +[Gg]lass[A-Z][a-zA-Z_]*' . || true
+
+      - name: Upgrade toolchain
+        run: |
+          cd packages
+          echo "=== Install toolchain ==="
+          python -m pip install -U pip setuptools wheel hatchling
+
+      - name: Build wheel and install (no editable)
+        run: |
+          cd packages
+          echo "=== Build a wheel, then install it (no editable) ==="
+          python -m pip uninstall -y glassalpha || true
+          python -m pip wheel -w dist .
+          ls -la dist
+          python -m pip install --force-reinstall dist/*.whl
+
+      - name: Verify installation
+        run: |
+          cd packages
+          echo "=== Show what actually got installed ==="
+          python -m pip show -f glassalpha
+          python -c "import glassalpha, inspect; print('MODULE FILE:', glassalpha.__file__); import pkgutil; print('Submodules:', [m.name for m in pkgutil.iter_modules([inspect.getsourcefile(glassalpha).rsplit('/',1)[0]]) if m.name.startswith('glassalpha')]) ]" || true
+
+      - name: Install test dependencies
+        run: |
+          cd packages
+          python -m pip install pytest pytest-cov pytest-asyncio
+
+      - name: Run tests with same interpreter
+        run: |
+          cd packages
+          echo "=== Finally run tests with the same interpreter ==="
           python -m pytest tests/ -v
 
   lint:
