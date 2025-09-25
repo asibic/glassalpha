@@ -8,8 +8,8 @@ optional deep learning frameworks.
 import logging
 import os
 import random
-import time
-from collections.abc import Generator
+import types
+from collections.abc import Callable, Generator
 from contextlib import contextmanager
 from datetime import UTC, datetime
 from typing import Any
@@ -28,18 +28,18 @@ except ImportError:
     torch = False
 
 try:
-    import tensorflow as _tf
+    import tensorflow as tf
 
     tensorflow = True
 except ImportError:
-    _tf = None
+    tf = None  # type: ignore[assignment]
     tensorflow = False
 
 
 class SeedManager:
     """Centralized manager for all random seeds in the audit pipeline."""
 
-    def __init__(self, master_seed: int = 42):
+    def __init__(self, master_seed: int = 42) -> None:
         """Initialize seed manager with master seed.
 
         Args:
@@ -64,7 +64,7 @@ class SeedManager:
             # Generate deterministic component seed from master seed and component name
             component_hash = hash(component + str(self.master_seed)) % (2**31)
             self.component_seeds[component] = abs(component_hash)
-            logger.debug(f"Generated seed for '{component}': {self.component_seeds[component]}")
+            logger.debug("Generated seed for '%s': %s", component, self.component_seeds[component])
 
         return self.component_seeds[component]
 
@@ -79,13 +79,13 @@ class SeedManager:
             self.master_seed = seed
             self.component_seeds.clear()  # Clear cached seeds
 
-        logger.info(f"Setting all random seeds to master seed: {self.master_seed}")
+        logger.info("Setting all random seeds to master seed: %s", self.master_seed)
 
         # Set Python random seed
         random.seed(self.master_seed)
 
-        # Set NumPy seed
-        np.random.seed(self.master_seed)
+        # Set NumPy seed (legacy API required for global reproducibility)
+        np.random.seed(self.master_seed)  # noqa: NPY002
 
         # Set sklearn seed via environment variable
         os.environ["PYTHONHASHSEED"] = str(self.master_seed)
@@ -107,8 +107,8 @@ class SeedManager:
             logger.debug("Set PyTorch seeds")
 
         # TensorFlow using module flags
-        if tensorflow and _tf is not None:
-            _tf.random.set_seed(self.master_seed)
+        if tensorflow and tf is not None:
+            tf.random.set_seed(self.master_seed)
             logger.debug("Set TensorFlow seeds")
 
         # XGBoost and LightGBM use random_state parameters directly
@@ -140,7 +140,7 @@ class SeedManager:
         """
         self._original_states = {
             "python_random": random.getstate(),
-            "numpy_random": np.random.get_state(),
+            "numpy_random": np.random.get_state(),  # noqa: NPY002
         }
 
         # Save optional framework states using module flags
@@ -162,7 +162,7 @@ class SeedManager:
             random.setstate(self._original_states["python_random"])
 
         if "numpy_random" in self._original_states:
-            np.random.set_state(self._original_states["numpy_random"])
+            np.random.set_state(self._original_states["numpy_random"])  # noqa: NPY002
 
         # Restore optional framework states using module flags
         if torch and _torch is not None:
@@ -173,12 +173,17 @@ class SeedManager:
 
         logger.debug("Restored random states")
 
-    def __enter__(self):
+    def __enter__(self) -> "SeedManager":
         """Context manager entry: set all seeds."""
         self.set_all_seeds()
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: types.TracebackType | None,
+    ) -> bool:
         """Context manager exit: don't suppress exceptions."""
         # Don't restore state on exit - let seeds remain set
         return False
@@ -210,9 +215,10 @@ class SeedManager:
         # Fallback for other frameworks
         try:
             __import__(framework)
-            return True
         except ImportError:
             return False
+        else:
+            return True
 
 
 # Global seed manager instance
@@ -243,7 +249,7 @@ def get_component_seed(component: str) -> int:
 
 
 @contextmanager
-def with_seed(seed: int, restore_after: bool = True) -> Generator[None, None, None]:
+def with_seed(seed: int, *, restore_after: bool = True) -> Generator[None, None, None]:
     """Context manager for temporary seed setting.
 
     Args:
@@ -295,7 +301,7 @@ def with_component_seed(component: str) -> Generator[int, None, None]:
         yield seed
 
 
-def ensure_reproducibility(func):
+def ensure_reproducibility(func: Callable[..., Any]) -> Callable[..., Any]:
     """Decorator to ensure function runs with consistent seeding.
 
     Args:
@@ -312,7 +318,7 @@ def ensure_reproducibility(func):
 
     """
 
-    def wrapper(*args, **kwargs):
+    def wrapper(*args, **kwargs):  # type: ignore[no-untyped-def] # noqa: ANN002,ANN003,ANN202
         # Save current state
         _global_seed_manager.save_random_states()
 
@@ -346,18 +352,18 @@ def validate_deterministic_environment() -> dict[str, bool]:
     """
     validation_results = {}
 
-    # Test Python random
+    # Test Python random (not for cryptographic use)
     random.seed(42)
-    val1 = random.random()
+    val1 = random.random()  # noqa: S311
     random.seed(42)
-    val2 = random.random()
+    val2 = random.random()  # noqa: S311
     validation_results["python_random"] = val1 == val2
 
-    # Test NumPy random
-    np.random.seed(42)
-    arr1 = np.random.rand(5)
-    np.random.seed(42)
-    arr2 = np.random.rand(5)
+    # Test NumPy random (legacy API for reproducibility testing)
+    np.random.seed(42)  # noqa: NPY002
+    arr1 = np.random.rand(5)  # noqa: NPY002
+    np.random.seed(42)  # noqa: NPY002
+    arr2 = np.random.rand(5)  # noqa: NPY002
     validation_results["numpy_random"] = np.allclose(arr1, arr2)
 
     # Test optional frameworks using module flags
@@ -370,16 +376,16 @@ def validate_deterministic_environment() -> dict[str, bool]:
     else:
         validation_results["torch"] = None
 
-    if tensorflow and _tf is not None:
-        _tf.random.set_seed(42)
-        tensor1 = _tf.random.uniform([5])
-        _tf.random.set_seed(42)
-        tensor2 = _tf.random.uniform([5])
-        validation_results["tensorflow"] = _tf.reduce_all(_tf.equal(tensor1, tensor2)).numpy()
+    if tensorflow and tf is not None:
+        tf.random.set_seed(42)
+        tensor1 = tf.random.uniform([5])
+        tf.random.set_seed(42)
+        tensor2 = tf.random.uniform([5])
+        validation_results["tensorflow"] = tf.reduce_all(tf.equal(tensor1, tensor2)).numpy()
     else:
         validation_results["tensorflow"] = None
 
-    logger.info(f"Deterministic environment validation: {validation_results}")
+    logger.info("Deterministic environment validation: %s", validation_results)
     return validation_results
 
 
