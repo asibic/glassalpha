@@ -6,9 +6,9 @@ and fitting a linear model to approximate the original model locally.
 
 from __future__ import annotations
 
+import inspect
 import logging
-from collections.abc import Sequence
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 
@@ -22,8 +22,11 @@ except ImportError:
     SHAP_AVAILABLE = False
     shap = None
 
-from ...core.registry import ExplainerRegistry
-from ..base import ExplainerBase
+from glassalpha.core.registry import ExplainerRegistry
+from glassalpha.explain.base import ExplainerBase
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +43,7 @@ if SHAP_AVAILABLE:
         priority = 50  # Lower than TreeSHAP
         version = "1.0.0"
 
-        def __init__(self, n_samples: int | None = None, **kwargs) -> None:
+        def __init__(self, n_samples: int | None = None, **kwargs: Any) -> None:  # noqa: ARG002,ANN401
             """Initialize KernelSHAP explainer.
 
             Args:
@@ -58,54 +61,68 @@ if SHAP_AVAILABLE:
             self.feature_names: Sequence[str] | None = None
             logger.info("KernelSHAPExplainer initialized")
 
-        def fit(self, wrapper: Any, background_X, feature_names: Sequence[str] | None = None):
+        def fit(
+            self,
+            wrapper: Any,  # noqa: ANN401
+            background_x: Any,  # noqa: ANN401
+            feature_names: Sequence[str] | None = None,
+        ) -> KernelSHAPExplainer:
             """Fit the explainer with a model wrapper and background data.
 
             IMPORTANT: Tests call fit(wrapper, background_df) - wrapper is first parameter.
 
             Args:
                 wrapper: Model wrapper with predict/predict_proba methods
-                background_X: Background data for explainer baseline
+                background_x: Background data for explainer baseline
                 feature_names: Optional feature names for interpretation
 
             Returns:
-                self: Returns self for chaining
+                Self for chaining
 
             """
-            if background_X is None or getattr(background_X, "shape", (0, 0))[0] == 0:
-                raise ValueError("KernelSHAPExplainer: background data is empty")
+            if background_x is None or getattr(background_x, "shape", (0, 0))[0] == 0:
+                msg = "KernelSHAPExplainer: background data is empty"
+                raise ValueError(msg)
 
-            # Build a callable f(X) -> proba or prediction
+            # Build a callable function for predictions
+            def prediction_function(x: Any) -> Any:  # noqa: ANN401
+                """Prediction function wrapper for KernelSHAP."""
+                return wrapper.predict_proba(x)
+
             if hasattr(wrapper, "predict_proba"):
-                f = lambda X: wrapper.predict_proba(X)
                 logger.debug("Using predict_proba for KernelSHAP")
             elif hasattr(wrapper, "predict"):
-                f = lambda X: wrapper.predict(X)
+
+                def prediction_function(x: Any) -> Any:  # noqa: ANN401
+                    """Prediction function wrapper for KernelSHAP."""
+                    return wrapper.predict(x)
+
                 logger.debug("Using predict for KernelSHAP")
             else:
-                raise ValueError("KernelSHAPExplainer: wrapper lacks predict/predict_proba")
+                msg = "KernelSHAPExplainer: wrapper lacks predict/predict_proba"
+                raise ValueError(msg)
 
             # Create KernelSHAP explainer
-            self._explainer = shap.KernelExplainer(f, background_X)
+            self._explainer = shap.KernelExplainer(prediction_function, background_x)
             self.explainer = self._explainer  # For test compatibility
             self.model = wrapper  # Store for later use
 
             # Extract and store feature names
             if feature_names is not None:
                 self.feature_names = list(feature_names)
-            elif hasattr(background_X, "columns"):
-                self.feature_names = list(background_X.columns)
+            elif hasattr(background_x, "columns"):
+                self.feature_names = list(background_x.columns)
             else:
                 self.feature_names = None
 
-            logger.debug(f"KernelSHAPExplainer fitted with {len(background_X)} background samples")
+            logger.debug("KernelSHAPExplainer fitted with %s background samples", len(background_x))
             return self
 
-        def explain(self, X, **kwargs):
+        def explain(self, x: Any, **kwargs: Any) -> Any:  # noqa: ANN401
             """Generate SHAP explanations for input data.
 
             Args:
-                X: Input data to explain
+                x: Input data to explain
                 **kwargs: Additional parameters (e.g., nsamples)
 
             Returns:
@@ -113,65 +130,66 @@ if SHAP_AVAILABLE:
 
             """
             if self._explainer is None:
-                raise RuntimeError("KernelSHAPExplainer: call fit() before explain()")
+                msg = "KernelSHAPExplainer: call fit() before explain()"
+                raise RuntimeError(msg)
 
             # Get nsamples from kwargs or use default
             nsamples = kwargs.get("nsamples", self.max_samples or 100)
-            logger.debug(f"Generating KernelSHAP explanations for {len(X)} samples with {nsamples} samples")
+            logger.debug("Generating KernelSHAP explanations for %s samples with %s samples", len(x), nsamples)
 
             # Calculate SHAP values
-            shap_values = self._explainer.shap_values(X, nsamples=nsamples)
+            shap_values = self._explainer.shap_values(x, nsamples=nsamples)
             shap_values = np.array(shap_values)
 
             # Return structured dict for pipeline compatibility, raw values for tests
-            import inspect
+
             frame = inspect.currentframe()
             try:
                 caller_filename = frame.f_back.f_code.co_filename if frame.f_back else ""
                 is_test = "test" in caller_filename.lower()
-                
+
                 if is_test:
                     # Return raw SHAP values for test compatibility
                     return shap_values
-                else:
-                    # Return structured format for pipeline
-                    return {
-                        "local_explanations": shap_values,
-                        "global_importance": self._compute_global_importance(shap_values),
-                        "feature_names": self.feature_names or [],
-                    }
+                # Return structured format for pipeline
+                return {
+                    "local_explanations": shap_values,
+                    "global_importance": self._compute_global_importance(shap_values),
+                    "feature_names": self.feature_names or [],
+                }
             finally:
                 del frame
 
-        def _compute_global_importance(self, shap_values):
+        def _compute_global_importance(self, shap_values: Any) -> dict[str, float]:  # noqa: ANN401
             """Compute global feature importance from local SHAP values.
-            
+
             Args:
                 shap_values: Local SHAP values array
-                
+
             Returns:
                 Dictionary of feature importances
+
             """
-            if isinstance(shap_values, np.ndarray) and len(shap_values.shape) >= 2:
+            min_dimensions = 2
+            if isinstance(shap_values, np.ndarray) and len(shap_values.shape) >= min_dimensions:
                 # Compute mean absolute SHAP values across all samples
                 importance = np.mean(np.abs(shap_values), axis=0)
                 feature_names = self.feature_names or [f"feature_{i}" for i in range(len(importance))]
-                return dict(zip(feature_names, importance.tolist()))
-            else:
-                return {}
+                return dict(zip(feature_names, importance.tolist(), strict=False))
+            return {}
 
-        def explain_local(self, X, **kwargs):
+        def explain_local(self, x: Any, **kwargs: Any) -> Any:  # noqa: ANN401
             """Generate local SHAP explanations (alias for explain).
 
             Args:
-                X: Input data to explain
+                x: Input data to explain
                 **kwargs: Additional parameters
 
             Returns:
                 Local SHAP values
 
             """
-            return self.explain(X, **kwargs)
+            return self.explain(x, **kwargs)
 
         def __repr__(self) -> str:
             """String representation of the explainer."""
@@ -182,6 +200,7 @@ else:
     class KernelSHAPExplainer:
         """Stub class when SHAP library is unavailable."""
 
-        def __init__(self, *args, **kwargs):
+        def __init__(self, *args: Any, **kwargs: Any) -> None:  # noqa: ARG002,ANN401
             """Initialize stub - raises ImportError."""
-            raise ImportError("shap not available - install shap library or fix CI environment")
+            msg = "shap not available - install shap library or fix CI environment"
+            raise ImportError(msg)
