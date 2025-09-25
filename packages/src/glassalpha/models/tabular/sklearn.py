@@ -129,19 +129,24 @@ if SKLEARN_AVAILABLE:
                 self.model = model
                 self.feature_names = list(feature_names) if feature_names else None
                 self._is_fitted = hasattr(model, "coef_") and model.coef_ is not None
+                # Set n_classes if model is fitted (tests expect this)
+                if hasattr(model, "classes_") and model.classes_ is not None:
+                    self.classes_ = model.classes_
+                    self.n_classes = len(model.classes_)
+                else:
+                    self.n_classes = None
             elif kwargs:
                 # Create new model with parameters
                 self.model = LogisticRegression(**kwargs)
                 self.feature_names = list(feature_names) if feature_names else None
                 self._is_fitted = False
+                self.n_classes = None
             else:
                 # Tests expect model to be None when no arguments provided
                 self.model = None
                 self.feature_names = list(feature_names) if feature_names else None
                 self._is_fitted = False
-
-            # Tests expect n_classes attribute
-            self.n_classes = None
+                self.n_classes = None
 
             logger.info("LogisticRegressionWrapper initialized")
 
@@ -263,11 +268,9 @@ if SKLEARN_AVAILABLE:
             info = {
                 "status": "fitted" if self._is_fitted else "not_fitted",
                 "n_features": len(self.feature_names) if self.feature_names else None,
+                "n_classes": self.n_classes,  # Always include n_classes (tests expect this key)
                 **self.get_params(),
             }
-            # Add n_classes if fitted
-            if self._is_fitted and self.n_classes:
-                info["n_classes"] = self.n_classes
             return info
 
         def get_capabilities(self):
@@ -280,6 +283,11 @@ if SKLEARN_AVAILABLE:
 
         def save(self, path: str) -> None:
             """Save model to file."""
+            if self.model is None:
+                # Tests expect this to raise when no model is loaded
+                msg = "Cannot save LogisticRegressionWrapper: no model fitted/loaded"
+                raise ValueError(msg)
+            
             import joblib
 
             model_data = {

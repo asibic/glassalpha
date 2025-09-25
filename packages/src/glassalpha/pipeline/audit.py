@@ -361,11 +361,17 @@ class AuditPipeline:
             # Try each explainer in priority order
             for explainer_name in explainer_priorities:
                 try:
-                    explainer_class = ExplainerRegistry.get(explainer_name)
-                    if explainer_class:
-                        logger.debug(f"Trying explainer: {explainer_name}")
-                        selected_name = explainer_name
-                        break
+                    candidate_class = ExplainerRegistry.get(explainer_name)
+                    if candidate_class:
+                        # Check if this explainer is compatible with the model
+                        instance = candidate_class()
+                        if hasattr(instance, 'is_compatible') and instance.is_compatible(self.model):
+                            explainer_class = candidate_class
+                            selected_name = explainer_name
+                            logger.debug(f"Found compatible explainer: {explainer_name}")
+                            break
+                        else:
+                            logger.debug(f"Explainer {explainer_name} not compatible with model")
                 except KeyError:
                     logger.debug(f"Explainer {explainer_name} not available in registry")
                     continue
