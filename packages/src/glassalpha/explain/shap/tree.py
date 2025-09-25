@@ -91,8 +91,8 @@ if SHAP_AVAILABLE:
                         "explainer_type": "treeshap",
                     }
 
-            # Get the underlying model object
-            model_type = model.get_model_type()
+                # Get the underlying model object
+                model_type = model.get_model_type()
 
             if model_type == "xgboost":
                 # For XGBoost, use the Booster object directly
