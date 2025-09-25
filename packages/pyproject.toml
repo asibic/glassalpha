@@ -141,7 +141,7 @@ addopts = [
     "--cov-fail-under=49",  # Phase 1 nearly complete (49.60%) - comprehensive testing across all core modules
 ]
 testpaths = ["tests"]
-pythonpath = ["src"]
+# pythonpath = ["src"]  # Removed: forces testing against installed package, not source tree
 
 [tool.black]
 line-length = 120

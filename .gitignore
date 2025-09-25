@@ -1,8 +1,10 @@
 # GlassAlpha specific
 # ====================
 
-# Data directories (test datasets, outputs)
-data/
+# Data directories (test datasets, outputs) - but NOT source code packages
+/data/
+packages/data/
+site/data/
 outputs/
 runs/
 test_outputs/
