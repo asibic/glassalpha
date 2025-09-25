@@ -51,7 +51,7 @@ if SKLEARN_AVAILABLE:
             "supports_proba": True,
             "data_modality": "tabular",
         }
-        version = "1.0.1"  # Fixed constructor to accept model= parameter for CI tests
+        version = "1.0.0"
 
         def __init__(self, model_path: str | Path | None = None, model: LogisticRegression | None = None, **kwargs):
             """Initialize LogisticRegression wrapper.
