@@ -90,6 +90,22 @@ jobs:
           cd packages
           python -m pip install pytest pytest-cov pytest-asyncio
 
+      - name: Syntax check (prevent broken Python files)
+        run: |
+          cd packages
+          echo "=== Compile all Python files to catch syntax errors ==="
+          python - <<'PY'
+          import compileall, sys, pkgutil, inspect, glassalpha, pathlib
+          base = pathlib.Path(inspect.getsourcefile(glassalpha)).parent
+          print(f"Compiling all Python files in {base}...")
+          ok = compileall.compile_dir(str(base), quiet=1, force=True)
+          if ok:
+              print("✅ All Python files compile successfully")
+          else:
+              print("❌ Syntax errors found in Python files")
+          sys.exit(0 if ok else 1)
+          PY
+
       - name: Run tests against installed package
         run: |
           cd packages

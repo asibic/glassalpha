@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 # Module-level flags for framework availability (expected by tests)
 try:
     import torch as _torch
+
     torch = True
 except ImportError:
     _torch = None
@@ -27,6 +28,7 @@ except ImportError:
 
 try:
     import tensorflow as _tf
+
     tensorflow = True
 except ImportError:
     _tf = None
@@ -202,15 +204,14 @@ class SeedManager:
         # Use module-level flags for consistency
         if framework == "torch":
             return torch
-        elif framework == "tensorflow":
+        if framework == "tensorflow":
             return tensorflow
-        else:
-            # Fallback for other frameworks
-            try:
-                __import__(framework)
-                return True
-            except ImportError:
-                return False
+        # Fallback for other frameworks
+        try:
+            __import__(framework)
+            return True
+        except ImportError:
+            return False
 
 
 # Global seed manager instance
