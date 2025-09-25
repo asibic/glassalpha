@@ -37,11 +37,14 @@ jobs:
           which pip; pip -V
           python -c "import sys; print('PY:', sys.executable); print('PATH:', '\n'.join(sys.path))"
 
-      - name: Repo layout and case sensitivity check
+      - name: Inspect layout and package structure
         run: |
           cd packages
           echo "=== Repo layout ==="
-          pwd; git ls-files | sed -n '1,200p' | grep -Ei '(^|/)glassalpha(/|$)' || true
+          pwd; ls -la
+          ls -la src/glassalpha || true
+          ls -la src/glassalpha/data || true
+          test -f src/glassalpha/data/__init__.py && echo "data/__init__.py present" || echo "data/__init__.py MISSING"
           echo "=== Case-mismatch smoke test ==="
           grep -R --line-number -E 'from +[Gg]lass[A-Z][a-zA-Z_]*|import +[Gg]lass[A-Z][a-zA-Z_]*' . || true
 
@@ -65,6 +68,8 @@ jobs:
           cd packages
           echo "=== Show what actually got installed ==="
           python -m pip show -f glassalpha
+          echo "=== Check for data package specifically ==="
+          python -m pip show -f glassalpha | grep "glassalpha/data" || echo "glassalpha/data NOT FOUND in wheel"
           python -c "import glassalpha, inspect; print('MODULE FILE:', glassalpha.__file__); import pkgutil; print('Submodules:', [m.name for m in pkgutil.iter_modules([inspect.getsourcefile(glassalpha).rsplit('/',1)[0]]) if m.name.startswith('glassalpha')]) ]" || true
 
       - name: Install test dependencies

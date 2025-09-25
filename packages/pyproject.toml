@@ -69,14 +69,12 @@ docs = [
 # enterprise = [...]
 
 [build-system]
-requires = ["hatchling>=1.21.0"]
-build-backend = "hatchling.build"
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
 
-[tool.hatch.build.targets.wheel]
-packages = ["src/glassalpha"]
-
-[tool.hatch.build.targets.wheel.sources]
-"src" = ""
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["glassalpha*"]
 
 [tool.ruff]
 line-length = 120  # Modern standard (vs outdated 100) - matches industry practice
