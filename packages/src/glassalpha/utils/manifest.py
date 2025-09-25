@@ -186,7 +186,7 @@ class ManifestGenerator:
         self.status: str = "initialized"
         self.error: str | None = None
         self.completed_at: datetime | None = None
-        
+
         # Attributes tests expect to exist
         self.seeds: dict[str, Any] | None = None
         self.config: dict[str, Any] | None = None
@@ -215,7 +215,7 @@ class ManifestGenerator:
         # Update direct attributes for test compatibility
         self.config = config
         self.config_hash = hash_config(config)
-        
+
         # Update manifest
         self.manifest.config = config
         self.manifest.config_hash = self.config_hash
@@ -231,7 +231,7 @@ class ManifestGenerator:
         # Update direct attribute for test compatibility
         seeds_data = get_seeds_manifest()
         self.seeds = seeds_data
-        
+
         # Update manifest
         self.manifest.seeds = seeds_data
         self.manifest.deterministic_validation = validate_deterministic_environment()
@@ -310,7 +310,9 @@ class ManifestGenerator:
 
         # Update both manifest and direct attribute for test compatibility
         self.manifest.datasets[dataset_name] = dataset_info
-        self.datasets[dataset_name] = dataset_info.model_dump() if hasattr(dataset_info, 'model_dump') else vars(dataset_info)
+        self.datasets[dataset_name] = (
+            dataset_info.model_dump() if hasattr(dataset_info, "model_dump") else vars(dataset_info)
+        )
         logger.debug("Added dataset to manifest: %s", dataset_name)
 
     def add_result_hash(self, result_name: str, result_hash: str) -> None:

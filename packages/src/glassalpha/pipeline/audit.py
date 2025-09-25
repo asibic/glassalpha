@@ -365,13 +365,12 @@ class AuditPipeline:
                     if candidate_class:
                         # Check if this explainer is compatible with the model
                         instance = candidate_class()
-                        if hasattr(instance, 'is_compatible') and instance.is_compatible(self.model):
+                        if hasattr(instance, "is_compatible") and instance.is_compatible(self.model):
                             explainer_class = candidate_class
                             selected_name = explainer_name
                             logger.debug(f"Found compatible explainer: {explainer_name}")
                             break
-                        else:
-                            logger.debug(f"Explainer {explainer_name} not compatible with model")
+                        logger.debug(f"Explainer {explainer_name} not compatible with model")
                 except KeyError:
                     logger.debug(f"Explainer {explainer_name} not available in registry")
                     continue

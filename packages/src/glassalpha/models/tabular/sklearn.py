@@ -53,19 +53,43 @@ class SklearnGenericWrapper:
             "feature_importance": hasattr(model, "feature_importances_") or hasattr(model, "coef_"),
         }
 
-    def predict(self, X):
+    def predict(self, x: Any) -> Any:  # noqa: ANN401
+        """Make predictions using the underlying model.
+
+        Args:
+            x: Input features for prediction
+
+        Returns:
+            Predictions from the underlying model
+
+        """
         if not hasattr(self.model, "predict"):
             msg = "Underlying model has no predict"
             raise AttributeError(msg)
-        return self.model.predict(X)
+        return self.model.predict(x)
 
-    def predict_proba(self, X):
+    def predict_proba(self, x: Any) -> Any:  # noqa: ANN401
+        """Get prediction probabilities using the underlying model.
+
+        Args:
+            x: Input features for probability prediction
+
+        Returns:
+            Prediction probabilities from the underlying model
+
+        """
         if not hasattr(self.model, "predict_proba"):
             msg = "Underlying model has no predict_proba"
             raise AttributeError(msg)
-        return self.model.predict_proba(X)
+        return self.model.predict_proba(x)
 
-    def feature_importance(self):
+    def feature_importance(self) -> dict[str, float]:
+        """Get feature importance from the underlying model.
+
+        Returns:
+            Dictionary mapping feature names to importance values
+
+        """
         if hasattr(self.model, "feature_importances_"):
             vals = np.asarray(self.model.feature_importances_)
         elif hasattr(self.model, "coef_"):
@@ -78,23 +102,53 @@ class SklearnGenericWrapper:
         return dict(zip(names, vals.tolist(), strict=False))
 
     def save(self, path: str) -> None:
+        """Save model and feature names to disk.
+
+        Args:
+            path: Path to save the model
+
+        """
         joblib.dump({"model": self.model, "feature_names": self.feature_names}, path)
 
     @classmethod
     def load(cls, path: str) -> SklearnGenericWrapper:
+        """Load model from disk.
+
+        Args:
+            path: Path to the saved model
+
+        Returns:
+            New SklearnGenericWrapper instance with loaded model
+
+        """
         data = joblib.load(path)
         return cls(model=data["model"], feature_names=data.get("feature_names"))
 
     # Some tests call instance.load(); keep a passthrough
     def load_instance(self, path: str) -> SklearnGenericWrapper:
+        """Load model from path (instance method for compatibility).
+
+        Args:
+            path: Path to load the model from
+
+        Returns:
+            New SklearnGenericWrapper instance with loaded model
+
+        """
         return self.__class__.load(path)
 
     def __repr__(self) -> str:
+        """String representation of the wrapper.
+
+        Returns:
+            String representation showing wrapper class and model type
+
+        """
         return f"{self.__class__.__name__}(model={type(self.model).__name__})"
 
 
 class LogisticRegressionWrapper(SklearnGenericWrapper):
-    pass
+    """Stub wrapper for LogisticRegression (real implementation below)."""
 
 
 # Only register if sklearn is available
@@ -265,13 +319,12 @@ if SKLEARN_AVAILABLE:
 
         def get_model_info(self):
             """Get model information."""
-            info = {
+            return {
                 "status": "fitted" if self._is_fitted else "not_fitted",
                 "n_features": len(self.feature_names) if self.feature_names else None,
                 "n_classes": self.n_classes,  # Always include n_classes (tests expect this key)
                 **self.get_params(),
             }
-            return info
 
         def get_capabilities(self):
             """Get model capabilities."""
@@ -287,7 +340,7 @@ if SKLEARN_AVAILABLE:
                 # Tests expect this to raise when no model is loaded
                 msg = "Cannot save LogisticRegressionWrapper: no model fitted/loaded"
                 raise ValueError(msg)
-            
+
             import joblib
 
             model_data = {
