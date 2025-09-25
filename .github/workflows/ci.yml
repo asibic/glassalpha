@@ -38,6 +38,7 @@ jobs:
       - name: Run tests
         run: |
           cd packages
+          export PYTHONPATH="${PYTHONPATH}:$(pwd)/src"
           python -m pytest tests/ -v
 
   lint:
