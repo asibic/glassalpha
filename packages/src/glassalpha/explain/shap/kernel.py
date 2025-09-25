@@ -36,16 +36,25 @@ if SHAP_AVAILABLE:
         """Model-agnostic SHAP explainer using KernelSHAP algorithm."""
 
         # Class attributes expected by tests
+        name = "kernelshap"  # Test expects this
         priority = 50  # Lower than TreeSHAP
         version = "1.0.0"
 
-        def __init__(self) -> None:
+        def __init__(self, n_samples: int | None = None, **kwargs) -> None:
             """Initialize KernelSHAP explainer.
 
+            Args:
+                n_samples: Number of samples for KernelSHAP (backward compatibility)
+                **kwargs: Additional parameters
+
             Tests expect 'explainer' attribute to exist and be None before fit().
+
             """
             # Tests expect this attribute to exist and be None before fit
             self.explainer = None
+            self._explainer = None  # Internal SHAP explainer
+            # Map n_samples to max_samples for backward compatibility
+            self.max_samples = n_samples
             self.feature_names: Sequence[str] | None = None
             logger.info("KernelSHAPExplainer initialized")
 
@@ -77,7 +86,9 @@ if SHAP_AVAILABLE:
                 raise ValueError("KernelSHAPExplainer: wrapper lacks predict/predict_proba")
 
             # Create KernelSHAP explainer
-            self.explainer = shap.KernelExplainer(f, background_X)
+            self._explainer = shap.KernelExplainer(f, background_X)
+            self.explainer = self._explainer  # For test compatibility
+            self.model = wrapper  # Store for later use
 
             # Extract and store feature names
             if feature_names is not None:
@@ -90,32 +101,40 @@ if SHAP_AVAILABLE:
             logger.debug(f"KernelSHAPExplainer fitted with {len(background_X)} background samples")
             return self
 
-        def explain(self, X, nsamples: int = 100):
+        def explain(self, X, **kwargs):
             """Generate SHAP explanations for input data.
 
             Args:
                 X: Input data to explain
-                nsamples: Number of samples for KernelSHAP approximation
+                **kwargs: Additional parameters (e.g., nsamples)
 
             Returns:
-                Dictionary containing SHAP values and feature names
+                SHAP values array for test compatibility
 
             """
-            if self.explainer is None:
+            if self._explainer is None:
                 raise RuntimeError("KernelSHAPExplainer: call fit() before explain()")
 
+            # Get nsamples from kwargs or use default
+            nsamples = kwargs.get("nsamples", self.max_samples or 100)
             logger.debug(f"Generating KernelSHAP explanations for {len(X)} samples with {nsamples} samples")
 
-            # Calculate SHAP values
-            shap_values = np.array(self.explainer.shap_values(X, nsamples=nsamples))
+            # Calculate SHAP values - return raw array for test compatibility
+            shap_values = self._explainer.shap_values(X, nsamples=nsamples)
+            return np.array(shap_values)
 
-            return {
-                "shap_values": shap_values,
-                "feature_names": self.feature_names,
-                "explainer_type": "kernelshap",
-                "n_samples_explained": len(X),
-                "kernel_samples_used": nsamples,
-            }
+        def explain_local(self, X, **kwargs):
+            """Generate local SHAP explanations (alias for explain).
+
+            Args:
+                X: Input data to explain
+                **kwargs: Additional parameters
+
+            Returns:
+                Local SHAP values
+
+            """
+            return self.explain(X, **kwargs)
 
         def __repr__(self) -> str:
             """String representation of the explainer."""

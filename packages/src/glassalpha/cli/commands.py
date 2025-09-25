@@ -108,7 +108,7 @@ def _run_audit_pipeline(config, output_path: Path) -> None:
         typer.echo("\nThe audit report is ready for review and regulatory submission.")
 
     except Exception as e:
-        typer.secho(f"\n❌ Audit failed: {str(e)}", fg=typer.colors.RED, err=True)
+        typer.secho(f"\n❌ Audit failed: {e!s}", fg=typer.colors.RED, err=True)
 
         # Show more details in verbose mode
         if "--verbose" in sys.argv or "-v" in sys.argv:
@@ -124,7 +124,7 @@ def _display_audit_summary(audit_results) -> None:
     # Model performance
     if audit_results.model_performance:
         perf_count = len(
-            [m for m in audit_results.model_performance.values() if isinstance(m, dict) and "error" not in m]
+            [m for m in audit_results.model_performance.values() if isinstance(m, dict) and "error" not in m],
         )
         typer.echo(f"  ✅ Performance metrics: {perf_count} computed")
 
@@ -197,10 +197,9 @@ def audit(
         "--config",
         "-c",
         help="Path to audit configuration YAML file",
-        exists=True,
+        # Remove exists=True to handle file checking manually for better error messages
         file_okay=True,
         dir_okay=False,
-        readable=True,
     ),
     output: Path = typer.Option(
         ...,
@@ -224,7 +223,6 @@ def audit(
         None,
         "--override",
         help="Additional config file to override settings",
-        exists=True,
         file_okay=True,
     ),
     dry_run: bool = typer.Option(
@@ -250,6 +248,16 @@ def audit(
 
     """
     try:
+        # Check file existence early with specific error message
+        if not config.exists():
+            typer.echo(f"File '{config}' does not exist.", err=True)
+            raise typer.Exit(1)
+
+        # Check override config if provided
+        if override_config and not override_config.exists():
+            typer.echo(f"Override file '{override_config}' does not exist.", err=True)
+            raise typer.Exit(1)
+
         # Import here to avoid circular imports
         from ..config import load_config_from_file
         from ..core import list_components

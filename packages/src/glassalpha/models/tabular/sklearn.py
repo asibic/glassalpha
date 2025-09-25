@@ -46,6 +46,8 @@ if SKLEARN_AVAILABLE:
 
         # Required class attributes for ModelInterface
         capabilities = {
+            "feature_names": True,  # Test expects this
+            "predict_proba": True,
             "supports_shap": True,  # Will use KernelSHAP, not TreeSHAP
             "supports_feature_importance": True,
             "supports_proba": True,
@@ -54,33 +56,33 @@ if SKLEARN_AVAILABLE:
         version = "1.0.0"  # Version expected by tests
         model_type = "logistic_regression"  # Attribute expected by some tests
 
-        def __init__(self, model_path: str | Path | None = None, model: LogisticRegression | None = None, **kwargs):
-            """Initialize LogisticRegression wrapper.
+        def __init__(self, model=None, feature_names=None, **kwargs):
+            """Initialize LogisticRegression wrapper with flexible parameters.
 
             Args:
-                model_path: Path to pre-trained sklearn model file (pickle/joblib)
-                model: Pre-trained LogisticRegression model object
+                model: Pre-trained LogisticRegression model object or None to create new one
+                feature_names: List of feature names for the model
                 **kwargs: Additional parameters passed to LogisticRegression constructor if no model provided
 
             """
-            self.model: LogisticRegression | None = None
-            self.feature_names: list | None = None
+            self.feature_names = list(feature_names) if feature_names is not None else None
             self.n_classes: int = 2  # Default to binary classification
             self._sklearn_params = kwargs  # Store sklearn parameters for get_params/set_params
 
-            if model_path:
-                self.load(model_path)
-            elif model is not None:
+            if model is not None:
+                # Use provided model
+                if not isinstance(model, LogisticRegression):
+                    raise ValueError(f"Expected LogisticRegression, got {type(model)}")
                 self.model = model
                 self._extract_model_info()
             elif kwargs:
                 # Create new LogisticRegression with provided parameters
                 self.model = LogisticRegression(**kwargs)
-
-            if self.model:
-                logger.info("LogisticRegressionWrapper initialized with model")
             else:
-                logger.info("LogisticRegressionWrapper initialized without model")
+                # No model provided, will be created on fit
+                self.model = None
+
+            logger.info("LogisticRegressionWrapper initialized")
 
         def fit(self, X, y):
             """Fit the LogisticRegression model.
@@ -180,15 +182,26 @@ if SKLEARN_AVAILABLE:
                     self.n_classes = 2
 
         def predict(self, X: pd.DataFrame) -> np.ndarray:
-            """Generate predictions for input data."""
+            """Generate predictions for input data.
+
+            Returns:
+                1D numpy array of predictions
+
+            """
             if self.model is None:
                 raise ValueError("Model not loaded. Load a model first.")
 
             # Handle feature name validation and reordering
             X = self._validate_and_reorder_features(X)
 
-            # Get predictions
+            # Get predictions - ensure 1D numpy array output
             predictions = self.model.predict(X)
+
+            # Ensure we return 1D numpy array
+            if not isinstance(predictions, np.ndarray):
+                predictions = np.array(predictions)
+            if predictions.ndim > 1:
+                predictions = predictions.flatten()
 
             logger.debug(f"Generated predictions for {len(X)} samples")
             return predictions

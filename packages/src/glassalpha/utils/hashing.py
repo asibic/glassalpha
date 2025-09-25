@@ -185,12 +185,12 @@ def hash_model(model: Any, algorithm: str = "sha256") -> str:
             model_dump = model.get_booster().get_dump()
             return hash_object(model_dump, algorithm)
 
-        elif hasattr(model, "dump_model"):  # LightGBM
+        if hasattr(model, "dump_model"):  # LightGBM
             # Get model dump for LightGBM
             model_dump = model.booster_.dump_model()
             return hash_object(model_dump, algorithm)
 
-        elif hasattr(model, "get_params"):  # Sklearn-style models
+        if hasattr(model, "get_params"):  # Sklearn-style models
             # Hash parameters and fitted attributes
             params = model.get_params()
 
@@ -264,8 +264,8 @@ def hash_multiple(*objects: Any, algorithm: str = "sha256") -> str:
             individual_hashes.append(obj_hash)
 
         except Exception as e:
-            logger.warning(f"Failed to hash object {i}: {e}")
-            individual_hashes.append(hash_object(str(obj), algorithm))
+            # Don't silently fall back - let the error bubble up for unsupported types
+            raise ValueError(f"Unsupported type for hashing: {type(obj)} at position {i}") from e
 
     # Combine all hashes
     combined_str = "".join(individual_hashes)
