@@ -350,9 +350,8 @@ def get_seeds_manifest(master_seed: int | None = None, component_seeds: dict[str
         if component_seeds:
             temp_manager.component_seeds.update(component_seeds)
         return temp_manager.get_seeds_manifest()
-    else:
-        # Use global manager
-        return _global_seed_manager.get_seeds_manifest()
+    # Use global manager
+    return _global_seed_manager.get_seeds_manifest()
 
 
 def validate_deterministic_environment() -> dict[str, bool]:

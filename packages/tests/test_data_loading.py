@@ -25,7 +25,7 @@ def sample_csv_data():
             "feature3": ["A", "B", "A", "B", "A"],
             "sensitive_attr": ["M", "F", "M", "F", "M"],
             "target": [0, 1, 0, 1, 0],
-        }
+        },
     )
 
 
@@ -53,7 +53,7 @@ def larger_dataset():
             "employment_status": np.random.choice(["Employed", "Unemployed", "Retired"], n_samples),
             "credit_score": np.random.randint(300, 850, n_samples),
             "approved": np.random.choice([0, 1], n_samples),
-        }
+        },
     )
 
 
@@ -156,7 +156,9 @@ class TestTabularDataLoader:
     def test_load_with_schema_validation(self, sample_csv_file):
         """Test loading with schema validation."""
         schema = TabularDataSchema(
-            target="target", features=["feature1", "feature2", "feature3"], sensitive_features=["sensitive_attr"]
+            target="target",
+            features=["feature1", "feature2", "feature3"],
+            sensitive_features=["sensitive_attr"],
         )
 
         loader = TabularDataLoader()
@@ -178,7 +180,9 @@ class TestTabularDataLoader:
     def test_validate_schema_success(self, sample_csv_data):
         """Test successful schema validation."""
         schema = TabularDataSchema(
-            target="target", features=["feature1", "feature2", "feature3"], sensitive_features=["sensitive_attr"]
+            target="target",
+            features=["feature1", "feature2", "feature3"],
+            sensitive_features=["sensitive_attr"],
         )
 
         loader = TabularDataLoader()
@@ -240,7 +244,9 @@ class TestTabularDataLoader:
     def test_extract_protected_attributes(self, sample_csv_data):
         """Test extraction of protected attributes using sensitive feature columns."""
         schema = TabularDataSchema(
-            target="target", features=["feature1", "feature2", "feature3"], sensitive_features=["sensitive_attr"]
+            target="target",
+            features=["feature1", "feature2", "feature3"],
+            sensitive_features=["sensitive_attr"],
         )
 
         # Extract sensitive features directly from DataFrame
@@ -382,7 +388,10 @@ class TestTabularDataLoaderAdvanced:
 
         # Test stratified split
         train_data, test_data = loader.split_data(
-            larger_dataset, test_size=0.2, stratify_column="approved", random_state=42
+            larger_dataset,
+            test_size=0.2,
+            stratify_column="approved",
+            random_state=42,
         )
 
         assert isinstance(train_data, pd.DataFrame)
@@ -554,7 +563,7 @@ class TestTabularDataLoaderIntegration:
         # Results should be identical
         pd.testing.assert_frame_equal(data1, data2)
         assert hash1 == hash2
-        
+
         # Compute hashes for different data (use data1 that we already loaded)
         hash1_again = loader.hash_data(data1)
         modified_data = data1.copy()

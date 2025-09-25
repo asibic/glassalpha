@@ -18,38 +18,39 @@ logger = logging.getLogger(__name__)
 
 def _json_serializer(obj: Any) -> Any:
     """Custom JSON serializer for common non-serializable objects.
-    
+
     Args:
         obj: Object to serialize
-        
+
     Returns:
         Serializable representation
-        
+
     Raises:
         TypeError: If object cannot be serialized
+
     """
     # Handle Path objects
     if isinstance(obj, Path):
         return str(obj)
-    
+
     # Reject callable objects FIRST (functions, lambdas, etc.)
     if callable(obj):
         raise TypeError(f"Cannot serialize callable object: {obj}")
-    
+
     # Handle numpy types
     if isinstance(obj, np.ndarray):
         return obj.tolist()
     if isinstance(obj, (np.integer, np.floating)):
         return obj.item()
-    
+
     # Handle other common types that have string representations
-    if hasattr(obj, '__dict__'):
+    if hasattr(obj, "__dict__"):
         # For objects with __dict__, try to serialize their state
         try:
             return obj.__dict__
         except Exception:
             pass
-    
+
     # For unknown types, raise TypeError to maintain strict serialization
     raise TypeError(f"Object of type {type(obj).__name__} is not JSON serializable")
 
