@@ -38,28 +38,31 @@ if SHAP_AVAILABLE:
         the highest priority for these model types as it's both exact and efficient.
         """
 
-    # Required class attributes for ExplainerInterface
-    capabilities = {
-        "supported_models": ["xgboost", "lightgbm", "random_forest", "decision_tree"],
-        "explanation_type": "shap_values",
-        "supports_local": True,
-        "supports_global": True,
-        "data_modality": "tabular",
-    }
-    version = "1.0.0"
-    priority = 100  # Highest priority for tree models
+        # Required class attributes for ExplainerInterface
+        capabilities = {
+            "supported_models": ["xgboost", "lightgbm", "random_forest", "decision_tree"],
+            "explanation_type": "shap_values",
+            "supports_local": True,
+            "supports_global": True,
+            "data_modality": "tabular",
+        }
+        version = "1.0.0"
+        priority = 100  # Highest priority for tree models
 
-    def __init__(self, check_additivity: bool = False):
-        """Initialize TreeSHAP explainer.
+        def __init__(self, check_additivity: bool = False, **kwargs):
+            """Initialize TreeSHAP explainer.
 
-        Args:
-            check_additivity: Whether to check SHAP value additivity
+            Args:
+                check_additivity: Whether to check SHAP value additivity
+                **kwargs: Additional parameters for explainer
 
-        """
-        self.check_additivity = check_additivity
-        self.explainer = None
-        self.base_value = None
-        logger.info("TreeSHAPExplainer initialized")
+            """
+            self.check_additivity = check_additivity
+            self.explainer = None
+            self.base_value = None
+            self.background_ = None
+            self.feature_names_ = None
+            logger.info("TreeSHAPExplainer initialized")
 
     def explain(self, model: ModelInterface, X: pd.DataFrame, y: np.ndarray | None = None) -> dict[str, Any]:
         """Generate SHAP explanations for the model.
@@ -184,28 +187,59 @@ if SHAP_AVAILABLE:
             }
 
         except Exception as e:
-            logger.error(f"Error in TreeSHAP explanation: {str(e)}", exc_info=True)
+            logger.error(f"Error in TreeSHAP explanation: {e!s}", exc_info=True)
             return {"status": "error", "reason": str(e), "explainer_type": "treeshap"}
 
-    def supports_model(self, model: ModelInterface) -> bool:
-        """Check if this explainer supports the given model.
+        def fit(self, background_X, feature_names=None):
+            """Fit the explainer with background data.
 
-        Args:
-            model: Model to check compatibility
+            Args:
+                background_X: Background data for SHAP
+                feature_names: Optional feature names
 
-        Returns:
-            True if model is a supported tree-based model
+            """
+            self.background_ = background_X
+            self.feature_names_ = self._extract_feature_names(background_X, feature_names)
+            logger.debug(f"TreeSHAPExplainer fitted with {len(background_X)} background samples")
 
-        """
-        model_type = model.get_model_type()
-        supported = model_type in self.capabilities["supported_models"]
+        def explain_local(self, model, X, **kwargs):
+            """Generate local explanations (per-sample SHAP values)."""
+            result = self.explain(model, X)
+            if result["status"] == "success":
+                return result["shap_values"]
+            return None
 
-        if supported:
-            logger.debug(f"TreeSHAP supports model type: {model_type}")
-        else:
-            logger.debug(f"TreeSHAP does not support model type: {model_type}")
+        def _extract_feature_names(self, X, feature_names=None):
+            """Extract feature names from data."""
+            if feature_names is not None:
+                return list(feature_names)
+            if hasattr(X, "columns"):
+                return list(X.columns)
+            return [f"feature_{i}" for i in range(X.shape[1])]
 
-        return supported
+        def _aggregate_to_global(self, shap_values):
+            """Aggregate local SHAP values to global feature importance."""
+            return np.mean(np.abs(shap_values), axis=0)
+
+        def supports_model(self, model: ModelInterface) -> bool:
+            """Check if this explainer supports the given model.
+
+            Args:
+                model: Model to check compatibility
+
+            Returns:
+                True if model is a supported tree-based model
+
+            """
+            model_type = model.get_model_type()
+            supported = model_type in self.capabilities["supported_models"]
+
+            if supported:
+                logger.debug(f"TreeSHAP supports model type: {model_type}")
+            else:
+                logger.debug(f"TreeSHAP does not support model type: {model_type}")
+
+            return supported
 
     def get_explanation_type(self) -> str:
         """Return the type of explanation provided.

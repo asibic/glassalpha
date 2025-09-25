@@ -39,33 +39,36 @@ if SHAP_AVAILABLE:
         but works with any model type including linear models, SVMs, and other sklearn models.
         """
 
-    # Required class attributes for ExplainerInterface
-    capabilities = {
-        "supported_models": ["all"],  # Works with any model
-        "explanation_type": "shap_values",
-        "supports_local": True,
-        "supports_global": True,
-        "data_modality": "tabular",
-    }
-    version = "1.0.0"
-    priority = 50  # Lower priority than TreeSHAP
+        # Required class attributes for ExplainerInterface
+        capabilities = {
+            "supported_models": ["all"],  # Works with any model
+            "explanation_type": "shap_values",
+            "supports_local": True,
+            "supports_global": True,
+            "data_modality": "tabular",
+        }
+        version = "1.0.0"
+        priority = 50  # Lower priority than TreeSHAP
 
-    def __init__(self, n_samples: int = 100, background_size: int = 100, link: str = "identity"):
-        """Initialize KernelSHAP explainer.
+        def __init__(self, n_samples: int = 100, background_size: int = 100, link: str = "identity", **kwargs):
+            """Initialize KernelSHAP explainer.
 
-        Args:
-            n_samples: Number of samples to use for SHAP value estimation
-            background_size: Size of background dataset for baseline
-            link: Link function for the explainer ('identity' or 'logit')
+            Args:
+                n_samples: Number of samples to use for SHAP value estimation
+                background_size: Size of background dataset for baseline
+                link: Link function for the explainer ('identity' or 'logit')
+                **kwargs: Additional parameters for explainer
 
-        """
-        self.n_samples = n_samples
-        self.background_size = background_size
-        self.link = link
-        self.explainer = None
-        self.background_data = None
-        self.base_value = None
-        logger.info(f"KernelSHAPExplainer initialized (n_samples={n_samples}, bg_size={background_size})")
+            """
+            self.n_samples = n_samples
+            self.background_size = background_size
+            self.link = link
+            self.explainer = None
+            self.background_data = None
+            self.base_value = None
+            self.background_ = None
+            self.feature_names_ = None
+            logger.info(f"KernelSHAPExplainer initialized (n_samples={n_samples}, bg_size={background_size})")
 
     def explain(self, model: ModelInterface, X: pd.DataFrame, y: np.ndarray | None = None) -> dict[str, Any]:
         """Generate SHAP explanations for the model.
@@ -121,9 +124,8 @@ if SHAP_AVAILABLE:
                         # For binary classification, return positive class probability
                         if proba.shape[1] == 2:
                             return proba[:, 1]
-                        else:
-                            # Multi-class: return all probabilities
-                            return proba
+                        # Multi-class: return all probabilities
+                        return proba
                     except Exception:
                         # Fall back to predict if predict_proba fails
                         return model.predict(data)
@@ -214,30 +216,63 @@ if SHAP_AVAILABLE:
             }
 
         except Exception as e:
-            logger.error(f"Error in KernelSHAP explanation: {str(e)}", exc_info=True)
+            logger.error(f"Error in KernelSHAP explanation: {e!s}", exc_info=True)
             return {"status": "error", "reason": str(e), "explainer_type": "kernelshap"}
 
-    def supports_model(self, model: ModelInterface) -> bool:
-        """Check if this explainer supports the given model.
+        def fit(self, background_X, feature_names=None):
+            """Fit the explainer with background data.
 
-        KernelSHAP is model-agnostic and supports any model with predict method.
+            Args:
+                background_X: Background data for SHAP
+                feature_names: Optional feature names
 
-        Args:
-            model: Model to check compatibility
+            """
+            self.background_ = background_X
+            self.feature_names_ = self._extract_feature_names(background_X, feature_names)
+            # Also set the existing background_data for compatibility
+            self.background_data = background_X
+            logger.debug(f"KernelSHAPExplainer fitted with {len(background_X)} background samples")
 
-        Returns:
-            True (KernelSHAP supports all models)
+        def explain_local(self, model, X, **kwargs):
+            """Generate local explanations (per-sample SHAP values)."""
+            result = self.explain(model, X)
+            if result["status"] == "success":
+                return result["shap_values"]
+            return None
 
-        """
-        # KernelSHAP supports any model that has predict method
-        supported = hasattr(model, "predict")
+        def _extract_feature_names(self, X, feature_names=None):
+            """Extract feature names from data."""
+            if feature_names is not None:
+                return list(feature_names)
+            if hasattr(X, "columns"):
+                return list(X.columns)
+            return [f"feature_{i}" for i in range(X.shape[1])]
 
-        if supported:
-            logger.debug(f"KernelSHAP supports model type: {model.get_model_type()}")
-        else:
-            logger.debug(f"KernelSHAP does not support model (no predict method): {model.get_model_type()}")
+        def _aggregate_to_global(self, shap_values):
+            """Aggregate local SHAP values to global feature importance."""
+            return np.mean(np.abs(shap_values), axis=0)
 
-        return supported
+        def supports_model(self, model: ModelInterface) -> bool:
+            """Check if this explainer supports the given model.
+
+            KernelSHAP is model-agnostic and supports any model with predict method.
+
+            Args:
+                model: Model to check compatibility
+
+            Returns:
+                True (KernelSHAP supports all models)
+
+            """
+            # KernelSHAP supports any model that has predict method
+            supported = hasattr(model, "predict")
+
+            if supported:
+                logger.debug(f"KernelSHAP supports model type: {model.get_model_type()}")
+            else:
+                logger.debug(f"KernelSHAP does not support model (no predict method): {model.get_model_type()}")
+
+            return supported
 
     def get_explanation_type(self) -> str:
         """Return the type of explanation provided.
