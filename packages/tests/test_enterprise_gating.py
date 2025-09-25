@@ -10,9 +10,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-# Mock pandas and numpy
-sys.modules["pandas"] = MagicMock()
-sys.modules["numpy"] = MagicMock()
+# Note: pandas/numpy mocking removed to avoid matplotlib import issues
 
 from glassalpha.core import (
     ExplainerRegistry,

@@ -7,12 +7,7 @@ deterministic, which is critical for regulatory compliance.
 import hashlib
 import json
 
-# Mock pandas and numpy for testing
-import sys
-from unittest.mock import MagicMock
-
-sys.modules["pandas"] = MagicMock()
-sys.modules["numpy"] = MagicMock()
+# Note: pandas/numpy mocking removed to avoid matplotlib import issues
 
 from glassalpha.core import (
     ExplainerRegistry,
