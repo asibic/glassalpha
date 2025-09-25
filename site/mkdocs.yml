@@ -120,9 +120,9 @@ extra:
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/GlassAlpha/glassalpha
-#  analytics:
-#    provider: google
-#    property: !ENV GOOGLE_ANALYTICS_KEY
+  analytics:
+    provider: google
+    property: G-JGKRDR0GX8
 
 extra_javascript:
   - https://polyfill.io/v3/polyfill.min.js?features=es6
