@@ -37,6 +37,7 @@ GlassAlpha follows an **audit-first** approach, prioritizing regulatory complian
 ### Focus on Tabular Data
 
 GlassAlpha is intentionally designed for tabular/structured data because:
+
 - Most regulated ML applications use tabular models
 - TreeSHAP provides exact explanations for tree-based models
 - Tabular fairness metrics have regulatory precedent
@@ -45,6 +46,7 @@ GlassAlpha is intentionally designed for tabular/structured data because:
 ### Determinism Over Performance
 
 We prioritize reproducibility over speed:
+
 - Every operation is seedable and deterministic
 - Byte-identical outputs ensure audit integrity
 - All randomness is explicitly controlled
@@ -53,6 +55,7 @@ We prioritize reproducibility over speed:
 ### Local-First Architecture
 
 GlassAlpha is designed for secure, on-premise deployment:
+
 - No external API calls or cloud dependencies
 - All processing happens locally
 - File-based storage ensures data sovereignty

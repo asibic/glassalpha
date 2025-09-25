@@ -168,7 +168,7 @@ glassalpha audit --config configs/german_credit_simple.yaml --output test_audit.
 
 ## Contributing
 
-See [CONTRIBUTING.md](../contributing.md) for development guidelines.
+See [CONTRIBUTING.md](../site/docs/contributing.md) for development guidelines.
 
 ## License
 

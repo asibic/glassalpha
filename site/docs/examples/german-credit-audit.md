@@ -17,6 +17,7 @@ The German Credit dataset is a classic benchmark for credit risk assessment, con
 ### Use Case Context
 
 Credit scoring models must comply with fair lending laws including:
+
 - **Equal Credit Opportunity Act (ECOA)** - Prohibits discrimination based on protected characteristics
 - **Fair Credit Reporting Act (FCRA)** - Requires accuracy and fairness in credit reporting
 - **GDPR Article 22** - Right to explanation for automated decision-making
@@ -32,6 +33,7 @@ Credit scoring models must comply with fair lending laws including:
 ### Dataset Characteristics
 
 The German Credit dataset contains:
+
 - **1,000 loan applications**
 - **21 features** (financial, demographic, and historical)
 - **Binary target**: Good credit risk (70%) vs Bad credit risk (30%)
@@ -40,6 +42,7 @@ The German Credit dataset contains:
 ### Key Features
 
 **Financial Attributes:**
+
 - `credit_amount` - Loan amount requested
 - `duration_months` - Loan duration
 - `checking_account_status` - Current account balance
@@ -47,11 +50,13 @@ The German Credit dataset contains:
 - `employment_duration` - Length of current employment
 
 **Demographic Attributes (Protected):**
+
 - `gender` - Extracted from personal status (Male/Female)
 - `age_group` - Categorized age ranges (Young/Middle/Senior)
 - `foreign_worker` - Nationality/residency status
 
 **Risk Factors:**
+
 - `credit_history` - Past credit performance
 - `purpose` - Loan purpose (car, furniture, etc.)
 - `existing_credits_count` - Number of existing credits
@@ -194,12 +199,14 @@ The audit report is ready for review and regulatory submission.
 ### Model Performance Analysis
 
 **Overall Performance:**
+
 - **Accuracy: 75.2%** - Model correctly classifies 3 out of 4 loan applications
 - **AUC-ROC: 0.821** - Strong discriminative ability
 - **Precision: 82.1%** - Of approved loans, 82% are actually good risks
 - **Recall: 71.4%** - Model identifies 71% of all good credit risks
 
 **Business Interpretation:**
+
 - Model performance is reasonable for credit risk assessment
 - Conservative approach with higher precision than recall (safer lending)
 - False positive rate (approving bad risks) is 18% - acceptable for many lenders
@@ -236,6 +243,7 @@ The audit report is ready for review and regulatory submission.
 **Individual Prediction Example:**
 
 For a 35-year-old male requesting €2,000 for a car:
+
 - **Base probability:** 0.70 (population average)
 - **Checking account (positive):** +0.15
 - **Good credit history:** +0.12
@@ -248,6 +256,7 @@ For a 35-year-old male requesting €2,000 for a car:
 **Demographic Parity Analysis:**
 
 **Gender Bias (DETECTED):**
+
 - **Male approval rate:** 72.3%
 - **Female approval rate:** 66.1%
 - **Difference:** 6.2% (exceeds 5% threshold)
@@ -255,6 +264,7 @@ For a 35-year-old male requesting €2,000 for a car:
 - **Conclusion:** Potential gender discrimination
 
 **Age Group Analysis:**
+
 - **Young (18-30):** 68.4% approval rate
 - **Middle (31-50):** 74.2% approval rate
 - **Senior (51+):** 78.9% approval rate
@@ -262,6 +272,7 @@ For a 35-year-old male requesting €2,000 for a car:
 - **Conclusion:** Age-based disparities detected
 
 **Foreign Worker Status:**
+
 - **German workers:** 73.1% approval rate
 - **Foreign workers:** 71.8% approval rate
 - **Difference:** 1.3% (within acceptable range)
@@ -270,6 +281,7 @@ For a 35-year-old male requesting €2,000 for a car:
 ### Equal Opportunity Analysis
 
 **True Positive Rate Parity:**
+
 - Measures whether qualified applicants are approved equally across groups
 - **Gender:** Males 89.2% vs Females 84.7% (4.5% difference - borderline)
 - **Age:** Varies from 82.1% to 91.3% across age groups
@@ -346,11 +358,13 @@ For a 35-year-old male requesting €2,000 for a car:
 ### Financial Impact
 
 **Current Model:**
+
 - **Approval rate:** 70% overall
 - **Expected default rate:** ~25% (based on precision)
 - **Revenue impact:** Moderate (typical for conservative lending)
 
 **With Bias Correction:**
+
 - **May increase approvals for underrepresented groups**
 - **Could slightly increase default risk if not carefully implemented**
 - **Compliance benefits outweigh small performance trade-offs**
@@ -358,11 +372,13 @@ For a 35-year-old male requesting €2,000 for a car:
 ### Legal Risk Mitigation
 
 **Before Correction:**
+
 - High risk of ECOA violations
 - Potential for class-action lawsuits
 - Regulatory enforcement actions
 
 **After Correction:**
+
 - Compliance with fair lending laws
 - Reduced legal exposure
 - Improved reputation and stakeholder trust
@@ -409,11 +425,13 @@ For a 35-year-old male requesting €2,000 for a car:
 This German Credit audit revealed a technically sound but biased model that requires immediate attention before production deployment. The audit demonstrated:
 
 **Strengths:**
+
 - Strong predictive performance (75% accuracy, 0.82 AUC)
 - Interpretable feature importance aligned with domain knowledge
 - Comprehensive bias detection and measurement
 
 **Critical Issues:**
+
 - Gender bias exceeding regulatory thresholds
 - Age-based disparities requiring investigation
 - Non-compliance with fair lending regulations

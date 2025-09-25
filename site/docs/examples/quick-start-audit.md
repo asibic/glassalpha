@@ -5,6 +5,7 @@ This example shows the fastest way to generate an ML audit report with GlassAlph
 ## Overview
 
 Perfect for:
+
 - **First-time users** learning GlassAlpha basics
 - **Quick demonstrations** of audit capabilities
 - **Testing installations** and verifying functionality
@@ -38,6 +39,7 @@ glassalpha audit \
 ```
 
 **What happens:**
+
 - **Data loading**: Automatically downloads German Credit dataset
 - **Model training**: Trains XGBoost classifier with default parameters
 - **Explanation generation**: Creates SHAP explanations for model decisions
@@ -111,6 +113,7 @@ metrics:
 ```
 
 **Key concepts:**
+
 - **audit_profile**: Determines which components are used
 - **random_seed**: Ensures reproducible results
 - **protected_attributes**: Enable fairness analysis
@@ -119,6 +122,7 @@ metrics:
 ## What You've Accomplished
 
 In 5 minutes, you've:
+
 - ✅ **Generated a professional audit report** suitable for compliance review
 - ✅ **Performed bias detection** across demographic groups
 - ✅ **Created model explanations** with SHAP

@@ -5,6 +5,7 @@ This example demonstrates how different GlassAlpha configurations affect audit o
 ## Overview
 
 Understanding configuration impact is crucial for:
+
 - **Compliance requirements** - Different regulations need different approaches
 - **Performance optimization** - Balancing speed vs comprehensiveness
 - **Audit quality** - Selecting appropriate metrics and explanations

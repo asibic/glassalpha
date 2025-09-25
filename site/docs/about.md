@@ -35,4 +35,4 @@ GlassAlpha is built on a plugin architecture designed for extensibility and regu
 
 ## Getting Started
 
-Ready to try GlassAlpha? Start with the [Quick Start Guide](getting-started/quickstart.md) to generate your first audit in under 10 minutes.
+Ready to try GlassAlpha? Start with the [Quick Start Guide](getting-started/quickstart.md) or try the [5-minute tutorial](examples/quick-start-audit.md) to generate your first audit.

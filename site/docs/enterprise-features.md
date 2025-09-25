@@ -136,7 +136,7 @@ glassalpha audit --config audit.yaml --output report.pdf --strict
 
 ## Contact
 
-- **OSS Support**: [GitHub Issues](https://github.com/glassalpha/glassalpha/issues)
+- **OSS Support**: [GitHub Issues](https://github.com/GlassAlpha/glassalpha/issues)
 - **Enterprise Sales**: sales@glassalpha.ai
 - **Enterprise Support**: support@glassalpha.ai (customers only)
 

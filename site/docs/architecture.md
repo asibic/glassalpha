@@ -6,6 +6,7 @@ GlassAlpha is designed as an **extensible framework** for ML model auditing, bui
 
 ### Audit-First Approach
 GlassAlpha prioritizes **regulatory compliance** and **audit quality** over cutting-edge features:
+
 - **Deterministic behavior** - Same input always produces identical output
 - **Complete audit trails** - Every decision is tracked and reproducible
 - **Professional quality** - Reports suitable for regulatory submission
@@ -13,6 +14,7 @@ GlassAlpha prioritizes **regulatory compliance** and **audit quality** over cutt
 
 ### Plugin Architecture
 All major components use **dynamic registration** and **interface-based design**:
+
 - **Models**, **explainers**, and **metrics** are plugins that register themselves
 - **Configuration drives selection** - specify preferences, system picks best match
 - **Easy extensibility** - add new implementations without changing core code

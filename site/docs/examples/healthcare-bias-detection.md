@@ -7,12 +7,14 @@ This example demonstrates using GlassAlpha to detect bias in healthcare AI syste
 **Scenario**: Hospital system uses ML to predict patient readmission risk
 
 **Regulatory Context**:
+
 - **HIPAA** compliance for patient data protection
 - **FDA** guidance for AI/ML in medical devices
 - **CMS** requirements for healthcare AI transparency
 - **Joint Commission** standards for patient safety
 
 **Bias Concerns**:
+
 - Racial disparities in healthcare access and outcomes
 - Gender bias in medical diagnosis and treatment
 - Age-related discrimination in care decisions
@@ -214,6 +216,7 @@ glassalpha audit \
 ### 1. Clinical Performance Assessment
 
 **Key Metrics:**
+
 - **Sensitivity (Recall)**: 85% - Correctly identifies patients at risk
 - **Specificity**: 78% - Correctly identifies low-risk patients
 - **Positive Predictive Value**: 42% - Of predicted high-risk, 42% actually readmitted
@@ -221,6 +224,7 @@ glassalpha audit \
 - **AUC-ROC**: 0.82 - Good discriminative ability
 
 **Clinical Interpretation:**
+
 - High sensitivity ensures most at-risk patients are identified
 - High NPV means low-risk predictions are highly reliable
 - PPV indicates some false positives (additional interventions to low-risk patients)

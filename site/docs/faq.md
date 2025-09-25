@@ -17,6 +17,7 @@ GlassAlpha is an open-source AI compliance toolkit that generates comprehensive 
 ### Who should use GlassAlpha?
 
 GlassAlpha is designed for:
+
 - **Data scientists** who need to audit ML models for bias and fairness
 - **Compliance teams** ensuring regulatory adherence for algorithmic decisions
 - **Risk management** professionals assessing model risks
@@ -26,6 +27,7 @@ GlassAlpha is designed for:
 ### How does GlassAlpha ensure audit quality?
 
 GlassAlpha maintains audit quality through:
+
 - **Deterministic execution** with fixed random seeds for reproducible results
 - **Complete audit trails** tracking all decisions and configurations
 - **Statistical rigor** with confidence intervals and significance testing
@@ -52,6 +54,7 @@ For detailed information about system design and quality assurance, see the [Arc
 ### Which operating systems are supported?
 
 GlassAlpha is tested and supported on:
+
 - **macOS** 10.15+ (Intel and Apple Silicon)
 - **Linux** (Ubuntu 20.04+, CentOS 8+, and most modern distributions)
 - **Windows** 10/11 (via WSL2 recommended)
@@ -119,6 +122,7 @@ glassalpha audit --config your_config.yaml --output audit.pdf
 ### What file formats are supported for data?
 
 GlassAlpha supports:
+
 - **CSV** (most common)
 - **Parquet** (recommended for large datasets)
 - **Feather** (fast binary format)
@@ -150,6 +154,7 @@ model:
 ```
 
 GlassAlpha supports models saved with:
+
 - **Pickle** (most scikit-learn models)
 - **Joblib** (scikit-learn and XGBoost)
 - **Native formats** (XGBoost `.model`, LightGBM `.txt`)
@@ -194,6 +199,7 @@ See the [API Reference](reference/api.md) for complete examples.
 ### Can I use deep learning models?
 
 Deep learning models can be supported through the generic model interface, but:
+
 - **TreeSHAP won't work** (only for tree models)
 - **Use KernelSHAP** for model-agnostic explanations
 - **Performance may be slower** for explanation generation

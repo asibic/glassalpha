@@ -1,6 +1,6 @@
 # GlassAlpha
 
-!!! info "Production Ready"
+!!! info "What is GlassAlpha?"
     GlassAlpha delivers **deterministic, regulator-ready PDF audit reports** for tabular ML models. An open-source toolkit for teams who need reproducible, audit-ready model documentation.
 
 ## The Goal: One Command Audit Generation

@@ -39,6 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 **Production Release - Core ML Auditing Capabilities**
 
 This release provides complete functionality for professional ML model auditing with:
+
 - Working CLI that generates PDF reports in under 60 seconds
 - 5 model wrappers, 3 explainer implementations, 17 metrics
 - Complete German Credit audit example with regulatory analysis
@@ -68,6 +69,7 @@ See [Installation Guide](getting-started/installation.md) for complete setup ins
 ## Future Enhancement Areas
 
 Future releases may include enhancements based on community needs:
+
 - Additional model type support
 - Extended compliance framework coverage
 - Enhanced integration capabilities
