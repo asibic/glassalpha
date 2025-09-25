@@ -714,9 +714,16 @@ class AuditPipeline:
 
     def _ensure_components_loaded(self) -> None:
         """Ensure all required components are imported and registered."""
-        # Import model modules to trigger registration
+        try:
+            # Import model modules to trigger registration
+            from ..explain.shap import kernel, tree  # noqa: F401
+            from ..metrics.fairness import bias_detection  # noqa: F401
+            from ..metrics.performance import classification  # noqa: F401
+            from ..models.tabular import lightgbm, sklearn, xgboost  # noqa: F401
 
-        logger.debug("All component modules imported and registered")
+            logger.debug("All component modules imported and registered")
+        except ImportError as e:
+            logger.warning(f"Some components could not be imported: {e}")
 
 
 def run_audit_pipeline(config: AuditConfig, progress_callback: callable = None) -> AuditResults:

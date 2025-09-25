@@ -333,14 +333,26 @@ def ensure_reproducibility(func: Callable[..., Any]) -> Callable[..., Any]:
     return wrapper
 
 
-def get_seeds_manifest() -> dict[str, Any]:
+def get_seeds_manifest(master_seed: int | None = None, component_seeds: dict[str, int] | None = None) -> dict[str, Any]:
     """Get complete seed manifest for audit trail.
+
+    Args:
+        master_seed: Master seed value (uses global manager if None)
+        component_seeds: Component-specific seeds (uses global manager if None)
 
     Returns:
         Dictionary with all seed information
 
     """
-    return _global_seed_manager.get_seeds_manifest()
+    if master_seed is not None or component_seeds is not None:
+        # Create temporary manager with provided parameters
+        temp_manager = SeedManager(master_seed or 42)
+        if component_seeds:
+            temp_manager.component_seeds.update(component_seeds)
+        return temp_manager.get_seeds_manifest()
+    else:
+        # Use global manager
+        return _global_seed_manager.get_seeds_manifest()
 
 
 def validate_deterministic_environment() -> dict[str, bool]:

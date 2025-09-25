@@ -170,6 +170,19 @@ if SHAP_AVAILABLE:
             # Return raw SHAP values for direct test compatibility
             return shap_values
 
+        def explain_local(self, X, **kwargs):
+            """Generate local SHAP explanations (alias for explain).
+
+            Args:
+                X: Input data to explain
+                **kwargs: Additional parameters
+
+            Returns:
+                Local SHAP values
+
+            """
+            return self.explain(X, **kwargs)
+
         def __repr__(self) -> str:
             """String representation of the explainer."""
             return f"TreeSHAPExplainer(priority={self.priority}, version={self.version})"

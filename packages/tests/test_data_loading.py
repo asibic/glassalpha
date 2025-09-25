@@ -554,8 +554,9 @@ class TestTabularDataLoaderIntegration:
         # Results should be identical
         pd.testing.assert_frame_equal(data1, data2)
         assert hash1 == hash2
-        # Compute hashes for different data
-        hash1 = loader.hash_data(sample_csv_data)
-        modified_data = sample_csv_data.copy()
+        
+        # Compute hashes for different data (use data1 that we already loaded)
+        hash1_again = loader.hash_data(data1)
+        modified_data = data1.copy()
         modified_data.iloc[0, 0] = 999  # Change first value
-        hash2 = loader.hash_data(modified_data)
+        hash2_modified = loader.hash_data(modified_data)
