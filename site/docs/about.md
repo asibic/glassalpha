@@ -28,3 +28,11 @@ GlassAlpha provides **deterministic, regulator-ready audit reports** with comple
 ### Why Open Source
 
 Compliance tools require trust. Open source code means regulators, auditors, and your team can verify exactly how conclusions were reached. No proprietary black boxes auditing your black boxes.
+
+## Technical Foundation
+
+GlassAlpha is built on a plugin architecture designed for extensibility and regulatory compliance. For detailed technical information, see the [Architecture Guide](architecture.md).
+
+## Getting Started
+
+Ready to try GlassAlpha? Start with the [Quick Start Guide](getting-started/quickstart.md) to generate your first audit in under 10 minutes.

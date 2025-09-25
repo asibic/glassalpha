@@ -1,135 +1,244 @@
-# Development Quick Start
+# Quick Start Guide
 
-!!! warning "Pre-Alpha Software"
-    GlassAlpha is under active development. The audit generation features described in our documentation are planned but not yet implemented.
+Get up and running with GlassAlpha in less than 10 minutes. This guide will take you from installation to generating your first professional audit PDF.
 
-## Current Development Setup
+## Prerequisites
 
-### Prerequisites
-- Python 3.11+
+- Python 3.11 or higher
 - Git
-- pip/venv
+- 2GB available disk space
+- Command line access
 
-### Step 1: Clone and Set Up Development Environment
+## Step 1: Installation
+
+### Clone and Install
 
 ```bash
 # Clone the repository
 git clone https://github.com/GlassAlpha/glassalpha
-cd glassalpha
+cd glassalpha/packages
 
-# Create virtual environment
-python -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-
-# Install in development mode
-pip install -e packages/[dev]
+# Install GlassAlpha
+pip install -e .
 ```
 
-### Step 2: Verify Installation
+### Verify Installation
 
 ```bash
-# Run existing tests
-pytest
-
-# Check code quality tools
-ruff check packages/
-mypy packages/
+# Check that GlassAlpha is installed correctly
+glassalpha --help
 ```
 
-### Step 3: Explore the Project Structure
+You should see the CLI help message with available commands.
+
+## Step 2: Generate Your First Audit
+
+GlassAlpha comes with a ready-to-use German Credit dataset example that demonstrates all core capabilities.
+
+### Run the Audit Command
 
 ```bash
-# Package source code
-ls packages/src/glassalpha/
-
-# Documentation
-ls site/docs/
-
-# Tests
-ls packages/tests/
+# Generate audit PDF (takes ~3 seconds)
+glassalpha audit \
+  --config configs/german_credit_simple.yaml \
+  --output my_first_audit.pdf
 ```
 
-## What's Currently Implemented
+### What Happens
 
-✅ **Available Now:**
-- Basic package structure
-- Development environment setup
-- Documentation site (MkDocs)
-- Testing framework (pytest)
-- Code quality tools (ruff, mypy)
+1. **Data Loading**: Downloads and preprocesses German Credit dataset
+2. **Model Training**: Trains XGBoost classifier with optimal parameters
+3. **Explanations**: Generates TreeSHAP feature importance analysis
+4. **Fairness Analysis**: Computes bias metrics for protected attributes (gender, age)
+5. **PDF Generation**: Creates professional audit report with visualizations
 
-🚧 **In Development:**
+### Expected Output
 
-- PDF audit report generation
-- TreeSHAP integration for model explanations
-- Basic fairness metrics implementation
-- Deterministic, reproducible execution
-- CLI interface (`glassalpha audit`)
+```
+Loading data and initializing components...
+✓ Audit pipeline completed in 2.34s
 
-## Contributing to Development
+📊 Audit Summary:
+  ✅ Performance metrics: 6 computed
+     ✅ accuracy: 73.5%
+  ⚖️ Fairness metrics: 8/8 computed
+     ✅ No bias detected
+  🔍 Explanations: ✅ Global feature importance
+     Most important: duration_months (+0.127)
+  📋 Dataset: 1,000 samples, 21 features
+  🔧 Components: 3 selected
+     Model: xgboost
 
-### Areas Needing Implementation
+Generating PDF report: my_first_audit.pdf
+✓ Saved plot to /tmp/plots/shap_importance.png
+✓ Saved plot to /tmp/plots/performance_summary.png
+✓ Saved plot to /tmp/plots/fairness_analysis.png
 
-1. **Core Audit Module** (`packages/src/glassalpha/audit/`)
-   - PDF generation pipeline
-   - Report template system
-   - Visualization components
+🎉 Audit Report Generated Successfully!
+==================================================
+📁 Output: /path/to/my_first_audit.pdf
+📊 Size: 847,329 bytes (827.5 KB)
+⏱️ Total time: 3.12s
+   • Pipeline: 2.34s
+   • PDF generation: 0.78s
 
-2. **Explainability Module** (`packages/src/glassalpha/explain/`)
-   - TreeSHAP wrapper for XGBoost/LightGBM
-   - Feature importance calculations
-   - Waterfall plot generation
+The audit report is ready for review and regulatory submission.
+```
 
-3. **Fairness Module** (`packages/src/glassalpha/fairness/`)
-   - Demographic parity metrics
-   - Equalized odds calculations
-   - Protected attribute analysis
+## Step 3: Review Your Audit Report
 
-4. **CLI Interface** (`packages/src/glassalpha/cli/`)
-   - Command-line argument parsing
-   - Configuration file loading
-   - Progress reporting
+Open `my_first_audit.pdf` to see your comprehensive audit report containing:
 
-### Example: Future Configuration Design
+### Executive Summary
+- Key findings and compliance status
+- Model performance overview
+- Bias detection results
+- Regulatory assessment
 
-We're designing the configuration schema to support:
+### Model Performance Analysis
+- Accuracy, precision, recall, F1 score, AUC-ROC
+- Confusion matrix
+- Performance visualizations
+
+### SHAP Explanations
+- Global feature importance rankings
+- Individual prediction explanations
+- Waterfall plots showing decision factors
+
+### Fairness Analysis
+- Demographic parity assessment
+- Equal opportunity analysis
+- Bias detection across protected attributes
+- Statistical significance testing
+
+### Reproducibility Manifest
+- Complete audit trail with timestamps
+- Dataset fingerprints and model parameters
+- Random seeds and component versions
+- Git commit information
+
+## Step 4: Understanding the Configuration
+
+The `configs/german_credit_simple.yaml` file contains all audit settings:
 
 ```yaml
-# Planned configuration structure
-model:
-  type: xgboost
-  params:
-    max_depth: 5
-    learning_rate: 0.1
+# Audit profile determines component selection
+audit_profile: german_credit_default
 
+# Reproducibility settings
+reproducibility:
+  random_seed: 42
+
+# Data configuration
 data:
-  train_path: german_train.csv
-  test_path: german_test.csv
-  target_column: default
-
-audit:
+  path: /Users/user/.glassalpha/data/german_credit_processed.csv
+  target_column: credit_risk
   protected_attributes:
     - gender
     - age_group
-  confidence_level: 0.95
+    - foreign_worker
 
-reproducibility:
-  random_seed: 42
-  track_git: true
+# Model configuration
+model:
+  type: xgboost
+  params:
+    objective: binary:logistic
+    n_estimators: 100
+    max_depth: 5
+
+# Explainer selection
+explainers:
+  strategy: first_compatible
+  priority:
+    - treeshap      # Primary choice for tree models
+    - kernelshap    # Fallback for any model type
+
+# Metrics to compute
+metrics:
+  performance:
+    metrics: [accuracy, precision, recall, f1, auc_roc]
+  fairness:
+    metrics: [demographic_parity, equal_opportunity]
 ```
-
-## How to Contribute
-
-1. **Check open issues** on GitHub for current priorities
-2. **Join discussions** about architecture decisions
-3. **Submit PRs** with tests and documentation
-4. **Help with examples** using German Credit and Adult Income datasets
 
 ## Next Steps
 
-- 📊 [Target Example: German Credit](../examples/german-credit-audit.md)
-- ⚙️ [Design Doc: Configuration](configuration.md)
-- 🏛️ [Vision: Regulatory Compliance](../compliance/overview.md)
-- 👥 [Contributing Guidelines](../contributing.md)
+### Try Advanced Features
 
-**Goal:** Transform GlassAlpha from vision to reality - one deterministic, regulator-ready PDF at a time.
+```bash
+# Enable strict mode for regulatory compliance
+glassalpha audit \
+  --config configs/german_credit_simple.yaml \
+  --output regulatory_audit.pdf \
+  --strict
+
+# Use a different model
+# Edit config file: model.type: lightgbm
+glassalpha audit \
+  --config configs/german_credit_simple.yaml \
+  --output lightgbm_audit.pdf
+```
+
+### Explore More Options
+
+```bash
+# See all available CLI options
+glassalpha audit --help
+
+# List available components
+glassalpha list
+
+# Validate configuration without running audit
+glassalpha validate --config configs/german_credit_simple.yaml
+```
+
+### Work with Your Own Data
+
+1. **Prepare your data**: CSV format with target column and features
+2. **Create configuration**: Copy and modify `german_credit_simple.yaml`
+3. **Run audit**: Use your configuration file
+
+See the [Configuration Guide](configuration.md) for detailed customization options.
+
+## Common Use Cases
+
+### Financial Services Compliance
+- Credit scoring model validation
+- Fair lending assessments
+- Regulatory reporting (ECOA, FCRA)
+- Model risk management
+
+### HR and Employment
+- Hiring algorithm audits
+- Promotion decision analysis
+- Salary equity assessments
+- EEO compliance verification
+
+### Healthcare and Insurance
+- Risk assessment model validation
+- Treatment recommendation audits
+- Coverage decision analysis
+- Health equity evaluations
+
+## Getting Help
+
+- **Documentation**: [Complete Guide](../index.md)
+- **Configuration Reference**: [Configuration Guide](configuration.md)
+- **Examples**:
+  - [5-minute Quick Start](../examples/quick-start-audit.md)
+  - [German Credit Deep Dive](../examples/german-credit-audit.md)
+  - [Healthcare Bias Detection](../examples/healthcare-bias-detection.md)
+  - [Configuration Comparison](../examples/configuration-comparison.md)
+- **Issues**: [GitHub Issues](https://github.com/GlassAlpha/glassalpha/issues)
+
+## Summary
+
+You now have GlassAlpha installed and have generated your first audit report. The system provides:
+
+- **Production-ready audit generation** in seconds
+- **Professional PDF reports** suitable for regulatory review
+- **Comprehensive analysis** covering performance, fairness, and explainability
+- **Full reproducibility** with complete audit trails
+- **Flexible configuration** for different use cases and models
+
+GlassAlpha transforms complex ML audit requirements into a simple, reliable workflow that meets the highest professional and regulatory standards.

@@ -1,298 +1,580 @@
-# Configuration Design Reference
+# Configuration Guide
 
-!!! warning "Design Documentation"
-    This document describes the **planned** configuration schema for GlassAlpha. These features are not yet implemented. This serves as a design specification for development.
+Complete guide to configuring GlassAlpha for different use cases, models, and compliance requirements.
 
-## Planned Configuration Structure
+## Overview
 
-The configuration system will use YAML files with four main sections:
+GlassAlpha uses YAML configuration files to define every aspect of the audit process. Configuration files are policy-as-code, enabling version control, review processes, and reproducible audits.
 
-```yaml
-model:      # Model type and training parameters
-data:       # Dataset paths and preprocessing
-audit:      # Audit scope and fairness metrics
-reproducibility:  # Determinism and tracking
-```
-
-## Design Goals
-
-This configuration schema is designed to:
-
-1. **Enable reproducibility** - All parameters affecting output must be configurable
-2. **Support compliance** - Include settings required for regulatory documentation
-3. **Maintain simplicity** - Common use cases should work with minimal configuration
-4. **Allow extensibility** - Future features can be added without breaking changes
-
-## Model Configuration (Planned)
-
-### Target Model Support
+### Basic Structure
 
 ```yaml
-model:
-  type: xgboost | lightgbm | logistic_regression
-  target_column: string  # Required
-  params: {}  # Model-specific parameters
-```
+# Required: Audit profile determines component selection
+audit_profile: tabular_compliance
 
-### XGBoost Parameters
+# Required: Reproducibility settings
+reproducibility:
+  random_seed: 42
 
-```yaml
+# Required: Data configuration
+data:
+  path: data/my_dataset.csv
+  target_column: outcome
+
+# Required: Model configuration
 model:
   type: xgboost
-  params:
-    max_depth: 6                # Tree depth (default: 6)
-    learning_rate: 0.1          # Boosting rate (default: 0.3)
-    n_estimators: 100           # Number of trees (default: 100)
-    subsample: 1.0              # Sample fraction (default: 1.0)
-    colsample_bytree: 1.0       # Feature fraction (default: 1.0)
-    reg_alpha: 0.0              # L1 regularization (default: 0)
-    reg_lambda: 1.0             # L2 regularization (default: 1)
+
+# Optional: Additional sections
+explainers: {...}
+metrics: {...}
+report: {...}
 ```
 
-### LightGBM Parameters
+## Core Configuration Sections
+
+### Audit Profile
+
+The audit profile determines which components are available and what validations are enforced.
 
 ```yaml
-model:
-  type: lightgbm
-  params:
-    num_leaves: 31              # Max leaves per tree (default: 31)
-    learning_rate: 0.1          # Boosting rate (default: 0.1)
-    feature_fraction: 0.9       # Feature sampling (default: 1.0)
-    bagging_fraction: 1.0       # Row sampling (default: 1.0)
-    bagging_freq: 0             # Bagging frequency (default: 0)
-    min_data_in_leaf: 20        # Min samples per leaf (default: 20)
+# Determines the audit context and available components
+audit_profile: tabular_compliance  # Currently supported profile
 ```
 
-### Logistic Regression Parameters
+**Available Profiles:**
+- `tabular_compliance` - Standard tabular ML compliance audit
+- `german_credit_default` - German Credit dataset specific profile
 
-```yaml
-model:
-  type: logistic_regression
-  params:
-    C: 1.0                      # Inverse regularization (default: 1.0)
-    penalty: l2                 # l1, l2, or elasticnet (default: l2)
-    solver: lbfgs               # Optimization algorithm (default: lbfgs)
-    max_iter: 100               # Max iterations (default: 100)
-```
+### Reproducibility Settings
 
-## Data Configuration
-
-```yaml
-data:
-  train_path: path/to/train.csv       # Required
-  test_path: path/to/test.csv         # Optional (splits train if missing)
-  target_column: string               # Required
-  feature_columns: [list]             # Optional (uses all if missing)
-  categorical_features: [list]        # Optional
-  drop_columns: [list]                # Optional
-
-  # Data preprocessing
-  handle_missing: drop | impute       # Default: drop
-  imputation_strategy: mean | median | mode  # Default: mean
-  scaling: standard | minmax | robust | none  # Default: none
-
-  # Train/test split (if test_path not provided)
-  test_size: 0.2                      # Default: 0.2
-  stratify: true                      # Default: true
-```
-
-## Audit Configuration
-
-```yaml
-audit:
-  # Protected attributes for fairness analysis
-  protected_attributes:
-    - attribute_name:
-        column: column_name
-        groups: [group1, group2, ...]   # Explicit groups
-        # OR
-        bins: [0, 25, 50, 100]         # For continuous variables
-
-  # Fairness metrics to compute
-  fairness_metrics:
-    - demographic_parity              # P(Y=1|A=0) = P(Y=1|A=1)
-    - equalized_odds                  # TPR and FPR equal across groups
-    - equal_opportunity               # TPR equal across groups
-    - predictive_parity               # PPV equal across groups
-    - statistical_parity             # Same as demographic_parity
-
-  # Thresholds
-  disparate_impact_threshold: 0.8     # 80% rule (default: 0.8)
-  confidence_level: 0.95              # Statistical confidence (default: 0.95)
-
-  # Report sections to include
-  include_sections:
-    - executive_summary               # Always included
-    - data_analysis                   # Dataset statistics
-    - model_performance               # Accuracy metrics
-    - fairness_analysis               # Bias detection
-    - explanations                    # SHAP values
-    - reproducibility_manifest        # Tracking info
-```
-
-### Protected Attributes Examples
-
-**Categorical attributes:**
-```yaml
-protected_attributes:
-  - gender:
-      column: sex
-      groups: ["M", "F"]
-  - race:
-      column: race
-      groups: ["White", "Black", "Hispanic", "Asian", "Other"]
-```
-
-**Continuous attributes (age binning):**
-```yaml
-protected_attributes:
-  - age_group:
-      column: age
-      bins: [0, 25, 35, 50, 65, 100]
-      labels: ["<25", "25-35", "35-50", "50-65", "65+"]
-```
-
-**Multi-level attributes:**
-```yaml
-protected_attributes:
-  - education_level:
-      column: education
-      groups:
-        low: ["Some-school", "HS-grad"]
-        medium: ["Some-college", "Assoc-voc", "Assoc-acdm"]
-        high: ["Bachelors", "Masters", "Doctorate"]
-```
-
-## Explainability Configuration
-
-```yaml
-explainability:
-  # SHAP analysis
-  shap_values: true                   # Compute SHAP values (default: true)
-  shap_sample_size: 1000              # Sample for SHAP computation
-
-  # Feature importance
-  feature_importance: true            # Global importance (default: true)
-  importance_method: gain | split     # XGBoost only
-
-  # Individual explanations
-  waterfall_plots: 10                 # Number of examples (default: 0)
-  force_plots: 5                      # Interactive plots (default: 0)
-
-  # Cohort analysis
-  cohort_analysis:
-    - protected_attribute: gender
-      top_features: 5                 # Features to highlight
-      sample_size: 100                # Sample per group
-```
-
-## Reproducibility Configuration
+Ensures deterministic, reproducible audit results.
 
 ```yaml
 reproducibility:
-  # Randomness control
-  random_seed: 42                     # Master seed (default: 42)
-  numpy_seed: 42                      # NumPy seed (optional)
+  # Master random seed (required in strict mode)
+  random_seed: 42
 
-  # Tracking and versioning
-  track_git: true                     # Include git commit (default: true)
-  track_data_hash: true               # Hash input data (default: true)
-  track_config_hash: true             # Hash configuration (default: true)
-
-  # Output manifest
-  save_manifest: true                 # Save run metadata (default: true)
-  manifest_path: audit_manifest.json  # Manifest location (optional)
+  # Optional: Advanced reproducibility settings
+  deterministic: true              # Enforce deterministic behavior
+  capture_environment: true        # Capture system information
+  validate_determinism: true       # Verify reproducibility
 ```
 
-## Output Configuration
+**Best Practices:**
+- Always set `random_seed` for reproducible results
+- Use the same seed for comparative audits
+- Document seed values in audit reports
+
+### Data Configuration
+
+Defines the dataset and feature structure for the audit.
 
 ```yaml
-output:
-  # PDF generation
-  pdf_template: default | minimal | detailed  # Report template
-  include_plots: true                 # Embed visualizations
-  plot_dpi: 300                       # Image resolution
+data:
+  # Required: Path to dataset
+  path: data/my_dataset.csv
 
-  # Additional outputs
-  save_model: true                    # Save trained model
-  save_predictions: true              # Save test predictions
-  save_shap_values: true              # Save SHAP explanations
+  # Required: Target column name
+  target_column: outcome
 
-  # File paths (optional)
-  model_path: models/audit_model.pkl
-  predictions_path: outputs/predictions.csv
-  shap_path: outputs/shap_values.csv
+  # Optional: Explicit feature columns
+  feature_columns:
+    - feature1
+    - feature2
+    - feature3
+
+  # Optional: Protected attributes for fairness analysis
+  protected_attributes:
+    - gender
+    - age_group
+    - ethnicity
 ```
 
-## Complete Example
+**Supported Data Formats:**
+- CSV (`.csv`)
+- Parquet (`.parquet`)
+- Feather (`.feather`)
+- Pickle (`.pkl`)
+
+**Feature Selection:**
+- If `feature_columns` not specified, uses all columns except target
+- Protected attributes should be included in features for bias analysis
+- Features are automatically preprocessed based on data type
+
+### Model Configuration
+
+Specifies the ML model to audit and its parameters.
 
 ```yaml
-# complete_audit_config.yaml
 model:
+  # Required: Model type (triggers appropriate wrapper)
   type: xgboost
-  target_column: target
+
+  # Optional: Pre-trained model path
+  path: models/my_model.pkl
+
+  # Optional: Model parameters (for training)
   params:
+    n_estimators: 100
     max_depth: 6
     learning_rate: 0.1
-    n_estimators: 100
+    objective: binary:logistic
+```
 
-data:
-  train_path: data/train.csv
-  test_path: data/test.csv
-  categorical_features: [category1, category2]
-  handle_missing: impute
-  scaling: standard
+**Supported Model Types:**
+- `xgboost` - XGBoost gradient boosting
+- `lightgbm` - LightGBM gradient boosting
+- `logistic_regression` - Scikit-learn LogisticRegression
+- `sklearn_generic` - Generic scikit-learn models
 
-audit:
-  protected_attributes:
-    - gender:
-        column: sex
-        groups: ["M", "F"]
-    - age_group:
-        column: age
-        bins: [0, 30, 50, 100]
+**Model Loading vs Training:**
+- If `path` exists: loads pre-trained model
+- If `path` missing: trains new model with `params`
+- Parameters are passed to the underlying library
 
-  fairness_metrics:
-    - demographic_parity
-    - equalized_odds
+## Explainer Configuration
 
-  disparate_impact_threshold: 0.8
-  confidence_level: 0.95
+Controls how model predictions are explained and interpreted.
 
-explainability:
-  shap_values: true
-  waterfall_plots: 10
+```yaml
+explainers:
+  # Required: Selection strategy
+  strategy: first_compatible
+
+  # Required: Priority order (deterministic selection)
+  priority:
+    - treeshap      # First choice for tree models
+    - kernelshap    # Fallback for any model
+
+  # Optional: Explainer-specific configuration
+  config:
+    treeshap:
+      max_samples: 1000          # Samples for SHAP computation
+      check_additivity: true     # Verify SHAP properties
+
+    kernelshap:
+      n_samples: 500            # Model evaluations
+      background_size: 100      # Background dataset size
+```
+
+**Available Explainers:**
+- `treeshap` - Exact SHAP values for tree models (XGBoost, LightGBM)
+- `kernelshap` - Model-agnostic SHAP approximation
+- `noop` - No-op placeholder (for testing)
+
+**Selection Strategies:**
+- `first_compatible` - Use first explainer compatible with model
+- `best_available` - Select highest-priority compatible explainer
+
+## Metrics Configuration
+
+Defines which performance and fairness metrics to compute.
+
+```yaml
+metrics:
+  # Performance evaluation metrics
+  performance:
+    metrics:
+      - accuracy
+      - precision
+      - recall
+      - f1
+      - auc_roc
+      - classification_report
+
+  # Fairness and bias detection metrics
+  fairness:
+    metrics:
+      - demographic_parity
+      - equal_opportunity
+      - equalized_odds
+      - predictive_parity
+
+    # Optional: Bias tolerance thresholds
+    config:
+      demographic_parity:
+        threshold: 0.05         # 5% maximum group difference
+
+  # Optional: Data drift detection metrics
+  drift:
+    metrics:
+      - population_stability_index
+      - kl_divergence
+      - kolmogorov_smirnov
+```
+
+**Performance Metrics:**
+- `accuracy` - Overall classification accuracy
+- `precision` - Positive predictive value
+- `recall` - True positive rate (sensitivity)
+- `f1` - Harmonic mean of precision and recall
+- `auc_roc` - Area under ROC curve
+- `classification_report` - Comprehensive per-class metrics
+
+**Fairness Metrics:**
+- `demographic_parity` - Equal positive prediction rates across groups
+- `equal_opportunity` - Equal true positive rates across groups
+- `equalized_odds` - Equal TPR and FPR across groups
+- `predictive_parity` - Equal precision across groups
+
+## Report Configuration
+
+Controls the format and content of generated audit reports.
+
+```yaml
+report:
+  # Report template (determines structure and styling)
+  template: standard_audit
+
+  # Output format
+  output_format: pdf
+
+  # Optional: Report sections to include
+  include_sections:
+    - executive_summary
+    - data_overview
+    - model_performance
+    - global_explanations
+    - local_explanations
+    - fairness_analysis
+    - audit_manifest
+    - regulatory_compliance
+
+  # Optional: Report styling
+  styling:
+    color_scheme: professional
+    page_size: A4
+    margins: standard
+    compliance_statement: true
+```
+
+**Available Templates:**
+- `standard_audit` - Comprehensive audit report with all sections
+
+**Styling Options:**
+- `color_scheme`: professional, minimal, colorful
+- `page_size`: A4, Letter, Legal
+- `margins`: standard, narrow, wide
+
+## Advanced Configuration
+
+### Strict Mode
+
+Enforces additional regulatory compliance requirements.
+
+```yaml
+# Enable via CLI: --strict
+# Or in configuration:
+strict_mode: true
+```
+
+**Strict Mode Requirements:**
+- Explicit random seeds (no defaults)
+- Complete data schema specification
+- Full manifest generation
+- Deterministic component selection
+- All optional validations enabled
+
+### Manifest Configuration
+
+Controls audit trail generation and completeness.
+
+```yaml
+manifest:
+  enabled: true                    # Generate audit manifest
+  include_git_sha: true           # Include Git commit information
+  include_config_hash: true       # Include configuration integrity hash
+  include_data_hash: true         # Include dataset integrity hash
+  track_component_selection: true # Track selected components
+  include_execution_info: true    # Include timing and environment
+```
+
+### Preprocessing Options
+
+Controls data preprocessing before model training/evaluation.
+
+```yaml
+preprocessing:
+  handle_missing: true            # Handle missing values
+  missing_strategy: median        # median, mode, drop
+  scale_features: false           # Feature scaling (not needed for trees)
+  scaling_method: standard        # standard, minmax, robust
+  categorical_encoding: label     # label, onehot, target
+  feature_selection: false        # Enable feature selection
+  selection_method: mutual_info   # mutual_info, correlation
+  max_features: 20               # Maximum features to select
+```
+
+### Validation Configuration
+
+Controls model evaluation and statistical testing.
+
+```yaml
+validation:
+  cv_folds: 5                    # Cross-validation folds
+  cv_scoring: roc_auc            # Scoring metric for CV
+  test_size: 0.2                 # Train/test split ratio
+  stratify_split: true           # Stratify split by target
+  bootstrap_samples: 1000        # Bootstrap samples for confidence intervals
+  confidence_level: 0.95         # Statistical confidence level
+```
+
+### Performance Optimization
+
+Controls computational performance and resource usage.
+
+```yaml
+performance:
+  n_jobs: -1                     # Parallel processing (-1 = all cores)
+  low_memory_mode: false         # Optimize for memory usage
+  verbose: true                  # Enable progress reporting
+  progress_bar: true             # Show progress bars
+```
+
+## Configuration Examples
+
+### Basic German Credit Audit
+
+```yaml
+audit_profile: german_credit_default
 
 reproducibility:
   random_seed: 42
-  track_git: true
-  track_data_hash: true
+
+data:
+  path: ~/.glassalpha/data/german_credit_processed.csv
+  target_column: credit_risk
+  protected_attributes:
+    - gender
+    - age_group
+
+model:
+  type: xgboost
+  params:
+    objective: binary:logistic
+    n_estimators: 100
+
+explainers:
+  strategy: first_compatible
+  priority: [treeshap, kernelshap]
+
+metrics:
+  performance:
+    metrics: [accuracy, precision, recall, f1, auc_roc]
+  fairness:
+    metrics: [demographic_parity, equal_opportunity]
 ```
 
-## Usage
+### Enterprise Compliance Configuration
+
+```yaml
+audit_profile: tabular_compliance
+strict_mode: true
+
+reproducibility:
+  random_seed: 42
+  deterministic: true
+  capture_environment: true
+
+data:
+  path: data/production_dataset.csv
+  target_column: decision
+  feature_columns:
+    - income
+    - employment_length
+    - debt_to_income
+    - credit_score
+  protected_attributes:
+    - race
+    - gender
+    - age_group
+
+model:
+  type: lightgbm
+  params:
+    objective: binary
+    metric: auc
+    num_leaves: 31
+    feature_fraction: 0.9
+    bagging_fraction: 0.8
+    bagging_freq: 5
+
+explainers:
+  strategy: first_compatible
+  priority: [treeshap, kernelshap]
+  config:
+    treeshap:
+      max_samples: 10000
+      check_additivity: true
+
+metrics:
+  performance:
+    metrics: [accuracy, precision, recall, f1, auc_roc, classification_report]
+  fairness:
+    metrics: [demographic_parity, equal_opportunity, equalized_odds, predictive_parity]
+    config:
+      demographic_parity:
+        threshold: 0.02  # Stricter threshold for production
+      equal_opportunity:
+        threshold: 0.02
+
+manifest:
+  enabled: true
+  include_git_sha: true
+  include_config_hash: true
+  include_data_hash: true
+  track_component_selection: true
+
+report:
+  template: standard_audit
+  output_format: pdf
+  styling:
+    color_scheme: professional
+    compliance_statement: true
+
+compliance:
+  frameworks: [gdpr, ecoa, fcra]
+  fairness_thresholds:
+    demographic_parity: 0.02
+    equal_opportunity: 0.02
+```
+
+### Custom Model Configuration
+
+```yaml
+audit_profile: tabular_compliance
+
+reproducibility:
+  random_seed: 123
+
+data:
+  path: data/custom_dataset.csv
+  target_column: target
+  feature_columns:
+    - numerical_feature_1
+    - numerical_feature_2
+    - categorical_feature_1
+    - categorical_feature_2
+  protected_attributes:
+    - protected_attribute_1
+
+model:
+  type: logistic_regression
+  params:
+    C: 1.0
+    penalty: l2
+    solver: lbfgs
+    max_iter: 1000
+
+explainers:
+  strategy: first_compatible
+  priority: [kernelshap]  # Use KernelSHAP for linear models
+  config:
+    kernelshap:
+      n_samples: 1000
+      background_size: 500
+
+metrics:
+  performance:
+    metrics: [accuracy, precision, recall, f1]
+  fairness:
+    metrics: [demographic_parity]
+
+preprocessing:
+  handle_missing: true
+  missing_strategy: median
+  scale_features: true      # Important for linear models
+  scaling_method: standard
+  categorical_encoding: onehot
+
+validation:
+  cv_folds: 10
+  test_size: 0.3
+  stratify_split: true
+```
+
+## Configuration Best Practices
+
+### Reproducibility
+1. **Always set random seeds** for deterministic results
+2. **Use version control** for configuration files
+3. **Document configuration changes** in commit messages
+4. **Enable manifest generation** for complete audit trails
+
+### Performance
+1. **Use appropriate model types** for your data size and complexity
+2. **Adjust sample sizes** for explainers based on dataset size
+3. **Enable parallel processing** (`n_jobs: -1`) for faster computation
+4. **Use appropriate metrics** - don't compute unnecessary evaluations
+
+### Compliance
+1. **Enable strict mode** for regulatory submissions
+2. **Set appropriate bias thresholds** for your use case and jurisdiction
+3. **Include all relevant protected attributes** in fairness analysis
+4. **Document configuration rationale** for audit review
+
+### Security
+1. **Use relative paths** or environment variables for file locations
+2. **Don't embed sensitive data** in configuration files
+3. **Review configurations** before committing to version control
+4. **Use appropriate access controls** for configuration repositories
+
+## Troubleshooting Configuration Issues
+
+### Common Configuration Errors
+
+**Missing Required Fields:**
+```yaml
+# Error: Missing required field 'data.target_column'
+data:
+  path: data.csv
+  # target_column: missing!
+```
+
+**Invalid Model Type:**
+```yaml
+# Error: Model type 'invalid_model' not found in registry
+model:
+  type: invalid_model  # Should be: xgboost, lightgbm, etc.
+```
+
+**Incompatible Components:**
+```yaml
+# Warning: No compatible explainers for model type
+explainers:
+  priority: [treeshap]  # TreeSHAP only works with tree models
+model:
+  type: logistic_regression  # Linear model - use kernelshap instead
+```
+
+### Validation Commands
 
 ```bash
-glassalpha audit --config complete_audit_config.yaml --out audit_report.pdf
+# Validate configuration before running audit
+glassalpha validate --config my_config.yaml
+
+# Check strict mode compliance
+glassalpha validate --config my_config.yaml --strict
+
+# List available components
+glassalpha list
 ```
 
-## Validation
+### Configuration Schema Validation
 
-GlassAlpha validates configuration files at runtime:
+GlassAlpha uses Pydantic for configuration validation with detailed error messages:
 
-- **Required fields**: Missing required fields cause immediate failure
-- **Type checking**: Values must match expected types
-- **Value ranges**: Numeric parameters validated against allowed ranges
-- **Model compatibility**: Parameters checked against model requirements
-
-Common validation errors:
-```
-❌ ConfigurationError: 'target_column' is required
-❌ ValidationError: learning_rate must be between 0 and 1
-❌ ModelError: 'penalty=l1' not supported with solver='lbfgs'
+```bash
+ValidationError: 2 validation errors for AuditConfig
+data.target_column
+  field required (type=value_error.missing)
+model.type
+  ensure this value has at least 1 characters (type=value_error.any_str.min_length; limit_value=1)
 ```
 
-## Next Steps
+## Schema Reference
 
-- [Hello Audit Tutorial](quickstart.md) - Step-by-step walkthrough
-- [German Credit Example](../examples/german-credit-audit.md) - Complete example
-- [Adult Income Example](../examples/adult-income-audit.md) - Bias detection case study
+For a complete schema reference with all available fields, types, and validation rules, see the [API Reference](../reference/api.md).
+
+This configuration guide provides the foundation for creating effective, compliant audit configurations. Start with the provided examples and customize based on your specific requirements, data characteristics, and regulatory context.

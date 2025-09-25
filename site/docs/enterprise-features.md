@@ -120,16 +120,18 @@ GlassAlpha offers a powerful open-source foundation with enterprise extensions f
 
 ### OSS Installation
 ```bash
-pip install glassalpha
-glassalpha audit --config audit.yaml --out report.pdf
+git clone https://github.com/GlassAlpha/glassalpha
+cd glassalpha/packages
+pip install -e .
+glassalpha audit --config configs/german_credit_simple.yaml --output report.pdf
 ```
 
 ### Enterprise Installation
 ```bash
-# Requires license key
+# Contact enterprise team for license key and installation
+export GLASSALPHA_LICENSE_KEY="your-license-key"
 pip install glassalpha-enterprise
-export GLASSALPHA_LICENSE_KEY="your-key-here"
-glassalpha audit --config audit.yaml --out report.pdf --strict
+glassalpha audit --config audit.yaml --output report.pdf --strict
 ```
 
 ## Contact
@@ -138,26 +140,23 @@ glassalpha audit --config audit.yaml --out report.pdf --strict
 - **Enterprise Sales**: sales@glassalpha.ai
 - **Enterprise Support**: support@glassalpha.ai (customers only)
 
-## Roadmap
+## Current Capabilities
 
-### Currently Available (Phase 1)
-- ✅ Tabular model audits (XGBoost, LightGBM)
-- ✅ TreeSHAP explainability
-- ✅ Basic fairness metrics
-- ✅ PDF report generation
-- ✅ Deterministic reproducibility
+### OSS Features (Available Now)
+- ✅ Tabular model audits (XGBoost, LightGBM, Logistic Regression)
+- ✅ TreeSHAP and KernelSHAP explanations
+- ✅ Comprehensive fairness and performance metrics
+- ✅ Professional PDF report generation
+- ✅ Complete audit trail and reproducibility
+- ✅ CLI interface with YAML configuration
 
-### Coming Soon (Phase 2)
-- 🚧 Enterprise monitoring dashboard
-- 🚧 Regulator-specific templates
-- 🚧 Advanced recourse optimization
-- 🚧 Cloud integrations
-
-### Future (Phase 3+)
-- 📋 LLM support with specialized metrics
-- 📋 Vision model audits
-- 📋 Causal fairness analysis
-- 📋 AutoML audit pipelines
+### Enterprise Features (Contact for Access)
+- 🏢 Advanced explainability methods
+- 🏢 Custom regulatory templates
+- 🏢 Priority support and SLAs
+- 🏢 Advanced integrations and connectors
+- 🏢 Continuous monitoring capabilities
+- 🏢 Role-based access control and audit logging
 
 ---
 

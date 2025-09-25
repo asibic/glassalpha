@@ -1,132 +1,263 @@
-# Regulatory Compliance Vision
+# Compliance Framework Overview
 
-!!! warning "Pre-Alpha Development"
-    GlassAlpha is under active development. The compliance features described here represent our design goals, not current capabilities.
+GlassAlpha addresses key regulatory frameworks governing AI and algorithmic decision-making. This guide explains how specific features map to regulatory requirements and provides configuration guidance for compliance.
 
-!!! warning "Legal Disclaimer"
-    This documentation provides general technical guidance. **Always consult qualified legal counsel** for specific regulatory requirements in your jurisdiction.
+## Supported Regulatory Frameworks
 
-## Our Compliance Mission
+### EU General Data Protection Regulation (GDPR)
+**Jurisdiction:** European Union
+**Effective:** May 25, 2018
+**Key Requirements:** Data protection, consent, right to explanation
 
-GlassAlpha aims to help organizations meet the documentation and audit requirements of modern AI governance frameworks through:
+### Equal Credit Opportunity Act (ECOA)
+**Jurisdiction:** United States
+**Effective:** 1974 (amended multiple times)
+**Key Requirements:** Fair lending, non-discrimination in credit decisions
 
-1. **Deterministic audit reports** - Reproducible PDF documentation for regulatory review
-2. **Model explanations** - TreeSHAP-based interpretability for individual decisions
-3. **Fairness metrics** - Basic bias detection and protected attribute analysis
-4. **Complete lineage** - Full tracking of data, model, and configuration versions
+### Fair Credit Reporting Act (FCRA)
+**Jurisdiction:** United States
+**Effective:** 1970 (amended multiple times)
+**Key Requirements:** Accuracy, fairness, privacy in credit reporting
 
-## Target Regulatory Frameworks
+### EU AI Act
+**Jurisdiction:** European Union
+**Status:** Adopted 2024, phased implementation through 2027
+**Key Requirements:** Risk classification, transparency, human oversight
 
-### Initial Focus Areas
+### Fair Housing Act (FHA)
+**Jurisdiction:** United States
+**Effective:** 1968
+**Key Requirements:** Non-discrimination in housing decisions
 
-Our initial development targets common requirements across multiple frameworks:
+### Employment Standards
+**Jurisdiction:** Various (EEOC, state laws)
+**Key Requirements:** Non-discrimination in hiring and promotion
 
-#### United States
-- **FCRA/ECOA** - Credit and lending decisions requiring explanations and fairness testing
-- **EEOC Guidelines** - Employment decisions with Four-Fifths Rule compliance
-- **SR 11-7** - Model risk management for financial services
+## GDPR Compliance
 
-#### European Union
-- **GDPR Article 22** - Right to explanation for automated decision-making
-- **AI Act** - Documentation requirements for high-risk AI systems
+### Article 22: Automated Decision-Making
 
-### Design Principles for Compliance
+**Requirement:** Individuals have the right not to be subject to decisions based solely on automated processing that produce legal or similarly significant effects.
 
-1. **Transparency First** - Every decision should be explainable
-2. **Audit-Ready** - Documentation suitable for regulatory review
-3. **Reproducibility** - Byte-identical outputs under same conditions
-4. **Privacy by Design** - No external calls, on-premise deployment
+**GlassAlpha Implementation:**
 
-## Target Use Cases
+```yaml
+# GDPR-compliant configuration
+audit_profile: gdpr_compliance
 
-GlassAlpha is being designed with these key domains in mind:
+# Enable comprehensive explanation generation
+explainers:
+  strategy: first_compatible
+  priority:
+    - treeshap      # Provides detailed feature attributions
+    - kernelshap    # Model-agnostic explanations
+  config:
+    treeshap:
+      max_samples: 1000
+      include_individual_explanations: true
 
-### Financial Services (Credit/Lending)
-- **Challenge**: Prove fair lending practices and ECOA compliance
-- **Our Goal**: Generate audit reports demonstrating model fairness and decision explanations
-- **Key Metrics**: Disparate impact ratios, protected class analysis
+# Generate human-readable explanations
+report:
+  include_sections:
+    - individual_explanations  # Article 22 requirement
+    - processing_logic         # Algorithm transparency
+    - data_sources             # Data provenance
+    - decision_factors         # Key decision factors
+```
 
-### Employment/Hiring
-- **Challenge**: Meet EEOC Four-Fifths Rule requirements
-- **Our Goal**: Document adverse impact analysis and bias testing
-- **Key Metrics**: Selection rates by protected group, statistical parity
+**Key Features:**
+- **Individual Explanations**: SHAP waterfall plots show how each feature contributed to specific decisions
+- **Transparent Logic**: Reports document the decision-making process in human-readable language
+- **Data Provenance**: Complete audit trail of data sources and transformations
+- **Contestation Support**: Detailed explanations enable individuals to challenge decisions
 
-### Healthcare/Insurance
-- **Challenge**: Ensure algorithmic fairness while maintaining privacy
-- **Our Goal**: Provide bias analysis without exposing sensitive data
-- **Key Metrics**: Group fairness metrics, demographic parity
+### Article 13-14: Information to Data Subjects
 
-## Planned Compliance Features
+**Requirement:** Provide meaningful information about automated decision-making logic.
 
-Our design targets these core capabilities:
+**GlassAlpha Implementation:**
+- **Model Documentation**: Comprehensive model cards with algorithm details
+- **Feature Documentation**: Clear explanations of input variables and their business meaning
+- **Decision Boundaries**: Visualizations of how decisions are made
+- **Statistical Metrics**: Performance statistics in accessible format
 
-### 1. Deterministic Outputs
-- Byte-identical PDF reports under same configuration
-- Complete random seed tracking
-- Immutable run manifests with hashes
+## ECOA Compliance (Fair Lending)
 
-### 2. Complete Audit Trail
-- Git commit SHA for code version
-- Dataset fingerprints (SHA-256)
-- Configuration hashes
-- Timestamp and environment info
+### Prohibition of Discrimination
 
-### 3. Protected Attribute Analysis
-- Configurable protected classes
-- Basic fairness metrics (demographic parity, equalized odds)
-- Disparate impact calculations
+**Requirement:** Creditors may not discriminate against applicants based on race, color, religion, national origin, sex, marital status, age, or public assistance status.
 
-### 4. Model Explanations
-- TreeSHAP feature importance
-- Individual prediction explanations
-- Waterfall plots for key decisions
+**GlassAlpha Implementation:**
 
-### 5. Professional Documentation
-- PDF audit reports with professional formatting
-- Executive summaries for stakeholders
-- Technical details for validation teams
+```yaml
+# ECOA compliance configuration
+audit_profile: ecoa_compliance
 
-## How GlassAlpha Will Help
+data:
+  protected_attributes:
+    - race
+    - gender
+    - age_group
+    - marital_status
+    - national_origin
 
-### What We're Building
+# Strict bias detection thresholds
+metrics:
+  fairness:
+    metrics:
+      - demographic_parity
+      - equal_opportunity
+      - equalized_odds
+    config:
+      demographic_parity:
+        threshold: 0.02          # 2% maximum disparity
+      equal_opportunity:
+        threshold: 0.02
 
-GlassAlpha will provide technical tools to support compliance efforts:
+compliance:
+  frameworks:
+    - ecoa
+  fairness_thresholds:
+    demographic_parity: 0.02   # Stricter than typical research (5%)
+    equal_opportunity: 0.02
+    statistical_significance: 0.01
+```
 
-1. **Generate Audit Reports** - Create PDF documentation for regulatory review
-2. **Test for Bias** - Identify potential discrimination in model decisions
-3. **Explain Decisions** - Provide clear explanations for individual predictions
-4. **Track Changes** - Maintain complete audit trails of model versions
+**Key Compliance Features:**
 
-### What Users Will Still Need
+1. **Disparate Impact Analysis**
+   - Automated calculation of approval rate ratios by protected class
+   - Statistical significance testing with confidence intervals
+   - Visual representations of disparities across demographic groups
 
-Even with GlassAlpha, organizations will need:
+2. **Adverse Action Reasons**
+   - SHAP explanations provide specific reasons for denials
+   - Feature importance rankings identify key decision factors
+   - Individual prediction explanations support adverse action notices
 
-- Legal counsel to interpret regulatory requirements
-- Domain experts to validate model appropriateness
-- Governance processes for model review and approval
-- Human oversight for high-stakes decisions
+3. **Model Monitoring**
+   - Ongoing bias detection across protected characteristics
+   - Statistical tests for demographic parity and equal opportunity
+   - Drift detection to identify changing discriminatory patterns
 
-## Development Priorities
+### Documentation Requirements
 
-Our development focuses on the most common compliance needs:
+**ECOA Section 1002.13:** Maintain records demonstrating compliance.
 
-1. **Deterministic PDF generation** - For regulatory filing
-2. **Basic fairness metrics** - For bias detection
-3. **TreeSHAP explanations** - For decision transparency
-4. **Reproducibility manifests** - For audit trails
+**GlassAlpha Evidence:**
+- **Audit Reports**: Comprehensive bias analysis with statistical testing
+- **Model Documentation**: Detailed methodology and validation procedures
+- **Decision Records**: Individual prediction explanations and confidence scores
+- **Monitoring Reports**: Ongoing performance tracking across demographic groups
 
-Future phases may expand to additional compliance requirements based on user needs.
+## Configuration Patterns by Framework
 
-## Contributing to Compliance Features
+### Financial Services (ECOA/FCRA)
 
-We welcome contributions from compliance experts and developers:
+```yaml
+audit_profile: financial_compliance
 
-- **Share Requirements** - Help us understand your regulatory needs
-- **Review Designs** - Provide feedback on planned features
-- **Contribute Code** - Help implement compliance capabilities
-- **Test Examples** - Validate our German Credit and Adult Income benchmarks
+data:
+  protected_attributes:
+    - race
+    - gender
+    - age_group
+    - marital_status
 
-See our [Contributing Guide](../contributing.md) to get involved.
+model:
+  type: xgboost
+  validation:
+    cross_validation: true
+    bootstrap_confidence: true
 
-!!! danger "Important Legal Note"
-    GlassAlpha will provide technical tools for compliance documentation. **Legal compliance requires human judgment and qualified legal counsel.** Always consult appropriate legal experts for your specific regulatory requirements.
+metrics:
+  fairness:
+    metrics: [demographic_parity, equal_opportunity, equalized_odds]
+    config:
+      demographic_parity: { threshold: 0.02 }
+      statistical_tests: true
+      confidence_intervals: true
+
+compliance:
+  frameworks: [ecoa, fcra]
+  documentation:
+    adverse_action_reasons: true
+    accuracy_statements: true
+    fairness_analysis: true
+```
+
+### Healthcare (GDPR/Medical Device Regulations)
+
+```yaml
+audit_profile: healthcare_compliance
+
+data:
+  protected_attributes:
+    - age_group
+    - gender
+    - race
+    - disability_status
+
+explainers:
+  priority: [treeshap, kernelshap]
+  config:
+    individual_explanations: true
+    clinical_interpretability: true
+
+compliance:
+  frameworks: [gdpr, medical_device_regulation]
+  risk_assessment: high
+  human_oversight: required
+```
+
+### Employment (EEOC/GDPR)
+
+```yaml
+audit_profile: employment_compliance
+
+data:
+  protected_attributes:
+    - race
+    - gender
+    - age_group
+    - disability_status
+    - national_origin
+
+metrics:
+  fairness:
+    metrics: [demographic_parity, equal_opportunity]
+    config:
+      four_fifths_rule: true    # 80% rule for adverse impact
+      statistical_significance: true
+
+compliance:
+  frameworks: [eeoc_uniform_guidelines, gdpr]
+```
+
+## Best Practices
+
+### Development Phase
+
+1. **Early Compliance Integration**
+   - Define regulatory requirements before model development
+   - Build fairness constraints into model training
+   - Establish bias testing procedures from day one
+
+2. **Documentation Standards**
+   - Maintain comprehensive model development records
+   - Document all design decisions and trade-offs
+   - Create audit trails for all data and model changes
+
+### Production Deployment
+
+1. **Ongoing Monitoring**
+   - Implement continuous bias detection
+   - Monitor model performance across demographic groups
+   - Track individual decision outcomes for patterns
+
+2. **Incident Response**
+   - Establish procedures for bias detection alerts
+   - Maintain capability to explain any historical decision
+   - Document remediation actions and their effectiveness
+
+This compliance framework overview provides the foundation for using GlassAlpha in regulated environments. For specific regulatory guidance, consult with legal counsel and compliance experts familiar with your jurisdiction and use case.

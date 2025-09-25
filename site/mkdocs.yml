@@ -95,12 +95,21 @@ nav:
     - Hello Audit Tutorial: getting-started/quickstart.md
     - Configuration Reference: getting-started/configuration.md
   - Examples:
-    - German Credit Audit: examples/german-credit-audit.md
-    - Adult Income Audit: examples/adult-income-audit.md
+    - Quick Start Audit: examples/quick-start-audit.md
+    - German Credit Deep Dive: examples/german-credit-audit.md
+    - Healthcare Bias Detection: examples/healthcare-bias-detection.md
+    - Configuration Comparison: examples/configuration-comparison.md
+  - Architecture: architecture.md
+  - Production Deployment: deployment.md
   - Reference:
+    - CLI Reference: reference/cli.md
+    - API Reference: reference/api.md
+    - Troubleshooting: reference/troubleshooting.md
     - Scope & Limitations: limitations.md
     - Regulatory Compliance: compliance/overview.md
     - Security Policy: security.md
+    - Enterprise Features: enterprise-features.md
+    - FAQ: faq.md
     - Changelog: changelog.md
     - Contributing: contributing.md
   - About: about.md

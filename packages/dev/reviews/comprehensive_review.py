@@ -34,6 +34,7 @@ class ArchitectureReview:
     """Comprehensive architecture review."""
 
     def __init__(self):
+        """Initialize review with empty results tracking."""
         self.results = {"modules": {}, "tests": {}, "gaps": [], "recommendations": [], "score": 0}
 
     def run_review(self):

@@ -1,8 +1,6 @@
 # GlassAlpha - AI Compliance Toolkit
 
-> ⚠️ **Pre-Alpha Status**: GlassAlpha is under active development. Core functionality is being built to deliver deterministic, regulator-ready PDF audits.
-
-GlassAlpha is built as an **extensible framework** for AI compliance and interpretability, starting with tabular ML models in Phase 1 and designed to expand to LLMs and multimodal systems.
+GlassAlpha is an **extensible framework** for AI compliance and interpretability, supporting tabular ML models with planned expansion to LLMs and multimodal systems.
 
 ### Core Design Principles
 
@@ -11,9 +9,11 @@ GlassAlpha is built as an **extensible framework** for AI compliance and interpr
 3. **Clear OSS/Enterprise Separation**: Core functionality is open-source, advanced features are commercial
 4. **Modality-Agnostic Interfaces**: Designed to support tabular, text, and vision models
 
+For detailed architecture information, see the [Architecture Guide](../site/docs/architecture.md).
+
 ## Key Features
 
-### Phase 1 (Current Focus)
+### Current Features
 - ✅ XGBoost, LightGBM, LogisticRegression support
 - ✅ TreeSHAP explainability
 - ✅ Fairness metrics (demographic parity, equal opportunity)
@@ -21,12 +21,12 @@ GlassAlpha is built as an **extensible framework** for AI compliance and interpr
 - ✅ Deterministic PDF audit reports
 - ✅ Full reproducibility (seeds, hashes, manifests)
 
-### Future Phases
-- 🚧 LLM support with gradient-based explainability
-- 🚧 Vision model support
-- 🚧 Continuous monitoring dashboards
-- 🚧 Regulator-specific templates
-- 🚧 Cloud integrations
+### Planned Extensions
+- LLM support with gradient-based explainability
+- Vision model support
+- Continuous monitoring dashboards
+- Regulator-specific templates
+- Cloud integrations
 
 ### Project Structure
 
@@ -71,38 +71,50 @@ cd packages
 pip install -e ".[dev]"
 ```
 
-### Enterprise Installation (Future)
+### Enterprise Installation
 ```bash
-# Requires license key
+# Requires license key (contact for availability)
 pip install glassalpha-enterprise
 export GLASSALPHA_LICENSE_KEY="your-key-here"
 ```
 
 ## Quick Start
 
-### Phase 1: Generate Audit PDF
+### Generate Audit PDF
 ```bash
 # Basic audit
-glassalpha audit --config configs/example_audit.yaml --out audit.pdf
+glassalpha audit --config configs/german_credit_simple.yaml --output audit.pdf
 
 # Strict mode for regulatory compliance
-glassalpha audit --config configs/example_audit.yaml --out audit.pdf --strict
+glassalpha audit --config configs/german_credit_simple.yaml --output audit.pdf --strict
 ```
 
 ### Configuration Example
 ```yaml
-audit_profile: "tabular_compliance"
+audit_profile: german_credit_default
+
+data:
+  path: data/german_credit_processed.csv
+  target_column: credit_risk
+  protected_attributes:
+    - gender
+    - age_group
 
 model:
-  type: "xgboost"
-  path: "model.pkl"
+  type: xgboost
+  params:
+    objective: binary:logistic
+    n_estimators: 100
+    max_depth: 5
 
 explainers:
+  strategy: first_compatible
   priority:
     - treeshap
     - kernelshap
 
-strict_mode: true  # Enforce regulatory requirements
+reproducibility:
+  random_seed: 42
 ```
 
 ## Architecture Highlights
@@ -145,12 +157,13 @@ class TabularComplianceProfile(AuditProfile):
 
 Run the test suite with coverage:
 ```bash
-pytest  # Configured to require 90% coverage
+pytest  # Comprehensive test coverage
 ```
 
-Test determinism:
+Test audit generation:
 ```bash
-make audit-test  # Should produce byte-identical PDFs
+# Generate test audit to verify functionality
+glassalpha audit --config configs/german_credit_simple.yaml --output test_audit.pdf
 ```
 
 ## Contributing
