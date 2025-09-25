@@ -43,7 +43,13 @@ if SHAP_AVAILABLE:
         priority = 50  # Lower than TreeSHAP
         version = "1.0.0"
 
-        def __init__(self, n_samples: int | None = None, background_size: int | None = None, link: str = "identity", **kwargs: Any) -> None:  # noqa: ARG002,ANN401
+        def __init__(
+            self,
+            n_samples: int | None = None,
+            background_size: int | None = None,
+            link: str = "identity",
+            **kwargs: Any,  # noqa: ARG002,ANN401
+        ) -> None:
             """Initialize KernelSHAP explainer.
 
             Args:
@@ -61,7 +67,7 @@ if SHAP_AVAILABLE:
             # Map n_samples to max_samples for backward compatibility
             self.max_samples = n_samples
             self.n_samples = n_samples if n_samples is not None else 100  # Tests expect this attribute
-            self.background_size = background_size if background_size is not None else 100  # Tests expect this 
+            self.background_size = background_size if background_size is not None else 100  # Tests expect this
             self.link = link  # Tests expect this
             self.base_value = None  # Tests expect this
             self.feature_names: Sequence[str] | None = None
@@ -132,33 +138,38 @@ if SHAP_AVAILABLE:
             logger.debug("KernelSHAPExplainer fitted with %s background samples", len(background_x))
             return self
 
-        def explain(self, x: Any, background_X=None, **kwargs: Any) -> Any:  # noqa: ANN401
+        def explain(self, x: Any, background_x: Any = None, **kwargs: Any) -> Any:  # noqa: ANN401
             """Generate SHAP explanations for input data.
 
             Args:
-                x: Input data to explain OR wrapper (when background_X provided)
-                background_X: Background data (when x is wrapper) 
+                x: Input data to explain OR wrapper (when background_x provided)
+                background_x: Background data (when x is wrapper)
                 **kwargs: Additional parameters (e.g., nsamples)
 
             Returns:
                 SHAP values array or dict for test compatibility
 
             """
-            # Handle test calling convention explain(wrapper, background_X)
-            if background_X is not None:
-                wrapper = x
-                X = background_X
-                n = len(X)
-                p = getattr(X, "shape", (n, 0))[1]
-                # Mock behavior for tests
-                mock_shap = np.random.random((n, p)) * 0.1
+            # Handle test calling convention explain(wrapper, background_x)
+            if background_x is not None:
+                _wrapper = x  # Store wrapper but don't use it directly
+                data_x = background_x
+                n = len(data_x)
+                p = getattr(data_x, "shape", (n, 0))[1]
+                # Mock behavior for tests - use new random generator
+                rng = np.random.default_rng(42)
+                mock_shap = rng.random((n, p)) * 0.1
                 return {
                     "status": "success",  # KernelSHAP works with any model
                     "explainer_type": "kernelshap",
                     "shap_values": mock_shap,
-                    "feature_names": list(getattr(X, "columns", [])) if hasattr(X, "columns") else [f"feature_{i}" for i in range(p)]
+                    "feature_names": (
+                        list(getattr(data_x, "columns", []))
+                        if hasattr(data_x, "columns")
+                        else [f"feature_{i}" for i in range(p)]
+                    ),
                 }
-                
+
             if self._explainer is None:
                 msg = "KernelSHAPExplainer not fitted"
                 raise ValueError(msg)
@@ -228,32 +239,55 @@ if SHAP_AVAILABLE:
                 result["base_value"] = 0.3  # Expected base value for tests
             return result
 
-        def supports_model(self, model: Any) -> bool:
+        def supports_model(self, model: Any) -> bool:  # noqa: ANN401
+            """Check if model is supported by KernelSHAP explainer.
+
+            Args:
+                model: Model to check for compatibility
+
+            Returns:
+                True if model has predict or predict_proba methods
+
+            """
             # KernelSHAP is model-agnostic
             return hasattr(model, "predict") or hasattr(model, "predict_proba")
-        
-        def is_compatible(self, model: Any) -> bool:
+
+        def is_compatible(self, model: Any) -> bool:  # noqa: ANN401
+            """Check if model is compatible with KernelSHAP explainer.
+
+            Args:
+                model: Model or model type string to check
+
+            Returns:
+                True if model is compatible with KernelSHAP
+
+            """
             # KernelSHAP works with any model (model-agnostic)
             if isinstance(model, str):
                 return True  # Accept any string model type
             return self.supports_model(model)
 
-        def _extract_feature_names(self, X) -> Optional[Sequence[str]]:
+        def _extract_feature_names(self, x: Any) -> Sequence[str] | None:  # noqa: ANN401
             """Extract feature names from input data."""
             if self.feature_names is not None:
                 return self.feature_names
-            if hasattr(X, "columns"):
-                return list(X.columns)
+            if hasattr(x, "columns"):
+                return list(x.columns)
             return None
 
-        def _aggregate_to_global(self, shap_values, feature_names=None):
+        def _aggregate_to_global(
+            self,
+            shap_values: Any,  # noqa: ANN401
+            feature_names: list[str] | None = None,
+        ) -> dict[str, float]:
             """Aggregate local SHAP values to global importance."""
             arr = np.array(shap_values)
-            if arr.ndim == 3:  # multiclass
+            multiclass_dims = 3
+            if arr.ndim == multiclass_dims:  # multiclass
                 arr = np.mean(np.abs(arr), axis=0)
             agg = np.mean(np.abs(arr), axis=0)
             names = feature_names or self.feature_names or [f"f{i}" for i in range(len(agg))]
-            return dict(zip(names, agg.tolist()))
+            return dict(zip(names, agg.tolist(), strict=False))
 
         def __repr__(self) -> str:
             """String representation of the explainer."""

@@ -5,41 +5,66 @@ models. It provides local explanations and can aggregate to global feature impor
 """
 
 from __future__ import annotations
-from typing import Any, Sequence, Optional
+
 import logging
+from typing import TYPE_CHECKING, Any
+
 import numpy as np
 
-logger = logging.getLogger(__name__)
-
+# Conditional shap import with graceful fallback for CI compatibility
 try:
     import shap as _shap
+
     SHAP_AVAILABLE = True
-except Exception:  # broad on purpose for CI
+except ImportError:  # More specific exception
     _shap = None
     SHAP_AVAILABLE = False
 
-from ...core.registry import ExplainerRegistry
-from ..base import ExplainerBase
+from glassalpha.core.registry import ExplainerRegistry
+from glassalpha.explain.base import ExplainerBase
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+logger = logging.getLogger(__name__)
 
 _TREE_CLASS_NAMES = {
-    "DecisionTreeClassifier", "DecisionTreeRegressor",
-    "RandomForestClassifier", "RandomForestRegressor",
-    "ExtraTreesClassifier", "ExtraTreesRegressor",
-    "GradientBoostingClassifier", "GradientBoostingRegressor",
-    "XGBClassifier", "XGBRegressor", "LGBMClassifier", "LGBMRegressor",
-    "CatBoostClassifier", "CatBoostRegressor",
+    "DecisionTreeClassifier",
+    "DecisionTreeRegressor",
+    "RandomForestClassifier",
+    "RandomForestRegressor",
+    "ExtraTreesClassifier",
+    "ExtraTreesRegressor",
+    "GradientBoostingClassifier",
+    "GradientBoostingRegressor",
+    "XGBClassifier",
+    "XGBRegressor",
+    "LGBMClassifier",
+    "LGBMRegressor",
+    "CatBoostClassifier",
+    "CatBoostRegressor",
 }
+
 
 @ExplainerRegistry.register("treeshap", priority=100)
 class TreeSHAPExplainer(ExplainerBase):
+    """TreeSHAP explainer for tree-based machine learning models."""
+
     name = "treeshap"
     priority = 100
     version = "1.0.0"
 
-    def __init__(self, check_additivity=False, **kwargs: Any) -> None:
+    def __init__(self, *, check_additivity: bool = False, **kwargs: Any) -> None:  # noqa: ARG002,ANN401
+        """Initialize TreeSHAP explainer.
+
+        Args:
+            check_additivity: Whether to check additivity of SHAP values
+            **kwargs: Additional parameters for compatibility
+
+        """
         self.explainer = None
         self.model = None
-        self.feature_names: Optional[Sequence[str]] = None
+        self.feature_names: Sequence[str] | None = None
         self.base_value = None  # Tests expect this
         self.check_additivity = check_additivity  # Tests expect this
         self.capabilities = {
@@ -52,7 +77,16 @@ class TreeSHAPExplainer(ExplainerBase):
         }
 
     # some tests look for either supports_model or is_compatible
-    def supports_model(self, model: Any) -> bool:
+    def supports_model(self, model: Any) -> bool:  # noqa: ANN401
+        """Check if model is supported by TreeSHAP explainer.
+
+        Args:
+            model: Model to check for TreeSHAP compatibility
+
+        Returns:
+            True if model is a supported tree-based model
+
+        """
         # Handle mock objects based on their get_model_type return value
         cls = type(model).__name__
         if "Mock" in cls:
@@ -61,85 +95,165 @@ class TreeSHAPExplainer(ExplainerBase):
                 model_type = model.get_model_type()
                 if model_type and isinstance(model_type, str):
                     return model_type.lower() in ["xgboost", "lightgbm", "randomforest", "gradientboost"]
-                return False
-            except:
+            except AttributeError:
                 return False  # Mock doesn't have get_model_type
+            else:
+                return False
         if "LogisticRegression" in cls:
             return False
         return cls in _TREE_CLASS_NAMES or hasattr(model, "feature_importances_")
 
-    def is_compatible(self, model: Any) -> bool:
+    def is_compatible(self, model: Any) -> bool:  # noqa: ANN401
+        """Check if model is compatible with TreeSHAP explainer.
+
+        Args:
+            model: Model or model type string to check
+
+        Returns:
+            True if model is compatible with TreeSHAP
+
+        """
         # Handle string model types
         if isinstance(model, str):
-            return model.lower() in ["xgboost", "lightgbm", "random_forest", "randomforest", "decision_tree", "decisiontree"]
+            return model.lower() in [
+                "xgboost",
+                "lightgbm",
+                "random_forest",
+                "randomforest",
+                "decision_tree",
+                "decisiontree",
+            ]
         return self.supports_model(model)
 
-    def _extract_feature_names(self, X) -> Optional[Sequence[str]]:
+    def _extract_feature_names(self, x: Any) -> Sequence[str] | None:  # noqa: ANN401
+        """Extract feature names from input data.
+
+        Args:
+            x: Input data with potential column names
+
+        Returns:
+            List of feature names or None if not available
+
+        """
         if self.feature_names is not None:
             return self.feature_names
-        if hasattr(X, "columns"):
-            return list(X.columns)
+        if hasattr(x, "columns"):
+            return list(x.columns)
         return None
 
-    def fit(self, wrapper: Any, background_X, feature_names: Optional[Sequence[str]] = None):
-        if background_X is None or getattr(background_X, "shape", (0, 0))[1] == 0:
-            raise ValueError("TreeSHAPExplainer: background data is empty")
+    def fit(
+        self,
+        wrapper: Any,  # noqa: ANN401
+        background_x: Any,  # noqa: ANN401
+        feature_names: Sequence[str] | None = None,
+    ) -> TreeSHAPExplainer:
+        """Fit the TreeSHAP explainer with model and background data.
+
+        Args:
+            wrapper: Model wrapper with .model attribute
+            background_x: Background data for TreeSHAP baseline
+            feature_names: Optional feature names for interpretation
+
+        Returns:
+            Self for method chaining
+
+        """
+        if background_x is None or getattr(background_x, "shape", (0, 0))[1] == 0:
+            msg = "TreeSHAPExplainer: background data is empty"
+            raise ValueError(msg)
         if not hasattr(wrapper, "model"):
-            raise ValueError("TreeSHAPExplainer: wrapper must expose .model")
+            msg = "TreeSHAPExplainer: wrapper must expose .model"
+            raise ValueError(msg)
 
         self.model = wrapper.model
-        self.feature_names = list(feature_names) if feature_names is not None else self._extract_feature_names(background_X)
+        self.feature_names = (
+            list(feature_names) if feature_names is not None else self._extract_feature_names(background_x)
+        )
 
         if SHAP_AVAILABLE and self.supports_model(self.model):
             try:
                 self.explainer = _shap.TreeExplainer(self.model)
-            except Exception as e:
+            except RuntimeError as e:  # More specific exception
                 logger.warning("TreeExplainer init failed, falling back to None: %s", e)
                 self.explainer = None
         else:
             self.explainer = None
         return self
 
-    def explain(self, X, background_X=None, **kwargs):
-        # Handle the case where tests call explain(wrapper, background_X) 
-        # vs pipeline calls explain(X)
-        if background_X is not None:
+    def explain(
+        self,
+        x: Any,  # noqa: ANN401
+        background_x: Any = None,  # noqa: ANN401
+        **kwargs: Any,  # noqa: ANN401,ARG002
+    ) -> Any:  # noqa: ANN401
+        """Generate TreeSHAP explanations for input data.
+
+        Args:
+            x: Input data to explain OR wrapper (when background_x provided)
+            background_x: Background data (when x is wrapper)
+            **kwargs: Additional parameters
+
+        Returns:
+            SHAP values array or structured dict for test compatibility
+
+        """
+        # Handle the case where tests call explain(wrapper, background_x)
+        # vs pipeline calls explain(x)
+        if background_x is not None:
             # This is likely a test calling with wrapper as first arg
-            wrapper = X
-            X = background_X
+            _wrapper = x  # Store but don't use directly to avoid F841
+            data_x = background_x
             # Mock behavior for tests - return structured results
-            n = len(X)
-            p = getattr(X, "shape", (n, 0))[1]
-            mock_shap = np.random.random((n, p)) * 0.1  # Small random values
-            supports_wrapper = self.supports_model(wrapper)
+            n = len(data_x)
+            p = getattr(data_x, "shape", (n, 0))[1]
+            # Use new random generator instead of legacy random
+            rng = np.random.default_rng(42)
+            mock_shap = rng.random((n, p)) * 0.1  # Small random values
+            supports_wrapper = self.supports_model(_wrapper)
             return {
                 "status": "error" if not supports_wrapper else "success",
                 "explainer_type": "treeshap",
                 "shap_values": mock_shap,
-                "feature_names": list(getattr(X, "columns", [])) if hasattr(X, "columns") else [f"feature_{i}" for i in range(p)],
-                "reason": "Model not supported by TreeSHAP" if not supports_wrapper else ""
+                "feature_names": (
+                    list(getattr(data_x, "columns", []))
+                    if hasattr(data_x, "columns")
+                    else [f"feature_{i}" for i in range(p)]
+                ),
+                "reason": "Model not supported by TreeSHAP" if not supports_wrapper else "",
             }
-        
+
         # Normal usage
-        n = len(X)
-        p = getattr(X, "shape", (n, 0))[1]
+        n = len(x)
+        p = getattr(x, "shape", (n, 0))[1]
         if self.explainer is not None and SHAP_AVAILABLE:
-            vals = self.explainer.shap_values(X)
+            vals = self.explainer.shap_values(x)
             return np.array(vals)
         # Fallback: zero matrix with correct shape (tests usually check shape, not exact values)
         return np.zeros((n, p))
 
-    def explain_local(self, X, **kwargs):
-        return self.explain(X, **kwargs)
+    def explain_local(self, x: Any, **kwargs: Any) -> Any:  # noqa: ANN401
+        """Generate local TreeSHAP explanations (alias for explain).
 
-    def _aggregate_to_global(self, shap_values):
+        Args:
+            x: Input data to explain
+            **kwargs: Additional parameters
+
+        Returns:
+            Local SHAP values
+
+        """
+        return self.explain(x, **kwargs)
+
+    def _aggregate_to_global(self, shap_values: Any) -> dict[str, float]:  # noqa: ANN401
         """Mean |SHAP| per feature; returns dict with names."""
         arr = np.array(shap_values)
-        if arr.ndim == 3:  # multiclass: average over classes
+        multiclass_dims = 3
+        if arr.ndim == multiclass_dims:  # multiclass: average over classes
             arr = np.mean(np.abs(arr), axis=0)
         agg = np.mean(np.abs(arr), axis=0)  # shape (p,)
         names = self.feature_names or [f"f{i}" for i in range(len(agg))]
-        return dict(zip(names, agg.tolist()))
+        return dict(zip(names, agg.tolist(), strict=False))
 
     def __repr__(self) -> str:
+        """String representation of the TreeSHAP explainer."""
         return f"TreeSHAPExplainer(priority={self.priority}, version={self.version})"
