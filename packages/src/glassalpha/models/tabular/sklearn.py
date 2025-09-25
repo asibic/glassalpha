@@ -1,490 +1,326 @@
-"""Scikit-learn model wrappers for GlassAlpha.
+"""Scikit-learn model wrappers for Glass Alpha audit pipeline.
 
-This module provides wrappers for scikit-learn models to make them compatible
-with the GlassAlpha audit pipeline. It supports SHAP explanations and
-provides model-specific feature importance capabilities.
+This module provides wrappers for scikit-learn models, making them compatible
+with the Glass Alpha audit interface. It includes LogisticRegression and
+generic scikit-learn model wrappers.
 """
 
+from __future__ import annotations
+from typing import Any, Optional, Sequence
 import logging
-import pickle
-from pathlib import Path
-from typing import Any
-
-import joblib
 import numpy as np
-import pandas as pd
+import joblib
 
-# Conditional sklearn import with graceful fallback for CI compatibility
+logger = logging.getLogger(__name__)
+
+# Conditional imports for sklearn
 try:
     from sklearn.base import BaseEstimator, ClassifierMixin
     from sklearn.linear_model import LogisticRegression
-
     SKLEARN_AVAILABLE = True
 except ImportError:
-    # Fallback stubs when sklearn unavailable (CI environment issues)
-    SKLEARN_AVAILABLE = False
-    BaseEstimator = object  # Minimal fallback base class
+    # Fallback when sklearn unavailable
+    BaseEstimator = object
     ClassifierMixin = object
     LogisticRegression = None
+    SKLEARN_AVAILABLE = False
 
 from ...core.registry import ModelRegistry
 
-logger = logging.getLogger(__name__)
+
+class SklearnGenericWrapper:
+    def __init__(self, model: Any, feature_names: Optional[Sequence[str]] = None):
+        self.model = model
+        self.feature_names = list(feature_names) if feature_names is not None else None
+        self.capabilities = {
+            "predict": hasattr(model, "predict"),
+            "predict_proba": hasattr(model, "predict_proba"),
+            "feature_importance": hasattr(model, "feature_importances_") or hasattr(model, "coef_"),
+        }
+
+    def predict(self, X):
+        if not hasattr(self.model, "predict"):
+            raise AttributeError("Underlying model has no predict")
+        return self.model.predict(X)
+
+    def predict_proba(self, X):
+        if not hasattr(self.model, "predict_proba"):
+            raise AttributeError("Underlying model has no predict_proba")
+        return self.model.predict_proba(X)
+
+    def feature_importance(self):
+        if hasattr(self.model, "feature_importances_"):
+            vals = np.asarray(self.model.feature_importances_)
+        elif hasattr(self.model, "coef_"):
+            vals = np.asarray(self.model.coef_)
+            if vals.ndim > 1:
+                vals = np.mean(np.abs(vals), axis=0)
+            else:
+                vals = np.abs(vals)
+        else:
+            raise AttributeError("Model exposes no feature importances")
+        names = self.feature_names or [f"f{i}" for i in range(len(vals))]
+        return dict(zip(names, vals.tolist()))
+
+    def save(self, path: str):
+        joblib.dump({"model": self.model, "feature_names": self.feature_names}, path)
+
+    @classmethod
+    def load(cls, path: str) -> "SklearnGenericWrapper":
+        data = joblib.load(path)
+        return cls(model=data["model"], feature_names=data.get("feature_names"))
+
+    # Some tests call instance.load(); keep a passthrough
+    def load_instance(self, path: str) -> "SklearnGenericWrapper":
+        return self.__class__.load(path)
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}(model={type(self.model).__name__})"
+
+
+class LogisticRegressionWrapper(SklearnGenericWrapper):
+    pass
 
 
 # Only register if sklearn is available
 if SKLEARN_AVAILABLE:
-
+    
     @ModelRegistry.register("logistic_regression", priority=80)
     class LogisticRegressionWrapper(BaseEstimator, ClassifierMixin):
-        """Wrapper for scikit-learn LogisticRegression models implementing ModelInterface protocol.
-
-        This class wraps sklearn LogisticRegression models to make them compatible with the
-        GlassAlpha audit pipeline. It supports loading pre-trained models, predictions, and
-        capability declaration for plugin selection.
-        """
+        """Wrapper for scikit-learn LogisticRegression with Glass Alpha compatibility."""
 
         # Required class attributes for ModelInterface
         capabilities = {
-            "feature_names": True,  # Test expects this
-            "predict_proba": True,
-            "supports_shap": True,  # Will use KernelSHAP, not TreeSHAP
+            "supports_shap": True,
             "supports_feature_importance": True,
             "supports_proba": True,
             "data_modality": "tabular",
+            "feature_names": True,
         }
-        version = "1.0.0"  # Version expected by tests
-        model_type = "logistic_regression"  # Attribute expected by some tests
+        version = "1.0.0"
+        model_type = "logistic_regression"
 
         def __init__(self, model=None, feature_names=None, **kwargs):
-            """Initialize LogisticRegression wrapper with flexible parameters.
+            """Initialize LogisticRegression wrapper.
 
             Args:
-                model: Pre-trained LogisticRegression model object or None to create new one
-                feature_names: List of feature names for the model
-                **kwargs: Additional parameters passed to LogisticRegression constructor if no model provided
+                model: Pre-fitted LogisticRegression model or None to create new one
+                feature_names: List of feature names
+                **kwargs: Parameters passed to LogisticRegression constructor
 
             """
-            self.feature_names = list(feature_names) if feature_names is not None else None
-            self.n_classes: int = 2  # Default to binary classification
-            self._sklearn_params = kwargs  # Store sklearn parameters for get_params/set_params
-
             if model is not None:
                 # Use provided model
-                if not isinstance(model, LogisticRegression):
-                    raise ValueError(f"Expected LogisticRegression, got {type(model)}")
                 self.model = model
-                self._extract_model_info()
-            elif kwargs:
-                # Create new LogisticRegression with provided parameters
-                self.model = LogisticRegression(**kwargs)
+                self.feature_names = list(feature_names) if feature_names else None
             else:
-                # No model provided, will be created on fit
-                self.model = None
+                # Create new model with parameters
+                if kwargs:
+                    self.model = LogisticRegression(**kwargs)
+                else:
+                    self.model = LogisticRegression(random_state=42, max_iter=1000)
+                self.feature_names = list(feature_names) if feature_names else None
+
+            # Initialize status
+            self._is_fitted = hasattr(self.model, "coef_") and self.model.coef_ is not None
 
             logger.info("LogisticRegressionWrapper initialized")
 
-        def fit(self, X, y):
-            """Fit the LogisticRegression model.
-
-            Args:
-                X: Training data features
-                y: Training data targets
-
-            Returns:
-                self: Returns self for chaining
-
-            """
-            if self.model is None:
-                self.model = LogisticRegression(**self._sklearn_params)
-
-            # Capture feature names if X is DataFrame
-            import pandas as pd
-
-            if isinstance(X, pd.DataFrame):
+        def fit(self, X, y, **kwargs):
+            """Fit the logistic regression model."""
+            # Store feature names if X is DataFrame
+            if hasattr(X, "columns") and self.feature_names is None:
                 self.feature_names = list(X.columns)
 
-            self.model.fit(X, y)
-            self._extract_model_info()
+            # Fit the model
+            self.model.fit(X, y, **kwargs)
+            self._is_fitted = True
 
-            # Ensure classes_ is exposed for sklearn compatibility
-            if hasattr(self.model, "classes_"):
-                self.classes_ = self.model.classes_
+            # Store classes for compatibility
+            self.classes_ = self.model.classes_
 
             return self
 
-        def get_params(self, deep=True):
-            """Get parameters for this estimator."""
-            if self.model is not None:
-                return self.model.get_params(deep=deep)
-            return self._sklearn_params.copy()
+        def predict(self, X):
+            """Make predictions."""
+            if not self._is_fitted:
+                raise RuntimeError("Model not fitted")
 
-        def set_params(self, **params):
-            """Set parameters for this estimator."""
-            self._sklearn_params.update(params)
-            if self.model is not None:
-                self.model.set_params(**params)
-            return self
+            # Validate and reorder features if needed
+            X_processed = self._validate_and_reorder_features(X)
+            predictions = self.model.predict(X_processed)
+            
+            # Ensure 1D numpy array output
+            return np.array(predictions).flatten()
 
-        @property
-        def classes_(self):
-            """Access to classes_ attribute for sklearn compatibility."""
-            if self.model is not None and hasattr(self.model, "classes_"):
-                return self.model.classes_
-            return None
+        def predict_proba(self, X):
+            """Get prediction probabilities."""
+            if not self._is_fitted:
+                raise RuntimeError("Model not fitted")
 
-        def load(self, path: str | Path):
-            """Load trained scikit-learn model from saved file for inference and analysis."""
-            path = Path(path)
-            if not path.exists():
-                raise FileNotFoundError(f"Model file not found: {path}")
-
-            logger.info(f"Loading sklearn model from {path}")
-
-            # Try joblib first (recommended for sklearn), then pickle
-            try:
-                self.model = joblib.load(path)
-            except Exception as joblib_error:
-                try:
-                    with open(path, "rb") as f:
-                        self.model = pickle.load(f)
-                except Exception as pickle_error:
-                    raise ValueError(
-                        f"Could not load model with joblib ({joblib_error}) or pickle ({pickle_error})",
-                    ) from pickle_error
-
-            # Verify it's a LogisticRegression model
-            if not isinstance(self.model, LogisticRegression):
-                raise ValueError(f"Expected LogisticRegression, got {type(self.model)}")
-
-            self._extract_model_info()
-
-        def _extract_model_info(self):
-            """Extract metadata from loaded model."""
-            if self.model:
-                # Try to get feature names (if available from recent sklearn versions)
-                try:
-                    if hasattr(self.model, "feature_names_in_"):
-                        self.feature_names = list(self.model.feature_names_in_)
-                except Exception:
-                    # Graceful fallback - feature names not available
-                    logger.debug("Could not extract feature names from model")
-
-                # Determine number of classes
-                try:
-                    if hasattr(self.model, "classes_"):
-                        self.n_classes = len(self.model.classes_)
-                    else:
-                        self.n_classes = 2  # Default assumption
-                except Exception:
-                    # Graceful fallback
-                    logger.debug("Could not determine number of classes, defaulting to binary")
-                    self.n_classes = 2
-
-        def predict(self, X: pd.DataFrame) -> np.ndarray:
-            """Generate predictions for input data.
-
-            Returns:
-                1D numpy array of predictions
-
-            """
-            if self.model is None:
-                raise ValueError("Model not loaded. Load a model first.")
-
-            # Handle feature name validation and reordering
-            X = self._validate_and_reorder_features(X)
-
-            # Get predictions - ensure 1D numpy array output
-            predictions = self.model.predict(X)
-
-            # Ensure we return 1D numpy array
-            if not isinstance(predictions, np.ndarray):
-                predictions = np.array(predictions)
-            if predictions.ndim > 1:
-                predictions = predictions.flatten()
-
-            logger.debug(f"Generated predictions for {len(X)} samples")
-            return predictions
-
-        def predict_proba(self, X: pd.DataFrame) -> np.ndarray:
-            """Generate probability predictions for input data."""
-            if self.model is None:
-                raise ValueError("Model not loaded. Load a model first.")
-
-            # Handle feature name validation and reordering
-            X = self._validate_and_reorder_features(X)
-
-            # Get probability predictions
-            probabilities = self.model.predict_proba(X)
-
-            logger.debug(f"Generated probability predictions for {len(X)} samples")
-            return probabilities
+            # Validate and reorder features if needed
+            X_processed = self._validate_and_reorder_features(X)
+            return self.model.predict_proba(X_processed)
 
         def _validate_and_reorder_features(self, X):
             """Validate and reorder features to match training data."""
-            import pandas as pd
+            # If no stored feature names, return as-is
+            if self.feature_names is None:
+                return X
 
-            if not isinstance(X, pd.DataFrame):
-                return X  # Non-DataFrame data, let sklearn handle it
+            # If X has columns, ensure they match expected features
+            if hasattr(X, "columns"):
+                # Reorder columns to match training order
+                try:
+                    return X[self.feature_names]
+                except KeyError as e:
+                    missing_features = set(self.feature_names) - set(X.columns)
+                    raise ValueError(f"Missing features: {missing_features}") from e
 
-            if not self.feature_names:
-                return X  # No training feature names to check against
+            # For arrays, just return as-is (assume correct order)
+            return X
 
-            # Check if all required features are present
-            missing_features = set(self.feature_names) - set(X.columns)
-            if missing_features:
-                raise ValueError(f"Missing features in prediction data: {missing_features}")
+        def get_params(self, deep=True):
+            """Get model parameters."""
+            return self.model.get_params(deep=deep)
 
-            # Check for extra features
-            extra_features = set(X.columns) - set(self.feature_names)
-            if extra_features:
-                logger.warning(f"Extra features in prediction data (will be ignored): {extra_features}")
+        def set_params(self, **params):
+            """Set model parameters."""
+            return self.model.set_params(**params)
 
-            # Reorder columns to match training order
-            return X[self.feature_names]
+        @property
+        def classes_(self):
+            """Get fitted classes."""
+            if hasattr(self.model, "classes_"):
+                return self.model.classes_
+            return None
 
-        def get_model_type(self) -> str:
-            """Return the model type identifier."""
-            return "logistic_regression"
+        @classes_.setter
+        def classes_(self, value):
+            """Set classes (for compatibility)."""
+            if hasattr(self.model, "classes_"):
+                self.model.classes_ = value
 
-        def get_capabilities(self) -> dict[str, Any]:
-            """Return model capabilities for plugin selection."""
-            return self.capabilities
+        def get_feature_importance(self, importance_type="coef"):
+            """Get feature importance from coefficients."""
+            if not self._is_fitted:
+                raise RuntimeError("Model not fitted")
 
-        def get_feature_importance(self, importance_type: str = "coef") -> dict[str, float]:
-            """Get feature importance scores from the model."""
-            if self.model is None:
-                raise ValueError("Model not loaded. Load a model first.")
-
-            # Get coefficients
-            if hasattr(self.model, "coef_"):
-                coef = self.model.coef_
-
-                # Handle multi-class case (coef is 2D)
-                if coef.ndim == 2:
-                    # Binary vs multi-class classification
-                    coef = coef.flatten() if coef.shape[0] == 1 else np.abs(coef).mean(axis=0)
-
-                # Apply importance type
-                if importance_type == "coef":
-                    importance_values = np.abs(coef)
-                elif importance_type == "coef_raw":
-                    importance_values = coef
-                else:
-                    raise ValueError(f"Unknown importance_type: {importance_type}")
+            if importance_type == "coef":
+                # Use raw coefficients
+                importance = np.abs(self.model.coef_[0])  # Take first class for binary
             else:
-                raise ValueError("Model has no coefficients (coef_) attribute")
+                raise ValueError(f"Unknown importance type: {importance_type}")
 
-            # Create feature names if not available
-            n_features = len(importance_values)
-            if self.feature_names and len(self.feature_names) == n_features:
-                feature_names = self.feature_names
-            else:
-                feature_names = [f"feature_{i}" for i in range(n_features)]
+            # Create importance dict
+            feature_names = self.feature_names or [f"feature_{i}" for i in range(len(importance))]
+            return dict(zip(feature_names, importance.tolist()))
 
-            # Create dictionary
-            importance_dict = {
-                name: float(importance) for name, importance in zip(feature_names, importance_values, strict=False)
+        def get_model_info(self):
+            """Get model information."""
+            return {
+                "status": "fitted" if self._is_fitted else "not_fitted",
+                "n_features": len(self.feature_names) if self.feature_names else None,
+                **self.get_params(),
             }
 
-            logger.debug(f"Extracted {importance_type} feature importance for {len(importance_dict)} features")
-            return importance_dict
+        def __repr__(self):
+            """String representation."""
+            status = "fitted" if self._is_fitted else "not_fitted"
+            n_classes = len(self.classes_) if hasattr(self, "classes_") and self.classes_ is not None else "unknown"
+            return f"LogisticRegressionWrapper(status={status}, n_classes={n_classes}, version={self.version})"
 
-        def save(self, path: str | Path, use_joblib: bool = True):
-            """Save trained scikit-learn model to disk with optimized serialization."""
-            if self.model is None:
-                raise ValueError("No model to save")
-
-            path = Path(path)
-            path.parent.mkdir(parents=True, exist_ok=True)
-
-            if use_joblib:
-                joblib.dump(self.model, path)
-                logger.info(f"Saved sklearn model to {path} using joblib")
-            else:
-                with open(path, "wb") as f:
-                    pickle.dump(self.model, f)
-                logger.info(f"Saved sklearn model to {path} using pickle")
-
-        def get_model_info(self) -> dict[str, Any]:
-            """Get additional model information specific to LogisticRegression."""
-            if self.model is None:
-                return {"status": "not_loaded"}
-
-            info = {
-                "status": "loaded",
-                "n_classes": self.n_classes,
-                "n_features": self.model.n_features_in_ if hasattr(self.model, "n_features_in_") else None,
-                "solver": self.model.solver,
-                "penalty": self.model.penalty,
-                "C": self.model.C,
-                "max_iter": self.model.max_iter,
-            }
-
-            if hasattr(self.model, "n_iter_"):
-                info["n_iter"] = (
-                    self.model.n_iter_.tolist() if hasattr(self.model.n_iter_, "tolist") else self.model.n_iter_
-                )
-
-            return info
-
-        def __repr__(self) -> str:
-            """String representation of the wrapper."""
-            status = "loaded" if self.model else "not loaded"
-            return f"LogisticRegressionWrapper(status={status}, n_classes={self.n_classes}, version={self.version})"
-
-else:
-    # Stub class when sklearn unavailable
-    class LogisticRegressionWrapper:
-        """Stub class when sklearn is unavailable."""
-
-        def __init__(self, *args, **kwargs):
-            """Initialize stub - raises ImportError."""
-            raise ImportError("sklearn not available - install scikit-learn or fix CI environment")
-
-
-# Generic sklearn wrapper (keeping existing implementation but simplified)
-if SKLEARN_AVAILABLE:
-
-    @ModelRegistry.register("sklearn_generic", priority=50)
+    @ModelRegistry.register("sklearn_generic", priority=70)  
     class SklearnGenericWrapper(BaseEstimator):
-        """Generic wrapper for any scikit-learn estimator implementing ModelInterface protocol."""
+        """Generic wrapper for any scikit-learn estimator."""
 
+        # Required class attributes  
         capabilities = {
-            "supports_shap": True,  # Will use KernelSHAP
-            "supports_feature_importance": False,  # Not all models have feature importance
-            "supports_proba": False,  # Not all models have predict_proba
+            "supports_feature_importance": True,
+            "supports_proba": False,  # Will be updated based on model
             "data_modality": "tabular",
         }
         version = "1.0.0"
-        model_type = "sklearn_generic"  # Attribute expected by some tests
+        model_type = "sklearn_generic"
 
-        def __init__(self, model_path: str | Path | None = None, model: BaseEstimator | None = None, **kwargs):
-            """Initialize generic sklearn wrapper."""
-            self.model: BaseEstimator | None = model
-            self.feature_names: list | None = None
-            self.n_classes: int = 2  # Default assumption
+        def __init__(self, model=None, feature_names=None, **kwargs):
+            """Initialize generic sklearn wrapper.
 
-            if model_path:
-                self.load(model_path)
-            elif model:
-                self.model = model
-                self._extract_model_info()
-                self._update_capabilities()
-            # If no model provided but kwargs given, raise clear error
-            elif kwargs:
-                raise ValueError(
-                    "Generic wrapper requires a trained model. Use specific wrapper for training from scratch.",
-                )
+            Args:
+                model: Pre-fitted sklearn model
+                feature_names: List of feature names
+                **kwargs: If provided without model, raises error
 
-        def load(self, path: str | Path):
-            """Load trained scikit-learn model from saved file."""
-            path = Path(path)
-            if not path.exists():
-                raise FileNotFoundError(f"Model file not found: {path}")
+            """
+            if model is None and kwargs:
+                raise ValueError("SklearnGenericWrapper requires a fitted model when kwargs provided")
 
-            try:
-                self.model = joblib.load(path)
-            except Exception:
-                with open(path, "rb") as f:
-                    self.model = pickle.load(f)
+            self.model = model
+            self.feature_names = list(feature_names) if feature_names else None
 
-            if not isinstance(self.model, BaseEstimator):
-                raise ValueError(f"Expected sklearn BaseEstimator, got {type(self.model)}")
+            # Update capabilities based on model
+            if model:
+                self.capabilities["supports_proba"] = hasattr(model, "predict_proba")
 
-            self._extract_model_info()
-            self._update_capabilities()
+            logger.info("SklearnGenericWrapper initialized")
 
-        def _extract_model_info(self):
-            """Extract metadata from loaded model."""
-            if self.model and hasattr(self.model, "feature_names_in_"):
-                self.feature_names = list(self.model.feature_names_in_)
-
-        def _update_capabilities(self):
-            """Update capabilities based on the loaded model."""
-            if self.model:
-                self.capabilities["supports_proba"] = hasattr(self.model, "predict_proba")
-                has_importance = any(
-                    [
-                        hasattr(self.model, "coef_"),
-                        hasattr(self.model, "feature_importances_"),
-                    ],
-                )
-                self.capabilities["supports_feature_importance"] = has_importance
-
-        def predict(self, X: pd.DataFrame) -> np.ndarray:
-            """Generate predictions for input data."""
+        def predict(self, X):
+            """Make predictions."""
             if self.model is None:
-                raise ValueError("Model not loaded. Load a model first.")
+                raise RuntimeError("No model loaded")
             return self.model.predict(X)
 
-        def predict_proba(self, X: pd.DataFrame) -> np.ndarray:
-            """Generate probability predictions for input data."""
+        def predict_proba(self, X):
+            """Get prediction probabilities if supported."""
             if self.model is None:
-                raise ValueError("Model not loaded. Load a model first.")
+                raise RuntimeError("No model loaded")
             if not hasattr(self.model, "predict_proba"):
-                raise ValueError(f"Model {type(self.model).__name__} does not support predict_proba")
+                raise AttributeError("Model does not support predict_proba")
             return self.model.predict_proba(X)
 
-        def get_model_type(self) -> str:
-            """Return the model type identifier."""
-            return "sklearn_generic"
-
-        def get_capabilities(self) -> dict[str, Any]:
-            """Return model capabilities for plugin selection."""
-            return self.capabilities
-
-        def get_feature_importance(self, importance_type: str = "auto") -> dict[str, float]:
-            """Get feature importance scores from the model."""
+        def get_feature_importance(self, importance_type="auto"):
+            """Get feature importance."""
             if self.model is None:
-                raise ValueError("Model not loaded. Load a model first.")
+                raise RuntimeError("No model loaded")
 
-            importance_values = None
-
-            # Try different importance attributes based on model type
             if hasattr(self.model, "feature_importances_"):
-                # Tree-based models (RandomForest, GradientBoosting, etc.)
-                importance_values = self.model.feature_importances_
+                importance = self.model.feature_importances_
             elif hasattr(self.model, "coef_"):
-                # Linear models (LogisticRegression, LinearRegression, SVM, etc.)
                 coef = self.model.coef_
-                if coef.ndim == 2:
-                    # Handle multi-class case
-                    coef = coef.flatten() if coef.shape[0] == 1 else np.abs(coef).mean(axis=0)
-                importance_values = np.abs(coef)
+                if coef.ndim > 1:
+                    # Multi-class: take mean absolute coefficients
+                    importance = np.mean(np.abs(coef), axis=0)
+                else:
+                    importance = np.abs(coef)
             else:
-                # Fallback: compute permutation importance (simple version)
-                try:
-                    from sklearn.inspection import permutation_importance
+                # Fallback: uniform importance
+                n_features = len(self.feature_names) if self.feature_names else 1
+                importance = np.ones(n_features) / n_features
 
-                    # This is a minimal fallback - would need proper X,y for real permutation importance
-                    # For now, return uniform importance
-                    n_features = getattr(self.model, "n_features_in_", 10)  # Default to 10 if unknown
-                    importance_values = np.ones(n_features) / n_features
-                except ImportError:
-                    # Ultimate fallback
-                    n_features = getattr(self.model, "n_features_in_", 10)
-                    importance_values = np.ones(n_features) / n_features
+            feature_names = self.feature_names or [f"feature_{i}" for i in range(len(importance))]
+            return dict(zip(feature_names, importance.tolist()))
 
-            # Create feature names
-            n_features = len(importance_values)
-            if self.feature_names and len(self.feature_names) == n_features:
-                feature_names = self.feature_names
-            else:
-                feature_names = [f"feature_{i}" for i in range(n_features)]
+        def get_model_type(self):
+            """Get model type."""
+            return self.model_type
 
-            importance_dict = {
-                name: float(importance) for name, importance in zip(feature_names, importance_values, strict=False)
-            }
-
-            logger.debug(f"Extracted feature importance for {len(importance_dict)} features")
-            return importance_dict
+        def __repr__(self):
+            """String representation."""
+            model_name = type(self.model).__name__ if self.model else "None"
+            return f"SklearnGenericWrapper(model={model_name}, version={self.version})"
 
 else:
-    # Stub class when sklearn unavailable
-    class SklearnGenericWrapper:
-        """Stub class when sklearn is unavailable."""
+    # Stub classes when sklearn unavailable
+    class LogisticRegressionWrapper:
+        """Stub class when scikit-learn is unavailable."""
 
         def __init__(self, *args, **kwargs):
             """Initialize stub - raises ImportError."""
-            raise ImportError("sklearn not available - install scikit-learn or fix CI environment")
+            raise ImportError("scikit-learn not available - install sklearn or fix CI environment")
+
+    class SklearnGenericWrapper:
+        """Stub class when scikit-learn is unavailable."""
+
+        def __init__(self, *args, **kwargs):
+            """Initialize stub - raises ImportError."""  
+            raise ImportError("scikit-learn not available - install sklearn or fix CI environment")
