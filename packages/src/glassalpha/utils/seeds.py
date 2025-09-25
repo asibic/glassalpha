@@ -11,6 +11,7 @@ import random
 import time
 from collections.abc import Generator
 from contextlib import contextmanager
+from datetime import UTC, datetime
 from typing import Any
 
 import numpy as np
@@ -196,7 +197,7 @@ class SeedManager:
                 "torch": self._check_framework_availability("torch"),
                 "tensorflow": self._check_framework_availability("tensorflow"),
             },
-            "timestamp": time.time(),  # Required by tests
+            "timestamp": datetime.now(UTC).isoformat(),  # Required by tests - ISO8601 UTC format
         }
 
     def _check_framework_availability(self, framework: str) -> bool:

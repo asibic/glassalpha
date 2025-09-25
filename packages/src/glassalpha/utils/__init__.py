@@ -12,6 +12,7 @@ from .manifest import AuditManifest, ManifestGenerator
 from .seeds import (
     SeedManager,
     get_component_seed,
+    get_seeds_manifest,
     set_global_seed,
     with_component_seed,
     with_seed,
@@ -20,6 +21,7 @@ from .seeds import (
 __all__ = [
     "SeedManager",
     "get_component_seed",
+    "get_seeds_manifest",
     "set_global_seed",
     "with_component_seed",
     "with_seed",

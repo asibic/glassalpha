@@ -31,8 +31,8 @@ def hash_object(obj: Any, algorithm: str = "sha256") -> str:
 
     """
     try:
-        # Convert to deterministic JSON representation
-        json_str = json.dumps(obj, sort_keys=True, default=str)
+        # Convert to deterministic JSON representation - no default to ensure strict serialization
+        json_str = json.dumps(obj, sort_keys=True)
 
         # Generate hash
         hash_obj = hashlib.new(algorithm)
