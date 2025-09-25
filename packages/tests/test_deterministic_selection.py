@@ -8,7 +8,6 @@ import hashlib
 import json
 
 # Note: pandas/numpy mocking removed to avoid matplotlib import issues
-
 from glassalpha.core import (
     ExplainerRegistry,
     MetricRegistry,
@@ -25,7 +24,6 @@ class TestDeterministicSelection:
         """Set up test fixtures."""
         # Clear registries to ensure clean state
         # Note: In production, registries persist, but for tests we want isolation
-        pass
 
     def test_explainer_selection_is_deterministic(self):
         """Test that explainer selection is deterministic with same config."""

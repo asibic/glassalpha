@@ -38,7 +38,7 @@ dependencies = [
     # Future: Consider "xgboost[gpu]" in optional enterprise dependencies for large-scale audits
     "xgboost>=2.0.0,<3.0.0", # XGBoost model support (CPU-only, no CUDA overhead)
     "lightgbm>=4.0.0",       # LightGBM model support
-    "shap>=0.43,<0.46",      # SHAP explainability (NumPy 1.x compatible)  
+    "shap>=0.43,<0.46",      # SHAP explainability (NumPy 1.x compatible)
     "matplotlib>=3.7,<3.9",  # Plotting for reports (NumPy 1.x compatible)
     "seaborn>=0.12.0",       # Statistical plotting
     "jinja2>=3.1.0",         # Template engine for reports

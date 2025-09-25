@@ -5,13 +5,10 @@ and that the OSS/Enterprise boundary is enforced correctly.
 """
 
 import os
-import sys
-from unittest.mock import MagicMock
 
 import pytest
 
 # Note: pandas/numpy mocking removed to avoid matplotlib import issues
-
 from glassalpha.core import (
     ExplainerRegistry,
     FeatureNotAvailable,
