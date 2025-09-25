@@ -163,16 +163,16 @@ class AuditManifest(BaseModel):
         """
         path = Path(path)
 
-        with open(path, "w") as f:
+        with path.open("w") as f:
             f.write(self.to_json())
 
-        logger.info(f"Audit manifest saved to {path}")
+        logger.info("Audit manifest saved to %s", path)
 
 
 class ManifestGenerator:
     """Generator for comprehensive audit manifests."""
 
-    def __init__(self, audit_id: str | None = None):
+    def __init__(self, audit_id: str | None = None) -> None:
         """Initialize manifest generator.
 
         Args:
@@ -195,7 +195,7 @@ class ManifestGenerator:
             execution=ExecutionInfo(start_time=self.start_time),
         )
 
-        logger.info(f"Initialized audit manifest: {self.audit_id}")
+        logger.info("Initialized audit manifest: %s", self.audit_id)
 
     def add_config(self, config: dict[str, Any]) -> None:
         """Add configuration to manifest.
@@ -213,7 +213,7 @@ class ManifestGenerator:
 
     def add_seeds(self) -> None:
         """Add seed information to manifest."""
-        from .seeds import validate_deterministic_environment
+        from .seeds import validate_deterministic_environment  # noqa: PLC0415
 
         self.manifest.seeds = get_seeds_manifest()
         self.manifest.deterministic_validation = validate_deterministic_environment()
@@ -224,7 +224,7 @@ class ManifestGenerator:
         self,
         component_type: str,
         component_name: str,
-        component: Any,
+        component: Any,  # noqa: ANN401
         priority: int | None = None,
         config: dict[str, Any] | None = None,
     ) -> None:
@@ -254,7 +254,7 @@ class ManifestGenerator:
         key = f"{component_type}_{component_name}"
         self.manifest.selected_components[key] = component_info
 
-        logger.debug(f"Added component to manifest: {key}")
+        logger.debug("Added component to manifest: %s", key)
 
     def add_dataset(
         self,
@@ -285,12 +285,12 @@ class ManifestGenerator:
             dataset_info.hash = hash_dataframe(data)
             dataset_info.shape = data.shape
             dataset_info.columns = list(data.columns)
-            dataset_info.missing_values = data.isnull().sum().to_dict()
+            dataset_info.missing_values = data.isna().sum().to_dict()
         elif file_path and file_path.exists():
             dataset_info.hash = hash_file(file_path)
 
         self.manifest.datasets[dataset_name] = dataset_info
-        logger.debug(f"Added dataset to manifest: {dataset_name}")
+        logger.debug("Added dataset to manifest: %s", dataset_name)
 
     def add_result_hash(self, result_name: str, result_hash: str) -> None:
         """Add hash of result/output to manifest.
@@ -301,7 +301,7 @@ class ManifestGenerator:
 
         """
         self.manifest.result_hashes[result_name] = result_hash
-        logger.debug(f"Added result hash: {result_name}")
+        logger.debug("Added result hash: %s", result_name)
 
     def mark_completed(self, status: str = "completed", error: str | None = None) -> None:
         """Mark audit as completed.
@@ -313,7 +313,8 @@ class ManifestGenerator:
         """
         # Validate status
         if status not in {"completed", "failed", "success"}:  # Added "success" for test compatibility
-            raise ValueError("status must be 'completed', 'failed', or 'success'")
+            msg = "status must be 'completed', 'failed', or 'success'"
+            raise ValueError(msg)
 
         end_time = datetime.now(UTC)
 
@@ -330,7 +331,7 @@ class ManifestGenerator:
         if error:
             self.manifest.execution.error_message = error
 
-        logger.info(f"Audit marked as {status} (duration: {self.manifest.execution.duration_seconds:.2f}s)")
+        logger.info("Audit marked as %s (duration: %.2fs)", status, self.manifest.execution.duration_seconds)
 
     def finalize(self) -> AuditManifest:
         """Finalize and return the completed manifest.
@@ -365,15 +366,15 @@ class ManifestGenerator:
 
         """
         # Collect key environment variables (excluding sensitive ones)
-        safe_env_vars = {}
         sensitive_keys = {"PASSWORD", "TOKEN", "SECRET", "KEY", "CREDENTIAL"}
 
-        for key, value in os.environ.items():
-            # Only include relevant non-sensitive variables
-            if (key.startswith(("PYTHON", "GLASSALPHA", "PATH")) or key in {"USER", "HOME", "PWD"}) and not any(
-                sensitive in key.upper() for sensitive in sensitive_keys
-            ):
-                safe_env_vars[key] = value
+        # Use dictionary comprehension for better performance
+        safe_env_vars = {
+            key: value
+            for key, value in os.environ.items()
+            if (key.startswith(("PYTHON", "GLASSALPHA", "PATH")) or key in {"USER", "HOME", "PWD"})
+            and not any(sensitive in key.upper() for sensitive in sensitive_keys)
+        }
 
         return EnvironmentInfo(
             python_version=sys.version,
@@ -395,26 +396,42 @@ class ManifestGenerator:
         """
         try:
             # Check if we're in a git repository
-            subprocess.run(["git", "status"], capture_output=True, check=True, cwd=Path.cwd())
+            subprocess.run(["git", "status"], capture_output=True, check=True, cwd=Path.cwd())  # noqa: S607
 
             # Get commit hash
-            commit_result = subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True, text=True, check=True)
+            commit_result = subprocess.run(
+                ["git", "rev-parse", "HEAD"],  # noqa: S607
+                capture_output=True,
+                text=True,
+                check=True,
+            )
             commit_hash = commit_result.stdout.strip()
 
             # Get branch name
             branch_result = subprocess.run(
-                ["git", "branch", "--show-current"], capture_output=True, text=True, check=True
+                ["git", "branch", "--show-current"],  # noqa: S607
+                capture_output=True,
+                text=True,
+                check=True,
             )
             branch = branch_result.stdout.strip()
 
             # Check if working directory is dirty
-            status_result = subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True, check=True)
+            status_result = subprocess.run(
+                ["git", "status", "--porcelain"],  # noqa: S607
+                capture_output=True,
+                text=True,
+                check=True,
+            )
             is_dirty = bool(status_result.stdout.strip())
 
             # Get remote URL
             try:
                 remote_result = subprocess.run(
-                    ["git", "remote", "get-url", "origin"], capture_output=True, text=True, check=True
+                    ["git", "remote", "get-url", "origin"],  # noqa: S607
+                    capture_output=True,
+                    text=True,
+                    check=True,
                 )
                 remote_url = remote_result.stdout.strip()
             except subprocess.CalledProcessError:
@@ -423,7 +440,10 @@ class ManifestGenerator:
             # Get commit message and timestamp
             try:
                 commit_info_result = subprocess.run(
-                    ["git", "log", "-1", "--pretty=format:%s|%ci"], capture_output=True, text=True, check=True
+                    ["git", "log", "-1", "--pretty=format:%s|%ci"],  # noqa: S607
+                    capture_output=True,
+                    text=True,
+                    check=True,
                 )
                 commit_info = commit_info_result.stdout.strip().split("|")
                 commit_message = commit_info[0] if len(commit_info) > 0 else None
@@ -477,16 +497,18 @@ def load_manifest(path: Path) -> AuditManifest:
     path = Path(path)
 
     if not path.exists():
-        raise FileNotFoundError(f"Manifest file not found: {path}")
+        msg = f"Manifest file not found: {path}"
+        raise FileNotFoundError(msg)
 
     try:
-        with open(path) as f:
+        with path.open() as f:
             manifest_data = json.load(f)
 
         return AuditManifest(**manifest_data)
 
     except Exception as e:
-        raise ValueError(f"Invalid manifest file {path}: {e}") from e
+        msg = f"Invalid manifest file {path}: {e}"
+        raise ValueError(msg) from e
 
 
 def compare_manifests(manifest1: AuditManifest, manifest2: AuditManifest) -> dict[str, Any]:
@@ -526,7 +548,7 @@ def compare_manifests(manifest1: AuditManifest, manifest2: AuditManifest) -> dic
             comparison["seed_match"],
             comparison["components_match"],
             comparison["data_hash_match"],
-        ]
+        ],
     ):
         comparison["identical"] = False
 
