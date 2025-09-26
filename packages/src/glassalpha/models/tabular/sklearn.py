@@ -45,7 +45,7 @@ class SklearnGenericWrapper:
             feature_names: Optional feature names for interpretation
 
         """
-            self.model = model
+        self.model = model
         self.feature_names = list(feature_names) if feature_names is not None else None
         self.capabilities = {
             "predict": hasattr(model, "predict"),
@@ -261,18 +261,18 @@ if SKLEARN_AVAILABLE:
                 # Check for missing/extra features with clean error message (tests expect this format)
                 provided_features = list(map(str, X.columns.tolist()))
                 expected_features = list(map(str, self.feature_names))
-                
+
                 provided_set = set(provided_features)
                 expected_set = set(expected_features)
-                
+
                 missing = sorted(expected_set - provided_set)
                 extra = sorted(provided_set - expected_set)
-                
+
                 if missing or extra:
                     # Clean error message format that tests expect (not raw sklearn message)
                     raise ValueError(
                         "Feature names mismatch between fitted and provided data. "
-                        f"Missing: {missing or '[]'}; Extra: {extra or '[]'}"
+                        f"Missing: {missing or '[]'}; Extra: {extra or '[]'}",
                     )
 
                 # Reorder columns to match training order
@@ -306,22 +306,22 @@ if SKLEARN_AVAILABLE:
             if hasattr(self.model, "classes_"):
                 self.model.classes_ = value
 
-        def get_feature_importance(self, importance_type="coef"):
-            """Get feature importance from coefficients."""
-            if not self._is_fitted:
-                msg = "Model not fitted"
-                raise RuntimeError(msg)
+    def get_feature_importance(self, importance_type="coef"):
+        """Get feature importance from coefficients."""
+        if not self._is_fitted:
+            msg = "Model not fitted"
+            raise RuntimeError(msg)
 
-            if importance_type == "coef":
-                # Use raw coefficients
-                importance = np.abs(self.model.coef_[0])  # Take first class for binary
-            else:
-                msg = f"Unknown importance type: {importance_type}"
-                raise ValueError(msg)
+        if importance_type == "coef":
+            # Use raw coefficients
+            importance = np.abs(self.model.coef_[0])  # Take first class for binary
+        else:
+            msg = f"Unknown importance type: {importance_type}"
+            raise ValueError(msg)
 
-            # Create importance dict
-            feature_names = self.feature_names or [f"feature_{i}" for i in range(len(importance))]
-            return dict(zip(feature_names, importance.tolist(), strict=False))
+        # Create importance dict
+        feature_names = self.feature_names or [f"feature_{i}" for i in range(len(importance))]
+        return dict(zip(feature_names, importance.tolist(), strict=False))
 
         def get_model_info(self):
             """Get model information."""
@@ -368,11 +368,11 @@ if SKLEARN_AVAILABLE:
             wrapper.feature_names = model_data.get("feature_names")
             wrapper.n_classes = model_data.get("n_classes")
             wrapper._is_fitted = model_data.get("_is_fitted", False)
-            
+
             # Restore classes_ attribute if model has it (needed for some tests)
             if wrapper.model is not None and hasattr(wrapper.model, "classes_"):
                 wrapper.classes_ = wrapper.model.classes_
-                
+
             return wrapper
 
     def __repr__(self) -> str:
@@ -381,24 +381,24 @@ if SKLEARN_AVAILABLE:
             n_classes = len(self.classes_) if hasattr(self, "classes_") and self.classes_ is not None else "unknown"
             return f"LogisticRegressionWrapper(status={status}, n_classes={n_classes}, version={self.version})"
 
-@ModelRegistry.register("sklearn_generic", priority=70)
+    @ModelRegistry.register("sklearn_generic", priority=70)
     class SklearnGenericWrapper(BaseEstimator):
         """Generic wrapper for any scikit-learn estimator."""
 
         # Required class attributes
-    capabilities = {
+        capabilities = {
             "supports_shap": True,
             "supports_feature_importance": True,
             "supports_proba": False,  # Will be updated based on model
-        "data_modality": "tabular",
-    }
-    version = "1.0.0"
+            "data_modality": "tabular",
+        }
+        version = "1.0.0"
         model_type = "sklearn_generic"
 
         def __init__(self, model=None, feature_names=None, **kwargs) -> None:
-        """Initialize generic sklearn wrapper.
+            """Initialize generic sklearn wrapper.
 
-        Args:
+            Args:
                 model: Pre-fitted sklearn model
                 feature_names: List of feature names
                 **kwargs: If provided without model, raises error
@@ -408,7 +408,7 @@ if SKLEARN_AVAILABLE:
                 msg = "SklearnGenericWrapper requires a fitted model when kwargs provided"
                 raise ValueError(msg)
 
-            self.model = model
+                self.model = model
             self.feature_names = list(feature_names) if feature_names else None
 
             # Update capabilities based on model
@@ -419,85 +419,85 @@ if SKLEARN_AVAILABLE:
 
         def predict(self, X):
             """Make predictions."""
-        if self.model is None:
+            if self.model is None:
                 msg = "No model loaded"
                 raise RuntimeError(msg)
             return self.model.predict(X)
 
         def predict_proba(self, X):
             """Get prediction probabilities if supported."""
-        if self.model is None:
+            if self.model is None:
                 msg = "No model loaded"
                 raise RuntimeError(msg)
-        if not hasattr(self.model, "predict_proba"):
+            if not hasattr(self.model, "predict_proba"):
                 msg = "Model does not support predict_proba"
                 raise AttributeError(msg)
             return self.model.predict_proba(X)
 
-        def get_feature_importance(self, importance_type="auto"):
-            """Get feature importance."""
+    def get_feature_importance(self, importance_type="auto"):
+        """Get feature importance."""
         if self.model is None:
-                msg = "No model loaded"
-                raise RuntimeError(msg)
+            msg = "No model loaded"
+            raise RuntimeError(msg)
 
         if hasattr(self.model, "feature_importances_"):
-                importance = self.model.feature_importances_
+            importance = self.model.feature_importances_
         elif hasattr(self.model, "coef_"):
             coef = self.model.coef_
-                if coef.ndim > 1:
-                    # Multi-class: take mean absolute coefficients
-                    importance = np.mean(np.abs(coef), axis=0)
+            if coef.ndim > 1:
+                # Multi-class: take mean absolute coefficients
+                importance = np.mean(np.abs(coef), axis=0)
+            else:
+                importance = np.abs(coef)
         else:
-                    importance = np.abs(coef)
-        else:
-                # Fallback: uniform importance
-                n_features = len(self.feature_names) if self.feature_names else 1
-                importance = np.ones(n_features) / n_features
+            # Fallback: uniform importance
+            n_features = len(self.feature_names) if self.feature_names else 1
+            importance = np.ones(n_features) / n_features
 
-            feature_names = self.feature_names or [f"feature_{i}" for i in range(len(importance))]
-            return dict(zip(feature_names, importance.tolist(), strict=False))
+        feature_names = self.feature_names or [f"feature_{i}" for i in range(len(importance))]
+        return dict(zip(feature_names, importance.tolist(), strict=False))
 
-        def get_model_type(self):
-            """Get model type."""
-            return self.model_type
+    def get_model_type(self):
+        """Get model type."""
+        return self.model_type
 
-        def get_capabilities(self):
-            """Get model capabilities."""
-            return self.capabilities.copy()
+    def get_capabilities(self):
+        """Get model capabilities."""
+        return self.capabilities.copy()
 
-        def get_model_info(self):
-            """Get model information."""
-            return {
-                "model_type": self.model_type,
-                "version": self.version,
-                "has_model": self.model is not None,
-            }
+    def get_model_info(self):
+        """Get model information."""
+        return {
+            "model_type": self.model_type,
+            "version": self.version,
+            "has_model": self.model is not None,
+        }
 
-        def save(self, path: str) -> None:
-            """Save model to file."""
-            import joblib
+    def save(self, path: str) -> None:
+        """Save model to file."""
+        import joblib
 
-            model_data = {
-                "model": self.model,
-                "feature_names": self.feature_names,
-            }
-            joblib.dump(model_data, path)
+        model_data = {
+            "model": self.model,
+            "feature_names": self.feature_names,
+        }
+        joblib.dump(model_data, path)
 
-        @classmethod
-        def load(cls, path: str):
-            """Load model from file."""
-            import joblib
+    @classmethod
+    def load(cls, path: str):
+        """Load model from file."""
+        import joblib
 
-            model_data = joblib.load(path)
-            wrapper = cls()
-            wrapper.model = model_data["model"]
-            wrapper.feature_names = model_data.get("feature_names")
-            return wrapper
+        model_data = joblib.load(path)
+        wrapper = cls()
+        wrapper.model = model_data["model"]
+        wrapper.feature_names = model_data.get("feature_names")
+        return wrapper
 
     def __repr__(self) -> str:
-            """String representation."""
+        """String representation."""
         model_name = type(self.model).__name__ if self.model else "None"
-            return f"SklearnGenericWrapper(model={model_name}, version={self.version})"
+        return f"SklearnGenericWrapper(model={model_name}, version={self.version})"
 
 else:
     # Stub classes when sklearn unavailable
