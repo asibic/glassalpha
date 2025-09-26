@@ -482,53 +482,27 @@ class ManifestGenerator:
 
         def _run(*args: str) -> str:
             """Helper to run git commands safely."""
-            return subprocess.run(args, capture_output=True, check=True, text=True).stdout.strip()  # noqa: S603
+            p = subprocess.run(args, capture_output=True, check=False, text=True)  # noqa: S603
+            return (p.stdout or "").strip()
 
-        try:
-            # Friend's spec: use subprocess.run with text=True and never .decode()
-            info = {
-                "commit_sha": _run("git", "rev-parse", "HEAD"),
-                "branch": _run("git", "rev-parse", "--abbrev-ref", "HEAD"),
-                "remote_url": "",
-                "last_commit_message": _run("git", "log", "-1", "--pretty=%B"),
-                "last_commit_date": _run("git", "log", "-1", "--date=iso-strict", "--pretty=%cd"),
-            }
+        # Friend's spec: use subprocess.run with text=True and never .decode()
+        info = {
+            "commit_sha": _run("git", "rev-parse", "HEAD"),
+            "branch": _run("git", "rev-parse", "--abbrev-ref", "HEAD"),
+            "remote_url": _run("git", "config", "--get", "remote.origin.url"),
+            "last_commit_message": _run("git", "log", "-1", "--pretty=%B"),
+            "last_commit_date": _run("git", "log", "-1", "--date=iso-strict", "--pretty=%cd"),
+        }
+        info["is_dirty"] = bool(_run("git", "status", "--porcelain"))
 
-            # Get remote URL (may fail)
-            try:
-                info["remote_url"] = _run("git", "config", "--get", "remote.origin.url")
-            except subprocess.CalledProcessError:
-                info["remote_url"] = ""
-
-            # Friend's spec: compute is_dirty from git status --porcelain
-            status = subprocess.run(
-                ["git", "status", "--porcelain"],  # noqa: S607
-                capture_output=True,
-                text=True,
-                check=False,  # Don't raise on error
-            )
-            is_dirty = bool(status.stdout.strip())
-
-            return GitInfo(
-                commit_hash=info["commit_sha"],
-                branch=info["branch"],
-                is_dirty=is_dirty,
-                remote_url=info["remote_url"] or None,
-                commit_message=info["last_commit_message"],
-                commit_timestamp=info["last_commit_date"],
-            )
-
-        except (subprocess.CalledProcessError, FileNotFoundError):
-            # Friend's spec: if commands fail, return empty strings and is_dirty=False; do not raise
-            logger.debug("Git information not available")
-            return GitInfo(
-                commit_hash="",
-                branch="",
-                is_dirty=False,
-                remote_url=None,
-                commit_message="",
-                commit_timestamp="",
-            )
+        return GitInfo(
+            commit_hash=info["commit_sha"],
+            branch=info["branch"],
+            is_dirty=info["is_dirty"],
+            remote_url=info["remote_url"] or None,
+            commit_message=info["last_commit_message"],
+            commit_timestamp=info["last_commit_date"],
+        )
 
 
 def create_manifest(audit_id: str | None = None) -> ManifestGenerator:

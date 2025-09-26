@@ -253,7 +253,8 @@ if SKLEARN_AVAILABLE:
             Xp = self._prepare_x(X)  # noqa: N806
             self.model.fit(Xp, y)
 
-            # Set n_classes from fitted model
+            # Set fitted state
+            self.status = "fitted"
             self.n_classes = len(getattr(self.model, "classes_", []))
             self._is_fitted = True
 
@@ -265,7 +266,7 @@ if SKLEARN_AVAILABLE:
                 msg = "Model not fitted"
                 raise RuntimeError(msg)
 
-            # Use _prepare_x for robust feature handling
+            # Use _prepare_X for robust feature handling
             Xp = self._prepare_x(X)  # noqa: N806
             predictions = self.model.predict(Xp)
 
@@ -278,7 +279,7 @@ if SKLEARN_AVAILABLE:
                 msg = "Model not fitted"
                 raise RuntimeError(msg)
 
-            # Use _prepare_x for robust feature handling
+            # Use _prepare_X for robust feature handling
             Xp = self._prepare_x(X)  # noqa: N806
             return self.model.predict_proba(Xp)
 
@@ -416,13 +417,12 @@ if SKLEARN_AVAILABLE:
                 {
                     "model": self.model,
                     "feature_names_": getattr(self, "feature_names_", None),
-                    "n_classes": getattr(self, "n_classes", None),
-                    "version": "1.0.0",
+                    "n_classes": len(getattr(self.model, "classes_", [])) if self.model else None,
                 },
                 Path(path),
             )
 
-        def load(self, path: str | Path) -> None:
+        def load(self, path: str | Path) -> LogisticRegressionWrapper:
             """Load model from file (instance method)."""
             import joblib  # noqa: PLC0415
 
@@ -430,23 +430,24 @@ if SKLEARN_AVAILABLE:
             self.model = obj["model"]
             self.feature_names_ = obj.get("feature_names_")
             self.n_classes = obj.get("n_classes")
-            # Friend's spec: set status to "fitted" so predict/predict_proba/get_feature_importance work
-            self._is_fitted = True
+            self.status = "fitted"
+            self._is_fitted = True  # Also set internal flag for compatibility
+            return self
 
         def _prepare_x(self, X: Any) -> Any:  # noqa: N803, ANN401
             """Feature handling helper used by predict and predict_proba."""
             import pandas as pd  # noqa: PLC0415
 
             if isinstance(X, pd.DataFrame):
-                if getattr(self, "feature_names_", None):
-                    cols = list(X.columns)
-                    fitted = list(self.feature_names_)
-                    if len(cols) == len(fitted) and not set(fitted).issubset(set(cols)):
-                        # renamed but same order: use positional
-                        return X.to_numpy()
-                    # normal path: align by name, drop extras, fill missing with 0
-                    return X.reindex(columns=fitted, fill_value=0)
-                return X.to_numpy()
+                fitted = getattr(self, "feature_names_", None)
+                if not fitted:
+                    return X.to_numpy()
+                cols = list(X.columns)
+                if len(cols) == len(fitted) and set(cols) != set(fitted):
+                    # renamed only, same order/width
+                    return X.to_numpy()
+                # align by name, drop extras, fill missing with 0
+                return X.reindex(columns=fitted, fill_value=0)
             return X
 
         def __repr__(self) -> str:

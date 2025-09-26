@@ -134,7 +134,8 @@ class LightGBMWrapper:
             callbacks=[lgb.log_evaluation(0)],  # Silent training
         )
 
-        # Set n_classes from training data
+        # Set fitted state
+        self.status = "fitted"
         self.n_classes = len(np.unique(y))
         n_features = len(X_processed.columns) if hasattr(X_processed, "columns") else X_processed.shape[1]
         logger.info("Trained LightGBM model with %d features", n_features)
@@ -169,12 +170,15 @@ class LightGBMWrapper:
         import pandas as pd  # noqa: PLC0415
 
         if isinstance(X, pd.DataFrame):
-            if getattr(self, "feature_names_", None):
-                fitted = list(self.feature_names_)
-                if len(X.columns) == len(fitted) and set(fitted) - set(X.columns):
-                    return X.to_numpy()  # renamed only
-                return X.reindex(columns=fitted, fill_value=0)
-            return X.to_numpy()
+            fitted = getattr(self, "feature_names_", None)
+            if not fitted:
+                return X.to_numpy()
+            cols = list(X.columns)
+            if len(cols) == len(fitted) and set(cols) != set(fitted):
+                # renamed only, same order/width
+                return X.to_numpy()
+            # align by name, drop extras, fill missing with 0
+            return X.reindex(columns=fitted, fill_value=0)
         return X
 
     def predict(self, X: pd.DataFrame) -> np.ndarray:  # noqa: N803
@@ -191,7 +195,7 @@ class LightGBMWrapper:
             msg = "Model not loaded. Load a model first."
             raise ValueError(msg)
 
-        # Use _prepare_x for robust feature handling
+        # Use _prepare_X for robust feature handling
         X_processed = self._prepare_x(X)  # noqa: N806
 
         # Get raw predictions
@@ -223,7 +227,7 @@ class LightGBMWrapper:
             msg = "Model not loaded. Load a model first."
             raise ValueError(msg)
 
-        # Use _prepare_x for robust feature handling
+        # Use _prepare_X for robust feature handling
         X_processed = self._prepare_x(X)  # noqa: N806
 
         # Get raw predictions (probabilities)
