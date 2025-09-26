@@ -32,7 +32,7 @@ class TabularDataSchema(DataSchema):
     categorical_features: list[str] | None = Field(None, description="Columns that should be treated as categorical")
     numeric_features: list[str] | None = Field(None, description="Columns that should be treated as numeric")
 
-    def model_post_init(self, __context: Any) -> None:
+    def model_post_init(self, __context: Any, /) -> None:  # noqa: ANN401
         """Validate schema constraints after initialization."""
         # Target cannot be in features
         if self.target in self.features:
@@ -87,12 +87,12 @@ class TabularDataLoader(DataInterface):
             elif path.suffix == ".parquet":
                 data = pd.read_parquet(path)
             elif path.suffix == ".pkl":
-                data = pd.read_pickle(path)
+                data = pd.read_pickle(path)  # noqa: S301
             elif path.suffix == ".feather":
                 data = pd.read_feather(path)
             else:
                 msg = f"Format {path.suffix} not implemented"
-                raise ValueError(msg)
+                raise ValueError(msg)  # noqa: TRY301
 
         except Exception as e:
             msg = f"Failed to load data from {path}: {e}"
@@ -106,7 +106,7 @@ class TabularDataLoader(DataInterface):
 
         return data
 
-    def validate_schema(self, data: pd.DataFrame, schema: DataSchema) -> None:
+    def validate_schema(self, data: pd.DataFrame, schema: DataSchema) -> None:  # noqa: C901
         """Validate DataFrame against schema.
 
         Args:
@@ -154,7 +154,7 @@ class TabularDataLoader(DataInterface):
         if schema.sensitive_features:
             critical_columns.extend(schema.sensitive_features)
 
-        missing_counts = data[critical_columns].isnull().sum()
+        missing_counts = data[critical_columns].isna().sum()
         if missing_counts.any():
             logger.warning("Missing values detected: %s", missing_counts[missing_counts > 0].to_dict())
 
@@ -176,10 +176,10 @@ class TabularDataLoader(DataInterface):
 
         """
         # Extract features
-        X = data[schema.features].copy()
+        X = data[schema.features].copy()  # noqa: N806
 
         # Extract target
-        y = data[schema.target].values
+        y = data[schema.target].to_numpy()
 
         # Extract sensitive features if specified
         sensitive = None
@@ -273,6 +273,7 @@ class TabularDataLoader(DataInterface):
         self,
         X: pd.DataFrame,  # noqa: N803
         schema: TabularDataSchema,
+        *,
         fit_preprocessor: bool = True,  # noqa: ARG002
     ) -> pd.DataFrame:
         """Basic preprocessing for tabular features with automatic categorical encoding.
@@ -286,7 +287,7 @@ class TabularDataLoader(DataInterface):
             Preprocessed feature DataFrame
 
         """
-        X_processed = X.copy()
+        X_processed = X.copy()  # noqa: N806
 
         # Friend's spec: Automatically detect and one-hot encode object/categorical columns
         # This prevents "could not convert string to float: '< 0 DM'" errors
@@ -295,7 +296,7 @@ class TabularDataLoader(DataInterface):
         if object_cols:
             logger.info("One-hot encoding categorical columns: %s", object_cols)
             # Apply pd.get_dummies as specified by friend (drop_first=False to keep all categories)
-            X_processed = pd.get_dummies(X_processed, columns=object_cols, drop_first=False)
+            X_processed = pd.get_dummies(X_processed, columns=object_cols, drop_first=False)  # noqa: N806
 
         # Handle explicitly specified categorical features (if not already processed)
         if schema.categorical_features:
@@ -323,7 +324,7 @@ class TabularDataLoader(DataInterface):
                     X_processed[col].mode().iloc[0] if not X_processed[col].mode().empty else 0,
                 )
 
-        logger.info("Preprocessing completed: %s -> {X_processed.shape[1]} features", X.shape[1])
+        logger.info("Preprocessing completed: %s -> %s features", X.shape[1], X_processed.shape[1])
 
         return X_processed
 
@@ -341,7 +342,7 @@ class TabularDataLoader(DataInterface):
             "shape": data.shape,
             "columns": list(data.columns),
             "dtypes": data.dtypes.to_dict(),
-            "missing_values": data.isnull().sum().to_dict(),
+            "missing_values": data.isna().sum().to_dict(),
             "memory_usage_mb": data.memory_usage(deep=True).sum() / 1024**2,
         }
 

@@ -223,7 +223,7 @@ class AuditPipeline:
             sensitive_features=schema.sensitive_features,
         )
 
-        logger.info("Loaded dataset: %s rows, {data.shape[1]} columns", data.shape[0])
+        logger.info("Loaded dataset: %s rows, %s columns", data.shape[0], data.shape[1])
 
         return data, schema
 
@@ -488,7 +488,7 @@ class AuditPipeline:
 
         return explanation_results
 
-    def _compute_metrics(self, data: pd.DataFrame, schema: TabularDataSchema) -> None:  # noqa: C901
+    def _compute_metrics(self, data: pd.DataFrame, schema: TabularDataSchema) -> None:
         """Compute all configured metrics.
 
         Args:
@@ -504,29 +504,17 @@ class AuditPipeline:
         # Use processed features for predictions (same as training)
         X_processed = self._preprocess_for_training(X)  # noqa: N806
 
-        # Friend's spec: Add guard before predictions to ensure model is fitted
-        # If not fitted and training data available, fit the model; otherwise skip metrics
+        # Ensure model is fitted before computing metrics
         if hasattr(self.model, "_is_fitted") and not self.model._is_fitted:  # noqa: SLF001
             logger.warning("Model not fitted, attempting to fit with available data")
-            try:
+            self.model.fit(X_processed, y_true)
+            logger.info("Model fitted successfully with available data")
+        elif not hasattr(self.model, "model") or self.model.model is None:
+            # For models without .model attribute, check if they need fitting
+            if hasattr(self.model, "fit"):
+                logger.warning("Model not fitted, attempting to fit with available data")
                 self.model.fit(X_processed, y_true)
                 logger.info("Model fitted successfully with available data")
-            except Exception:
-                logger.exception("Failed to fit model with available data:")
-                logger.warning("Skipping metrics computation to prevent pipeline failure")
-                self.results.model_performance = {"status": "skipped_no_fitted_model"}
-                self.results.fairness_analysis = {"status": "skipped_no_fitted_model"}
-                self.results.drift_analysis = {"status": "skipped_no_fitted_model"}
-                return
-        elif not hasattr(self.model, "model") or self.model.model is None:
-            # Only skip for models that actually use the .model attribute (like sklearn wrappers)
-            # LightGBM wrapper stores the model directly in .model but should be trained by now
-            if hasattr(self.model, "get_model_type") and self.model.get_model_type() != "lightgbm":
-                logger.warning("Model not loaded, skipping metrics computation")
-                self.results.model_performance = {"status": "skipped_no_model"}
-                self.results.fairness_analysis = {"status": "skipped_no_model"}
-                self.results.drift_analysis = {"status": "skipped_no_model"}
-                return
 
         # Generate predictions
         y_pred = self.model.predict(X_processed)
@@ -876,7 +864,7 @@ class AuditPipeline:
             X_processed = pd.DataFrame(X_transformed, columns=sanitized_feature_names, index=X.index)  # noqa: N806
 
             logger.info("Preprocessed %s categorical columns with OneHotEncoder", len(categorical_cols))
-            logger.info("Final feature count: %s (from {len(X.columns)} original)", len(sanitized_feature_names))
+            logger.info("Final feature count: %s (from %s original)", len(sanitized_feature_names), len(X.columns))
             logger.debug("Sanitized feature names: %s...", sanitized_feature_names[:5])
 
             return X_processed  # noqa: TRY300

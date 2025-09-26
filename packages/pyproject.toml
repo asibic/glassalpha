@@ -78,7 +78,7 @@ include = ["glassalpha*"]
 
 [tool.setuptools.package-data]
 # Friend's spec: Include templates in wheel for importlib.resources loading
-"glassalpha.report.templates" = ["*.html", "*.css", "*.js"]
+"glassalpha.report" = ["templates/*.html", "templates/*.css", "templates/*.js"]
 
 [tool.ruff]
 line-length = 120  # Modern standard (vs outdated 100) - matches industry practice
