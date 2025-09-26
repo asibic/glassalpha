@@ -7,13 +7,13 @@ provides feature importance capabilities.
 
 import logging
 from pathlib import Path
-from typing import Any
+from typing import Any, ClassVar
 
 import lightgbm as lgb
 import numpy as np
 import pandas as pd
 
-from ...core.registry import ModelRegistry
+from glassalpha.core.registry import ModelRegistry
 
 logger = logging.getLogger(__name__)
 
@@ -28,15 +28,19 @@ class LightGBMWrapper:
     """
 
     # Required class attributes for ModelInterface
-    capabilities = {
+    capabilities: ClassVar[dict[str, Any]] = {
         "supports_shap": True,
         "supports_feature_importance": True,
         "supports_proba": True,
         "data_modality": "tabular",
     }
     version = "1.0.0"
+    # Constants for magic values
+    BINARY_CLASS_COUNT = 2
+    BINARY_THRESHOLD = 0.5
+    NDIM_MULTICLASS = 2
 
-    def __init__(self, model_path: str | Path | None = None, model: lgb.Booster | None = None):
+    def __init__(self, model_path: str | Path | None = None, model: lgb.Booster | None = None) -> None:
         """Initialize LightGBM wrapper.
 
         Args:
@@ -46,6 +50,7 @@ class LightGBMWrapper:
         """
         self.model: lgb.Booster | None = model
         self.feature_names: list | None = None
+        self.feature_names_: list | None = None  # For sklearn compatibility
         self.n_classes: int = 2  # Default to binary classification
 
         if model_path:
@@ -59,7 +64,7 @@ class LightGBMWrapper:
         else:
             logger.info("LightGBMWrapper initialized without model")
 
-    def load(self, path: str | Path):
+    def load(self, path: str | Path) -> None:
         """Load trained LightGBM model from saved file for inference or analysis.
 
         Loads a previously saved LightGBM model from disk, supporting both text
@@ -84,19 +89,63 @@ class LightGBMWrapper:
         """
         path = Path(path)
         if not path.exists():
-            raise FileNotFoundError(f"Model file not found: {path}")
+            msg = f"Model file not found: {path}"
+            raise FileNotFoundError(msg)
 
-        logger.info(f"Loading LightGBM model from {path}")
+        logger.info("Loading LightGBM model from %s", path)
         self.model = lgb.Booster(model_file=str(path))
         self._extract_model_info()
 
-    def _extract_model_info(self):
+    def fit(self, X: Any, y: Any, **kwargs: Any) -> None:  # noqa: N803, ANN401
+        """Train LightGBM model on provided data.
+
+        Args:
+            X: Training features (DataFrame preferred for feature names)
+            y: Training targets
+            **kwargs: Additional parameters including random_state
+
+        """
+        import pandas as pd  # noqa: PLC0415
+
+        # Handle random_state
+        params = {
+            "objective": "binary" if len(np.unique(y)) == self.BINARY_CLASS_COUNT else "multiclass",
+            "verbose": -1,
+            "force_row_wise": True,
+        }
+
+        if "random_state" in kwargs:
+            params["random_seed"] = kwargs["random_state"]
+
+        # Capture feature names from DataFrame
+        if isinstance(X, pd.DataFrame):
+            self.feature_names_ = list(X.columns)
+            self.feature_names = list(X.columns)  # Also set for compatibility
+
+        # Prepare data for LightGBM
+        X_processed = self._prepare_x(X)  # noqa: N806
+        train_data = lgb.Dataset(X_processed, label=y)
+
+        # Train model
+        self.model = lgb.train(
+            params=params,
+            train_set=train_data,
+            num_boost_round=100,
+            callbacks=[lgb.log_evaluation(0)],  # Silent training
+        )
+
+        # Set n_classes from training data
+        self.n_classes = len(np.unique(y))
+        n_features = len(X_processed.columns) if hasattr(X_processed, "columns") else X_processed.shape[1]
+        logger.info("Trained LightGBM model with %d features", n_features)
+
+    def _extract_model_info(self) -> None:
         """Extract metadata from loaded model."""
         if self.model:
             # Try to get feature names
             try:
                 self.feature_names = self.model.feature_name()
-            except Exception:
+            except Exception:  # noqa: BLE001
                 # Graceful fallback - some models don't have feature names
                 logger.debug("Could not extract feature names from model")
 
@@ -109,13 +158,26 @@ class LightGBMWrapper:
                     self.n_classes = num_class
                 else:
                     # Binary classification typically has 1 model per iteration
-                    self.n_classes = 2
-            except Exception:
+                    self.n_classes = self.BINARY_CLASS_COUNT
+            except Exception:  # noqa: BLE001
                 # Graceful fallback - determine from prediction shape later
                 logger.debug("Could not determine number of classes, defaulting to binary")
-                self.n_classes = 2
+                self.n_classes = self.BINARY_CLASS_COUNT
 
-    def predict(self, X: pd.DataFrame) -> np.ndarray:
+    def _prepare_x(self, X: Any) -> Any:  # noqa: N803, ANN401
+        """Feature handling helper used by fit, predict and predict_proba."""
+        import pandas as pd  # noqa: PLC0415
+
+        if isinstance(X, pd.DataFrame):
+            if getattr(self, "feature_names_", None):
+                fitted = list(self.feature_names_)
+                if len(X.columns) == len(fitted) and set(fitted) - set(X.columns):
+                    return X.to_numpy()  # renamed only
+                return X.reindex(columns=fitted, fill_value=0)
+            return X.to_numpy()
+        return X
+
+    def predict(self, X: pd.DataFrame) -> np.ndarray:  # noqa: N803
         """Generate predictions for input data.
 
         Args:
@@ -126,28 +188,28 @@ class LightGBMWrapper:
 
         """
         if self.model is None:
-            raise ValueError("Model not loaded. Load a model first.")
+            msg = "Model not loaded. Load a model first."
+            raise ValueError(msg)
 
-        # Check feature compatibility
-        if self.feature_names and list(X.columns) != self.feature_names:
-            logger.warning("Input feature names don't match model's expected features")
+        # Use _prepare_x for robust feature handling
+        X_processed = self._prepare_x(X)  # noqa: N806
 
         # Get raw predictions
-        predictions = self.model.predict(X, num_iteration=self.model.best_iteration)
+        predictions = self.model.predict(X_processed, num_iteration=self.model.best_iteration)
 
         # Handle different prediction formats
         if predictions.ndim == 1:
             # Binary classification - convert probabilities to class predictions
             if np.all((predictions >= 0) & (predictions <= 1)):
-                predictions = (predictions > 0.5).astype(int)
-        elif predictions.ndim == 2:
+                predictions = (predictions > self.BINARY_THRESHOLD).astype(int)
+        elif predictions.ndim == self.NDIM_MULTICLASS:
             # Multi-class - take argmax
             predictions = np.argmax(predictions, axis=1)
 
-        logger.debug(f"Generated predictions for {len(X)} samples")
+        logger.debug("Generated predictions for %d samples", len(X))
         return predictions
 
-    def predict_proba(self, X: pd.DataFrame) -> np.ndarray:
+    def predict_proba(self, X: pd.DataFrame) -> np.ndarray:  # noqa: N803
         """Generate probability predictions for input data.
 
         Args:
@@ -158,15 +220,19 @@ class LightGBMWrapper:
 
         """
         if self.model is None:
-            raise ValueError("Model not loaded. Load a model first.")
+            msg = "Model not loaded. Load a model first."
+            raise ValueError(msg)
+
+        # Use _prepare_x for robust feature handling
+        X_processed = self._prepare_x(X)  # noqa: N806
 
         # Get raw predictions (probabilities)
-        predictions = self.model.predict(X, num_iteration=self.model.best_iteration)
+        predictions = self.model.predict(X_processed, num_iteration=self.model.best_iteration)
 
         # Handle binary vs multiclass
         proba = np.column_stack([1 - predictions, predictions]) if predictions.ndim == 1 else predictions
 
-        logger.debug(f"Generated probability predictions for {len(X)} samples")
+        logger.debug("Generated probability predictions for %d samples", len(X))
         return proba
 
     def get_model_type(self) -> str:
@@ -187,6 +253,20 @@ class LightGBMWrapper:
         """
         return self.capabilities
 
+    def get_model_info(self) -> dict[str, Any]:
+        """Return model information including n_classes.
+
+        Returns:
+            Dictionary with model information
+
+        """
+        return {
+            "model_type": "lightgbm",
+            "n_classes": self.n_classes,
+            "status": "loaded" if self.model else "not_loaded",
+            "n_features": len(self.feature_names_) if self.feature_names_ else None,
+        }
+
     def get_feature_importance(self, importance_type: str = "split") -> dict[str, float]:
         """Get feature importance scores from the model.
 
@@ -200,7 +280,8 @@ class LightGBMWrapper:
 
         """
         if self.model is None:
-            raise ValueError("Model not loaded. Load a model first.")
+            msg = "Model not loaded. Load a model first."
+            raise ValueError(msg)
 
         # Get importance scores
         importance = self.model.feature_importance(importance_type=importance_type)
@@ -211,10 +292,10 @@ class LightGBMWrapper:
         # Create dictionary
         importance_dict = {name: float(imp) for name, imp in zip(feature_names, importance, strict=False)}
 
-        logger.debug(f"Extracted {importance_type} feature importance for {len(importance_dict)} features")
+        logger.debug("Extracted %s feature importance for %d features", importance_type, len(importance_dict))
         return importance_dict
 
-    def save(self, path: str | Path):
+    def save(self, path: str | Path) -> None:
         """Save trained LightGBM model to disk in human-readable text format.
 
         Persists the complete model structure including learned parameters,
@@ -242,14 +323,15 @@ class LightGBMWrapper:
 
         """
         if self.model is None:
-            raise ValueError("No model to save")
+            msg = "No model to save"
+            raise ValueError(msg)
 
         path = Path(path)
         path.parent.mkdir(parents=True, exist_ok=True)
 
         # Save in text format for better compatibility
         self.model.save_model(str(path))
-        logger.info(f"Saved LightGBM model to {path}")
+        logger.info("Saved LightGBM model to %s", path)
 
     def __repr__(self) -> str:
         """String representation of the wrapper."""

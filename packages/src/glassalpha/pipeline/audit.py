@@ -277,15 +277,16 @@ class AuditPipeline:
                 # These wrappers use fit methods - ensure they get preprocessed data
                 model = model_class()
 
-                # Try to use fit method if available
+                # All these wrappers support fit method
                 if hasattr(model, "fit"):
                     # Friend's spec: Always fit with DataFrame so feature_names_in_ is set
                     model.fit(X_processed, y, random_state=model_seed)
-                    logger.info("Fitted %s model with {len(X_processed.columns)} features", model_type)
+                    logger.info("Fitted %s model with %d features", model_type, len(X_processed.columns))
                 else:
-                    # For wrappers that don't support direct fitting
-                    logger.warning("Model type %s doesn't support direct training in pipeline", model_type)
-                    model = model_class()
+                    # This should not happen for these model types
+                    logger.error("Model type %s unexpectedly doesn't support fit method", model_type)
+                    msg = f"Model type {model_type} should support fit method"
+                    raise RuntimeError(msg)
             else:
                 # Default approach
                 model = model_class()
@@ -471,7 +472,7 @@ class AuditPipeline:
 
         return explanation_results
 
-    def _compute_metrics(self, data: pd.DataFrame, schema: TabularDataSchema) -> None:
+    def _compute_metrics(self, data: pd.DataFrame, schema: TabularDataSchema) -> None:  # noqa: C901
         """Compute all configured metrics.
 
         Args:
@@ -502,11 +503,14 @@ class AuditPipeline:
                 self.results.drift_analysis = {"status": "skipped_no_fitted_model"}
                 return
         elif not hasattr(self.model, "model") or self.model.model is None:
-            logger.warning("Model not loaded, skipping metrics computation")
-            self.results.model_performance = {"status": "skipped_no_model"}
-            self.results.fairness_analysis = {"status": "skipped_no_model"}
-            self.results.drift_analysis = {"status": "skipped_no_model"}
-            return
+            # Only skip for models that actually use the .model attribute (like sklearn wrappers)
+            # LightGBM wrapper stores the model directly in .model but should be trained by now
+            if hasattr(self.model, "get_model_type") and self.model.get_model_type() != "lightgbm":
+                logger.warning("Model not loaded, skipping metrics computation")
+                self.results.model_performance = {"status": "skipped_no_model"}
+                self.results.fairness_analysis = {"status": "skipped_no_model"}
+                self.results.drift_analysis = {"status": "skipped_no_model"}
+                return
 
         # Generate predictions
         y_pred = self.model.predict(X_processed)
@@ -521,6 +525,18 @@ class AuditPipeline:
 
         # Compute performance metrics
         self._compute_performance_metrics(y_true, y_pred, y_proba)
+
+        # Friend's spec: Ensure accuracy is always computed for each model type
+        try:
+            from sklearn.metrics import accuracy_score  # noqa: PLC0415
+
+            acc = float(accuracy_score(y_true, y_pred))
+            if not hasattr(self.results, "model_performance") or self.results.model_performance is None:
+                self.results.model_performance = {}
+            self.results.model_performance["accuracy"] = acc
+            logger.debug("Computed explicit accuracy: %.4f", acc)
+        except Exception:
+            logger.exception("Failed to compute explicit accuracy:")
 
         # Compute fairness metrics if sensitive features available
         if sensitive_features is not None:
