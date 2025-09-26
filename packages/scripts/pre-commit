@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+# Pre-commit hook - runs smoke test only when fragile contract areas change
+set -euo pipefail
+
+# Define the fragile files that could break our 4 critical contracts
+FRAGILE_PATTERNS=(
+    "src/glassalpha/pipeline/audit.py"        # Logger contract
+    "src/glassalpha/models/tabular/sklearn.py" # Save/load contract
+    "src/glassalpha/report/templates/"        # Template packaging
+    "src/glassalpha/utils/manifest.py"        # Manifest structure
+    "src/glassalpha/constants.py"             # Contract definitions
+    "pyproject.toml"                          # Packaging config
+)
+
+# Check if any fragile files are in this commit
+echo "🔍 Checking if fragile contract areas changed..."
+
+changed_files=$(git diff --cached --name-only)
+
+fragile_changed=false
+for pattern in "${FRAGILE_PATTERNS[@]}"; do
+    if echo "$changed_files" | grep -q "$pattern"; then
+        echo "   📝 Fragile file changed: $pattern"
+        fragile_changed=true
+    fi
+done
+
+if [ "$fragile_changed" = false ]; then
+    echo "   ✅ No fragile contract areas changed - skipping smoke test"
+    echo ""
+    exit 0
+fi
+
+echo ""
+echo "🔥 Fragile contract areas changed - running smoke test..."
+echo ""
+
+# Run the smoke test
+if scripts/wheel_smoke.sh; then
+    echo ""
+    echo "✅ Pre-commit smoke test passed - safe to commit"
+    exit 0
+else
+    echo ""
+    echo "❌ Pre-commit smoke test failed!"
+    echo ""
+    echo "Contract violations detected in staged changes."
+    echo "Fix the issues and try committing again:"
+    echo ""
+    echo "1. Run: scripts/wheel_smoke.sh"
+    echo "2. Fix any contract violations it reports"
+    echo "3. Re-run: scripts/wheel_smoke.sh"
+    echo "4. When green, try committing again"
+    echo ""
+    echo "🛑 Commit blocked to prevent CI thrashing"
+    exit 1
+fi

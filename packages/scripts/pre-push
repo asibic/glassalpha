@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# Git pre-push hook - runs wheel smoke test to prevent thrashing
+set -euo pipefail
+
+echo "🔒 Pre-push hook: Running wheel smoke test..."
+echo ""
+
+# Run the smoke test
+if scripts/wheel_smoke.sh; then
+    echo ""
+    echo "✅ Pre-push validation passed - safe to push"
+    exit 0
+else
+    echo ""
+    echo "❌ Pre-push validation failed!"
+    echo ""
+    echo "The wheel-based smoke test found contract violations."
+    echo "This would cause thrashing in CI. Fix locally first:"
+    echo ""
+    echo "1. Run: scripts/wheel_smoke.sh"
+    echo "2. Fix any contract violations it reports"
+    echo "3. Re-run: scripts/wheel_smoke.sh"
+    echo "4. When green, try pushing again"
+    echo ""
+    echo "🛑 Push blocked to prevent CI thrashing"
+    exit 1
+fi

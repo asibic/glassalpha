@@ -22,14 +22,25 @@ from .renderers import (
 from .renderers.pdf import PDFConfig
 
 __all__ = [
-    "AuditPlotter",
-    "create_shap_plots",
-    "create_performance_plots",
-    "create_fairness_plots",
-    "plot_drift_analysis",
-    "AuditReportRenderer",
-    "render_audit_report",
     "AuditPDFRenderer",
-    "render_audit_pdf",
+    "AuditPlotter",
+    "AuditReportRenderer",
     "PDFConfig",
+    "create_fairness_plots",
+    "create_performance_plots",
+    "create_shap_plots",
+    "plot_drift_analysis",
+    "render_audit_pdf",
+    "render_audit_report",
 ]
+
+# Optional packaging validation - enable in CI with GLASSALPHA_ASSERT_PACKAGING=1
+import os
+
+if os.getenv("GLASSALPHA_ASSERT_PACKAGING") == "1":
+    from importlib.resources import files
+
+    from glassalpha.constants import STANDARD_AUDIT_TEMPLATE
+
+    template_path = files("glassalpha.report.templates").joinpath(STANDARD_AUDIT_TEMPLATE)
+    assert template_path.is_file(), f"Template not packaged correctly: {template_path}"  # noqa: S101

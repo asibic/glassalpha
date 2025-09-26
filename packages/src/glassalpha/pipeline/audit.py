@@ -16,6 +16,7 @@ import numpy as np
 import pandas as pd
 
 from glassalpha.config import AuditConfig
+from glassalpha.constants import INIT_LOG_TEMPLATE
 from glassalpha.core.registry import MetricRegistry, ModelRegistry
 from glassalpha.data import TabularDataLoader, TabularDataSchema
 from glassalpha.utils import ManifestGenerator, get_component_seed, set_global_seed
@@ -76,7 +77,7 @@ class AuditPipeline:
         self.explainer = None
         self.selected_metrics = {}
 
-        logger.info("Initialized audit pipeline with profile: %s", config.audit_profile)
+        logger.info(INIT_LOG_TEMPLATE.format(profile=config.audit_profile))
 
     def run(self, progress_callback: Callable | None = None) -> AuditResults:
         """Execute the complete audit pipeline.

@@ -17,6 +17,8 @@ from typing import Any
 import pandas as pd
 from pydantic import BaseModel, Field
 
+from glassalpha.constants import make_manifest_component
+
 from .hashing import hash_config, hash_dataframe, hash_file, hash_object
 from .seeds import get_seeds_manifest
 
@@ -302,9 +304,8 @@ class ManifestGenerator:
         }
 
         # selected_components: compact summary the tests inspect
-        # Key structure: selected_components[name] = {"name": implementation, "type": name}
-        # This makes selected_components["model"] = {"name": "xgboost", "type": "model"}
-        self.manifest.selected_components[name] = {"name": implementation, "type": name}
+        # Uses centralized helper to ensure exact format E2E tests expect
+        self.manifest.selected_components[name] = make_manifest_component(name, implementation)
 
         # Store in generator components for backward compatibility
         if hasattr(self, "components"):
