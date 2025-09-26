@@ -14,10 +14,10 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-from ..config import AuditConfig
-from ..core.registry import MetricRegistry, ModelRegistry
-from ..data import TabularDataLoader, TabularDataSchema
-from ..utils import ManifestGenerator, get_component_seed, set_global_seed
+from glassalpha.config import AuditConfig
+from glassalpha.core.registry import MetricRegistry, ModelRegistry
+from glassalpha.data import TabularDataLoader, TabularDataSchema
+from glassalpha.utils import ManifestGenerator, get_component_seed, set_global_seed
 
 logger = logging.getLogger(__name__)
 
@@ -52,7 +52,7 @@ class AuditResults:
 class AuditPipeline:
     """Main pipeline for conducting comprehensive ML model audits."""
 
-    def __init__(self, config: AuditConfig):
+    def __init__(self, config: AuditConfig) -> None:
         """Initialize audit pipeline with configuration.
 
         Args:
@@ -77,7 +77,7 @@ class AuditPipeline:
 
         logger.info(f"Initialized audit pipeline with profile: {config.audit_profile}")
 
-    def run(self, progress_callback: callable = None) -> AuditResults:
+    def run(self, progress_callback: callable | None = None) -> AuditResults:
         """Execute the complete audit pipeline.
 
         Args:
@@ -123,7 +123,7 @@ class AuditPipeline:
 
         except Exception as e:
             error_msg = f"Audit pipeline failed: {e!s}"
-            logger.error(error_msg)
+            logger.exception(error_msg)
             logger.debug(f"Full traceback: {traceback.format_exc()}")
 
             self.results.success = False
@@ -159,7 +159,8 @@ class AuditPipeline:
         # Get data path from config
         data_path = Path(self.config.data.path)
         if not data_path.exists():
-            raise FileNotFoundError(f"Data file not found: {data_path}")
+            msg = f"Data file not found: {data_path}"
+            raise FileNotFoundError(msg)
 
         # Load schema if specified
         schema = None
@@ -229,7 +230,8 @@ class AuditPipeline:
         # Get model class from registry
         model_class = ModelRegistry.get(model_type)
         if not model_class:
-            raise ValueError(f"Unknown model type: {model_type}")
+            msg = f"Unknown model type: {model_type}"
+            raise ValueError(msg)
 
         # Initialize model with component seed
         model_seed = get_component_seed("model")
@@ -330,7 +332,7 @@ class AuditPipeline:
         logger.info("Selecting explainer based on model capabilities")
 
         # Import the explainer registry to ensure it's available
-        from ..explain.registry import ExplainerRegistry
+        from glassalpha.explain.registry import ExplainerRegistry
 
         # First try automatic compatibility detection
         explainer_class = ExplainerRegistry.find_compatible(self.model)
@@ -377,7 +379,8 @@ class AuditPipeline:
 
         # If no explainer found, raise error (required by tests)
         if not explainer_class:
-            raise RuntimeError("No compatible explainer found")
+            msg = "No compatible explainer found"
+            raise RuntimeError(msg)
 
         # Create explainer instance
         selected_explainer = explainer_class()
@@ -413,7 +416,7 @@ class AuditPipeline:
         logger.info("Generating model explanations")
 
         # Extract features for explanation
-        X, y, _ = self.data_loader.extract_features_target(data, schema)
+        X, _y, _ = self.data_loader.extract_features_target(data, schema)
 
         # Preprocess features same way as training
         X_processed = self._preprocess_for_training(X)
@@ -619,7 +622,7 @@ class AuditPipeline:
         }
 
         # Add result hashes to manifest
-        from ..utils import hash_object
+        from glassalpha.utils import hash_object
 
         if self.results.model_performance:
             self.manifest_generator.add_result_hash("performance_metrics", hash_object(self.results.model_performance))
@@ -669,7 +672,7 @@ class AuditPipeline:
             Context manager with component seed
 
         """
-        from ..utils import with_component_seed
+        from glassalpha.utils import with_component_seed
 
         return with_component_seed(component_name)
 
@@ -721,17 +724,17 @@ class AuditPipeline:
         """Ensure all required components are imported and registered."""
         try:
             # Import model modules to trigger registration
-            from ..explain.shap import kernel, tree  # noqa: F401
-            from ..metrics.fairness import bias_detection  # noqa: F401
-            from ..metrics.performance import classification  # noqa: F401
-            from ..models.tabular import lightgbm, sklearn, xgboost  # noqa: F401
+            from glassalpha.explain.shap import kernel, tree  # noqa: F401
+            from glassalpha.metrics.fairness import bias_detection  # noqa: F401
+            from glassalpha.metrics.performance import classification  # noqa: F401
+            from glassalpha.models.tabular import lightgbm, sklearn, xgboost  # noqa: F401
 
             logger.debug("All component modules imported and registered")
         except ImportError as e:
             logger.warning(f"Some components could not be imported: {e}")
 
 
-def run_audit_pipeline(config: AuditConfig, progress_callback: callable = None) -> AuditResults:
+def run_audit_pipeline(config: AuditConfig, progress_callback: callable | None = None) -> AuditResults:
     """Convenience function to run audit pipeline.
 
     Args:
