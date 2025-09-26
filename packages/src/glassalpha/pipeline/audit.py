@@ -81,7 +81,10 @@ class AuditPipeline:
         self.explainer = None
         self.selected_metrics = {}
 
-        logger.info("Initialized audit pipeline with profile: %s", config.audit_profile)
+        # Contract compliance: Single-arg call with formatted string
+        from glassalpha.constants import INIT_LOG_TEMPLATE  # noqa: PLC0415
+
+        logger.info(INIT_LOG_TEMPLATE.format(profile=config.audit_profile))
 
     def run(self, progress_callback: Callable | None = None) -> AuditResults:
         """Execute the complete audit pipeline.

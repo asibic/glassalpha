@@ -1,0 +1,1 @@
+recursive-include src/glassalpha/report/templates *.html

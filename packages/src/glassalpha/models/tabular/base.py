@@ -85,6 +85,28 @@ class BaseTabularWrapper:
         # Handle genuine drift cases - reindex with fill_value=0 for missing columns
         return X.reindex(columns=fitted_names, fill_value=0)
 
+    def _align_features(self, X: Any) -> Any:  # noqa: ANN401, N803
+        """Shared feature alignment helper - contract compliance.
+
+        Args:
+            X: Input features (DataFrame or array)
+
+        Returns:
+            Aligned features with proper column handling
+
+        """
+        if not PANDAS_AVAILABLE:
+            return X
+
+        if not isinstance(X, pd.DataFrame):
+            return X
+
+        if hasattr(self, "feature_names_") and isinstance(X, pd.DataFrame):
+            if X.shape[1] == len(self.feature_names_) and list(X.columns) != list(self.feature_names_):
+                return pd.DataFrame(X.to_numpy(), columns=self.feature_names_, index=X.index)
+            return X.reindex(columns=self.feature_names_, fill_value=0)
+        return X
+
     def save(self, path: Path) -> None:
         """Save model state to file.
 

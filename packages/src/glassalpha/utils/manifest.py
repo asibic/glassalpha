@@ -8,6 +8,7 @@ import json
 import logging
 import os
 import platform
+import struct
 import subprocess
 import sys
 from datetime import UTC, datetime
@@ -114,7 +115,7 @@ class AuditManifest(BaseModel):
         default_factory=lambda: EnvironmentInfo(
             python_version=platform.python_version(),
             platform=platform.platform(),
-            architecture=platform.architecture()[0],
+            architecture=f"{8 * struct.calcsize('P')}-bit/{platform.machine()}",
             processor=platform.processor() or "unknown",
             hostname=platform.node(),
             user=Path.home().name,
@@ -471,7 +472,7 @@ class ManifestGenerator:
         return EnvironmentInfo(
             python_version=sys.version,
             platform=platform.platform(),
-            architecture=platform.architecture()[0],
+            architecture=f"{8 * struct.calcsize('P')}-bit/{platform.machine()}",
             processor=platform.processor(),
             hostname=platform.node(),
             user=os.environ.get("USER", "unknown"),
@@ -505,16 +506,9 @@ class ManifestGenerator:
             "porcelain_status": _run("git", "status", "--porcelain"),
         }
 
-        # Check if git is available - if any call returns None, no git installed
+        # Contract compliance: Return None if git not available
         if any(v is None for v in info.values()):
-            return GitInfo(
-                commit_hash=None,
-                branch=None,
-                is_dirty=False,
-                remote_url=None,
-                commit_message=None,
-                commit_timestamp=None,
-            )
+            return None
 
         # Git available - normalize status
         is_dirty = bool(info["porcelain_status"])

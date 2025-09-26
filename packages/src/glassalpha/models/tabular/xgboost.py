@@ -102,14 +102,23 @@ class XGBoostWrapper(BaseTabularWrapper):
 
         # Contract compliance: Load JSON with model/feature_names_/n_classes
         import json  # noqa: PLC0415
+        import tempfile  # noqa: PLC0415
 
         try:
             with Path(path).open(encoding="utf-8") as f:
                 data = json.load(f)
 
-            # Reconstruct from saved structure
-            self.model = xgb.Booster()
-            self.model.load_model_from_string(data["model"])
+            # Reconstruct from saved structure using temp file
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".json") as tmp:
+                tmp.write(data["model"].encode("utf-8"))
+                tmp.flush()
+
+                self.model = xgb.Booster()
+                self.model.load_model(tmp.name)
+
+            # Clean up temp file
+            Path(tmp.name).unlink(missing_ok=True)
+
             self.feature_names_ = data.get("feature_names_")
             self.n_classes = data.get("n_classes", 2)
             self._is_fitted = True
@@ -319,9 +328,18 @@ class XGBoostWrapper(BaseTabularWrapper):
 
         # Contract compliance: Save JSON with model/feature_names_/n_classes
         import json  # noqa: PLC0415
+        import tempfile  # noqa: PLC0415
+
+        # Save model to temp file then read as string
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".json") as tmp:
+            self.model.save_model(tmp.name)
+            model_str = Path(tmp.name).read_text(encoding="utf-8")
+
+        # Clean up temp file
+        Path(tmp.name).unlink(missing_ok=True)
 
         data = {
-            "model": self.model.save_model_to_string(),
+            "model": model_str,
             "feature_names_": self.feature_names_,
             "n_classes": self.n_classes,
         }

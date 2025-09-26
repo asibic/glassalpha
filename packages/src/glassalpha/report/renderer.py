@@ -7,7 +7,7 @@ template processing, and asset management.
 
 import base64
 import logging
-from datetime import datetime
+from datetime import UTC, datetime
 from io import BytesIO
 from pathlib import Path
 from typing import Any
@@ -85,8 +85,9 @@ class AuditReportRenderer:
         audit_results: AuditResults,
         template_name: str = "standard_audit.html",
         output_path: Path | None = None,
+        *,
         embed_plots: bool = True,
-        **template_vars,
+        **template_vars: Any,  # noqa: ANN401
     ) -> str:
         """Render complete audit report from audit results.
 
@@ -95,7 +96,7 @@ class AuditReportRenderer:
             template_name: Name of the template file to use
             output_path: Optional path to save rendered HTML
             embed_plots: Whether to embed plots as base64 images
-            **template_vars: Additional variables to pass to template
+            **template_vars: Additional variables to pass to template: Any
 
         Returns:
             Rendered HTML content as string
@@ -116,14 +117,14 @@ class AuditReportRenderer:
             output_path = Path(output_path)
             output_path.parent.mkdir(parents=True, exist_ok=True)
 
-            with open(output_path, "w", encoding="utf-8") as f:
+            with output_path.open("w", encoding="utf-8") as f:
                 f.write(rendered_html)
 
             logger.info("Saved rendered report to: %s", output_path)
 
         return rendered_html
 
-    def _prepare_template_context(self, audit_results: AuditResults, embed_plots: bool = True) -> dict[str, Any]:
+    def _prepare_template_context(self, audit_results: AuditResults, *, embed_plots: bool = True) -> dict[str, Any]:
         """Prepare comprehensive template context from audit results.
 
         Args:
@@ -139,7 +140,7 @@ class AuditReportRenderer:
         # Basic audit information
         context = {
             "report_title": "Machine Learning Model Audit Report",
-            "generation_date": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC"),
+            "generation_date": datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S UTC"),
             "version": "1.0.0",
             "contact_email": "audit-support@example.com",
             "success": audit_results.success,
@@ -156,10 +157,13 @@ class AuditReportRenderer:
                 },
             )
 
+        # Contract compliance: Normalize metrics for template compatibility
+        model_performance = self._normalize_metrics(audit_results.model_performance)
+
         # Add core audit results
         context.update(
             {
-                "model_performance": audit_results.model_performance,
+                "model_performance": model_performance,
                 "fairness_analysis": audit_results.fairness_analysis,
                 "drift_analysis": audit_results.drift_analysis,
                 "explanations": audit_results.explanations,
@@ -232,7 +236,7 @@ class AuditReportRenderer:
 
                 logger.debug("Generated %s fairness plots", len(fairness_figures))
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning("Failed to generate some plots: %s", e)
 
         return plots
@@ -290,7 +294,7 @@ class AuditReportRenderer:
             "waterfall": "Step-by-step explanation of individual prediction",
         }
 
-    def _format_number(self, value: Any, decimals: int = 3) -> str:
+    def _format_number(self, value: Any, decimals: int = 3) -> str:  # noqa: ANN401
         """Format numeric values for display."""
         if value is None:
             return "N/A"
@@ -302,7 +306,7 @@ class AuditReportRenderer:
 
         return str(value)
 
-    def _format_percentage(self, value: Any, decimals: int = 1) -> str:
+    def _format_percentage(self, value: Any, decimals: int = 1) -> str:  # noqa: ANN401
         """Format values as percentages."""
         if value is None:
             return "N/A"
@@ -312,7 +316,7 @@ class AuditReportRenderer:
 
         return str(value)
 
-    def _format_datetime(self, value: Any, format_string: str = "%Y-%m-%d %H:%M:%S") -> str:
+    def _format_datetime(self, value: Any, format_string: str = "%Y-%m-%d %H:%M:%S") -> str:  # noqa: ANN401
         """Format datetime values."""
         if value is None:
             return "N/A"
@@ -329,12 +333,38 @@ class AuditReportRenderer:
 
         return str(value)
 
+    def _normalize_metrics(self, metrics: Any) -> dict[str, Any]:  # noqa: ANN401
+        """Normalize metrics for template compatibility.
+
+        Contract compliance: Handle metrics that may be numbers or dicts.
+        Template expects metrics[key] to have attributes, but sometimes
+        metrics[key] is just a float (e.g. accuracy: 0.868).
+
+        Args:
+            metrics: Raw metrics from audit results
+
+        Returns:
+            Normalized metrics where values are always dicts
+
+        """
+        if not metrics:
+            return {}
+
+        mp = dict(metrics) if isinstance(metrics, dict) else {}
+
+        # Normalize each metric - if it's a number, wrap it
+        for k, v in list(mp.items()):
+            if isinstance(v, (int, float)):
+                mp[k] = {k: float(v)}
+
+        return mp
+
 
 def render_audit_report(
     audit_results: AuditResults,
     output_path: Path | None = None,
     template_name: str = "standard_audit.html",
-    **template_vars,
+    **template_vars: Any,  # noqa: ANN401
 ) -> str:
     """Convenience function to render audit report.
 
@@ -342,7 +372,7 @@ def render_audit_report(
         audit_results: Complete audit results from pipeline
         output_path: Optional path to save HTML file
         template_name: Template file to use
-        **template_vars: Additional template variables
+        **template_vars: Additional template variables: Any
 
     Returns:
         Rendered HTML content
