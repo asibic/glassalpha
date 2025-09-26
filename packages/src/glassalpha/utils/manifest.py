@@ -97,24 +97,28 @@ class AuditManifest(BaseModel):
     strict_mode: bool = False
 
     # Environment with defaults (tests expect this to be populated)
-    environment: EnvironmentInfo = Field(default_factory=lambda: EnvironmentInfo(
-        python_version=platform.python_version(),
-        platform=platform.platform(),
-        architecture=platform.architecture()[0],
-        processor=platform.processor() or "unknown",
-        hostname=platform.node(),
-        user=Path.home().name,
-        working_directory=str(Path.cwd()),
-        environment_variables={},
-        installed_packages={}
-    ))
-    execution: ExecutionInfo = Field(default_factory=lambda: ExecutionInfo(
-        started_at=datetime.now(UTC),
-        finished_at=None,
-        duration_seconds=None,
-        status="running",
-        error_message=None
-    ))
+    environment: EnvironmentInfo = Field(
+        default_factory=lambda: EnvironmentInfo(
+            python_version=platform.python_version(),
+            platform=platform.platform(),
+            architecture=platform.architecture()[0],
+            processor=platform.processor() or "unknown",
+            hostname=platform.node(),
+            user=Path.home().name,
+            working_directory=str(Path.cwd()),
+            environment_variables={},
+            installed_packages={},
+        ),
+    )
+    execution: ExecutionInfo = Field(
+        default_factory=lambda: ExecutionInfo(
+            started_at=datetime.now(UTC),
+            finished_at=None,
+            duration_seconds=None,
+            status="running",
+            error_message=None,
+        ),
+    )
     git: GitInfo | None = None
 
     # Seeds and reproducibility
@@ -128,7 +132,6 @@ class AuditManifest(BaseModel):
     datasets: dict[str, DataInfo] = Field(default_factory=dict)
 
     # Execution (made optional for minimal construction)
-    execution: ExecutionInfo | None = None
 
     # Results hashes
     result_hashes: dict[str, str] = Field(default_factory=dict)
@@ -267,11 +270,12 @@ class ManifestGenerator:
 
         Args:
             name: Component name
-            implementation: Implementation type  
+            implementation: Implementation type
             info: Component information dictionary
 
         Returns:
             ComponentInfo object with .name attribute
+
         """
         # Create ComponentInfo from provided info
         component_info = ComponentInfo(
@@ -284,7 +288,7 @@ class ManifestGenerator:
 
         # Store in components dictionary (tests expect this structure)
         self.components[name] = component_info
-        
+
         # Also update manifest for compatibility
         component_type = info.get("type", "component")
         if component_type not in self.manifest.selected_components:
@@ -292,7 +296,7 @@ class ManifestGenerator:
         self.manifest.selected_components[component_type][name] = component_info
 
         logger.debug("Added component to manifest: %s (%s)", name, implementation)
-        
+
         return component_info  # Return object with .name attribute
 
     def add_dataset(
@@ -320,7 +324,7 @@ class ManifestGenerator:
         )
 
         # Add data information if available - avoid DataFrame truth ambiguity
-        if data is not None and hasattr(data, 'shape'):  # Check for shape attribute instead of truthiness
+        if data is not None and hasattr(data, "shape"):  # Check for shape attribute instead of truthiness
             dataset_info.hash = hash_dataframe(data)
             dataset_info.shape = data.shape
             dataset_info.columns = list(data.columns)

@@ -88,7 +88,6 @@ ignore = [
     "D417",  # Self parameter documentation not required
     "D203", "D213",  # Conflicting docstring rules
     "D401",          # Docstring mood - pure style preference ("Creates X" vs "Create X")
-    "COM812",        # Trailing commas - conflicts with ruff formatter
 ]
 
 # Per-file ignores for intentional design patterns

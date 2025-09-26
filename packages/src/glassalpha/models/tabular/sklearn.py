@@ -7,6 +7,7 @@ generic scikit-learn model wrappers.
 
 from __future__ import annotations
 
+import contextlib
 import logging
 from typing import TYPE_CHECKING, Any, ClassVar
 
@@ -214,11 +215,8 @@ if SKLEARN_AVAILABLE:
             # Handle random_state in kwargs - sklearn's fit() doesn't accept it directly
             random_state = kwargs.pop("random_state", None)
             if random_state is not None:
-                try:
+                with contextlib.suppress(ValueError, TypeError):
                     self.model.set_params(random_state=random_state)
-                except (ValueError, TypeError):
-                    # Some solvers may not accept random_state; ignore silently
-                    pass
 
             # Store feature names if X is DataFrame
             if hasattr(X, "columns") and self.feature_names is None:
@@ -277,8 +275,8 @@ if SKLEARN_AVAILABLE:
                 provided_features = list(map(str, X.columns.tolist()))
                 expected_features = list(map(str, self.feature_names))
 
-                provided_set = set(provided_features)
-                expected_set = set(expected_features)
+                set(provided_features)
+                set(expected_features)
 
                 # If names match exactly, reorder to match training order
                 if provided_features == expected_features:
@@ -292,7 +290,7 @@ if SKLEARN_AVAILABLE:
                     # Tests expect wrapper to be robust to column renaming when shapes match
                     return X.values  # Convert to numpy array for positional operation
 
-                # Shape mismatch is a real error - provide clean message  
+                # Shape mismatch is a real error - provide clean message
                 missing = sorted(set(expected_features) - set(provided_features))
                 extra = sorted(set(provided_features) - set(expected_features))
                 msg = (
@@ -411,11 +409,11 @@ if SKLEARN_AVAILABLE:
 
             return wrapper
 
-    def __repr__(self) -> str:
-            """String representation."""
-            status = "fitted" if self._is_fitted else "not_fitted"
-            n_classes = len(self.classes_) if hasattr(self, "classes_") and self.classes_ is not None else "unknown"
-            return f"LogisticRegressionWrapper(status={status}, n_classes={n_classes}, version={self.version})"
+    def __repr__(self) -> str:  # noqa: N807, ANN001
+        """String representation."""
+        status = "fitted" if self._is_fitted else "not_fitted"
+        n_classes = len(self.classes_) if hasattr(self, "classes_") and self.classes_ is not None else "unknown"
+        return f"LogisticRegressionWrapper(status={status}, n_classes={n_classes}, version={self.version})"
 
     @ModelRegistry.register("sklearn_generic", priority=70)
     class SklearnGenericWrapper(BaseEstimator):
@@ -426,15 +424,15 @@ if SKLEARN_AVAILABLE:
             "supports_shap": True,
             "supports_feature_importance": True,
             "supports_proba": False,  # Will be updated based on model
-        "data_modality": "tabular",
-    }
-    version = "1.0.0"
+            "data_modality": "tabular",
+        }
+        version = "1.0.0"
         model_type = "sklearn_generic"
 
         def __init__(self, model: Any = None, feature_names: list[str] | None = None, **kwargs: Any) -> None:  # noqa: ANN401
-        """Initialize generic sklearn wrapper.
+            """Initialize generic sklearn wrapper.
 
-        Args:
+            Args:
                 model: Pre-fitted sklearn model
                 feature_names: List of feature names
                 **kwargs: If provided without model, raises error
@@ -455,17 +453,17 @@ if SKLEARN_AVAILABLE:
 
         def predict(self, X) -> Any:  # noqa: N803, ANN001, ANN401
             """Make predictions."""
-        if self.model is None:
+            if self.model is None:
                 msg = "No model loaded"
                 raise RuntimeError(msg)
             return self.model.predict(X)
 
         def predict_proba(self, X) -> Any:  # noqa: N803, ANN001, ANN401
             """Get prediction probabilities if supported."""
-        if self.model is None:
+            if self.model is None:
                 msg = "No model loaded"
                 raise RuntimeError(msg)
-        if not hasattr(self.model, "predict_proba"):
+            if not hasattr(self.model, "predict_proba"):
                 msg = "Model does not support predict_proba"
                 raise AttributeError(msg)
             return self.model.predict_proba(X)
@@ -508,7 +506,7 @@ if SKLEARN_AVAILABLE:
         return wrapper
 
 
-        else:
+else:
     # Stub classes when sklearn unavailable
     class LogisticRegressionWrapper:
         """Stub class when scikit-learn is unavailable."""
