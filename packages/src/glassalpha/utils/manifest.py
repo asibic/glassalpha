@@ -17,8 +17,6 @@ from typing import Any
 import pandas as pd
 from pydantic import BaseModel, Field
 
-from glassalpha.constants import make_manifest_component
-
 from .hashing import hash_config, hash_dataframe, hash_file, hash_object
 from .seeds import get_seeds_manifest
 
@@ -278,41 +276,48 @@ class ManifestGenerator:
         implementation: str,
         obj: Any = None,  # noqa: ANN401
         *,
-        config: Any = None,  # noqa: ANN401
-        priority: Any = None,  # noqa: ANN401
+        details: dict | None = None,
+        **kwargs: Any,  # noqa: ANN401
     ) -> None:
-        """Add component to manifest with friend's spec for test compatibility.
+        """Add component to manifest with flexible details and kwargs.
 
         Args:
             name: Component role (e.g. 'model', 'explainer')
             implementation: Component implementation (e.g. "xgboost", "treeshap")
             obj: Optional component object for version extraction
-            config: Component configuration
-            priority: Component priority
+            details: Additional details dictionary
+            **kwargs: Additional keyword arguments to store in details
 
         """
-        # components: detailed catalog
+        # Build details dict from all sources
+        component_details = details or {}
+        component_details.update(kwargs)
+        component_details.update(
+            {
+                "implementation": implementation,
+                "version": getattr(obj, "version", "1.0.0"),
+            },
+        )
+
+        # components: detailed catalog - friend's spec format
         self.manifest.components[name] = {
             "name": name,
             "type": implementation,
-            "details": {
-                "implementation": implementation,
-                "version": getattr(obj, "version", "1.0.0"),
-                **({"priority": priority} if priority is not None else {}),
-                **({"config": config} if config is not None else {}),
-            },
+            "details": component_details,
         }
 
-        # selected_components: compact summary the tests inspect
-        # Uses centralized helper to ensure exact format E2E tests expect
-        self.manifest.selected_components[name] = make_manifest_component(name, implementation)
+        # selected_components: compact summary - friend's spec format
+        self.manifest.selected_components[name] = {
+            "name": implementation,
+            "type": name,
+        }
 
         # Store in generator components for backward compatibility
         if hasattr(self, "components"):
             component = ManifestComponent(
                 name=name,
                 type=implementation,
-                details={"implementation": implementation, "version": getattr(obj, "version", "1.0.0")},
+                details=component_details,
             )
             self.components[name] = component
 
@@ -342,8 +347,9 @@ class ManifestGenerator:
             sensitive_features=sensitive_features or [],
         )
 
-        # Add data information if available - avoid DataFrame truth ambiguity
-        if data is not None and hasattr(data, "shape"):  # Check for shape attribute instead of truthiness
+        # Add data information if available - friend's spec: use explicit None checks
+        if data is not None:
+            # Treat data as DataFrame, never inspect .shape on file_path
             dataset_info.hash = hash_dataframe(data)
             # Also set root-level data_hash for e2e tests (use the main dataset's hash)
             if dataset_name == "main" or self.manifest.data_hash is None:
@@ -351,7 +357,7 @@ class ManifestGenerator:
             dataset_info.shape = data.shape
             dataset_info.columns = list(data.columns)
             dataset_info.missing_values = data.isna().sum().to_dict()
-        elif file_path is not None and file_path.exists():  # Explicit None check
+        elif file_path is not None and file_path.exists():  # Treat path as path only
             dataset_info.hash = hash_file(file_path)
             # Also set root-level data_hash for e2e tests (use the main dataset's hash)
             if dataset_name == "main" or self.manifest.data_hash is None:

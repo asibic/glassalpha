@@ -252,8 +252,8 @@ if SKLEARN_AVAILABLE:
             if isinstance(X, pd.DataFrame):
                 self.feature_names_ = list(X.columns)
 
-            # Use base class _prepare_X for consistent preprocessing
-            X_processed = self._prepare_X(X)  # noqa: N806
+            # Use base class _prepare_x for consistent preprocessing
+            X_processed = self._prepare_x(X)  # noqa: N806
             self.model.fit(X_processed, y)
 
             # Set fitted state and classes
@@ -268,8 +268,8 @@ if SKLEARN_AVAILABLE:
             """Make predictions using base class error handling."""
             self._ensure_fitted()
 
-            # Use base class _prepare_X for robust feature handling
-            X_processed = self._prepare_X(X)  # noqa: N806
+            # Use base class _prepare_x for robust feature handling
+            X_processed = self._prepare_x(X)  # noqa: N806
             predictions = self.model.predict(X_processed)
 
             # Ensure 1D numpy array output
@@ -279,8 +279,8 @@ if SKLEARN_AVAILABLE:
             """Get prediction probabilities using base class error handling."""
             self._ensure_fitted()
 
-            # Use base class _prepare_X for robust feature handling
-            X_processed = self._prepare_X(X)  # noqa: N806
+            # Use base class _prepare_x for robust feature handling
+            X_processed = self._prepare_x(X)  # noqa: N806
             return self.model.predict_proba(X_processed)
 
         def _validate_and_reorder_features(self, X) -> Any:  # noqa: N803, ANN001, ANN401
@@ -432,6 +432,11 @@ if SKLEARN_AVAILABLE:
             self.feature_names_ = obj.get("feature_names_")
             self.n_classes = obj.get("n_classes")
             self._is_fitted = obj.get("_is_fitted", True)
+
+            # Friend's spec: Ensure model is not None after loading
+            if self.model is None:
+                msg = "Failed to load model - model is None after loading"
+                raise ValueError(msg)
 
             # Also set attributes tests expect
             if hasattr(self.model, "classes_"):

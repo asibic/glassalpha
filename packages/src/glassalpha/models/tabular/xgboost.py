@@ -7,19 +7,21 @@ provides feature importance capabilities.
 
 import logging
 from pathlib import Path
-from typing import Any
+from typing import Any, ClassVar
 
 import numpy as np
 import pandas as pd
 import xgboost as xgb
 
-from ...core.registry import ModelRegistry
+from glassalpha.core.registry import ModelRegistry
+
+from .base import BaseTabularWrapper
 
 logger = logging.getLogger(__name__)
 
 
 @ModelRegistry.register("xgboost", priority=100)
-class XGBoostWrapper:
+class XGBoostWrapper(BaseTabularWrapper):
     """Wrapper for XGBoost models implementing ModelInterface protocol.
 
     This class wraps XGBoost models to make them compatible with the GlassAlpha
@@ -28,7 +30,7 @@ class XGBoostWrapper:
     """
 
     # Required class attributes for ModelInterface
-    capabilities = {
+    capabilities: ClassVar[dict[str, Any]] = {
         "supports_shap": True,
         "supports_feature_importance": True,
         "supports_proba": True,
@@ -36,7 +38,7 @@ class XGBoostWrapper:
     }
     version = "1.0.0"
 
-    def __init__(self, model_path: str | Path | None = None, model: xgb.Booster | None = None):
+    def __init__(self, model_path: str | Path | None = None, model: xgb.Booster | None = None) -> None:
         """Initialize XGBoost wrapper.
 
         Args:
@@ -44,14 +46,17 @@ class XGBoostWrapper:
             model: Pre-loaded XGBoost Booster object
 
         """
+        super().__init__()
         self.model: xgb.Booster | None = model
         self.feature_names: list | None = None
+        self.feature_names_: list | None = None  # For sklearn compatibility
         self.n_classes: int = 2  # Default to binary classification
 
         if model_path:
             self.load(model_path)
         elif model:
             self.model = model
+            self._is_fitted = True
             self._extract_model_info()
 
         if self.model:
@@ -59,7 +64,7 @@ class XGBoostWrapper:
         else:
             logger.info("XGBoostWrapper initialized without model")
 
-    def load(self, path: str | Path):
+    def load(self, path: str | Path) -> None:
         """Load trained XGBoost model from saved file for inference and analysis.
 
         Loads a previously saved XGBoost booster model from disk, supporting both
@@ -86,20 +91,22 @@ class XGBoostWrapper:
         """
         path = Path(path)
         if not path.exists():
-            raise FileNotFoundError(f"Model file not found: {path}")
+            msg = f"Model file not found: {path}"
+            raise FileNotFoundError(msg)
 
-        logger.info(f"Loading XGBoost model from {path}")
+        logger.info("Loading XGBoost model from %s", path)
         self.model = xgb.Booster()
         self.model.load_model(str(path))
+        self._is_fitted = True
         self._extract_model_info()
 
-    def _extract_model_info(self):
+    def _extract_model_info(self) -> None:
         """Extract metadata from loaded model."""
         if self.model:
             # Try to get feature names
             try:
                 self.feature_names = self.model.feature_names
-            except Exception:
+            except Exception:  # noqa: BLE001
                 # Graceful fallback - some models don't have feature names
                 logger.debug("Could not extract feature names from model")
 
@@ -110,7 +117,7 @@ class XGBoostWrapper:
                 # This is a heuristic - may need refinement based on actual usage
                 config = self.model.save_config()
                 if '"num_class"' in config:
-                    import json
+                    import json  # noqa: PLC0415
 
                     config_dict = json.loads(config)
                     learner = config_dict.get("learner", {})
@@ -119,12 +126,12 @@ class XGBoostWrapper:
                     self.n_classes = max(2, int(num_class))
                 else:
                     self.n_classes = 2  # Default to binary
-            except Exception:
+            except Exception:  # noqa: BLE001
                 # Graceful fallback - config parsing can fail for various reasons
                 logger.debug("Could not determine number of classes, defaulting to binary")
                 self.n_classes = 2
 
-    def predict(self, X: pd.DataFrame) -> np.ndarray:
+    def predict(self, X: pd.DataFrame) -> np.ndarray:  # noqa: N803
         """Generate predictions for input data.
 
         Args:
@@ -134,31 +141,34 @@ class XGBoostWrapper:
             Array of predictions
 
         """
-        if self.model is None:
-            raise ValueError("Model not loaded. Load a model first.")
+        self._ensure_fitted()
+
+        # Use centralized feature handling
+        X_processed = self._prepare_x(X)  # noqa: N806
 
         # Convert to DMatrix for XGBoost
-        if self.feature_names and list(X.columns) != self.feature_names:
-            logger.warning("Input feature names don't match model's expected features")
+        feature_names = list(X.columns) if hasattr(X, "columns") else None
+        if hasattr(X_processed, "columns"):
+            feature_names = list(X_processed.columns)
 
-        dmatrix = xgb.DMatrix(X, feature_names=list(X.columns))
+        dmatrix = xgb.DMatrix(X_processed, feature_names=feature_names)
 
         # Get raw predictions
         predictions = self.model.predict(dmatrix)
 
         # For binary classification with probability output, convert to class predictions
-        if self.n_classes == 2 and predictions.ndim == 1:
+        if self.n_classes == self.BINARY_CLASSES and predictions.ndim == 1:
             # If predictions are probabilities, convert to binary classes
             if np.all((predictions >= 0) & (predictions <= 1)):
-                predictions = (predictions > 0.5).astype(int)
-        elif predictions.ndim == 2:
+                predictions = (predictions > self.BINARY_THRESHOLD).astype(int)
+        elif predictions.ndim == self.BINARY_CLASSES:
             # Multiclass - take argmax
             predictions = np.argmax(predictions, axis=1)
 
-        logger.debug(f"Generated predictions for {len(X)} samples")
+        logger.debug("Generated predictions for %s samples", len(X))
         return predictions
 
-    def predict_proba(self, X: pd.DataFrame) -> np.ndarray:
+    def predict_proba(self, X: pd.DataFrame) -> np.ndarray:  # noqa: N803
         """Generate probability predictions for input data.
 
         Args:
@@ -168,24 +178,30 @@ class XGBoostWrapper:
             Array of prediction probabilities (n_samples, n_classes)
 
         """
-        if self.model is None:
-            raise ValueError("Model not loaded. Load a model first.")
+        self._ensure_fitted()
+
+        # Use centralized feature handling
+        X_processed = self._prepare_x(X)  # noqa: N806
 
         # Convert to DMatrix
-        dmatrix = xgb.DMatrix(X, feature_names=list(X.columns))
+        feature_names = list(X.columns) if hasattr(X, "columns") else None
+        if hasattr(X_processed, "columns"):
+            feature_names = list(X_processed.columns)
+
+        dmatrix = xgb.DMatrix(X_processed, feature_names=feature_names)
 
         # Get raw predictions (probabilities)
         predictions = self.model.predict(dmatrix)
 
         # Handle binary vs multiclass
-        if self.n_classes == 2 and predictions.ndim == 1:
+        if self.n_classes == self.BINARY_CLASSES and predictions.ndim == 1:
             # Binary classification - create 2-column probability matrix
             proba = np.column_stack([1 - predictions, predictions])
         else:
             # Multiclass or already in correct format
             proba = predictions
 
-        logger.debug(f"Generated probability predictions for {len(X)} samples")
+        logger.debug("Generated probability predictions for %s samples", len(X))
         return proba
 
     def get_model_type(self) -> str:
@@ -206,6 +222,20 @@ class XGBoostWrapper:
         """
         return self.capabilities
 
+    def get_model_info(self) -> dict[str, Any]:
+        """Get model information including n_classes.
+
+        Returns:
+            Dictionary with model information
+
+        """
+        return {
+            "model_type": "xgboost",
+            "n_classes": self.n_classes,
+            "status": "loaded" if self.model else "not_loaded",
+            "n_features": len(self.feature_names_) if self.feature_names_ else None,
+        }
+
     def get_feature_importance(self, importance_type: str = "weight") -> dict[str, float]:
         """Get feature importance scores from the model.
 
@@ -219,16 +249,15 @@ class XGBoostWrapper:
             Dictionary mapping feature names to importance scores
 
         """
-        if self.model is None:
-            raise ValueError("Model not loaded. Load a model first.")
+        self._ensure_fitted()
 
         # Get importance scores
         importance = self.model.get_score(importance_type=importance_type)
 
-        logger.debug(f"Extracted {importance_type} feature importance for {len(importance)} features")
+        logger.debug("Extracted %s feature importance for %s features", importance_type, len(importance))
         return importance
 
-    def save(self, path: str | Path):
+    def save(self, path: str | Path) -> None:
         """Save trained XGBoost model to disk in structured JSON format.
 
         Persists the complete model structure including boosted trees, learned
@@ -256,15 +285,14 @@ class XGBoostWrapper:
             required for explainability and bias analysis verification.
 
         """
-        if self.model is None:
-            raise ValueError("No model to save")
+        self._ensure_fitted()
 
         path = Path(path)
         path.parent.mkdir(parents=True, exist_ok=True)
 
         # Save in JSON format for better compatibility
         self.model.save_model(str(path))
-        logger.info(f"Saved XGBoost model to {path}")
+        logger.info("Saved XGBoost model to %s", path)
 
     def __repr__(self) -> str:
         """String representation of the wrapper."""

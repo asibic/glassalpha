@@ -225,7 +225,7 @@ class AuditPipeline:
             sensitive_features=schema.sensitive_features,
         )
 
-        logger.info("Loaded dataset: %s rows, %s columns", data.shape[0], data.shape[1])
+        logger.info("Loaded data: %s rows, %s columns", data.shape[0], data.shape[1])
 
         return data, schema
 
@@ -336,17 +336,19 @@ class AuditPipeline:
         }
 
         # Friend's spec: Track the model in both results and manifest
-        # Track in results.selected_components
-        self.results.selected_components.setdefault("model", {"name": model_type, "type": "model"})
+        # Track in results.selected_components with exact structure
+        self.results.selected_components["model"] = {"name": model_type, "type": "model"}
 
-        # Add model to manifest using new signature
+        # Add model to manifest using new signature with details
         model_config = self.config.model.model_dump() if self.config.model else {}
         self.manifest_generator.add_component(
             "model",
             model_type,
             model,
-            config=model_config,
-            priority=getattr(model, "priority", None),
+            details={
+                "config": model_config,
+                "priority": getattr(model, "priority", None),
+            },
         )
 
         return model
@@ -421,16 +423,15 @@ class AuditPipeline:
             "capabilities": getattr(selected_explainer, "capabilities", {}),
         }
 
-        # Add to manifest
-        explainer_info = {
-            "implementation": selected_name,
-            "version": getattr(selected_explainer, "version", "1.0.0"),
-            "priority": getattr(selected_explainer, "priority", None),
-        }
+        # Add to manifest with new signature
         self.manifest_generator.add_component(
             "explainer",
             selected_name,
-            explainer_info,
+            selected_explainer,
+            details={
+                "implementation": selected_name,
+                "priority": getattr(selected_explainer, "priority", None),
+            },
         )
 
         return selected_explainer
@@ -490,7 +491,7 @@ class AuditPipeline:
 
         return explanation_results
 
-    def _compute_metrics(self, data: pd.DataFrame, schema: TabularDataSchema) -> None:
+    def _compute_metrics(self, data: pd.DataFrame, schema: TabularDataSchema) -> None:  # noqa: C901
         """Compute all configured metrics.
 
         Args:
@@ -506,9 +507,22 @@ class AuditPipeline:
         # Use processed features for predictions (same as training)
         X_processed = self._preprocess_for_training(X)  # noqa: N806
 
-        # Ensure trainable models are fitted before computing metrics
-        if getattr(self.model, "model", None) is None:
-            logger.warning("Model not fitted, attempting to fit with available data")
+        # Friend's spec: Ensure model is loaded/trained before computing metrics
+        if self.model is None:
+            logger.warning("Model not loaded, skipping metrics computation")
+            return
+
+        # Check if model needs fitting (for wrapper types that support it)
+        model_needs_fitting = False
+        if hasattr(self.model, "model") and getattr(self.model, "model", None) is None:
+            # Model wrapper exists but internal model is None - needs fitting
+            model_needs_fitting = True
+        elif hasattr(self.model, "_is_fitted") and not getattr(self.model, "_is_fitted", True):
+            # Model wrapper tracks fitted state explicitly
+            model_needs_fitting = True
+
+        if model_needs_fitting and hasattr(self.model, "fit"):
+            logger.info("Model not fitted, attempting to fit with available data")
             model_seed = (
                 self.manifest_generator.manifest.seeds.get("model", 42)
                 if hasattr(self.manifest_generator, "manifest")
@@ -591,10 +605,10 @@ class AuditPipeline:
                     result = metric.compute(y_true, y_pred)
 
                 results[metric_name] = result
-                logger.debug("Computed %s: {result}", metric_name)
+                logger.debug("Computed %s: %s", metric_name, result)
 
             except Exception as e:  # noqa: BLE001
-                logger.warning("Failed to compute metric %s: {e}", metric_name)
+                logger.warning("Failed to compute metric %s: %s", metric_name, e)
                 results[metric_name] = {"error": str(e)}
 
         self.results.model_performance = results
@@ -645,10 +659,10 @@ class AuditPipeline:
                         results[col] = {}
                     results[col][metric_name] = result
 
-                    logger.debug("Computed %s for {col}: {result}", metric_name)
+                    logger.debug("Computed %s for %s: %s", metric_name, col, result)
 
             except Exception as e:  # noqa: BLE001
-                logger.warning("Failed to compute fairness metric %s: {e}", metric_name)
+                logger.warning("Failed to compute fairness metric %s: %s", metric_name, e)
                 if col not in results:
                     results[col] = {}
                 results[col][metric_name] = {"error": str(e)}
@@ -772,7 +786,7 @@ class AuditPipeline:
         if callback:
             callback(progress, message)
 
-        logger.debug("Progress: %s% - {message}", progress)
+        logger.debug("Progress: %s%% - %s", progress, message)
 
     def _preprocess_for_training(self, X: pd.DataFrame) -> pd.DataFrame:  # noqa: N803, C901  # noqa: N803 -> pd.DataFrame:
         """Preprocess features for model training using ColumnTransformer per friend's spec.
@@ -881,7 +895,7 @@ class AuditPipeline:
                     unique_values = X_processed[col].unique()
                     value_map = {val: idx for idx, val in enumerate(unique_values)}
                     X_processed[col] = X_processed[col].map(value_map)
-                    logger.debug("Label encoded column '%s': {value_map}", col)
+                    logger.debug("Label encoded column '%s': %s", col, value_map)
 
             return X_processed
 

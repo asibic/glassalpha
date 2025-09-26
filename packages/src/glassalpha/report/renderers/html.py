@@ -6,6 +6,7 @@ using Jinja2's PackageLoader instead of filesystem paths.
 """
 
 import logging
+import os
 
 from jinja2 import Environment, PackageLoader, select_autoescape
 
@@ -26,6 +27,16 @@ class HTMLRenderer:
             trim_blocks=True,
             lstrip_blocks=True,
         )
+
+        # Friend's spec: Optional assert for packaging validation
+        if os.getenv("GLASSALPHA_ASSERT_PACKAGING") == "1":
+            try:
+                from importlib.resources import files  # noqa: PLC0415
+
+                assert files("glassalpha.report.templates").joinpath("standard_audit.html").is_file()  # noqa: S101
+            except (ImportError, AssertionError) as e:
+                msg = f"Template packaging validation failed: {e}"
+                raise RuntimeError(msg) from e
 
         logger.info("Initialized HTML renderer with PackageLoader")
 

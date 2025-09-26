@@ -15,11 +15,13 @@ import pandas as pd
 
 from glassalpha.core.registry import ModelRegistry
 
+from .base import BaseTabularWrapper
+
 logger = logging.getLogger(__name__)
 
 
 @ModelRegistry.register("lightgbm", priority=90)
-class LightGBMWrapper:
+class LightGBMWrapper(BaseTabularWrapper):
     """Wrapper for LightGBM models implementing ModelInterface protocol.
 
     This class wraps LightGBM models to make them compatible with the GlassAlpha
@@ -48,6 +50,7 @@ class LightGBMWrapper:
             model: Pre-loaded LightGBM Booster object
 
         """
+        super().__init__()
         self.model: lgb.Booster | None = model
         self.feature_names: list | None = None
         self.feature_names_: list | None = None  # For sklearn compatibility
@@ -57,6 +60,7 @@ class LightGBMWrapper:
             self.load(model_path)
         elif model:
             self.model = model
+            self._is_fitted = True  # Pre-loaded model is considered fitted
             self._extract_model_info()
 
         if self.model:
@@ -64,7 +68,7 @@ class LightGBMWrapper:
         else:
             logger.info("LightGBMWrapper initialized without model")
 
-    def load(self, path: str | Path) -> None:
+    def load(self, path: str | Path) -> "LightGBMWrapper":
         """Load trained LightGBM model from saved file for inference or analysis.
 
         Loads a previously saved LightGBM model from disk, supporting both text
@@ -94,7 +98,9 @@ class LightGBMWrapper:
 
         logger.info("Loading LightGBM model from %s", path)
         self.model = lgb.Booster(model_file=str(path))
+        self._is_fitted = True  # Loaded model is fitted
         self._extract_model_info()
+        return self
 
     def fit(self, X: Any, y: Any, **kwargs: Any) -> "LightGBMWrapper":  # noqa: N803, ANN401
         """Train LightGBM model on provided data.
@@ -133,7 +139,7 @@ class LightGBMWrapper:
         )
 
         # Set fitted state - use len(set(y)) as fallback since LightGBM doesn't have classes_
-        self.status = "fitted"
+        self._is_fitted = True
         self.n_classes = len(getattr(self.model, "classes_", [])) or len(set(y))
         n_features = len(X_processed.columns) if hasattr(X_processed, "columns") else X_processed.shape[1]
         logger.info("Trained LightGBM model with %d features", n_features)
@@ -190,9 +196,7 @@ class LightGBMWrapper:
             Array of predictions
 
         """
-        if self.model is None:
-            msg = "Model not loaded. Load a model first."
-            raise ValueError(msg)
+        self._ensure_fitted()
 
         # Use _prepare_X for robust feature handling
         X_processed = self._prepare_x(X)  # noqa: N806
@@ -222,9 +226,7 @@ class LightGBMWrapper:
             Array of prediction probabilities (n_samples, n_classes)
 
         """
-        if self.model is None:
-            msg = "Model not loaded. Load a model first."
-            raise ValueError(msg)
+        self._ensure_fitted()
 
         # Use _prepare_X for robust feature handling
         X_processed = self._prepare_x(X)  # noqa: N806
@@ -282,9 +284,7 @@ class LightGBMWrapper:
             Dictionary mapping feature names to importance scores
 
         """
-        if self.model is None:
-            msg = "Model not loaded. Load a model first."
-            raise ValueError(msg)
+        self._ensure_fitted()
 
         # Get importance scores
         importance = self.model.feature_importance(importance_type=importance_type)
