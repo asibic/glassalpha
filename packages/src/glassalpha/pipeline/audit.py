@@ -70,7 +70,10 @@ class AuditPipeline:
 
         # Initialize manifest generator
         self.manifest_generator = ManifestGenerator()
-        self.manifest_generator.add_config(config.model_dump())
+
+        # Handle both pydantic and plain object configs (contract compliance)
+        cfg_dict = config.model_dump() if hasattr(config, "model_dump") else dict(vars(config))
+        self.manifest_generator.add_config(cfg_dict)
 
         # Component instances (will be populated during execution)
         self.data_loader = TabularDataLoader()

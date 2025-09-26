@@ -38,6 +38,10 @@ class XGBoostWrapper(BaseTabularWrapper):
     }
     version = "1.0.0"
 
+    # Contract compliance: Binary classification constants
+    BINARY_CLASSES = 2
+    BINARY_THRESHOLD = 0.5
+
     def __init__(self, model_path: str | Path | None = None, model: xgb.Booster | None = None) -> None:
         """Initialize XGBoost wrapper.
 
@@ -64,7 +68,7 @@ class XGBoostWrapper(BaseTabularWrapper):
         else:
             logger.info("XGBoostWrapper initialized without model")
 
-    def load(self, path: str | Path) -> None:
+    def load(self, path: str | Path) -> "XGBoostWrapper":
         """Load trained XGBoost model from saved file for inference and analysis.
 
         Loads a previously saved XGBoost booster model from disk, supporting both
@@ -95,10 +99,29 @@ class XGBoostWrapper(BaseTabularWrapper):
             raise FileNotFoundError(msg)
 
         logger.info("Loading XGBoost model from %s", path)
-        self.model = xgb.Booster()
-        self.model.load_model(str(path))
-        self._is_fitted = True
-        self._extract_model_info()
+
+        # Contract compliance: Load JSON with model/feature_names_/n_classes
+        import json  # noqa: PLC0415
+
+        try:
+            with Path(path).open(encoding="utf-8") as f:
+                data = json.load(f)
+
+            # Reconstruct from saved structure
+            self.model = xgb.Booster()
+            self.model.load_model_from_string(data["model"])
+            self.feature_names_ = data.get("feature_names_")
+            self.n_classes = data.get("n_classes", 2)
+            self._is_fitted = True
+
+        except (json.JSONDecodeError, KeyError):
+            # Fallback to direct XGBoost model loading (old format)
+            self.model = xgb.Booster()
+            self.model.load_model(str(path))
+            self._is_fitted = True
+            self._extract_model_info()
+
+        return self
 
     def _extract_model_info(self) -> None:
         """Extract metadata from loaded model."""
@@ -154,16 +177,19 @@ class XGBoostWrapper(BaseTabularWrapper):
         dmatrix = xgb.DMatrix(X_processed, feature_names=feature_names)
 
         # Get raw predictions
-        predictions = self.model.predict(dmatrix)
+        preds = self.model.predict(dmatrix)
 
-        # For binary classification with probability output, convert to class predictions
-        if self.n_classes == self.BINARY_CLASSES and predictions.ndim == 1:
-            # If predictions are probabilities, convert to binary classes
-            if np.all((predictions >= 0) & (predictions <= 1)):
-                predictions = (predictions > self.BINARY_THRESHOLD).astype(int)
-        elif predictions.ndim == self.BINARY_CLASSES:
-            # Multiclass - take argmax
-            predictions = np.argmax(predictions, axis=1)
+        # Contract compliance: Handle binary/multiclass shape consistently
+        if self.n_classes == self.BINARY_CLASSES and preds.ndim == 1:
+            # Convert logits/prob of class 1 into two-column proba
+            proba1 = preds
+            proba0 = 1.0 - proba1
+            probs = np.column_stack([proba0, proba1])
+        else:
+            probs = preds
+
+        # Use argmax for predict to get class predictions
+        predictions = np.argmax(probs, axis=1) if probs.ndim > 1 else (probs > self.BINARY_THRESHOLD).astype(int)
 
         logger.debug("Generated predictions for %s samples", len(X))
         return predictions
@@ -191,18 +217,19 @@ class XGBoostWrapper(BaseTabularWrapper):
         dmatrix = xgb.DMatrix(X_processed, feature_names=feature_names)
 
         # Get raw predictions (probabilities)
-        predictions = self.model.predict(dmatrix)
+        preds = self.model.predict(dmatrix)
 
-        # Handle binary vs multiclass
-        if self.n_classes == self.BINARY_CLASSES and predictions.ndim == 1:
-            # Binary classification - create 2-column probability matrix
-            proba = np.column_stack([1 - predictions, predictions])
+        # Contract compliance: Handle binary/multiclass shape consistently
+        if self.n_classes == self.BINARY_CLASSES and preds.ndim == 1:
+            # Convert logits/prob of class 1 into two-column proba
+            proba1 = preds
+            proba0 = 1.0 - proba1
+            probs = np.column_stack([proba0, proba1])
         else:
-            # Multiclass or already in correct format
-            proba = predictions
+            probs = preds
 
         logger.debug("Generated probability predictions for %s samples", len(X))
-        return proba
+        return probs
 
     def get_model_type(self) -> str:
         """Return the model type identifier.
@@ -290,8 +317,18 @@ class XGBoostWrapper(BaseTabularWrapper):
         path = Path(path)
         path.parent.mkdir(parents=True, exist_ok=True)
 
-        # Save in JSON format for better compatibility
-        self.model.save_model(str(path))
+        # Contract compliance: Save JSON with model/feature_names_/n_classes
+        import json  # noqa: PLC0415
+
+        data = {
+            "model": self.model.save_model_to_string(),
+            "feature_names_": self.feature_names_,
+            "n_classes": self.n_classes,
+        }
+
+        with Path(path).open("w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2)
+
         logger.info("Saved XGBoost model to %s", path)
 
     def __repr__(self) -> str:

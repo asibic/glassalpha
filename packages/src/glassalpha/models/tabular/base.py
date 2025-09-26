@@ -52,7 +52,7 @@ class BaseTabularWrapper:
             raise ValueError(NO_MODEL_MSG)
 
     def _prepare_x(self, X: Any) -> Any:  # noqa: ANN401, N803
-        """Robust DataFrame column handling - prevents feature name mismatch errors.
+        """Robust DataFrame column handling - prevents sklearn feature name mismatch errors.
 
         Args:
             X: Input features (DataFrame or array)
@@ -69,18 +69,21 @@ class BaseTabularWrapper:
 
         fitted_names = getattr(self, "feature_names_", None)
         if fitted_names is None:
+            # First predictions before fit - pass through
             return X
 
-        # If same width but different names, assume same order
+        # Contract compliance: Handle column drift robustly
+        # If same width but different names, use positional to bypass sklearn feature_names_in_ checks
         if len(fitted_names) == X.shape[1] and list(X.columns) != list(fitted_names):
             logger.debug("DataFrame columns renamed but same width - using array conversion")
             return X.to_numpy()
 
-        # Try to reindex to fitted column order
+        # Reindex to stored feature order, drop extras, fill missing with 0
         if set(fitted_names).issubset(set(X.columns)):
             return X.reindex(columns=fitted_names, fill_value=0)
 
-        return X
+        # Handle genuine drift cases - reindex with fill_value=0 for missing columns
+        return X.reindex(columns=fitted_names, fill_value=0)
 
     def save(self, path: Path) -> None:
         """Save model state to file.

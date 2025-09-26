@@ -487,25 +487,42 @@ class ManifestGenerator:
 
         """
 
-        def _run(*args: str) -> str:
-            """Helper to run git commands safely."""
-            p = subprocess.run(args, capture_output=True, check=False, text=True)  # noqa: S603
-            return (p.stdout or "").strip()
+        def _run(*args: str) -> str | None:
+            """Helper to run git commands safely - contract compliance."""
+            try:
+                p = subprocess.run(args, capture_output=True, check=False, text=True)  # noqa: S603
+                return (p.stdout or "").strip()
+            except FileNotFoundError:
+                return None
 
-        # Friend's spec: use subprocess.run with text=True and never .decode()
+        # Contract compliance: Handle no git gracefully
         info = {
             "commit_sha": _run("git", "rev-parse", "HEAD"),
             "branch": _run("git", "rev-parse", "--abbrev-ref", "HEAD"),
             "remote_url": _run("git", "config", "--get", "remote.origin.url"),
             "last_commit_message": _run("git", "log", "-1", "--pretty=%B"),
             "last_commit_date": _run("git", "log", "-1", "--date=iso-strict", "--pretty=%cd"),
+            "porcelain_status": _run("git", "status", "--porcelain"),
         }
-        info["is_dirty"] = bool(_run("git", "status", "--porcelain"))
+
+        # Check if git is available - if any call returns None, no git installed
+        if any(v is None for v in info.values()):
+            return GitInfo(
+                commit_hash=None,
+                branch=None,
+                is_dirty=False,
+                remote_url=None,
+                commit_message=None,
+                commit_timestamp=None,
+            )
+
+        # Git available - normalize status
+        is_dirty = bool(info["porcelain_status"])
 
         return GitInfo(
             commit_hash=info["commit_sha"],
             branch=info["branch"],
-            is_dirty=info["is_dirty"],
+            is_dirty=is_dirty,
             remote_url=info["remote_url"] or None,
             commit_message=info["last_commit_message"],
             commit_timestamp=info["last_commit_date"],

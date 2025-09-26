@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import inspect
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, ClassVar
 
 import numpy as np
 
@@ -262,6 +262,16 @@ if SHAP_AVAILABLE:
             # KernelSHAP is model-agnostic for real models
             return hasattr(model, "predict") or hasattr(model, "predict_proba")
 
+        # Contract compliance: KernelSHAP is compatible with tree models too
+        SUPPORTED_MODELS: ClassVar[set[str]] = {
+            "xgboost",
+            "lightgbm",
+            "random_forest",
+            "decision_tree",
+            "logistic_regression",
+            "linear_model",
+        }
+
         def is_compatible(self, model: Any) -> bool:  # noqa: ANN401
             """Check if model is compatible with KernelSHAP explainer.
 
@@ -272,9 +282,9 @@ if SHAP_AVAILABLE:
                 True if model is compatible with KernelSHAP
 
             """
-            # Friend's spec: Check specific model types compatible with KernelSHAP
+            # Contract compliance: KernelSHAP supports both tree and linear models
             if isinstance(model, str):
-                return model in {"logistic_regression", "linear_model"}
+                return str(model).lower() in self.SUPPORTED_MODELS
 
             # For model objects, check model type via get_model_info()
             try:
@@ -283,10 +293,9 @@ if SHAP_AVAILABLE:
             except Exception:  # noqa: BLE001
                 # Fallback to old method for compatibility
                 logger.debug("Could not get model info, using fallback method")
-            else:
-                return model_type in {"logistic_regression", "linear_model"}
-                # Fallback to old method for compatibility
                 return self.supports_model(model)
+            else:
+                return model_type in self.SUPPORTED_MODELS
 
         def _extract_feature_names(self, x: Any) -> Sequence[str] | None:  # noqa: ANN401
             """Extract feature names from input data."""
