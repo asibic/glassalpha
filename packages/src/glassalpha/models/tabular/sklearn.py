@@ -45,7 +45,7 @@ class SklearnGenericWrapper:
             feature_names: Optional feature names for interpretation
 
         """
-            self.model = model
+        self.model = model
         self.feature_names = list(feature_names) if feature_names is not None else None
         self.capabilities = {
             "predict": hasattr(model, "predict"),
@@ -417,7 +417,7 @@ if SKLEARN_AVAILABLE:
             n_classes = len(self.classes_) if hasattr(self, "classes_") and self.classes_ is not None else "unknown"
             return f"LogisticRegressionWrapper(status={status}, n_classes={n_classes}, version={self.version})"
 
-@ModelRegistry.register("sklearn_generic", priority=70)
+    @ModelRegistry.register("sklearn_generic", priority=70)
     class SklearnGenericWrapper(BaseEstimator):
         """Generic wrapper for any scikit-learn estimator."""
 
