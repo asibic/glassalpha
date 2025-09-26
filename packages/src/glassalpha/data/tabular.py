@@ -36,19 +36,20 @@ class TabularDataSchema(DataSchema):
         """Validate schema constraints after initialization."""
         # Target cannot be in features
         if self.target in self.features:
-            raise ValueError(f"Target '{self.target}' cannot be in features list")
+            msg = f"Target '{self.target}' cannot be in features list"
+            raise ValueError(msg)
 
         # Sensitive features must be subset of features or standalone
         if self.sensitive_features:
-            invalid_sensitive = set(self.sensitive_features) - set(self.features + [self.target])
+            invalid_sensitive = set(self.sensitive_features) - {*self.features, self.target}
             if invalid_sensitive:
-                logger.warning(f"Sensitive features not in feature/target columns: {invalid_sensitive}")
+                logger.warning("Sensitive features not in feature/target columns: %s", invalid_sensitive)
 
 
 class TabularDataLoader(DataInterface):
     """Comprehensive tabular data loader with validation and preprocessing."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize tabular data loader."""
         self.supported_formats = {".csv", ".parquet", ".pkl", ".feather"}
 
@@ -70,12 +71,14 @@ class TabularDataLoader(DataInterface):
         path = Path(path)
 
         if not path.exists():
-            raise FileNotFoundError(f"Data file not found: {path}")
+            msg = f"Data file not found: {path}"
+            raise FileNotFoundError(msg)
 
         if path.suffix not in self.supported_formats:
-            raise ValueError(f"Unsupported file format: {path.suffix}. Supported: {', '.join(self.supported_formats)}")
+            msg = f"Unsupported file format: {path.suffix}. Supported: {', '.join(self.supported_formats)}"
+            raise ValueError(msg)
 
-        logger.info(f"Loading data from {path}")
+        logger.info("Loading data from %s", path)
 
         try:
             # Load based on file format
@@ -88,12 +91,14 @@ class TabularDataLoader(DataInterface):
             elif path.suffix == ".feather":
                 data = pd.read_feather(path)
             else:
-                raise ValueError(f"Format {path.suffix} not implemented")
+                msg = f"Format {path.suffix} not implemented"
+                raise ValueError(msg)
 
         except Exception as e:
-            raise ValueError(f"Failed to load data from {path}: {e}") from e
+            msg = f"Failed to load data from {path}: {e}"
+            raise ValueError(msg) from e
 
-        logger.info(f"Loaded data: {data.shape[0]} rows, {data.shape[1]} columns")
+        logger.info("Loaded data: %s rows, {data.shape[1]} columns", data.shape[0])
 
         # Validate schema if provided
         if schema:
@@ -116,39 +121,42 @@ class TabularDataLoader(DataInterface):
 
         # Check target column exists
         if schema.target not in data.columns:
-            raise ValueError(f"Target column '{schema.target}' not found in data")
+            msg = f"Target column '{schema.target}' not found in data"
+            raise ValueError(msg)
 
         # Check feature columns exist
         missing_features = set(schema.features) - set(data.columns)
         if missing_features:
-            raise ValueError(f"Missing feature columns: {missing_features}")
+            msg = f"Missing feature columns: {missing_features}"
+            raise ValueError(msg)
 
         # Check sensitive features exist
         if schema.sensitive_features:
             missing_sensitive = set(schema.sensitive_features) - set(data.columns)
             if missing_sensitive:
-                raise ValueError(f"Missing sensitive feature columns: {missing_sensitive}")
+                msg = f"Missing sensitive feature columns: {missing_sensitive}"
+                raise ValueError(msg)
 
         # Additional validation for TabularDataSchema
         if isinstance(schema, TabularDataSchema):
             if schema.categorical_features:
                 missing_cat = set(schema.categorical_features) - set(data.columns)
                 if missing_cat:
-                    logger.warning(f"Missing categorical columns: {missing_cat}")
+                    logger.warning("Missing categorical columns: %s", missing_cat)
 
             if schema.numeric_features:
                 missing_num = set(schema.numeric_features) - set(data.columns)
                 if missing_num:
-                    logger.warning(f"Missing numeric columns: {missing_num}")
+                    logger.warning("Missing numeric columns: %s", missing_num)
 
         # Check for missing values in critical columns
-        critical_columns = [schema.target] + schema.features
+        critical_columns = [schema.target, *schema.features]
         if schema.sensitive_features:
             critical_columns.extend(schema.sensitive_features)
 
         missing_counts = data[critical_columns].isnull().sum()
         if missing_counts.any():
-            logger.warning(f"Missing values detected: {missing_counts[missing_counts > 0].to_dict()}")
+            logger.warning("Missing values detected: %s", missing_counts[missing_counts > 0].to_dict())
 
         logger.info("Schema validation completed successfully")
 
@@ -178,9 +186,9 @@ class TabularDataLoader(DataInterface):
         if schema.sensitive_features:
             sensitive = data[schema.sensitive_features].copy()
 
-        logger.info(f"Extracted features: {X.shape}, target: {y.shape}")
+        logger.info("Extracted features: %s, target: {y.shape}", X.shape)
         if sensitive is not None:
-            logger.info(f"Extracted sensitive features: {sensitive.shape}")
+            logger.info("Extracted sensitive features: %s", sensitive.shape)
 
         return X, y, sensitive
 
@@ -205,7 +213,7 @@ class TabularDataLoader(DataInterface):
         hash_obj = hashlib.sha256(data_str.encode("utf-8"))
         data_hash = hash_obj.hexdigest()
 
-        logger.info(f"Generated data hash: {data_hash[:12]}...")
+        logger.info("Generated data hash: %s...", data_hash[:12])
         return data_hash
 
     def split_data(
@@ -231,15 +239,17 @@ class TabularDataLoader(DataInterface):
 
         """
         if not 0.0 < test_size < 1.0:
-            raise ValueError(f"test_size must be between 0.0 and 1.0, got {test_size}")
+            msg = f"test_size must be between 0.0 and 1.0, got {test_size}"
+            raise ValueError(msg)
 
         stratify = None
         if stratify_column:
             if stratify_column not in data.columns:
-                raise ValueError(f"Stratify column '{stratify_column}' not found in data")
+                msg = f"Stratify column '{stratify_column}' not found in data"
+                raise ValueError(msg)
             stratify = data[stratify_column]
 
-        logger.info(f"Splitting data: {len(data)} total, test_size={test_size}")
+        logger.info("Splitting data: %s total, test_size={test_size}", len(data))
 
         try:
             train_data, test_data = train_test_split(
@@ -250,22 +260,22 @@ class TabularDataLoader(DataInterface):
             )
         except ValueError as e:
             if stratify is not None:
-                logger.warning(f"Stratified split failed: {e}. Trying without stratification.")
+                logger.warning("Stratified split failed: %s. Trying without stratification.", e)
                 train_data, test_data = train_test_split(data, test_size=test_size, random_state=random_state)
             else:
                 raise
 
-        logger.info(f"Split completed: train={len(train_data)}, test={len(test_data)}")
+        logger.info("Split completed: train=%s, test={len(test_data)}", len(train_data))
 
         return train_data, test_data
 
     def preprocess_features(
         self,
-        X: pd.DataFrame,
+        X: pd.DataFrame,  # noqa: N803
         schema: TabularDataSchema,
-        fit_preprocessor: bool = True,
+        fit_preprocessor: bool = True,  # noqa: ARG002
     ) -> pd.DataFrame:
-        """Basic preprocessing for tabular features.
+        """Basic preprocessing for tabular features with automatic categorical encoding.
 
         Args:
             X: Feature DataFrame
@@ -278,12 +288,23 @@ class TabularDataLoader(DataInterface):
         """
         X_processed = X.copy()
 
-        # Handle categorical features
+        # Friend's spec: Automatically detect and one-hot encode object/categorical columns
+        # This prevents "could not convert string to float: '< 0 DM'" errors
+        object_cols = X_processed.select_dtypes(include=["object", "category"]).columns.tolist()
+
+        if object_cols:
+            logger.info("One-hot encoding categorical columns: %s", object_cols)
+            # Apply pd.get_dummies as specified by friend (drop_first=False to keep all categories)
+            X_processed = pd.get_dummies(X_processed, columns=object_cols, drop_first=False)
+
+        # Handle explicitly specified categorical features (if not already processed)
         if schema.categorical_features:
-            cat_features = [f for f in schema.categorical_features if f in X_processed.columns]
-            for col in cat_features:
-                # Simple label encoding for now
-                if X_processed[col].dtype == "object":
+            remaining_cat_features = [
+                f for f in schema.categorical_features if f in X_processed.columns and X_processed[f].dtype == "object"
+            ]
+            if remaining_cat_features:
+                logger.info("Processing remaining categorical features: %s", remaining_cat_features)
+                for col in remaining_cat_features:
                     X_processed[col] = pd.Categorical(X_processed[col]).codes
 
         # Handle numeric features
@@ -302,7 +323,7 @@ class TabularDataLoader(DataInterface):
                     X_processed[col].mode().iloc[0] if not X_processed[col].mode().empty else 0,
                 )
 
-        logger.info(f"Preprocessing completed for {X_processed.shape[1]} features")
+        logger.info("Preprocessing completed: %s -> {X_processed.shape[1]} features", X.shape[1])
 
         return X_processed
 

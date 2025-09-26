@@ -14,8 +14,8 @@ try:
 
     EXPLAINERS_AVAILABLE = True
 except ImportError:
-    TreeSHAPExplainer = None  # type: ignore
-    KernelSHAPExplainer = None  # type: ignore
+    TreeSHAPExplainer = None  # type: ignore[assignment]
+    KernelSHAPExplainer = None  # type: ignore[assignment]
     EXPLAINERS_AVAILABLE = False
 
 
@@ -26,19 +26,20 @@ class ExplainerRegistry:
     for finding compatible explainers based on model characteristics.
     """
 
-    _by_key: dict[str, type] = {}
+    _by_key: ClassVar[dict[str, type]] = {}
 
     @classmethod
     def register(cls, key: str, explainer_class: type) -> None:
         """Register an explainer class with a key."""
         cls._by_key[key] = explainer_class
-        logger.debug(f"Registered explainer: {key} -> {explainer_class}")
+        logger.debug("Registered explainer: %s -> {explainer_class}", key)
 
     @classmethod
-    def get(cls, key: str):
+    def get(cls, key: str) -> type | None:
         """Get explainer class by key."""
         if key not in cls._by_key:
-            raise KeyError(f"Explainer '{key}' not found in registry")
+            msg = f"Explainer '{key}' not found in registry"
+            raise KeyError(msg)
         return cls._by_key[key]
 
     @classmethod
@@ -47,7 +48,7 @@ class ExplainerRegistry:
         return cls._by_key.copy()
 
     @classmethod
-    def find_compatible(cls, model: Any) -> type | None:
+    def find_compatible(cls, model: Any) -> type | None:  # noqa: ANN401
         """Find a compatible explainer for the given model.
 
         Uses conservative heuristics to detect tree-based models that
@@ -75,11 +76,17 @@ class ExplainerRegistry:
         )
 
         if is_tree_model:
-            logger.debug(f"Detected tree model: {model_name} (module: {model_module})")
+            logger.debug("Detected tree model: %s (module: {model_module})", model_name)
             return TreeSHAPExplainer
 
-        logger.debug(f"No compatible explainer found for model: {model_name} (module: {model_module})")
-        # Could add more heuristics here; otherwise return None to force Kernel via config
+        # For LogisticRegression and other sklearn models, use KernelSHAP
+        # KernelSHAP is model-agnostic and works with any model having predict/predict_proba
+        if ("sklearn" in model_module or "logistic" in model_name) and KernelSHAPExplainer:
+            logger.debug("Using KernelSHAP for sklearn model: %s (module: {model_module})", model_name)
+            return KernelSHAPExplainer
+
+        logger.debug("No compatible explainer found for model: %s (module: {model_module})", model_name)
+        # Could add more heuristics here; return None to force explicit config-based selection
         return None
 
 

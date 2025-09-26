@@ -95,14 +95,19 @@ class AuditManifest(BaseModel):
     manifest_version: str = "1.0"
     audit_id: str
     version: str = "1.0.0"  # Tests expect this field to exist
-    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))  # Tests expect this field name
+    created_at: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())  # String for test compatibility
     creation_time: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
     # Configuration
     config: dict[str, Any] = Field(default_factory=dict)
     config_hash: str | None = None
+    data_hash: str | None = None  # Root-level data hash for e2e tests
     audit_profile: str | None = None
     strict_mode: bool = False
+
+    # Root-level status fields (tests expect these)
+    status: str = "pending"
+    error_message: str | None = None
 
     # Environment with defaults (tests expect this to be populated)
     environment: EnvironmentInfo = Field(
@@ -126,11 +131,13 @@ class AuditManifest(BaseModel):
     deterministic_validation: dict[str, bool | None] = Field(default_factory=dict)
 
     # Components (tests expect this field name)
-    components: dict[str, ManifestComponent] = Field(default_factory=dict)
-    selected_components: dict[str, ComponentInfo] = Field(default_factory=dict)
+    components: dict[str, dict[str, Any]] = Field(default_factory=dict)  # Changed to dict for test compatibility
+    selected_components: dict[str, dict[str, Any]] = Field(default_factory=dict)  # Support nested structure
 
     # Data
-    datasets: dict[str, DataInfo] = Field(default_factory=dict)
+    datasets: dict[str, dict[str, Any]] = Field(
+        default_factory=dict,
+    )  # Changed to dict for test compatibility with 'name' field
 
     # Execution (made optional for minimal construction)
 
@@ -262,43 +269,57 @@ class ManifestGenerator:
         self,
         name: str,
         component_type: str,
-        info: dict[str, Any],
+        info: dict[str, Any] | None = None,
+        config: dict[str, Any] | None = None,
+        **kwargs: Any,  # noqa: ANN401
     ) -> ManifestComponent:
         """Add component to manifest (test-compatible signature).
 
         Args:
-            name: Component name
+            name: Component name (role like 'model', 'explainer')
             component_type: Component type (e.g., "xgboost", "treeshap")
             info: Component information dictionary
+            config: Component configuration dictionary
+            **kwargs: Additional arguments
 
         Returns:
             ManifestComponent object with .name attribute
 
         """
+        # Combine info and config into details
+        details = {}
+        if info is not None:
+            details.update(info)
+        if config is not None:
+            details["config"] = config
+        details.update(kwargs)
+
         # Create ManifestComponent with type from component_type parameter (not from info)
         component = ManifestComponent(
             name=name,
             type=component_type,  # Type comes from parameter, not info dict
-            details=info,
+            details=details,
         )
 
-        # Store in manifest components (tests expect this field)
-        self.manifest.components[name] = component
+        # Friend's spec: Store as role-keyed dict with .name inside equal to component_type
+        # So components["model"]["name"] == "xgboost" (not "model")
+        self.manifest.components[name] = {"name": component_type, "config": config or {}, **details}
 
-        # Store in generator components for compatibility  
+        # Store in generator components for compatibility
         self.components[name] = component
 
         # Also update selected_components for backward compatibility
         if component_type not in self.manifest.selected_components:
             self.manifest.selected_components[component_type] = {}
-        
-        # Create ComponentInfo for selected_components
+
+        # Create ComponentInfo for selected_components (handle None info)
+        info_dict = info or {}
         component_info = ComponentInfo(
             name=name,
             type=component_type,
-            implementation=info.get("implementation", component_type),
-            version=info.get("version"),
-            parameters=info.get("parameters", {}) or {},
+            implementation=info_dict.get("implementation", component_type),
+            version=info_dict.get("version"),
+            parameters=info_dict.get("parameters", {}) or {},
         )
         self.manifest.selected_components[component_type][name] = component_info
 
@@ -333,17 +354,25 @@ class ManifestGenerator:
         # Add data information if available - avoid DataFrame truth ambiguity
         if data is not None and hasattr(data, "shape"):  # Check for shape attribute instead of truthiness
             dataset_info.hash = hash_dataframe(data)
+            # Also set root-level data_hash for e2e tests (use the main dataset's hash)
+            if dataset_name == "main" or self.manifest.data_hash is None:
+                self.manifest.data_hash = dataset_info.hash
             dataset_info.shape = data.shape
             dataset_info.columns = list(data.columns)
             dataset_info.missing_values = data.isna().sum().to_dict()
         elif file_path is not None and file_path.exists():  # Explicit None check
             dataset_info.hash = hash_file(file_path)
+            # Also set root-level data_hash for e2e tests (use the main dataset's hash)
+            if dataset_name == "main" or self.manifest.data_hash is None:
+                self.manifest.data_hash = dataset_info.hash
 
         # Update both manifest and direct attribute for test compatibility
-        self.manifest.datasets[dataset_name] = dataset_info
-        self.datasets[dataset_name] = (
-            dataset_info.model_dump() if hasattr(dataset_info, "model_dump") else vars(dataset_info)
-        )
+        # Ensure datasets include 'name' field as expected by tests
+        dataset_dict = dataset_info.model_dump() if hasattr(dataset_info, "model_dump") else vars(dataset_info)
+        dataset_dict["name"] = dataset_name  # Add name field for test compatibility
+
+        self.manifest.datasets[dataset_name] = dataset_dict
+        self.datasets[dataset_name] = dataset_dict
         logger.debug("Added dataset to manifest: %s", dataset_name)
 
     def add_result_hash(self, result_name: str, result_hash: str) -> None:
@@ -383,6 +412,10 @@ class ManifestGenerator:
         self.manifest.execution.end_time = end_time
         self.manifest.execution.duration_seconds = (end_time - self.start_time).total_seconds()
         self.manifest.execution.status = status
+
+        # Friend's spec: Set root-level status and error_message in manifest
+        self.manifest.status = status
+        self.manifest.error_message = error
 
         if error:
             self.manifest.execution.error_message = error

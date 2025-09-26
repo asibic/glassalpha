@@ -15,7 +15,18 @@ from typing import Any
 import jinja2
 from matplotlib.figure import Figure
 
-from ..pipeline.audit import AuditResults
+# Friend's spec: Use importlib.resources for template loading from installed package
+try:
+    from importlib.resources import files
+
+    IMPORTLIB_RESOURCES_AVAILABLE = True
+except ImportError:
+    # Fallback for older Python versions
+    IMPORTLIB_RESOURCES_AVAILABLE = False
+    files = None
+
+from glassalpha.pipeline.audit import AuditResults
+
 from .plots import AuditPlotter, create_fairness_plots, create_performance_plots, create_shap_plots
 
 logger = logging.getLogger(__name__)
@@ -24,18 +35,34 @@ logger = logging.getLogger(__name__)
 class AuditReportRenderer:
     """Professional template renderer for audit reports."""
 
-    def __init__(self, template_dir: Path | None = None):
+    def __init__(self, template_dir: Path | None = None) -> None:
         """Initialize the audit report renderer.
 
         Args:
             template_dir: Directory containing Jinja2 templates
 
         """
-        self.template_dir = template_dir or Path(__file__).parent / "templates"
+        # Friend's spec: Use package resources for template loading from installed package
+        if template_dir is None:
+            # Try to use PackageLoader which is designed for package resources
+            try:
+                loader = jinja2.PackageLoader("glassalpha.report", "templates")
+                self.template_dir = Path("glassalpha.report.templates")  # Virtual path for logging
+                logger.debug("Using PackageLoader for template resources")
+            except (ImportError, AttributeError, ValueError):
+                # Fall back to filesystem loader
+                self.template_dir = Path(__file__).parent / "templates"
+                loader = jinja2.FileSystemLoader(str(self.template_dir))
+                logger.debug("Falling back to FileSystemLoader: %s", self.template_dir)
+        else:
+            # Use provided template_dir with filesystem loader
+            self.template_dir = template_dir
+            loader = jinja2.FileSystemLoader(str(self.template_dir))
+            logger.debug("Using provided template directory: %s", template_dir)
 
         # Configure Jinja2 environment
         self.env = jinja2.Environment(
-            loader=jinja2.FileSystemLoader(str(self.template_dir)),
+            loader=loader,
             autoescape=jinja2.select_autoescape(["html", "xml"]),
             trim_blocks=True,
             lstrip_blocks=True,
@@ -51,7 +78,7 @@ class AuditReportRenderer:
         # Initialize plotter
         self.plotter = AuditPlotter(style="professional")
 
-        logger.info(f"Initialized AuditReportRenderer with template directory: {self.template_dir}")
+        logger.info("Initialized AuditReportRenderer with template directory: %s", self.template_dir)
 
     def render_audit_report(
         self,
@@ -74,7 +101,7 @@ class AuditReportRenderer:
             Rendered HTML content as string
 
         """
-        logger.info(f"Rendering audit report using template: {template_name}")
+        logger.info("Rendering audit report using template: %s", template_name)
 
         # Prepare template context
         context = self._prepare_template_context(audit_results, embed_plots)
@@ -92,7 +119,7 @@ class AuditReportRenderer:
             with open(output_path, "w", encoding="utf-8") as f:
                 f.write(rendered_html)
 
-            logger.info(f"Saved rendered report to: {output_path}")
+            logger.info("Saved rendered report to: %s", output_path)
 
         return rendered_html
 
@@ -126,7 +153,7 @@ class AuditReportRenderer:
                     "audit_id": audit_results.execution_info.get("audit_id"),
                     "audit_profile": audit_results.execution_info.get("audit_profile"),
                     "strict_mode": audit_results.execution_info.get("strict_mode", False),
-                }
+                },
             )
 
         # Add core audit results
@@ -141,7 +168,7 @@ class AuditReportRenderer:
                 "model_info": audit_results.model_info,
                 "selected_components": audit_results.selected_components,
                 "manifest": audit_results.manifest,
-            }
+            },
         )
 
         # Add metric descriptions for better understanding
@@ -157,10 +184,10 @@ class AuditReportRenderer:
                     "shap_plots": plots.get("shap", {}),
                     "performance_plots": plots.get("performance", {}),
                     "fairness_plots": plots.get("fairness", {}),
-                }
+                },
             )
 
-        logger.debug(f"Template context prepared with {len(context)} variables")
+        logger.debug("Template context prepared with %s variables", len(context))
         return context
 
     def _generate_plots(self, audit_results: AuditResults) -> dict[str, dict[str, str]]:
@@ -185,7 +212,7 @@ class AuditReportRenderer:
                 for plot_name, figure in shap_figures.items():
                     plots["shap"][plot_name] = self._figure_to_base64(figure)
 
-                logger.debug(f"Generated {len(shap_figures)} SHAP plots")
+                logger.debug("Generated %s SHAP plots", len(shap_figures))
 
             # Generate performance plots
             if audit_results.model_performance:
@@ -194,7 +221,7 @@ class AuditReportRenderer:
                 for plot_name, figure in perf_figures.items():
                     plots["performance"][plot_name] = self._figure_to_base64(figure)
 
-                logger.debug(f"Generated {len(perf_figures)} performance plots")
+                logger.debug("Generated %s performance plots", len(perf_figures))
 
             # Generate fairness plots
             if audit_results.fairness_analysis:
@@ -203,10 +230,10 @@ class AuditReportRenderer:
                 for plot_name, figure in fairness_figures.items():
                     plots["fairness"][plot_name] = self._figure_to_base64(figure)
 
-                logger.debug(f"Generated {len(fairness_figures)} fairness plots")
+                logger.debug("Generated %s fairness plots", len(fairness_figures))
 
         except Exception as e:
-            logger.warning(f"Failed to generate some plots: {e}")
+            logger.warning("Failed to generate some plots: %s", e)
 
         return plots
 
@@ -271,8 +298,7 @@ class AuditReportRenderer:
         if isinstance(value, (int, float)):
             if decimals == 0:
                 return f"{value:,.0f}"
-            else:
-                return f"{value:.{decimals}f}"
+            return f"{value:.{decimals}f}"
 
         return str(value)
 
@@ -293,7 +319,7 @@ class AuditReportRenderer:
 
         if isinstance(value, str):
             try:
-                dt = datetime.fromisoformat(value.replace("Z", "+00:00"))
+                dt = datetime.fromisoformat(value)
                 return dt.strftime(format_string)
             except ValueError:
                 return value
@@ -324,5 +350,8 @@ def render_audit_report(
     """
     renderer = AuditReportRenderer()
     return renderer.render_audit_report(
-        audit_results=audit_results, output_path=output_path, template_name=template_name, **template_vars
+        audit_results=audit_results,
+        output_path=output_path,
+        template_name=template_name,
+        **template_vars,
     )

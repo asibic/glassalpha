@@ -102,6 +102,24 @@ class SklearnGenericWrapper:
         names = self.feature_names or [f"f{i}" for i in range(len(vals))]
         return dict(zip(names, vals.tolist(), strict=False))
 
+    def get_feature_importance(self) -> dict[str, float]:
+        """Get feature importance from the underlying model (alias for feature_importance).
+
+        Returns:
+            Dictionary mapping feature names to importance values
+
+        """
+        return self.feature_importance()
+
+    def get_model_type(self) -> str:
+        """Get the model type name.
+
+        Returns:
+            String name of the underlying model type
+
+        """
+        return type(self.model).__name__.lower() if self.model else "unknown"
+
     def save(self, path: str) -> None:
         """Save model and feature names to disk.
 
@@ -207,20 +225,21 @@ if SKLEARN_AVAILABLE:
 
         def fit(self, X, y, **kwargs: Any) -> LogisticRegressionWrapper:  # noqa: N803, ANN001, ANN401
             """Fit the logistic regression model.
-            
+
             Args:
                 X: Training features (must be DataFrame per friend's spec)
                 y: Training targets
                 **kwargs: Additional parameters
-                
+
             Returns:
                 Self for method chaining
+
             """
             # Friend's spec: Require X as DataFrame
             if not hasattr(X, "columns"):
                 msg = "X must be a DataFrame for feature name tracking"
                 raise ValueError(msg)
-            
+
             # Create model if it doesn't exist
             if self.model is None:
                 self.model = LogisticRegression(random_state=42, max_iter=1000)
@@ -432,36 +451,6 @@ if SKLEARN_AVAILABLE:
 
             return wrapper
 
-        def save(self, path: str) -> None:
-            """Save model to file - friend's spec: persist both .model and .feature_names_."""
-            if self.model is None:
-                raise AttributeError("No model loaded")
-            
-            import joblib  # noqa: PLC0415
-            model_data = {
-                "model": self.model,
-                "feature_names_": self.feature_names_,
-                "n_classes": getattr(self, "n_classes", None),
-                "_is_fitted": self._is_fitted,
-            }
-            joblib.dump(model_data, path)
-
-        def load(self, path: str) -> LogisticRegressionWrapper:
-            """Load model from file (instance method for test compatibility)."""
-            import joblib  # noqa: PLC0415
-            
-            model_data = joblib.load(path)
-            self.model = model_data["model"]
-            self.feature_names_ = model_data.get("feature_names_")
-            self.n_classes = model_data.get("n_classes")
-            self._is_fitted = model_data.get("_is_fitted", False)
-            
-            # Restore classes_ if available
-            if self.model is not None and hasattr(self.model, "classes_"):
-                self.classes_ = self.model.classes_
-                
-            return self
-
         def __repr__(self) -> str:
             """String representation - friend's spec: don't crash when model is None."""
             status = "fitted" if self._is_fitted else "not_fitted"
@@ -512,55 +501,66 @@ if SKLEARN_AVAILABLE:
             """Make predictions."""
             if self.model is None:
                 msg = "No model loaded"
-                raise RuntimeError(msg)
+                raise AttributeError(msg)
             return self.model.predict(X)
 
         def predict_proba(self, X) -> Any:  # noqa: N803, ANN001, ANN401
             """Get prediction probabilities if supported."""
             if self.model is None:
                 msg = "No model loaded"
-                raise RuntimeError(msg)
+                raise AttributeError(msg)
             if not hasattr(self.model, "predict_proba"):
                 msg = "Model does not support predict_proba"
                 raise AttributeError(msg)
             return self.model.predict_proba(X)
 
-    def get_model_type(self) -> str:  # noqa: ANN001
-        """Get model type."""
-        return self.model_type
+        def get_model_type(self) -> str:
+            """Get model type."""
+            return self.model_type
 
-    def get_capabilities(self) -> dict[str, Any]:  # noqa: ANN001
-        """Get model capabilities."""
-        return self.capabilities.copy()
+        def get_capabilities(self) -> dict[str, Any]:
+            """Get model capabilities."""
+            return self.capabilities.copy()
 
-    def get_model_info(self) -> dict[str, Any]:  # noqa: ANN001
-        """Get model information."""
-        return {
-            "model_type": self.model_type,
-            "version": self.version,
-            "has_model": self.model is not None,
-        }
+        def get_model_info(self) -> dict[str, Any]:
+            """Get model information."""
+            return {
+                "model_type": self.model_type,
+                "version": self.version,
+                "has_model": self.model is not None,
+            }
 
-    def save(self, path: str) -> None:  # noqa: ANN001
-        """Save model to file."""
-        import joblib  # noqa: PLC0415
+        def get_feature_importance(self) -> dict[str, float]:
+            """Get feature importance from the underlying model.
 
-        model_data = {
-            "model": self.model,
-            "feature_names": self.feature_names,
-        }
-        joblib.dump(model_data, path)
+            Returns:
+                Dictionary mapping feature names to importance values
 
-    @classmethod
-    def load(cls, path: str) -> SklearnGenericWrapper:  # noqa: ANN001
-        """Load model from file."""
-        import joblib  # noqa: PLC0415
+            """
+            if self.model is None:
+                return {}
 
-        model_data = joblib.load(path)
-        wrapper = cls()
-        wrapper.model = model_data["model"]
-        wrapper.feature_names = model_data.get("feature_names")
-        return wrapper
+            if hasattr(self.model, "feature_importances_"):
+                vals = np.asarray(self.model.feature_importances_)
+            elif hasattr(self.model, "coef_"):
+                vals = np.asarray(self.model.coef_)
+                vals = np.mean(np.abs(vals), axis=0) if vals.ndim > 1 else np.abs(vals)
+            else:
+                # Return empty dict if unavailable (instead of raising error)
+                return {}
+
+            names = self.feature_names or [f"f{i}" for i in range(len(vals))]
+            return dict(zip(names, vals.tolist(), strict=False))
+
+        def load(self, path: str) -> SklearnGenericWrapper:
+            """Load model from file."""
+            import joblib  # noqa: PLC0415
+
+            model_data = joblib.load(path)
+            wrapper = self()
+            wrapper.model = model_data["model"]
+            wrapper.feature_names = model_data.get("feature_names")
+            return wrapper
 
 
 else:
