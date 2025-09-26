@@ -78,22 +78,42 @@ jobs:
           echo "=== Clean dist directory to prevent multiple wheels ==="
           rm -rf dist build *.egg-info
           mkdir -p dist
-          echo "=== Build a wheel, then install it (no editable) ==="
+          echo "=== Build project wheel only (no dependencies) ==="
           python -m pip uninstall -y glassalpha || true
-          python -m pip wheel -w dist .
-          echo "=== Verify only one project wheel in dist ==="
+          python -m build --wheel --outdir dist
+          echo "=== Verify dist hygiene: only project wheel ==="
           ls -la dist
-          wheel_count=$(ls dist/*.whl | wc -l)
-          if [ "$wheel_count" -ne 1 ]; then
-            echo "ERROR: Expected exactly 1 wheel in dist/, found $wheel_count"
+          # Test 1: Exactly one glassalpha wheel
+          glassalpha_wheel_count=$(ls dist/glassalpha-*.whl | wc -l)
+          if [ "$glassalpha_wheel_count" -ne 1 ]; then
+            echo "ERROR: Expected exactly 1 glassalpha wheel, found $glassalpha_wheel_count"
             ls -la dist/
             exit 1
           fi
+          # Test 2: No other files in dist/
+          total_files=$(ls dist | wc -l)
+          if [ "$total_files" -ne 1 ]; then
+            echo "ERROR: dist/ should contain only the project wheel, found $total_files files"
+            ls -la dist/
+            exit 1
+          fi
+          echo "✅ Dist hygiene verified: clean project-only wheel"
           python -m pip install --force-reinstall dist/glassalpha*.whl
 
       - name: Verify installation and dependencies
         run: |
           cd packages
+          echo "=== Dependency guardrail: check for unwanted heavy deps ==="
+          python -c "
+          import pkg_resources
+          installed = [pkg.project_name.lower() for pkg in pkg_resources.working_set]
+          gpu_packages = ['nvidia-nccl-cu12', 'nvidia-cudnn-cu12', 'torch', 'tensorflow']
+          found_gpu = [pkg for pkg in gpu_packages if pkg in installed]
+          if found_gpu:
+              print(f'WARNING: Found heavy GPU packages in CPU job: {found_gpu}')
+          else:
+              print('✅ No unwanted GPU dependencies found')
+          "
           echo "=== Dependency version diagnostics ==="
           python -c "import sys, numpy, scipy, sklearn, matplotlib; print('PY:', sys.executable); print('numpy:', numpy.__version__); print('scipy:', scipy.__version__); print('sklearn:', sklearn.__version__); print('matplotlib:', matplotlib.__version__)"
           echo "=== Package installation verification ==="
@@ -102,6 +122,9 @@ jobs:
           python -m pip show -f glassalpha | grep "glassalpha/data" || echo "ERROR: glassalpha/data NOT FOUND in wheel"
           echo "=== Test import surface ==="
           python -c "import glassalpha; from glassalpha import data, datasets, pipeline; print('SUCCESS: All core modules importable')" || echo "ERROR: Import surface test failed"
+          echo "=== Smoke tests ==="
+          python -c "import glassalpha, sys; print('✅ Version:', glassalpha.__version__)"
+          python -m glassalpha --help > /dev/null && echo "✅ CLI help command works" || echo "❌ CLI help failed"
 
       - name: Install test dependencies
         run: |
