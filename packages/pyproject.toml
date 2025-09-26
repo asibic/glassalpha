@@ -76,6 +76,10 @@ build-backend = "setuptools.build_meta"
 where = ["src"]
 include = ["glassalpha*"]
 
+[tool.setuptools.package-data]
+# Friend's spec: Include templates in wheel for importlib.resources loading
+"glassalpha.report.templates" = ["*.html", "*.css", "*.js"]
+
 [tool.ruff]
 line-length = 120  # Modern standard (vs outdated 100) - matches industry practice
 target-version = "py311"

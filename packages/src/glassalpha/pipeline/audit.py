@@ -122,7 +122,7 @@ class AuditPipeline:
             self.results.success = True
             logger.info("Audit pipeline completed successfully")
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             error_msg = f"Audit pipeline failed: {e!s}"
             logger.exception(error_msg)
             logger.debug("Full traceback: %s", traceback.format_exc())
@@ -211,7 +211,7 @@ class AuditPipeline:
 
         return data, schema
 
-    def _load_model(self, data: pd.DataFrame, schema: TabularDataSchema) -> Any:
+    def _load_model(self, data: pd.DataFrame, schema: TabularDataSchema) -> Any:  # noqa: ANN401, C901, PLR0912, PLR0915
         """Load or train model.
 
         Args:
@@ -246,15 +246,15 @@ class AuditPipeline:
             logger.info("Training new model (model path not found or not specified)")
 
             # Extract features and target
-            X, y, _ = self.data_loader.extract_features_target(data, schema)
+            X, y, _ = self.data_loader.extract_features_target(data, schema)  # noqa: N806
 
             # Preprocess features for training (handle categorical variables)
-            X_processed = self._preprocess_for_training(X)
+            X_processed = self._preprocess_for_training(X)  # noqa: N806
 
             # Handle different model types for training
             if model_type == "xgboost":
                 # Train XGBoost directly and wrap it
-                import xgboost as xgb
+                import xgboost as xgb  # noqa: PLC0415
 
                 dtrain = xgb.DMatrix(X_processed, label=y, feature_names=list(X_processed.columns))
 
@@ -306,7 +306,7 @@ class AuditPipeline:
                     feature_importance = importance
                 else:
                     feature_importance = dict(importance) if importance is not None else {}
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.warning("Could not extract feature importance: %s", e)
                 feature_importance = {}
 
@@ -330,7 +330,7 @@ class AuditPipeline:
 
         return model
 
-    def _select_explainer(self) -> Any:
+    def _select_explainer(self) -> Any:  # noqa: ANN401
         """Select best explainer based on model capabilities and configuration.
 
         Returns:
@@ -340,7 +340,7 @@ class AuditPipeline:
         logger.info("Selecting explainer based on model capabilities")
 
         # Import the explainer registry to ensure it's available
-        from glassalpha.explain.registry import ExplainerRegistry
+        from glassalpha.explain.registry import ExplainerRegistry  # noqa: PLC0415
 
         # First try automatic compatibility detection
         explainer_class = ExplainerRegistry.find_compatible(self.model)
@@ -428,10 +428,10 @@ class AuditPipeline:
         logger.info("Generating model explanations")
 
         # Extract features for explanation
-        X, _y, _ = self.data_loader.extract_features_target(data, schema)
+        X, _y, _ = self.data_loader.extract_features_target(data, schema)  # noqa: N806
 
         # Preprocess features same way as training
-        X_processed = self._preprocess_for_training(X)
+        X_processed = self._preprocess_for_training(X)  # noqa: N806
 
         # Generate explanations with explainer seed
         with self._get_seeded_context("explainer"):
@@ -480,10 +480,10 @@ class AuditPipeline:
         logger.info("Computing audit metrics")
 
         # Extract data components
-        X, y_true, sensitive_features = self.data_loader.extract_features_target(data, schema)
+        X, y_true, sensitive_features = self.data_loader.extract_features_target(data, schema)  # noqa: N806
 
         # Use processed features for predictions (same as training)
-        X_processed = self._preprocess_for_training(X)
+        X_processed = self._preprocess_for_training(X)  # noqa: N806
 
         # Generate predictions
         y_pred = self.model.predict(X_processed)
@@ -493,7 +493,7 @@ class AuditPipeline:
                 y_proba = self.model.predict_proba(X_processed)
                 if y_proba.ndim > 1 and y_proba.shape[1] > 1:
                     y_proba = y_proba[:, 1]  # Binary classification positive class
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.warning("Could not get prediction probabilities: %s", e)
 
         # Compute performance metrics
@@ -549,7 +549,7 @@ class AuditPipeline:
                 results[metric_name] = result
                 logger.debug("Computed %s: {result}", metric_name)
 
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.warning("Failed to compute metric %s: {e}", metric_name)
                 results[metric_name] = {"error": str(e)}
 
@@ -559,7 +559,7 @@ class AuditPipeline:
         self,
         y_true: np.ndarray,
         y_pred: np.ndarray,
-        y_proba: np.ndarray,
+        y_proba: np.ndarray,  # noqa: ARG002
         sensitive_features: pd.DataFrame,
     ) -> None:
         """Compute fairness metrics.
@@ -603,7 +603,7 @@ class AuditPipeline:
 
                     logger.debug("Computed %s for {col}: {result}", metric_name)
 
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.warning("Failed to compute fairness metric %s: {e}", metric_name)
                 if col not in results:
                     results[col] = {}
@@ -647,7 +647,7 @@ class AuditPipeline:
         }
 
         # Add result hashes to manifest
-        from glassalpha.utils import hash_object
+        from glassalpha.utils import hash_object  # noqa: PLC0415
 
         if self.results.model_performance:
             self.manifest_generator.add_result_hash("performance_metrics", hash_object(self.results.model_performance))
@@ -681,7 +681,7 @@ class AuditPipeline:
 
         """
 
-        def _to_scalar(v: Any) -> float:
+        def _to_scalar(v: Any) -> float:  # noqa: ANN401
             """Convert value to scalar, handling lists/arrays as specified by friend."""
             if isinstance(v, (list, tuple, np.ndarray)):
                 return float(np.mean(np.abs(v)))
@@ -702,7 +702,7 @@ class AuditPipeline:
 
         return stats
 
-    def _get_seeded_context(self, component_name: str):
+    def _get_seeded_context(self, component_name: str) -> Any:  # noqa: ANN202, ANN401
         """Get seeded context manager for component.
 
         Args:
@@ -712,7 +712,7 @@ class AuditPipeline:
             Context manager with component seed
 
         """
-        from glassalpha.utils import with_component_seed
+        from glassalpha.utils import with_component_seed  # noqa: PLC0415
 
         return with_component_seed(component_name)
 
@@ -730,7 +730,7 @@ class AuditPipeline:
 
         logger.debug("Progress: %s% - {message}", progress)
 
-    def _preprocess_for_training(self, X: pd.DataFrame) -> pd.DataFrame:  # noqa: N803 -> pd.DataFrame:
+    def _preprocess_for_training(self, X: pd.DataFrame) -> pd.DataFrame:  # noqa: N803, C901  # noqa: N803 -> pd.DataFrame:
         """Preprocess features for model training using ColumnTransformer per friend's spec.
 
         Handles categorical features (like German Credit strings "< 0 DM") with OneHotEncoder
@@ -743,8 +743,8 @@ class AuditPipeline:
             Processed features DataFrame suitable for training
 
         """
-        from sklearn.compose import ColumnTransformer
-        from sklearn.preprocessing import OneHotEncoder
+        from sklearn.compose import ColumnTransformer  # noqa: PLC0415
+        from sklearn.preprocessing import OneHotEncoder  # noqa: PLC0415
 
         # Identify categorical and numeric columns
         categorical_cols = list(X.select_dtypes(include=["object"]).columns)
@@ -784,7 +784,7 @@ class AuditPipeline:
 
         try:
             # Fit and transform the data
-            X_transformed = preprocessor.fit_transform(X)
+            X_transformed = preprocessor.fit_transform(X)  # noqa: N806
 
             # Get feature names after transformation
             feature_names = []
@@ -818,7 +818,7 @@ class AuditPipeline:
                 sanitized_feature_names.append(sanitized)
 
             # Convert back to DataFrame with sanitized feature names
-            X_processed = pd.DataFrame(X_transformed, columns=sanitized_feature_names, index=X.index)
+            X_processed = pd.DataFrame(X_transformed, columns=sanitized_feature_names, index=X.index)  # noqa: N806
 
             logger.info("Preprocessed %s categorical columns with OneHotEncoder", len(categorical_cols))
             logger.info("Final feature count: %s (from {len(X.columns)} original)", len(sanitized_feature_names))
@@ -826,12 +826,12 @@ class AuditPipeline:
 
             return X_processed
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.exception("Preprocessing failed: %s", e)
             logger.warning("Falling back to simple preprocessing")
 
             # Fallback: simple label encoding as before
-            X_processed = X.copy()
+            X_processed = X.copy()  # noqa: N806
             for col in categorical_cols:
                 if X_processed[col].dtype == "object":
                     unique_values = X_processed[col].unique()
