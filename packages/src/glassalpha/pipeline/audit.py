@@ -316,11 +316,15 @@ class AuditPipeline:
         }
 
         # Add model to manifest
+        model_info = {
+            "implementation": model_type,
+            "version": getattr(model, "version", "1.0.0"),
+            "config": self.config.model.model_dump() if self.config.model else {},
+        }
         self.manifest_generator.add_component(
             "model",
             model_type,
-            model,
-            config=self.config.model.model_dump() if self.config.model else {},
+            model_info,
         )
 
         return model
@@ -437,12 +441,22 @@ class AuditPipeline:
             # Generate explanations
             explanations = self.explainer.explain(X_processed)
 
-        # Process explanations
-        explanation_results = {
-            "global_importance": explanations.get("global_importance", {}),
-            "local_explanations_sample": explanations.get("local_explanations", [])[:5],  # First 5 samples
-            "summary_statistics": self._compute_explanation_stats(explanations),
-        }
+        # Process explanations - handle different return formats from explainers
+        if isinstance(explanations, dict):
+            # Expected dictionary format
+            explanation_results = {
+                "global_importance": explanations.get("global_importance", {}),
+                "local_explanations_sample": explanations.get("local_explanations", [])[:5],  # First 5 samples
+                "summary_statistics": self._compute_explanation_stats(explanations),
+            }
+        else:
+            # Handle numpy array or other formats - create basic structure
+            logger.warning(f"Explainer returned {type(explanations)}, creating basic explanation structure")
+            explanation_results = {
+                "global_importance": {},
+                "local_explanations_sample": [],
+                "summary_statistics": {"explanation_type": "raw_array", "shape": getattr(explanations, 'shape', 'unknown')},
+            }
 
         # Store in results
         self.results.explanations = explanation_results
@@ -770,11 +784,21 @@ class AuditPipeline:
             if numeric_cols:
                 feature_names.extend(numeric_cols)
             
-            # Convert back to DataFrame with proper feature names
-            X_processed = pd.DataFrame(X_transformed, columns=feature_names, index=X.index)
+            # Sanitize feature names for XGBoost compatibility (no [, ], <, >)
+            sanitized_feature_names = []
+            for name in feature_names:
+                # Replace problematic characters with underscores
+                sanitized = name.replace('<', 'lt').replace('>', 'gt').replace('[', '_').replace(']', '_').replace(' ', '_')
+                # Ensure no double underscores
+                sanitized = '_'.join(filter(None, sanitized.split('_')))
+                sanitized_feature_names.append(sanitized)
+            
+            # Convert back to DataFrame with sanitized feature names
+            X_processed = pd.DataFrame(X_transformed, columns=sanitized_feature_names, index=X.index)
             
             logger.info(f"Preprocessed {len(categorical_cols)} categorical columns with OneHotEncoder")
-            logger.info(f"Final feature count: {len(feature_names)} (from {len(X.columns)} original)")
+            logger.info(f"Final feature count: {len(sanitized_feature_names)} (from {len(X.columns)} original)")
+            logger.debug(f"Sanitized feature names: {sanitized_feature_names[:5]}...")
             
             return X_processed
             

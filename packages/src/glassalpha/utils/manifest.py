@@ -118,7 +118,7 @@ class AuditManifest(BaseModel):
             installed_packages={},
         ),
     )
-    execution_info: ExecutionInfo = Field(default_factory=ExecutionInfo)
+    execution: ExecutionInfo = Field(default_factory=ExecutionInfo)
     git: GitInfo | None = None
 
     # Seeds and reproducibility
