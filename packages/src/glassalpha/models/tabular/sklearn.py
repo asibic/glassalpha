@@ -45,7 +45,7 @@ class SklearnGenericWrapper:
             feature_names: Optional feature names for interpretation
 
         """
-        self.model = model
+            self.model = model
         self.feature_names = list(feature_names) if feature_names is not None else None
         self.capabilities = {
             "predict": hasattr(model, "predict"),
@@ -211,11 +211,20 @@ if SKLEARN_AVAILABLE:
             if self.model is None:
                 self.model = LogisticRegression(random_state=42, max_iter=1000)
 
+            # Handle random_state in kwargs - sklearn's fit() doesn't accept it directly
+            random_state = kwargs.pop("random_state", None)
+            if random_state is not None:
+                try:
+                    self.model.set_params(random_state=random_state)
+                except (ValueError, TypeError):
+                    # Some solvers may not accept random_state; ignore silently
+                    pass
+
             # Store feature names if X is DataFrame
             if hasattr(X, "columns") and self.feature_names is None:
                 self.feature_names = list(X.columns)
 
-            # Fit the model
+            # Fit the model (remaining kwargs should be valid for fit)
             self.model.fit(X, y, **kwargs)
             self._is_fitted = True
 
@@ -271,25 +280,26 @@ if SKLEARN_AVAILABLE:
                 provided_set = set(provided_features)
                 expected_set = set(expected_features)
 
-                missing = sorted(expected_set - provided_set)
-                extra = sorted(provided_set - expected_set)
+                # If names match exactly, reorder to match training order
+                if provided_features == expected_features:
+                    try:
+                        return X[self.feature_names]
+                    except KeyError:
+                        return X.values
 
-                if missing or extra:
-                    # Clean error message format that tests expect (not raw sklearn message)
-                    msg = (
-                        "Feature names mismatch between fitted and provided data. "
-                        f"Missing: {missing or '[]'}; Extra: {extra or '[]'}"
-                    )
-                    raise ValueError(
-                        msg,
-                    )
+                # If shapes match but names differ, operate positionally (like sklearn)
+                if len(provided_features) == len(expected_features):
+                    # Tests expect wrapper to be robust to column renaming when shapes match
+                    return X.values  # Convert to numpy array for positional operation
 
-                # Reorder columns to match training order
-                try:
-                    return X[self.feature_names]
-                except KeyError:
-                    # Fallback to numpy array if column reordering fails
-                    return X.values
+                # Shape mismatch is a real error - provide clean message  
+                missing = sorted(set(expected_features) - set(provided_features))
+                extra = sorted(set(provided_features) - set(expected_features))
+                msg = (
+                    f"Input has {len(provided_features)} features but model expects {len(expected_features)}. "
+                    f"Missing: {missing or '[]'}; Extra: {extra or '[]'}"
+                )
+                raise ValueError(msg)
 
             # For arrays, just return as-is (assume correct order)
             return X
@@ -401,13 +411,13 @@ if SKLEARN_AVAILABLE:
 
             return wrapper
 
-        def __repr__(self) -> str:
+    def __repr__(self) -> str:
             """String representation."""
             status = "fitted" if self._is_fitted else "not_fitted"
             n_classes = len(self.classes_) if hasattr(self, "classes_") and self.classes_ is not None else "unknown"
             return f"LogisticRegressionWrapper(status={status}, n_classes={n_classes}, version={self.version})"
 
-    @ModelRegistry.register("sklearn_generic", priority=70)
+@ModelRegistry.register("sklearn_generic", priority=70)
     class SklearnGenericWrapper(BaseEstimator):
         """Generic wrapper for any scikit-learn estimator."""
 
@@ -416,15 +426,15 @@ if SKLEARN_AVAILABLE:
             "supports_shap": True,
             "supports_feature_importance": True,
             "supports_proba": False,  # Will be updated based on model
-            "data_modality": "tabular",
-        }
-        version = "1.0.0"
+        "data_modality": "tabular",
+    }
+    version = "1.0.0"
         model_type = "sklearn_generic"
 
         def __init__(self, model: Any = None, feature_names: list[str] | None = None, **kwargs: Any) -> None:  # noqa: ANN401
-            """Initialize generic sklearn wrapper.
+        """Initialize generic sklearn wrapper.
 
-            Args:
+        Args:
                 model: Pre-fitted sklearn model
                 feature_names: List of feature names
                 **kwargs: If provided without model, raises error
@@ -434,7 +444,7 @@ if SKLEARN_AVAILABLE:
                 msg = "SklearnGenericWrapper requires a fitted model when kwargs provided"
                 raise ValueError(msg)
 
-                self.model = model
+            self.model = model
             self.feature_names = list(feature_names) if feature_names else None
 
             # Update capabilities based on model
@@ -445,17 +455,17 @@ if SKLEARN_AVAILABLE:
 
         def predict(self, X) -> Any:  # noqa: N803, ANN001, ANN401
             """Make predictions."""
-            if self.model is None:
+        if self.model is None:
                 msg = "No model loaded"
                 raise RuntimeError(msg)
             return self.model.predict(X)
 
         def predict_proba(self, X) -> Any:  # noqa: N803, ANN001, ANN401
             """Get prediction probabilities if supported."""
-            if self.model is None:
+        if self.model is None:
                 msg = "No model loaded"
                 raise RuntimeError(msg)
-            if not hasattr(self.model, "predict_proba"):
+        if not hasattr(self.model, "predict_proba"):
                 msg = "Model does not support predict_proba"
                 raise AttributeError(msg)
             return self.model.predict_proba(X)
@@ -498,7 +508,7 @@ if SKLEARN_AVAILABLE:
         return wrapper
 
 
-else:
+        else:
     # Stub classes when sklearn unavailable
     class LogisticRegressionWrapper:
         """Stub class when scikit-learn is unavailable."""

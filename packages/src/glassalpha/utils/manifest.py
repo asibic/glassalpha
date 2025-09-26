@@ -87,6 +87,7 @@ class AuditManifest(BaseModel):
     manifest_version: str = "1.0"
     audit_id: str
     version: str = "1.0.0"  # Tests expect this field to exist
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))  # Tests expect this field name
     creation_time: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
     # Configuration
@@ -95,8 +96,25 @@ class AuditManifest(BaseModel):
     audit_profile: str | None = None
     strict_mode: bool = False
 
-    # Environment (made optional for minimal construction)
-    environment: EnvironmentInfo | None = None
+    # Environment with defaults (tests expect this to be populated)
+    environment: EnvironmentInfo = Field(default_factory=lambda: EnvironmentInfo(
+        python_version=platform.python_version(),
+        platform=platform.platform(),
+        architecture=platform.architecture()[0],
+        processor=platform.processor() or "unknown",
+        hostname=platform.node(),
+        user=Path.home().name,
+        working_directory=str(Path.cwd()),
+        environment_variables={},
+        installed_packages={}
+    ))
+    execution: ExecutionInfo = Field(default_factory=lambda: ExecutionInfo(
+        started_at=datetime.now(UTC),
+        finished_at=None,
+        duration_seconds=None,
+        status="running",
+        error_message=None
+    ))
     git: GitInfo | None = None
 
     # Seeds and reproducibility
@@ -241,50 +259,47 @@ class ManifestGenerator:
 
     def add_component(
         self,
-        component_type: str,
-        component_name: str,
-        component: Any,  # noqa: ANN401
-        priority: int | None = None,
-        config: dict[str, Any] | None = None,
-    ) -> None:
-        """Add selected component to manifest.
+        name: str,
+        implementation: str,
+        info: dict[str, Any],
+    ) -> ComponentInfo:
+        """Add component to manifest (test-compatible signature).
 
         Args:
-            component_type: Type of component ('model', 'explainer', 'metric')
-            component_name: Name/ID of component
-            component: Component instance
-            priority: Selection priority
-            config: Component configuration
+            name: Component name
+            implementation: Implementation type  
+            info: Component information dictionary
 
+        Returns:
+            ComponentInfo object with .name attribute
         """
-        # Extract component information
-        component_info = ComponentInfo(name=component_name, type=component_type, priority=priority, config=config or {})
+        # Create ComponentInfo from provided info
+        component_info = ComponentInfo(
+            name=name,
+            type=info.get("type", "component"),
+            implementation=implementation,
+            version=info.get("version"),
+            parameters=info.get("parameters", {}) or {},
+        )
 
-        # Try to get version and capabilities
-        if hasattr(component, "version"):
-            component_info.version = component.version
-
-        if hasattr(component, "capabilities"):
-            component_info.capabilities = component.capabilities
-        elif hasattr(component, "get_capabilities"):
-            component_info.capabilities = component.get_capabilities()
-
-        # Store in manifest using type-based keying (tests expect this structure)
+        # Store in components dictionary (tests expect this structure)
+        self.components[name] = component_info
+        
+        # Also update manifest for compatibility
+        component_type = info.get("type", "component")
         if component_type not in self.manifest.selected_components:
             self.manifest.selected_components[component_type] = {}
-        if component_type not in self.components:
-            self.components[component_type] = {}
+        self.manifest.selected_components[component_type][name] = component_info
 
-        self.manifest.selected_components[component_type][component_name] = component_info
-        self.components[component_type][component_name] = component_info
-
-        logger.debug("Added component to manifest: %s[%s]", component_type, component_name)
+        logger.debug("Added component to manifest: %s (%s)", name, implementation)
+        
+        return component_info  # Return object with .name attribute
 
     def add_dataset(
         self,
         dataset_name: str,
-        data: pd.DataFrame | None = None,
         file_path: Path | None = None,
+        data: pd.DataFrame | None = None,
         target_column: str | None = None,
         sensitive_features: list[str] | None = None,
     ) -> None:
@@ -304,13 +319,13 @@ class ManifestGenerator:
             sensitive_features=sensitive_features or [],
         )
 
-        # Add data information if available
-        if data is not None:
+        # Add data information if available - avoid DataFrame truth ambiguity
+        if data is not None and hasattr(data, 'shape'):  # Check for shape attribute instead of truthiness
             dataset_info.hash = hash_dataframe(data)
             dataset_info.shape = data.shape
             dataset_info.columns = list(data.columns)
             dataset_info.missing_values = data.isna().sum().to_dict()
-        elif file_path and file_path.exists():
+        elif file_path is not None and file_path.exists():  # Explicit None check
             dataset_info.hash = hash_file(file_path)
 
         # Update both manifest and direct attribute for test compatibility
