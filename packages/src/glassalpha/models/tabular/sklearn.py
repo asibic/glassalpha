@@ -169,7 +169,7 @@ if SKLEARN_AVAILABLE:
         version = "1.0.0"
         model_type = "logistic_regression"
 
-        def __init__(self, model=None, feature_names=None, **kwargs) -> None:
+        def __init__(self, model: Any = None, feature_names: list[str] | None = None, **kwargs: Any) -> None:  # noqa: ANN401
             """Initialize LogisticRegression wrapper.
 
             Args:
@@ -204,7 +204,7 @@ if SKLEARN_AVAILABLE:
 
             logger.info("LogisticRegressionWrapper initialized")
 
-        def fit(self, X, y, **kwargs) -> LogisticRegressionWrapper:  # noqa: N803
+        def fit(self, X, y, **kwargs: Any) -> LogisticRegressionWrapper:  # noqa: N803, ANN001, ANN401
             """Fit the logistic regression model."""
             # Create model if it doesn't exist
             if self.model is None:
@@ -224,7 +224,7 @@ if SKLEARN_AVAILABLE:
 
             return self
 
-        def predict(self, X) -> Any:  # noqa: N803
+        def predict(self, X) -> Any:  # noqa: N803, ANN001, ANN401
             """Make predictions."""
             if self.model is None:
                 msg = "No model loaded"
@@ -240,7 +240,7 @@ if SKLEARN_AVAILABLE:
             # Ensure 1D numpy array output
             return np.array(predictions).flatten()
 
-        def predict_proba(self, X) -> Any:  # noqa: N803
+        def predict_proba(self, X) -> Any:  # noqa: N803, ANN001, ANN401
             """Get prediction probabilities."""
             if not self._is_fitted:
                 msg = "Model not fitted"
@@ -250,7 +250,7 @@ if SKLEARN_AVAILABLE:
             X_processed = self._validate_and_reorder_features(X)  # noqa: N806
             return self.model.predict_proba(X_processed)
 
-        def _validate_and_reorder_features(self, X) -> Any:  # noqa: N803
+        def _validate_and_reorder_features(self, X) -> Any:  # noqa: N803, ANN001, ANN401
             """Validate and reorder features to match training data."""
             # If no stored feature names, return as-is
             if self.feature_names is None:
@@ -288,28 +288,28 @@ if SKLEARN_AVAILABLE:
             # For arrays, just return as-is (assume correct order)
             return X
 
-        def get_params(self, deep: bool = True) -> dict[str, Any]:
+        def get_params(self, *, deep: bool = True) -> dict[str, Any]:
             """Get model parameters."""
             return self.model.get_params(deep=deep)
 
-        def set_params(self, **params: Any) -> Any:
+        def set_params(self, **params: Any) -> Any:  # noqa: ANN401
             """Set model parameters."""
             return self.model.set_params(**params)
 
         @property
-        def classes_(self):
+        def classes_(self) -> Any:  # noqa: ANN401
             """Get fitted classes."""
             if hasattr(self.model, "classes_"):
                 return self.model.classes_
             return None
 
         @classes_.setter
-        def classes_(self, value) -> None:
+        def classes_(self, value: Any) -> None:  # noqa: ANN401
             """Set classes (for compatibility)."""
             if hasattr(self.model, "classes_"):
                 self.model.classes_ = value
 
-    def get_feature_importance(self, importance_type="coef"):
+    def get_feature_importance(self, importance_type: str = "coef") -> dict[str, float]:  # noqa: ANN001
         """Get feature importance from coefficients."""
         if not self._is_fitted:
             msg = "Model not fitted"
@@ -326,7 +326,7 @@ if SKLEARN_AVAILABLE:
         feature_names = self.feature_names or [f"feature_{i}" for i in range(len(importance))]
         return dict(zip(feature_names, importance.tolist(), strict=False))
 
-        def get_model_info(self):
+        def get_model_info(self) -> dict[str, Any]:  # noqa: ANN001
             """Get model information."""
             return {
                 "status": "fitted" if self._is_fitted else "not_fitted",
@@ -335,15 +335,15 @@ if SKLEARN_AVAILABLE:
                 **self.get_params(),
             }
 
-        def get_capabilities(self):
+        def get_capabilities(self) -> dict[str, Any]:  # noqa: ANN001
             """Get model capabilities."""
             return self.capabilities.copy()
 
-        def get_model_type(self):
+        def get_model_type(self) -> str:  # noqa: ANN001
             """Get model type string."""
             return self.model_type
 
-        def save(self, path: str) -> None:
+        def save(self, path: str) -> None:  # noqa: ANN001
             """Save model to file."""
             if self.model is None:
                 # Tests expect this to raise when no model is loaded
@@ -361,7 +361,7 @@ if SKLEARN_AVAILABLE:
             joblib.dump(model_data, path)
 
         @classmethod
-        def load(cls, path: str):
+        def load(cls, path: str) -> LogisticRegressionWrapper:  # noqa: ANN001
             """Load model from file."""
             import joblib  # noqa: PLC0415  # noqa: PLC0415
 
@@ -377,9 +377,10 @@ if SKLEARN_AVAILABLE:
                 wrapper.classes_ = wrapper.model.classes_
 
             return wrapper
+
         return None
 
-    def __repr__(self) -> str:
+    def __repr__(self) -> str:  # noqa: ANN001, N807
         """String representation."""
         status = "fitted" if self._is_fitted else "not_fitted"
         n_classes = len(self.classes_) if hasattr(self, "classes_") and self.classes_ is not None else "unknown"
@@ -399,7 +400,7 @@ if SKLEARN_AVAILABLE:
         version = "1.0.0"
         model_type = "sklearn_generic"
 
-        def __init__(self, model=None, feature_names=None, **kwargs) -> None:
+        def __init__(self, model: Any = None, feature_names: list[str] | None = None, **kwargs: Any) -> None:  # noqa: ANN401
             """Initialize generic sklearn wrapper.
 
             Args:
@@ -421,14 +422,14 @@ if SKLEARN_AVAILABLE:
 
             logger.info("SklearnGenericWrapper initialized")
 
-        def predict(self, X) -> Any:  # noqa: N803
+        def predict(self, X) -> Any:  # noqa: N803, ANN001, ANN401
             """Make predictions."""
             if self.model is None:
                 msg = "No model loaded"
                 raise RuntimeError(msg)
             return self.model.predict(X)
 
-        def predict_proba(self, X) -> Any:  # noqa: N803
+        def predict_proba(self, X) -> Any:  # noqa: N803, ANN001, ANN401
             """Get prediction probabilities if supported."""
             if self.model is None:
                 msg = "No model loaded"
@@ -438,16 +439,15 @@ if SKLEARN_AVAILABLE:
                 raise AttributeError(msg)
             return self.model.predict_proba(X)
 
-
-    def get_model_type(self):
+    def get_model_type(self) -> str:  # noqa: ANN001
         """Get model type."""
         return self.model_type
 
-    def get_capabilities(self):
+    def get_capabilities(self) -> dict[str, Any]:  # noqa: ANN001
         """Get model capabilities."""
         return self.capabilities.copy()
 
-    def get_model_info(self):
+    def get_model_info(self) -> dict[str, Any]:  # noqa: ANN001
         """Get model information."""
         return {
             "model_type": self.model_type,
@@ -455,7 +455,7 @@ if SKLEARN_AVAILABLE:
             "has_model": self.model is not None,
         }
 
-    def save(self, path: str) -> None:
+    def save(self, path: str) -> None:  # noqa: ANN001
         """Save model to file."""
         import joblib  # noqa: PLC0415
 
@@ -466,7 +466,7 @@ if SKLEARN_AVAILABLE:
         joblib.dump(model_data, path)
 
     @classmethod
-    def load(cls, path: str):
+    def load(cls, path: str) -> SklearnGenericWrapper:  # noqa: ANN001
         """Load model from file."""
         import joblib  # noqa: PLC0415
 
@@ -482,7 +482,7 @@ else:
     class LogisticRegressionWrapper:
         """Stub class when scikit-learn is unavailable."""
 
-        def __init__(self, *args, **kwargs) -> None:  # noqa: ARG002
+        def __init__(self, *args, **kwargs) -> None:  # noqa: ARG002, ANN002, ANN003
             """Initialize stub - raises ImportError."""
             msg = "scikit-learn not available - install sklearn or fix CI environment"
             raise ImportError(msg)
@@ -490,7 +490,7 @@ else:
     class SklearnGenericWrapper:
         """Stub class when scikit-learn is unavailable."""
 
-        def __init__(self, *args, **kwargs) -> None:  # noqa: ARG002
+        def __init__(self, *args, **kwargs) -> None:  # noqa: ARG002, ANN002, ANN003
             """Initialize stub - raises ImportError."""
             msg = "scikit-learn not available - install sklearn or fix CI environment"
             raise ImportError(msg)
