@@ -396,11 +396,15 @@ class AuditPipeline:
         }
 
         # Add to manifest
+        explainer_info = {
+            "implementation": selected_name,
+            "version": getattr(selected_explainer, "version", "1.0.0"),
+            "priority": getattr(selected_explainer, "priority", None),
+        }
         self.manifest_generator.add_component(
             "explainer",
             selected_name,
-            selected_explainer,
-            priority=getattr(selected_explainer, "priority", None),
+            explainer_info,
         )
 
         return selected_explainer
