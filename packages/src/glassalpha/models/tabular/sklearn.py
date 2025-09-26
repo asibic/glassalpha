@@ -29,6 +29,8 @@ except ImportError:
 
 from glassalpha.core.registry import ModelRegistry
 
+from .base import BaseTabularWrapper
+
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
@@ -174,7 +176,7 @@ class LogisticRegressionWrapper(SklearnGenericWrapper):
 if SKLEARN_AVAILABLE:
 
     @ModelRegistry.register("logistic_regression", priority=80)
-    class LogisticRegressionWrapper(BaseEstimator, ClassifierMixin):
+    class LogisticRegressionWrapper(BaseTabularWrapper):
         """Wrapper for scikit-learn LogisticRegression with Glass Alpha compatibility."""
 
         # Required class attributes for ModelInterface
@@ -197,14 +199,13 @@ if SKLEARN_AVAILABLE:
                 **kwargs: Parameters passed to LogisticRegression constructor
 
             """
-            # Initialize core attributes (friend's spec: use feature_names_ with underscore)
-            self.model: LogisticRegression | None = model
-            self.feature_names_: list[str] | None = list(feature_names) if feature_names else None
-            self._is_fitted = False
+            super().__init__()
 
             if model is not None:
                 # Use provided model
+                self.model = model
                 self._is_fitted = hasattr(model, "coef_") and model.coef_ is not None
+                self.feature_names_ = list(feature_names) if feature_names else None
                 # Set n_classes if model is fitted (tests expect this)
                 if hasattr(model, "classes_") and model.classes_ is not None:
                     self.classes_ = model.classes_
@@ -215,11 +216,13 @@ if SKLEARN_AVAILABLE:
                 # Create new model with parameters
                 self.model = LogisticRegression(**kwargs)
                 self.n_classes = None
+                self.feature_names_ = list(feature_names) if feature_names else None
             else:
                 # Tests expect model to be None when no arguments provided
                 self.model = None
                 # Tests expect n_classes=2 for empty wrapper (binary classification default)
                 self.n_classes = 2
+                self.feature_names_ = list(feature_names) if feature_names else None
 
             logger.info("LogisticRegressionWrapper initialized")
 
@@ -239,49 +242,46 @@ if SKLEARN_AVAILABLE:
             if self.model is None:
                 self.model = LogisticRegression(random_state=42, max_iter=1000)
 
-            # Friend's spec: Handle random_state in kwargs
+            # Handle random_state in kwargs
             if "random_state" in kwargs and hasattr(self.model, "set_params"):
                 self.model.set_params(random_state=kwargs["random_state"])
 
-            # Friend's spec: Capture feature names from DataFrame
+            # Capture feature names from DataFrame
             import pandas as pd  # noqa: PLC0415
 
             if isinstance(X, pd.DataFrame):
                 self.feature_names_ = list(X.columns)
 
-            # Use _prepare_X for consistent preprocessing
-            Xp = self._prepare_x(X)  # noqa: N806
-            self.model.fit(Xp, y)
+            # Use base class _prepare_X for consistent preprocessing
+            X_processed = self._prepare_X(X)  # noqa: N806
+            self.model.fit(X_processed, y)
 
-            # Set fitted state
-            self.status = "fitted"
-            self.n_classes = len(getattr(self.model, "classes_", []))
+            # Set fitted state and classes
             self._is_fitted = True
+            if hasattr(self.model, "classes_"):
+                self.classes_ = self.model.classes_
+                self.n_classes = len(self.model.classes_)
 
             return self
 
         def predict(self, X) -> Any:  # noqa: N803, ANN001, ANN401
-            """Make predictions."""
-            if self.model is None:
-                msg = "Model not fitted"
-                raise RuntimeError(msg)
+            """Make predictions using base class error handling."""
+            self._ensure_fitted()
 
-            # Use _prepare_X for robust feature handling
-            Xp = self._prepare_x(X)  # noqa: N806
-            predictions = self.model.predict(Xp)
+            # Use base class _prepare_X for robust feature handling
+            X_processed = self._prepare_X(X)  # noqa: N806
+            predictions = self.model.predict(X_processed)
 
             # Ensure 1D numpy array output
             return np.array(predictions).flatten()
 
         def predict_proba(self, X) -> Any:  # noqa: N803, ANN001, ANN401
-            """Get prediction probabilities."""
-            if self.model is None:
-                msg = "Model not fitted"
-                raise RuntimeError(msg)
+            """Get prediction probabilities using base class error handling."""
+            self._ensure_fitted()
 
-            # Use _prepare_X for robust feature handling
-            Xp = self._prepare_x(X)  # noqa: N806
-            return self.model.predict_proba(Xp)
+            # Use base class _prepare_X for robust feature handling
+            X_processed = self._prepare_X(X)  # noqa: N806
+            return self.model.predict_proba(X_processed)
 
         def _validate_and_reorder_features(self, X) -> Any:  # noqa: N803, ANN001, ANN401
             """Validate and reorder features to match training data per friend's spec."""
@@ -406,7 +406,7 @@ if SKLEARN_AVAILABLE:
             self.feature_names_ = value
 
         def save(self, path: str | Path) -> None:
-            """Save model to file."""
+            """Save model to file with exact pattern smoke test expects."""
             if self.model is None:
                 msg = "No model to save"
                 raise ValueError(msg)
@@ -418,37 +418,28 @@ if SKLEARN_AVAILABLE:
                     "model": self.model,
                     "feature_names_": getattr(self, "feature_names_", None),
                     "n_classes": len(getattr(self.model, "classes_", [])) if self.model else None,
+                    "_is_fitted": self._is_fitted,
                 },
                 Path(path),
             )
 
         def load(self, path: str | Path) -> LogisticRegressionWrapper:
-            """Load model from file (instance method)."""
+            """Load model from file with proper hydration."""
             import joblib  # noqa: PLC0415
 
             obj = joblib.load(Path(path))
             self.model = obj["model"]
             self.feature_names_ = obj.get("feature_names_")
             self.n_classes = obj.get("n_classes")
-            self.status = "fitted"
-            self._is_fitted = True  # Also set internal flag for compatibility
+            self._is_fitted = obj.get("_is_fitted", True)
+
+            # Also set attributes tests expect
+            if hasattr(self.model, "classes_"):
+                self.classes_ = self.model.classes_
+
             return self
 
-        def _prepare_x(self, X: Any) -> Any:  # noqa: N803, ANN401
-            """Feature handling helper used by predict and predict_proba."""
-            import pandas as pd  # noqa: PLC0415
-
-            if isinstance(X, pd.DataFrame):
-                fitted = getattr(self, "feature_names_", None)
-                if not fitted:
-                    return X.to_numpy()
-                cols = list(X.columns)
-                if len(cols) == len(fitted) and set(cols) != set(fitted):
-                    # renamed only, same order/width
-                    return X.to_numpy()
-                # align by name, drop extras, fill missing with 0
-                return X.reindex(columns=fitted, fill_value=0)
-            return X
+        # _prepare_X() method is inherited from BaseTabularWrapper
 
         def __repr__(self) -> str:
             """String representation - friend's spec: don't crash when model is None."""
