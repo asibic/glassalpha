@@ -73,11 +73,19 @@ class DataInfo(BaseModel):
 class ExecutionInfo(BaseModel):
     """Information about execution."""
 
-    start_time: datetime
+    start_time: datetime = Field(default_factory=lambda: datetime.now(UTC))
     end_time: datetime | None = None
     duration_seconds: float | None = None
-    status: str = "running"  # running, completed, failed
+    status: str = "pending"  # pending, running, completed, failed - tests expect "pending" default
     error_message: str | None = None
+
+
+class ManifestComponent(BaseModel):
+    """Component information for manifest."""
+
+    name: str
+    type: str
+    details: dict[str, Any] = Field(default_factory=dict)
 
 
 class AuditManifest(BaseModel):
@@ -110,22 +118,15 @@ class AuditManifest(BaseModel):
             installed_packages={},
         ),
     )
-    execution: ExecutionInfo = Field(
-        default_factory=lambda: ExecutionInfo(
-            started_at=datetime.now(UTC),
-            finished_at=None,
-            duration_seconds=None,
-            status="running",
-            error_message=None,
-        ),
-    )
+    execution_info: ExecutionInfo = Field(default_factory=ExecutionInfo)
     git: GitInfo | None = None
 
     # Seeds and reproducibility
     seeds: dict[str, Any] = Field(default_factory=dict)
     deterministic_validation: dict[str, bool | None] = Field(default_factory=dict)
 
-    # Components
+    # Components (tests expect this field name)
+    components: dict[str, ManifestComponent] = Field(default_factory=dict)
     selected_components: dict[str, ComponentInfo] = Field(default_factory=dict)
 
     # Data
@@ -217,12 +218,9 @@ class ManifestGenerator:
         self.datasets: dict[str, Any] = {}
         self.result_hashes: dict[str, str] = {}
 
-        # Initialize manifest with basic info
+        # Initialize empty manifest (don't collect platform/git on init to avoid crashes)
         self.manifest = AuditManifest(
             audit_id=self.audit_id,
-            environment=self._collect_environment_info(),
-            git=self._collect_git_info(),
-            execution=ExecutionInfo(start_time=self.start_time),
         )
 
         logger.info("Initialized audit manifest: %s", self.audit_id)
@@ -263,41 +261,50 @@ class ManifestGenerator:
     def add_component(
         self,
         name: str,
-        implementation: str,
+        component_type: str,
         info: dict[str, Any],
-    ) -> ComponentInfo:
+    ) -> ManifestComponent:
         """Add component to manifest (test-compatible signature).
 
         Args:
             name: Component name
-            implementation: Implementation type
+            component_type: Component type (e.g., "xgboost", "treeshap")
             info: Component information dictionary
 
         Returns:
-            ComponentInfo object with .name attribute
+            ManifestComponent object with .name attribute
 
         """
-        # Create ComponentInfo from provided info
+        # Create ManifestComponent with type from component_type parameter (not from info)
+        component = ManifestComponent(
+            name=name,
+            type=component_type,  # Type comes from parameter, not info dict
+            details=info,
+        )
+
+        # Store in manifest components (tests expect this field)
+        self.manifest.components[name] = component
+
+        # Store in generator components for compatibility  
+        self.components[name] = component
+
+        # Also update selected_components for backward compatibility
+        if component_type not in self.manifest.selected_components:
+            self.manifest.selected_components[component_type] = {}
+        
+        # Create ComponentInfo for selected_components
         component_info = ComponentInfo(
             name=name,
-            type=info.get("type", "component"),
-            implementation=implementation,
+            type=component_type,
+            implementation=info.get("implementation", component_type),
             version=info.get("version"),
             parameters=info.get("parameters", {}) or {},
         )
-
-        # Store in components dictionary (tests expect this structure)
-        self.components[name] = component_info
-
-        # Also update manifest for compatibility
-        component_type = info.get("type", "component")
-        if component_type not in self.manifest.selected_components:
-            self.manifest.selected_components[component_type] = {}
         self.manifest.selected_components[component_type][name] = component_info
 
-        logger.debug("Added component to manifest: %s (%s)", name, implementation)
+        logger.debug("Added component to manifest: %s (%s)", name, component_type)
 
-        return component_info  # Return object with .name attribute
+        return component  # Return ManifestComponent with .name attribute
 
     def add_dataset(
         self,
