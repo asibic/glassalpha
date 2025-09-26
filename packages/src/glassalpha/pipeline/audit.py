@@ -122,7 +122,7 @@ class AuditPipeline:
             self.results.success = True
             logger.info("Audit pipeline completed successfully")
 
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             error_msg = f"Audit pipeline failed: {e!s}"
             logger.exception(error_msg)
             logger.debug("Full traceback: %s", traceback.format_exc())
@@ -167,7 +167,7 @@ class AuditPipeline:
         schema = None
         if self.config.data.schema_path:
             # For now, create schema from config
-            # TODO(dev): Implement schema loading from file  # noqa: TD002, TD003, FIX002
+            # TODO(dev): Implement schema loading from file  # noqa: TD003, FIX002
             pass
 
         # Create schema from data config
@@ -533,7 +533,7 @@ class AuditPipeline:
                 "auc_roc",
                 "classification_report",
             ]:
-                performance_metrics[name] = metric_class
+                performance_metrics[name] = metric_class  # noqa: PERF403
 
         results = {}
         for metric_name, metric_class in performance_metrics.items():
@@ -585,7 +585,7 @@ class AuditPipeline:
                 "equalized_odds",
                 "predictive_parity",
             ]:
-                fairness_metrics[name] = metric_class
+                fairness_metrics[name] = metric_class  # noqa: PERF403
 
         results = {}
         for metric_name, metric_class in fairness_metrics.items():
@@ -594,7 +594,7 @@ class AuditPipeline:
 
                 # Compute for each sensitive feature
                 for col in sensitive_features.columns:
-                    sensitive_attr = sensitive_features[col].values
+                    sensitive_attr = sensitive_features[col].values  # noqa: PD011
                     result = metric.compute(y_true, y_pred, sensitive_features=sensitive_attr)
 
                     if col not in results:
@@ -702,7 +702,7 @@ class AuditPipeline:
 
         return stats
 
-    def _get_seeded_context(self, component_name: str) -> Any:  # noqa: ANN202, ANN401
+    def _get_seeded_context(self, component_name: str) -> Any:  # noqa: ANN401
         """Get seeded context manager for component.
 
         Args:
@@ -824,10 +824,10 @@ class AuditPipeline:
             logger.info("Final feature count: %s (from {len(X.columns)} original)", len(sanitized_feature_names))
             logger.debug("Sanitized feature names: %s...", sanitized_feature_names[:5])
 
-            return X_processed
+            return X_processed  # noqa: TRY300
 
-        except Exception as e:  # noqa: BLE001
-            logger.exception("Preprocessing failed: %s", e)
+        except Exception as e:
+            logger.exception("Preprocessing failed: %s", e)  # noqa: TRY401
             logger.warning("Falling back to simple preprocessing")
 
             # Fallback: simple label encoding as before
