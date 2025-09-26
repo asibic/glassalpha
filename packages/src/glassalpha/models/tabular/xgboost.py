@@ -68,6 +68,74 @@ class XGBoostWrapper(BaseTabularWrapper):
         else:
             logger.info("XGBoostWrapper initialized without model")
 
+    def fit(self, X: Any, y: Any, **kwargs: Any) -> "XGBoostWrapper":  # noqa: ANN401, N803
+        """Fit XGBoost model with training data.
+
+        Args:
+            X: Training features (DataFrame or array)
+            y: Target values
+            **kwargs: Additional parameters including random_state
+
+        Returns:
+            Self for method chaining
+
+        """
+        import numpy as np  # noqa: PLC0415
+        import xgboost as xgb  # noqa: PLC0415
+
+        # Extract random_state from kwargs
+        random_state = kwargs.pop("random_state", None)
+
+        # Initialize XGBoost model if not already done
+        if self.model is None:
+            xgb_kwargs = {"objective": "binary:logistic", "max_depth": 6, "eta": 0.1}
+            if random_state is not None:
+                xgb_kwargs.update({"seed": random_state, "random_state": random_state})
+            xgb_kwargs.update(kwargs)  # Allow override of defaults
+
+            # Use XGBClassifier for easier fitting
+            from xgboost import XGBClassifier  # noqa: PLC0415
+
+            sklearn_model = XGBClassifier(**xgb_kwargs)
+        else:
+            # Update existing model's random state if provided
+            if hasattr(self.model, "set_params") and random_state is not None:
+                self.model.set_params(random_state=random_state)
+            sklearn_model = None
+
+        # Prepare features using shared alignment helper
+        X_processed = self._prepare_x(X)  # noqa: N806
+
+        # Capture feature names for DataFrame inputs
+        if hasattr(X_processed, "columns"):
+            self.feature_names_ = list(X_processed.columns)
+            X_processed = X_processed.values
+        elif hasattr(X, "columns"):
+            self.feature_names_ = list(X.columns)
+
+        # Fit the model
+        if sklearn_model is not None:
+            sklearn_model.fit(X_processed, y)
+            # Convert to Booster for consistency
+            self.model = sklearn_model.get_booster()
+        else:
+            # Use existing model - convert to DMatrix and train
+            dtrain = xgb.DMatrix(X_processed, label=y, feature_names=self.feature_names_)
+            # Update model with new data (this may not work with pre-trained boosters)
+            # For simplicity, replace with new training
+            params = {"objective": "binary:logistic", "max_depth": 6, "eta": 0.1}
+            if random_state is not None:
+                params.update({"seed": random_state, "random_state": random_state})
+            self.model = xgb.train(params, dtrain, num_boost_round=100)
+
+        # Set class information
+        self.n_classes = len(np.unique(y))
+
+        # Mark as fitted
+        self._is_fitted = True
+
+        return self
+
     def load(self, path: str | Path) -> "XGBoostWrapper":
         """Load trained XGBoost model from saved file for inference and analysis.
 
@@ -98,7 +166,7 @@ class XGBoostWrapper(BaseTabularWrapper):
             msg = f"Model file not found: {path}"
             raise FileNotFoundError(msg)
 
-        logger.info("Loading XGBoost model from %s", path)
+        logger.info(f"Loading XGBoost model from {path}")
 
         # Contract compliance: Load JSON with model/feature_names_/n_classes
         import json  # noqa: PLC0415
@@ -200,7 +268,7 @@ class XGBoostWrapper(BaseTabularWrapper):
         # Use argmax for predict to get class predictions
         predictions = np.argmax(probs, axis=1) if probs.ndim > 1 else (probs > self.BINARY_THRESHOLD).astype(int)
 
-        logger.debug("Generated predictions for %s samples", len(X))
+        logger.debug(f"Generated predictions for {len(X)} samples")
         return predictions
 
     def predict_proba(self, X: pd.DataFrame) -> np.ndarray:  # noqa: N803
@@ -237,7 +305,7 @@ class XGBoostWrapper(BaseTabularWrapper):
         else:
             probs = preds
 
-        logger.debug("Generated probability predictions for %s samples", len(X))
+        logger.debug(f"Generated probability predictions for {len(X)} samples")
         return probs
 
     def get_model_type(self) -> str:
@@ -290,7 +358,7 @@ class XGBoostWrapper(BaseTabularWrapper):
         # Get importance scores
         importance = self.model.get_score(importance_type=importance_type)
 
-        logger.debug("Extracted {importance_type} feature importance for %s features", len(importance))
+        logger.debug(f"Extracted {importance_type} feature importance for {len(importance)} features")
         return importance
 
     def save(self, path: str | Path) -> None:
@@ -347,7 +415,7 @@ class XGBoostWrapper(BaseTabularWrapper):
         with Path(path).open("w", encoding="utf-8") as f:
             json.dump(data, f, indent=2)
 
-        logger.info("Saved XGBoost model to %s", path)
+        logger.info(f"Saved XGBoost model to {path}")
 
     def __repr__(self) -> str:
         """String representation of the wrapper."""

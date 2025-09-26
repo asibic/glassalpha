@@ -64,7 +64,7 @@ class ExplainerRegistry:
         return cls._by_key.copy()
 
     @classmethod
-    def find_compatible(cls, model_type_or_obj: Any) -> type | None:  # noqa: ANN401, C901
+    def find_compatible(cls, model_type_or_obj: Any) -> type | None:  # noqa: ANN401
         """Find a compatible explainer for the given model type or object.
 
         Args:
@@ -106,14 +106,8 @@ class ExplainerRegistry:
         for explainer_key in PRIORITY:
             if explainer_key in compatible_explainers and explainer_key in cls._by_key:
                 explainer_class = cls._by_key[explainer_key]
-                # Double-check compatibility
-                try:
-                    explainer = explainer_class()
-                    if hasattr(explainer, "is_compatible") and explainer.is_compatible(model_type_or_obj):
-                        logger.debug(f"Selected {explainer_key} for model type: {model_type}")
-                        return explainer_class
-                except Exception:  # noqa: BLE001, S112
-                    continue
+                logger.debug(f"Selected {explainer_key} for model type: {model_type}")
+                return explainer_class
 
         logger.debug(f"No compatible explainer found for model type: {model_type}")
         return None

@@ -92,7 +92,7 @@ class LightGBMWrapper(BaseTabularWrapper):
             msg = f"Model file not found: {path}"
             raise FileNotFoundError(msg)
 
-        logger.info("Loading LightGBM model from %s", path)
+        logger.info(f"Loading LightGBM model from {path}")
 
         # Try to load as JSON format first (new format)
         try:
@@ -164,7 +164,7 @@ class LightGBMWrapper(BaseTabularWrapper):
         self._is_fitted = True
         self.n_classes = len(getattr(self.model, "classes_", [])) or len(set(y))
         n_features = len(X_processed.columns) if hasattr(X_processed, "columns") else X_processed.shape[1]
-        logger.info("Trained LightGBM model with %s features", n_features)
+        logger.info(f"Trained LightGBM model with {n_features} features")
         return self
 
     def _extract_model_info(self) -> None:
@@ -221,7 +221,7 @@ class LightGBMWrapper(BaseTabularWrapper):
             # Multi-class - take argmax
             predictions = np.argmax(predictions, axis=1)
 
-        logger.debug("Generated predictions for %s samples", len(X))
+        logger.debug(f"Generated predictions for {len(X)} samples")
         return predictions
 
     def predict_proba(self, X: pd.DataFrame) -> np.ndarray:  # noqa: N803
@@ -245,7 +245,7 @@ class LightGBMWrapper(BaseTabularWrapper):
         # Handle binary vs multiclass
         proba = np.column_stack([1 - predictions, predictions]) if predictions.ndim == 1 else predictions
 
-        logger.debug("Generated probability predictions for %s samples", len(X))
+        logger.debug(f"Generated probability predictions for {len(X)} samples")
         return proba
 
     def get_model_type(self) -> str:
@@ -303,7 +303,7 @@ class LightGBMWrapper(BaseTabularWrapper):
         # Create dictionary
         importance_dict = {name: float(imp) for name, imp in zip(feature_names, importance, strict=False)}
 
-        logger.debug("Extracted {importance_type} feature importance for %s features", len(importance_dict))
+        logger.debug(f"Extracted {importance_type} feature importance for {len(importance_dict)} features")
         return importance_dict
 
     def save(self, path: str | Path) -> None:
@@ -348,7 +348,7 @@ class LightGBMWrapper(BaseTabularWrapper):
         with path.open("w", encoding="utf-8") as f:
             json.dump(data, f, indent=2)
 
-        logger.info("Saved LightGBM model to %s", path)
+        logger.info(f"Saved LightGBM model to {path}")
 
     def __repr__(self) -> str:
         """String representation of the wrapper."""

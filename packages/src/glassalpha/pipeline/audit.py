@@ -588,7 +588,7 @@ class AuditPipeline:
                 if y_proba.ndim > 1 and y_proba.shape[1] > 1:
                     y_proba = y_proba[:, 1]  # Binary classification positive class
             except Exception as e:  # noqa: BLE001
-                logger.warning("Could not get prediction probabilities: %s", e)
+                logger.warning(f"Could not get prediction probabilities: {e}")
 
         # Compute performance metrics
         self._compute_performance_metrics(y_true, y_pred, y_proba)
