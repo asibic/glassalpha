@@ -3,7 +3,7 @@ repos:
     rev: v0.13.1  # Use latest version
     hooks:
       - id: ruff
-        args: [--fix]  # Auto-fix issues when possible
+        args: [--fix, --unsafe-fixes]  # Max auto-fix for solo development
         exclude: ^(packages/demo_.*\.py|packages/.*_review\.py|packages/test_.*\.py)$
       - id: ruff-format
 
