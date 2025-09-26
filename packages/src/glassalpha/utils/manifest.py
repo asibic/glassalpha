@@ -124,6 +124,7 @@ class AuditManifest(BaseModel):
         ),
     )
     execution: ExecutionInfo = Field(default_factory=ExecutionInfo)
+    execution_info: ExecutionInfo = Field(default_factory=ExecutionInfo)  # Alias for tests
     git: GitInfo | None = None
 
     # Seeds and reproducibility
@@ -229,6 +230,10 @@ class ManifestGenerator:
         self.manifest = AuditManifest(
             audit_id=self.audit_id,
         )
+
+        # Sync start_time between execution and execution_info fields
+        self.manifest.execution.start_time = self.start_time
+        self.manifest.execution_info.start_time = self.start_time
 
         logger.info("Initialized audit manifest: %s", self.audit_id)
 
@@ -398,12 +403,18 @@ class ManifestGenerator:
         self.manifest.execution.duration_seconds = (end_time - self.start_time).total_seconds()
         self.manifest.execution.status = status
 
+        # Also update execution_info alias for test compatibility
+        self.manifest.execution_info.end_time = end_time
+        self.manifest.execution_info.duration_seconds = (end_time - self.start_time).total_seconds()
+        self.manifest.execution_info.status = status
+
         # Friend's spec: Set root-level status and error_message in manifest
         self.manifest.status = status
         self.manifest.error_message = error
 
         if error:
             self.manifest.execution.error_message = error
+            self.manifest.execution_info.error_message = error
 
         logger.info("Audit marked as %s (duration: %.2fs)", status, self.manifest.execution.duration_seconds)
 
@@ -468,77 +479,56 @@ class ManifestGenerator:
             Git information if available, None otherwise
 
         """
+
+        def _run(*args: str) -> str:
+            """Helper to run git commands safely."""
+            return subprocess.run(args, capture_output=True, check=True, text=True).stdout.strip()  # noqa: S603
+
         try:
-            # Check if we're in a git repository
-            subprocess.run(["git", "status"], capture_output=True, check=True, cwd=Path.cwd())  # noqa: S607
+            # Friend's spec: use subprocess.run with text=True and never .decode()
+            info = {
+                "commit_sha": _run("git", "rev-parse", "HEAD"),
+                "branch": _run("git", "rev-parse", "--abbrev-ref", "HEAD"),
+                "remote_url": "",
+                "last_commit_message": _run("git", "log", "-1", "--pretty=%B"),
+                "last_commit_date": _run("git", "log", "-1", "--date=iso-strict", "--pretty=%cd"),
+            }
 
-            # Get commit hash
-            commit_result = subprocess.run(
-                ["git", "rev-parse", "HEAD"],  # noqa: S607
-                capture_output=True,
-                text=True,
-                check=True,
-            )
-            commit_hash = commit_result.stdout.strip()
+            # Get remote URL (may fail)
+            try:
+                info["remote_url"] = _run("git", "config", "--get", "remote.origin.url")
+            except subprocess.CalledProcessError:
+                info["remote_url"] = ""
 
-            # Get branch name
-            branch_result = subprocess.run(
-                ["git", "branch", "--show-current"],  # noqa: S607
-                capture_output=True,
-                text=True,
-                check=True,
-            )
-            branch = branch_result.stdout.strip()
-
-            # Check if working directory is dirty
-            status_result = subprocess.run(
+            # Friend's spec: compute is_dirty from git status --porcelain
+            status = subprocess.run(
                 ["git", "status", "--porcelain"],  # noqa: S607
                 capture_output=True,
                 text=True,
-                check=True,
+                check=False,  # Don't raise on error
             )
-            is_dirty = bool(status_result.stdout.strip())
-
-            # Get remote URL
-            try:
-                remote_result = subprocess.run(
-                    ["git", "remote", "get-url", "origin"],  # noqa: S607
-                    capture_output=True,
-                    text=True,
-                    check=True,
-                )
-                remote_url = remote_result.stdout.strip()
-            except subprocess.CalledProcessError:
-                remote_url = None
-
-            # Get commit message and timestamp
-            try:
-                commit_info_result = subprocess.run(
-                    ["git", "log", "-1", "--pretty=format:%s|%ci"],  # noqa: S607
-                    capture_output=True,
-                    text=True,
-                    check=True,
-                )
-                commit_info = commit_info_result.stdout.strip().split("|")
-                commit_message = commit_info[0] if len(commit_info) > 0 else None
-                commit_timestamp = commit_info[1] if len(commit_info) > 1 else None
-            except subprocess.CalledProcessError:
-                commit_message = None
-                commit_timestamp = None
+            is_dirty = bool(status.stdout.strip())
 
             return GitInfo(
-                commit_hash=commit_hash,
-                branch=branch,
+                commit_hash=info["commit_sha"],
+                branch=info["branch"],
                 is_dirty=is_dirty,
-                remote_url=remote_url,
-                commit_message=commit_message,
-                commit_timestamp=commit_timestamp,
+                remote_url=info["remote_url"] or None,
+                commit_message=info["last_commit_message"],
+                commit_timestamp=info["last_commit_date"],
             )
 
         except (subprocess.CalledProcessError, FileNotFoundError):
-            # Not in a git repository or git not available
+            # Friend's spec: if commands fail, return empty strings and is_dirty=False; do not raise
             logger.debug("Git information not available")
-            return None
+            return GitInfo(
+                commit_hash="",
+                branch="",
+                is_dirty=False,
+                remote_url=None,
+                commit_message="",
+                commit_timestamp="",
+            )
 
 
 def create_manifest(audit_id: str | None = None) -> ManifestGenerator:

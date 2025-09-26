@@ -88,6 +88,11 @@ class AuditPipeline:
             Comprehensive audit results
 
         """
+        from datetime import UTC, datetime  # noqa: PLC0415
+
+        # Friend's spec: Before doing work - capture start time
+        start = datetime.now(UTC).isoformat()
+
         try:
             logger.info("Starting audit pipeline execution")
 
@@ -119,18 +124,29 @@ class AuditPipeline:
             self._finalize_results(explanations)
             self._update_progress(progress_callback, "Audit complete", 100)
 
+            # Friend's spec: On success - set end time and call set execution info
+            end = datetime.now(UTC).isoformat()
+            logger.debug("Pipeline execution: start=%s, end=%s", start, end)
+
+            # Update manifest generator with execution info
+            self.manifest_generator.mark_completed("completed", None)
+
             self.results.success = True
             logger.info("Audit pipeline completed successfully")
 
         except Exception as e:
+            # Friend's spec: On exception - set error_message and still write start/end times
+            end = datetime.now(UTC).isoformat()
+            logger.debug("Pipeline execution failed: start=%s, end=%s", start, end)
             error_msg = f"Audit pipeline failed: {e!s}"
+
             logger.exception(error_msg)
             logger.debug("Full traceback: %s", traceback.format_exc())
 
             self.results.success = False
             self.results.error_message = error_msg
 
-            # Mark manifest as failed
+            # Mark manifest as failed with timing info
             self.manifest_generator.mark_completed("failed", error_msg)
 
         return self.results

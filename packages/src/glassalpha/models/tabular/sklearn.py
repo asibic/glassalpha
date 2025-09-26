@@ -262,10 +262,10 @@ if SKLEARN_AVAILABLE:
         def predict(self, X) -> Any:  # noqa: N803, ANN001, ANN401
             """Make predictions."""
             if self.model is None:
-                msg = "Model not loaded. Load a model first."
-                raise ValueError(msg)
+                msg = "Model not fitted"
+                raise RuntimeError(msg)
 
-            # Use _prepare_X for robust feature handling
+            # Use _prepare_x for robust feature handling
             Xp = self._prepare_x(X)  # noqa: N806
             predictions = self.model.predict(Xp)
 
@@ -275,10 +275,10 @@ if SKLEARN_AVAILABLE:
         def predict_proba(self, X) -> Any:  # noqa: N803, ANN001, ANN401
             """Get prediction probabilities."""
             if self.model is None:
-                msg = "Model not loaded. Load a model first."
-                raise ValueError(msg)
+                msg = "Model not fitted"
+                raise RuntimeError(msg)
 
-            # Use _prepare_X for robust feature handling
+            # Use _prepare_x for robust feature handling
             Xp = self._prepare_x(X)  # noqa: N806
             return self.model.predict_proba(Xp)
 
@@ -407,8 +407,7 @@ if SKLEARN_AVAILABLE:
         def save(self, path: str | Path) -> None:
             """Save model to file."""
             if self.model is None:
-                # Friend's spec: exact error message tests expect
-                msg = "Model not loaded. Load a model first."
+                msg = "No model to save"
                 raise ValueError(msg)
 
             import joblib  # noqa: PLC0415
@@ -417,6 +416,8 @@ if SKLEARN_AVAILABLE:
                 {
                     "model": self.model,
                     "feature_names_": getattr(self, "feature_names_", None),
+                    "n_classes": getattr(self, "n_classes", None),
+                    "version": "1.0.0",
                 },
                 Path(path),
             )
@@ -425,11 +426,12 @@ if SKLEARN_AVAILABLE:
             """Load model from file (instance method)."""
             import joblib  # noqa: PLC0415
 
-            p = Path(path)
-            obj = joblib.load(p)  # dict with {'model', 'feature_names_'}
+            obj = joblib.load(Path(path))
             self.model = obj["model"]
             self.feature_names_ = obj.get("feature_names_")
-            self.n_classes = len(getattr(self.model, "classes_", []))
+            self.n_classes = obj.get("n_classes")
+            # Friend's spec: set status to "fitted" so predict/predict_proba/get_feature_importance work
+            self._is_fitted = True
 
         def _prepare_x(self, X: Any) -> Any:  # noqa: N803, ANN401
             """Feature handling helper used by predict and predict_proba."""
