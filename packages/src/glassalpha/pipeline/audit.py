@@ -99,7 +99,7 @@ class AuditPipeline:
         from datetime import UTC, datetime  # noqa: PLC0415
 
         # Friend's spec: Before doing work - capture start time
-        start = datetime.now(UTC).isoformat()
+        datetime.now(UTC).isoformat()
 
         try:
             logger.info("Starting audit pipeline execution")
@@ -134,7 +134,7 @@ class AuditPipeline:
 
             # Friend's spec: On success - set end time and call set execution info
             end = datetime.now(UTC).isoformat()
-            logger.debug("Pipeline execution: start=%s, end=%s", start, end)
+            logger.debug("Pipeline execution: start={start}, end=%s", end)
 
             # Update manifest generator with execution info
             self.manifest_generator.mark_completed("completed", None)
@@ -145,7 +145,7 @@ class AuditPipeline:
         except Exception as e:
             # Friend's spec: On exception - set error_message and still write start/end times
             end = datetime.now(UTC).isoformat()
-            logger.debug("Pipeline execution failed: start=%s, end=%s", start, end)
+            logger.debug("Pipeline execution failed: start={start}, end=%s", end)
             error_msg = f"Audit pipeline failed: {e!s}"
 
             logger.exception(error_msg)
@@ -231,7 +231,7 @@ class AuditPipeline:
             sensitive_features=schema.sensitive_features,
         )
 
-        logger.info("Loaded data: %s rows, %s columns", data.shape[0], data.shape[1])
+        logger.info("Loaded data: {data.shape[0]} rows, %s columns", data.shape[1])
 
         return data, schema
 
@@ -338,7 +338,7 @@ class AuditPipeline:
                 if hasattr(model, "fit"):
                     # Friend's spec: Always fit with DataFrame so feature_names_in_ is set
                     model.fit(X_processed, y, random_state=model_seed)
-                    logger.info("Fitted %s model with %d features", model_type, len(X_processed.columns))
+                    logger.info("Fitted {model_type} model with %s features", len(X_processed.columns))
                 else:
                     # This should not happen for these model types
                     logger.error("Model type %s unexpectedly doesn't support fit method", model_type)

@@ -437,8 +437,9 @@
                     <ul>
                         {% if model_performance.accuracy %}
                         <li><strong>Overall Accuracy:</strong>
-                            <span class="metric-value metric-{{ 'good' if model_performance.accuracy.accuracy > 0.8 else ('warning' if model_performance.accuracy.accuracy > 0.6 else 'poor') }}">
-                                {{ "%.1f%%" | format(model_performance.accuracy.accuracy * 100) }}
+                            {% set acc = model_performance.accuracy.value if model_performance.accuracy is mapping and model_performance.accuracy.value is defined else model_performance.accuracy %}
+                            <span class="metric-value metric-{{ 'good' if acc > 0.8 else ('warning' if acc > 0.6 else 'poor') }}">
+                                {{ "%.1f%%" | format(acc * 100) }}
                             </span>
                         </li>
                         {% endif %}
@@ -480,7 +481,8 @@
                 </div>
             </div>
 
-            {% if bias_detected or (model_performance.accuracy and model_performance.accuracy.accuracy < 0.7) %}
+            {% set acc_val = model_performance.accuracy.value if model_performance.accuracy is mapping and model_performance.accuracy.value is defined else model_performance.accuracy if model_performance.accuracy else 0 %}
+            {% if bias_detected or (model_performance.accuracy and acc_val < 0.7) %}
             <div class="callout callout-warning">
                 <h4>⚠️ Regulatory Attention Required</h4>
                 <p>This model shows potential issues that may require regulatory review before deployment:</p>
@@ -488,8 +490,8 @@
                     {% if bias_detected %}
                     <li>Potential bias detected in protected attributes: {{ bias_detected | unique | join(", ") }}</li>
                     {% endif %}
-                    {% if model_performance.accuracy and model_performance.accuracy.accuracy < 0.7 %}
-                    <li>Model accuracy below recommended threshold ({{ "%.1f%%" | format(model_performance.accuracy.accuracy * 100) }} &lt; 70%)</li>
+                    {% if model_performance.accuracy and acc_val < 0.7 %}
+                    <li>Model accuracy below recommended threshold ({{ "%.1f%%" | format(acc_val * 100) }} &lt; 70%)</li>
                     {% endif %}
                 </ul>
             </div>

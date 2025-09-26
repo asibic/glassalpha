@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import Any, ClassVar
+
+from glassalpha.constants import NO_EXPLAINER_MSG
 
 logger = logging.getLogger(__name__)
 
@@ -19,11 +21,25 @@ except ImportError:
     EXPLAINERS_AVAILABLE = False
 
 
-class ExplainerRegistry:
-    """Registry for explainer classes with compatibility detection.
+# Priority order for explainer selection (TreeSHAP preferred for tree models)
+PRIORITY = ("treeshap", "kernelshap")
 
-    This registry maps explainer keys to classes and provides logic
-    for finding compatible explainers based on model characteristics.
+# Model type to compatible explainers mapping
+TYPE_TO_EXPLAINERS = {
+    "xgboost": ("treeshap", "kernelshap"),
+    "lightgbm": ("treeshap", "kernelshap"),
+    "random_forest": ("treeshap", "kernelshap"),
+    "decision_tree": ("treeshap", "kernelshap"),
+    "logistic_regression": ("kernelshap",),
+    "linear_model": ("kernelshap",),
+}
+
+
+class ExplainerRegistry:
+    """Registry for explainer classes with priority-based selection.
+
+    Provides deterministic explainer selection based on model types
+    with configurable priority ordering.
     """
 
     _by_key: ClassVar[dict[str, type]] = {}
@@ -32,7 +48,7 @@ class ExplainerRegistry:
     def register(cls, key: str, explainer_class: type) -> None:
         """Register an explainer class with a key."""
         cls._by_key[key] = explainer_class
-        logger.debug("Registered explainer: %s -> {explainer_class}", key)
+        logger.debug("Registered explainer: {key} -> %s", explainer_class)
 
     @classmethod
     def get(cls, key: str) -> type | None:
@@ -48,46 +64,78 @@ class ExplainerRegistry:
         return cls._by_key.copy()
 
     @classmethod
-    def find_compatible(cls, model: Any) -> type | None:  # noqa: ANN401
-        """Find a compatible explainer for the given model.
-
-        Uses conservative heuristics to detect tree-based models that
-        work with TreeSHAP. For all other models, returns None to force
-        explicit explainer selection via configuration.
+    def find_compatible(cls, model_type_or_obj: Any) -> type | None:  # noqa: ANN401, C901
+        """Find a compatible explainer for the given model type or object.
 
         Args:
-            model: Model object to check compatibility for
+            model_type_or_obj: String model type or model object with get_model_info()
 
         Returns:
-            Explainer class if compatible model detected, None otherwise
+            Explainer class if compatible, None if no match found
 
         """
         if not EXPLAINERS_AVAILABLE:
-            logger.warning("No explainers available - SHAP library may not be installed")
+            logger.debug("No explainers available - SHAP library may not be installed")
             return None
 
-        # Extremely conservative: only return TreeSHAP for obvious tree libs
-        model_module = getattr(model, "__module__", "") or ""
-        model_name = type(model).__name__.lower()
+        # Extract model type string
+        if isinstance(model_type_or_obj, str):
+            model_type = model_type_or_obj.lower()
+        # Try to get model info from object
+        elif hasattr(model_type_or_obj, "get_model_info"):
+            try:
+                model_info = model_type_or_obj.get_model_info()
+                model_type = model_info.get("type", "").lower()
+            except Exception:  # noqa: BLE001
+                model_type = ""
+        else:
+            # Fallback to class name
+            model_type = type(model_type_or_obj).__name__.lower()
 
-        # Check for XGBoost/LightGBM models
-        is_tree_model = (
-            "xgboost" in model_module or "xgb" in model_name or "lightgbm" in model_module or "lgb" in model_name
-        )
+        if not model_type:
+            logger.debug("Could not determine model type")
+            return None
 
-        if is_tree_model:
-            logger.debug("Detected tree model: %s (module: {model_module})", model_name)
-            return TreeSHAPExplainer
+        # Check for compatible explainers in priority order
+        compatible_explainers = TYPE_TO_EXPLAINERS.get(model_type)
+        if not compatible_explainers:
+            logger.debug("No explainer mapping for model type: %s", model_type)
+            return None
 
-        # For LogisticRegression and other sklearn models, use KernelSHAP
-        # KernelSHAP is model-agnostic and works with any model having predict/predict_proba
-        if ("sklearn" in model_module or "logistic" in model_name) and KernelSHAPExplainer:
-            logger.debug("Using KernelSHAP for sklearn model: %s (module: {model_module})", model_name)
-            return KernelSHAPExplainer
+        # Find first available explainer in priority order
+        for explainer_key in PRIORITY:
+            if explainer_key in compatible_explainers and explainer_key in cls._by_key:
+                explainer_class = cls._by_key[explainer_key]
+                # Double-check compatibility
+                try:
+                    explainer = explainer_class()
+                    if hasattr(explainer, "is_compatible") and explainer.is_compatible(model_type_or_obj):
+                        logger.debug("Selected {explainer_key} for model type: %s", model_type)
+                        return explainer_class
+                except Exception:  # noqa: BLE001, S112
+                    continue
 
-        logger.debug("No compatible explainer found for model: %s (module: {model_module})", model_name)
-        # Could add more heuristics here; return None to force explicit config-based selection
+        logger.debug("No compatible explainer found for model type: %s", model_type)
         return None
+
+    @classmethod
+    def select_for_model(cls, model_type_or_obj: Any) -> type:  # noqa: ANN401
+        """Select explainer for model, raising error if none compatible.
+
+        Args:
+            model_type_or_obj: String model type or model object
+
+        Returns:
+            Explainer class
+
+        Raises:
+            RuntimeError: If no compatible explainer found with exact contract message
+
+        """
+        explainer_class = cls.find_compatible(model_type_or_obj)
+        if explainer_class is None:
+            raise RuntimeError(NO_EXPLAINER_MSG)
+        return explainer_class
 
 
 # Initialize registry with available explainers

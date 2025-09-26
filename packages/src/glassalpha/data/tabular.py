@@ -98,7 +98,7 @@ class TabularDataLoader(DataInterface):
             msg = f"Failed to load data from {path}: {e}"
             raise ValueError(msg) from e
 
-        logger.info("Loaded data: %s rows, {data.shape[1]} columns", data.shape[0])
+        logger.info("Loaded data: {data.shape[0]} rows, %s columns", data.shape[1])
 
         # Validate schema if provided
         if schema:
@@ -186,7 +186,7 @@ class TabularDataLoader(DataInterface):
         if schema.sensitive_features:
             sensitive = data[schema.sensitive_features].copy()
 
-        logger.info("Extracted features: %s, target: {y.shape}", X.shape)
+        logger.info("Extracted features: {X.shape}, target: %s", y.shape)
         if sensitive is not None:
             logger.info("Extracted sensitive features: %s", sensitive.shape)
 
@@ -249,7 +249,7 @@ class TabularDataLoader(DataInterface):
                 raise ValueError(msg)
             stratify = data[stratify_column]
 
-        logger.info("Splitting data: %s total, test_size={test_size}", len(data))
+        logger.info("Splitting data: {len(data)} total, test_size=%s", test_size)
 
         try:
             train_data, test_data = train_test_split(
@@ -265,7 +265,7 @@ class TabularDataLoader(DataInterface):
             else:
                 raise
 
-        logger.info("Split completed: train=%s, test={len(test_data)}", len(train_data))
+        logger.info("Split completed: train={len(train_data)}, test=%s", len(test_data))
 
         return train_data, test_data
 

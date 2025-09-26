@@ -52,37 +52,24 @@ class BaseTabularWrapper:
             raise ValueError(NO_MODEL_MSG)
 
     def _prepare_x(self, X: Any) -> Any:  # noqa: ANN401, N803
-        """Robust DataFrame column handling - prevents sklearn feature name mismatch errors.
+        """Robust DataFrame column handling - uses centralized feature alignment.
+
+        Contract compliance: Uses shared align_features function for consistent
+        feature drift handling across all wrappers.
 
         Args:
             X: Input features (DataFrame or array)
 
         Returns:
-            Prepared features (handles column renames gracefully)
+            Prepared features with proper alignment
 
         """
-        if not PANDAS_AVAILABLE:
-            return X
-
-        if not isinstance(X, pd.DataFrame):
-            return X
-
-        fitted_names = getattr(self, "feature_names_", None)
-        if fitted_names is None:
-            # First predictions before fit - pass through
-            return X
-
-        # Contract compliance: Handle column drift robustly per triage specification
-        # If same width but different names, accept positionally with correct column names
-        if len(fitted_names) == X.shape[1] and list(X.columns) != list(fitted_names):
-            logger.debug("DataFrame columns renamed but same width - using positional mapping")
-            return pd.DataFrame(X.to_numpy(), columns=fitted_names, index=X.index)
-
-        # Otherwise, reindex to stored feature_names_, drop extras, fill missing with 0
-        return X.reindex(columns=fitted_names, fill_value=0)
+        return self._align_features(X)
 
     def _align_features(self, X: Any) -> Any:  # noqa: ANN401, N803
         """Shared feature alignment helper - contract compliance.
+
+        Uses centralized align_features function for consistency across all wrappers.
 
         Args:
             X: Input features (DataFrame or array)
@@ -91,17 +78,10 @@ class BaseTabularWrapper:
             Aligned features with proper column handling
 
         """
-        if not PANDAS_AVAILABLE:
-            return X
+        from glassalpha.models._features import align_features  # noqa: PLC0415
 
-        if not isinstance(X, pd.DataFrame):
-            return X
-
-        if hasattr(self, "feature_names_") and isinstance(X, pd.DataFrame):
-            if X.shape[1] == len(self.feature_names_) and list(X.columns) != list(self.feature_names_):
-                return pd.DataFrame(X.to_numpy(), columns=self.feature_names_, index=X.index)
-            return X.reindex(columns=self.feature_names_, fill_value=0)
-        return X
+        feature_names = getattr(self, "feature_names_", None)
+        return align_features(X, feature_names)
 
     def save(self, path: Path) -> None:
         """Save model state to file.

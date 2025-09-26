@@ -72,26 +72,19 @@ class LightGBMWrapper(BaseTabularWrapper):
             logger.info("LightGBMWrapper initialized without model")
 
     def load(self, path: str | Path) -> "LightGBMWrapper":
-        """Load trained LightGBM model from saved file for inference or analysis.
+        """Load trained LightGBM model from saved file.
 
-        Loads a previously saved LightGBM model from disk, supporting both text
-        and JSON formats. The model structure, learned parameters, and feature
-        mappings are restored to enable predictions and explainability analysis.
+        Contract compliance: Supports both old text format and new JSON format
+        with complete wrapper state {"model", "feature_names_", "n_classes"}.
 
         Args:
-            path: Path to LightGBM model file (supports .txt, .json, .model extensions)
+            path: Path to model file
+
+        Returns:
+            Self for method chaining
 
         Raises:
             FileNotFoundError: If the specified model file does not exist
-            LightGBMError: If the model file is corrupted or incompatible format
-            OSError: If file system permissions prevent reading the model file
-            ValueError: If the model file format is unrecognized or invalid
-            ImportError: If LightGBM library is not properly installed
-
-        Note:
-            Model loading preserves all training metadata including feature names,
-            categorical feature handling, and objective function configuration.
-            Loaded models are immediately ready for prediction and explanation.
 
         """
         path = Path(path)
@@ -100,9 +93,35 @@ class LightGBMWrapper(BaseTabularWrapper):
             raise FileNotFoundError(msg)
 
         logger.info("Loading LightGBM model from %s", path)
-        self.model = lgb.Booster(model_file=str(path))
+
+        # Try to load as JSON format first (new format)
+        try:
+            import json  # noqa: PLC0415
+            import tempfile  # noqa: PLC0415
+
+            with path.open("r", encoding="utf-8") as f:
+                data = json.load(f)
+
+            # Contract compliance: Load wrapper state
+            model_str = data["model"]
+            self.feature_names_ = data["feature_names_"]
+            self.n_classes = data["n_classes"]
+
+            # Write model string to temp file and load
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".txt", mode="w", encoding="utf-8") as tmp:
+                tmp.write(model_str)
+                tmp.flush()
+                self.model = lgb.Booster(model_file=tmp.name)
+
+            # Clean up temp file
+            Path(tmp.name).unlink(missing_ok=True)
+
+        except (json.JSONDecodeError, KeyError):
+            # Fall back to old text format
+            self.model = lgb.Booster(model_file=str(path))
+            self._extract_model_info()
+
         self._is_fitted = True  # Loaded model is fitted
-        self._extract_model_info()
         return self
 
     def fit(self, X: Any, y: Any, **kwargs: Any) -> "LightGBMWrapper":  # noqa: N803, ANN401
@@ -145,7 +164,7 @@ class LightGBMWrapper(BaseTabularWrapper):
         self._is_fitted = True
         self.n_classes = len(getattr(self.model, "classes_", [])) or len(set(y))
         n_features = len(X_processed.columns) if hasattr(X_processed, "columns") else X_processed.shape[1]
-        logger.info("Trained LightGBM model with %d features", n_features)
+        logger.info("Trained LightGBM model with %s features", n_features)
         return self
 
     def _extract_model_info(self) -> None:
@@ -173,21 +192,7 @@ class LightGBMWrapper(BaseTabularWrapper):
                 logger.debug("Could not determine number of classes, defaulting to binary")
                 self.n_classes = self.BINARY_CLASS_COUNT
 
-    def _prepare_x(self, X: Any) -> Any:  # noqa: N803, ANN401
-        """Feature handling helper used by fit, predict and predict_proba."""
-        import pandas as pd  # noqa: PLC0415
-
-        if isinstance(X, pd.DataFrame):
-            fitted = getattr(self, "feature_names_", None)
-            if not fitted:
-                return X.to_numpy()
-            cols = list(X.columns)
-            if len(cols) == len(fitted) and set(cols) != set(fitted):
-                # renamed only, same order/width
-                return X.to_numpy()
-            # align by name, drop extras, fill missing with 0
-            return X.reindex(columns=fitted, fill_value=0)
-        return X
+    # Removed custom _prepare_x - now uses base class version with centralized align_features
 
     def predict(self, X: pd.DataFrame) -> np.ndarray:  # noqa: N803
         """Generate predictions for input data.
@@ -216,7 +221,7 @@ class LightGBMWrapper(BaseTabularWrapper):
             # Multi-class - take argmax
             predictions = np.argmax(predictions, axis=1)
 
-        logger.debug("Generated predictions for %d samples", len(X))
+        logger.debug("Generated predictions for %s samples", len(X))
         return predictions
 
     def predict_proba(self, X: pd.DataFrame) -> np.ndarray:  # noqa: N803
@@ -240,7 +245,7 @@ class LightGBMWrapper(BaseTabularWrapper):
         # Handle binary vs multiclass
         proba = np.column_stack([1 - predictions, predictions]) if predictions.ndim == 1 else predictions
 
-        logger.debug("Generated probability predictions for %d samples", len(X))
+        logger.debug("Generated probability predictions for %s samples", len(X))
         return proba
 
     def get_model_type(self) -> str:
@@ -298,45 +303,51 @@ class LightGBMWrapper(BaseTabularWrapper):
         # Create dictionary
         importance_dict = {name: float(imp) for name, imp in zip(feature_names, importance, strict=False)}
 
-        logger.debug("Extracted %s feature importance for %d features", importance_type, len(importance_dict))
+        logger.debug("Extracted {importance_type} feature importance for %s features", len(importance_dict))
         return importance_dict
 
     def save(self, path: str | Path) -> None:
-        """Save trained LightGBM model to disk in human-readable text format.
+        """Save trained LightGBM model to disk with complete wrapper state.
 
-        Persists the complete model structure including learned parameters,
-        tree structure, and feature mappings in LightGBM's native text format.
-        This format enables model inspection and cross-platform compatibility.
+        Contract compliance: Saves {"model", "feature_names_", "n_classes"}
+        for proper round-trip serialization.
 
         Args:
-            path: Target file path for model storage (recommended: .txt extension)
-
-        Side Effects:
-            - Creates or overwrites model file at specified path
-            - Saves in text format (~1-50MB depending on model complexity)
-            - File contains feature names and model hyperparameters
-            - Preserves exact model state for reproducible predictions
+            path: Target file path for model storage (JSON format)
 
         Raises:
             ValueError: If no trained model exists to save
-            IOError: If path is not writable or insufficient disk space
-            LightGBMError: If model serialization fails due to corrupted state
-
-        Note:
-            Text format enables model audit and regulatory inspection but is
-            larger than binary format. For compliance audits, this transparency
-            is preferred over compact binary serialization.
 
         """
+        from glassalpha.constants import NO_MODEL_MSG  # noqa: PLC0415
+
         if self.model is None:
-            msg = "No model to save"
-            raise ValueError(msg)
+            raise ValueError(NO_MODEL_MSG)
 
         path = Path(path)
         path.parent.mkdir(parents=True, exist_ok=True)
 
-        # Save in text format for better compatibility
-        self.model.save_model(str(path))
+        # Save model to temp file then read as string
+        import json  # noqa: PLC0415
+        import tempfile  # noqa: PLC0415
+
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".txt") as tmp:
+            self.model.save_model(tmp.name)
+            model_str = Path(tmp.name).read_text(encoding="utf-8")
+
+        # Clean up temp file
+        Path(tmp.name).unlink(missing_ok=True)
+
+        # Contract compliance: Save wrapper state with required fields
+        data = {
+            "model": model_str,
+            "feature_names_": self.feature_names_,
+            "n_classes": self.n_classes,
+        }
+
+        with path.open("w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2)
+
         logger.info("Saved LightGBM model to %s", path)
 
     def __repr__(self) -> str:

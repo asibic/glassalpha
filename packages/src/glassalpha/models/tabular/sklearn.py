@@ -125,15 +125,37 @@ class SklearnGenericWrapper:
     def save(self, path: str) -> None:
         """Save model and feature names to disk.
 
+        Contract compliance: Creates parent directories and saves
+        {"model", "feature_names_", "n_classes"} format.
+
         Args:
             path: Path to save the model
 
         """
-        joblib.dump({"model": self.model, "feature_names": self.feature_names}, path)
+        from pathlib import Path  # noqa: PLC0415
+
+        from glassalpha.constants import NO_MODEL_MSG  # noqa: PLC0415
+
+        if self.model is None:
+            raise ValueError(NO_MODEL_MSG)
+
+        # Contract compliance: Create parent directories
+        path_obj = Path(path)
+        path_obj.parent.mkdir(parents=True, exist_ok=True)
+
+        # Contract compliance: Save proper wrapper state format
+        save_data = {
+            "model": self.model,
+            "feature_names_": self.feature_names,  # Use feature_names_ for consistency
+            "n_classes": getattr(self, "n_classes", None),
+        }
+        joblib.dump(save_data, path)
 
     @classmethod
     def load(cls, path: str) -> SklearnGenericWrapper:
         """Load model from disk.
+
+        Contract compliance: Handles both old and new save formats.
 
         Args:
             path: Path to the saved model
@@ -143,7 +165,15 @@ class SklearnGenericWrapper:
 
         """
         data = joblib.load(path)
-        return cls(model=data["model"], feature_names=data.get("feature_names"))
+
+        # Handle both old format (feature_names) and new format (feature_names_)
+        feature_names = data.get("feature_names_") or data.get("feature_names")
+        n_classes = data.get("n_classes")
+
+        wrapper = cls(model=data["model"], feature_names=feature_names)
+        if n_classes is not None:
+            wrapper.n_classes = n_classes
+        return wrapper
 
     # Some tests call instance.load(); keep a passthrough
     def load_instance(self, path: str) -> SklearnGenericWrapper:
@@ -407,11 +437,16 @@ if SKLEARN_AVAILABLE:
 
         def save(self, path: str | Path) -> None:
             """Save model to file with exact pattern smoke test expects."""
+            from glassalpha.constants import NO_MODEL_MSG  # noqa: PLC0415
+
             if self.model is None:
-                msg = "No model to save"
-                raise ValueError(msg)
+                raise ValueError(NO_MODEL_MSG)
 
             import joblib  # noqa: PLC0415
+
+            # Contract compliance: Create parent directories
+            path_obj = Path(path)
+            path_obj.parent.mkdir(parents=True, exist_ok=True)
 
             joblib.dump(
                 {
@@ -420,7 +455,7 @@ if SKLEARN_AVAILABLE:
                     "n_classes": len(getattr(self.model, "classes_", [])) if self.model else None,
                     "_is_fitted": self._is_fitted,
                 },
-                Path(path),
+                path_obj,
             )
 
         def load(self, path: str | Path) -> LogisticRegressionWrapper:

@@ -39,12 +39,19 @@ class EnvironmentInfo(BaseModel):
 class GitInfo(BaseModel):
     """Git repository information."""
 
-    commit_hash: str | None = None
+    commit_sha: str | None = None  # Contract compliance: use commit_sha
     branch: str | None = None
+    status: str = "clean"  # Contract compliance: "clean" or "dirty"
     is_dirty: bool = False
     remote_url: str | None = None
     commit_message: str | None = None
     commit_timestamp: str | None = None
+
+    # Backward compatibility
+    @property
+    def commit_hash(self) -> str | None:
+        """Alias for commit_sha for backward compatibility."""
+        return self.commit_sha
 
 
 class ComponentInfo(BaseModel):
@@ -508,8 +515,9 @@ class ManifestGenerator:
         is_dirty = status == "dirty"
 
         return GitInfo(
-            commit_hash=info["commit_sha"],
+            commit_sha=info["commit_sha"],
             branch=info["branch"],
+            status=status,
             is_dirty=is_dirty,
             remote_url=info["remote_url"] or None,
             commit_message=info["last_commit_message"],

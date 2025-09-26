@@ -290,7 +290,7 @@ class XGBoostWrapper(BaseTabularWrapper):
         # Get importance scores
         importance = self.model.get_score(importance_type=importance_type)
 
-        logger.debug("Extracted %s feature importance for %s features", importance_type, len(importance))
+        logger.debug("Extracted {importance_type} feature importance for %s features", len(importance))
         return importance
 
     def save(self, path: str | Path) -> None:
