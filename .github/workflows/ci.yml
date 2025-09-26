@@ -2,9 +2,9 @@ name: CI/CD
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -21,9 +21,17 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.11', '3.12']
+        python-version: ["3.11", "3.12"]
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Full git history for manifest generation tests
+
+      - name: Set up Git for testing
+        run: |
+          git config --global user.name "CI Test Runner"
+          git config --global user.email "ci@glassalpha.test"
+
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
@@ -67,11 +75,21 @@ jobs:
       - name: Build wheel and install (no editable)
         run: |
           cd packages
+          echo "=== Clean dist directory to prevent multiple wheels ==="
+          rm -rf dist build *.egg-info
+          mkdir -p dist
           echo "=== Build a wheel, then install it (no editable) ==="
           python -m pip uninstall -y glassalpha || true
           python -m pip wheel -w dist .
+          echo "=== Verify only one project wheel in dist ==="
           ls -la dist
-          python -m pip install --force-reinstall dist/*.whl
+          wheel_count=$(ls dist/*.whl | wc -l)
+          if [ "$wheel_count" -ne 1 ]; then
+            echo "ERROR: Expected exactly 1 wheel in dist/, found $wheel_count"
+            ls -la dist/
+            exit 1
+          fi
+          python -m pip install --force-reinstall dist/glassalpha*.whl
 
       - name: Verify installation and dependencies
         run: |
@@ -106,10 +124,24 @@ jobs:
           sys.exit(0 if ok else 1)
           PY
 
+      - name: Run contract regression tests first
+        run: |
+          cd packages
+          echo "=== Run critical contract regression tests ==="
+          export MPLBACKEND=Agg
+          env PYTHONPATH="" python -m pytest tests/test_*_contract.py -v --tb=short
+
+      - name: Run core contract tests
+        run: |
+          cd packages
+          echo "=== Run core contract guard tests ==="
+          export MPLBACKEND=Agg
+          env PYTHONPATH="" python -m pytest tests/contracts/ -v --tb=short || echo "Contract tests not found, skipping"
+
       - name: Run tests against installed package
         run: |
           cd packages
-          echo "=== Run tests against installed package (no source tree access) ==="
+          echo "=== Run full test suite against installed package (no source tree access) ==="
           export MPLBACKEND=Agg
           env PYTHONPATH="" python -m pytest tests/ -v
 
@@ -120,7 +152,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: "3.12"
 
       - name: Cache pip dependencies
         uses: actions/cache@v4
@@ -153,7 +185,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: "3.12"
 
       - name: Install Cairo
         run: sudo apt-get install -y libcairo2-dev
