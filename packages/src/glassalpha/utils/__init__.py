@@ -1,34 +1,58 @@
-"""Core utilities for reproducibility and audit tracking.
+"""Utilities package for GlassAlpha.
 
-This package provides essential utilities for ensuring deterministic
-behavior across the entire audit pipeline:
-- Centralized seed management
-- Deterministic hashing
-- Comprehensive audit manifests
+Provides various utility functions and classes for:
+- Manifest generation and management
+- Data hashing and integrity checks
+- Seed management for reproducibility
 """
 
-from .hashing import hash_config, hash_dataframe, hash_file, hash_object
-from .manifest import AuditManifest, ManifestGenerator
-from .seeds import (
-    SeedManager,
-    get_component_seed,
-    get_seeds_manifest,
-    set_global_seed,
-    with_component_seed,
-    with_seed,
-)
+from __future__ import annotations
 
+# Import lightweight modules directly
+from .manifest import AuditManifest, ManifestGenerator
+
+# Conditional imports for modules with heavy dependencies
+try:
+    from .hashing import hash_config, hash_dataframe, hash_file, hash_object
+
+    _HASHING_AVAILABLE = True
+except ImportError:
+    _HASHING_AVAILABLE = False
+
+try:
+    from .seeds import (
+        SeedManager,
+        get_component_seed,
+        get_seeds_manifest,
+        set_global_seed,
+        with_component_seed,
+        with_seed,
+    )
+
+    _SEEDS_AVAILABLE = True
+except ImportError:
+    _SEEDS_AVAILABLE = False
+
+# Public API
 __all__ = [
     "AuditManifest",
     "ManifestGenerator",
-    "SeedManager",
-    "get_component_seed",
-    "get_seeds_manifest",
-    "hash_config",
-    "hash_dataframe",
-    "hash_file",
-    "hash_object",
-    "set_global_seed",
-    "with_component_seed",
-    "with_seed",
 ]
+
+if _HASHING_AVAILABLE:
+    __all__ += [
+        "hash_config",
+        "hash_dataframe",
+        "hash_file",
+        "hash_object",
+    ]
+
+if _SEEDS_AVAILABLE:
+    __all__ += [
+        "SeedManager",
+        "get_component_seed",
+        "get_seeds_manifest",
+        "set_global_seed",
+        "with_component_seed",
+        "with_seed",
+    ]

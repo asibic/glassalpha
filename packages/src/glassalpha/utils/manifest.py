@@ -9,7 +9,6 @@ import logging
 import os
 import platform
 import struct
-import subprocess
 import sys
 from datetime import UTC, datetime
 from pathlib import Path
@@ -487,31 +486,26 @@ class ManifestGenerator:
             Git information if available, None otherwise
 
         """
+        # Contract compliance: Use centralized subprocess helper
+        from .proc import run_text  # noqa: PLC0415
 
-        def _run(*args: str) -> str | None:
-            """Helper to run git commands safely - contract compliance."""
-            try:
-                p = subprocess.run(args, capture_output=True, check=False, text=True)  # noqa: S603
-                return (p.stdout or "").strip()
-            except FileNotFoundError:
-                return None
-
-        # Contract compliance: Handle no git gracefully
+        # Contract compliance: Collect git info with proper commands per triage
         info = {
-            "commit_sha": _run("git", "rev-parse", "HEAD"),
-            "branch": _run("git", "rev-parse", "--abbrev-ref", "HEAD"),
-            "remote_url": _run("git", "config", "--get", "remote.origin.url"),
-            "last_commit_message": _run("git", "log", "-1", "--pretty=%B"),
-            "last_commit_date": _run("git", "log", "-1", "--date=iso-strict", "--pretty=%cd"),
-            "porcelain_status": _run("git", "status", "--porcelain"),
+            "commit_sha": run_text("git", "rev-parse", "--short", "HEAD"),
+            "branch": run_text("git", "rev-parse", "--abbrev-ref", "HEAD"),
+            "remote_url": run_text("git", "config", "--get", "remote.origin.url"),
+            "last_commit_message": run_text("git", "log", "-1", "--pretty=%B"),
+            "last_commit_date": run_text("git", "log", "-1", "--date=iso-strict", "--pretty=%cd"),
+            "porcelain_status": run_text("git", "status", "--porcelain"),
         }
 
-        # Contract compliance: Return None if git not available
+        # Contract compliance: Return None only if git not available (FileNotFoundError)
         if any(v is None for v in info.values()):
             return None
 
-        # Git available - normalize status
-        is_dirty = bool(info["porcelain_status"])
+        # Git available - normalize status: clean if porcelain empty, else dirty
+        status = "clean" if not info["porcelain_status"] else "dirty"
+        is_dirty = status == "dirty"
 
         return GitInfo(
             commit_hash=info["commit_sha"],

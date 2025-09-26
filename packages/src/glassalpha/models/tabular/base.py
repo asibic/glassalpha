@@ -72,17 +72,13 @@ class BaseTabularWrapper:
             # First predictions before fit - pass through
             return X
 
-        # Contract compliance: Handle column drift robustly
-        # If same width but different names, use positional to bypass sklearn feature_names_in_ checks
+        # Contract compliance: Handle column drift robustly per triage specification
+        # If same width but different names, accept positionally with correct column names
         if len(fitted_names) == X.shape[1] and list(X.columns) != list(fitted_names):
-            logger.debug("DataFrame columns renamed but same width - using array conversion")
-            return X.to_numpy()
+            logger.debug("DataFrame columns renamed but same width - using positional mapping")
+            return pd.DataFrame(X.to_numpy(), columns=fitted_names, index=X.index)
 
-        # Reindex to stored feature order, drop extras, fill missing with 0
-        if set(fitted_names).issubset(set(X.columns)):
-            return X.reindex(columns=fitted_names, fill_value=0)
-
-        # Handle genuine drift cases - reindex with fill_value=0 for missing columns
+        # Otherwise, reindex to stored feature_names_, drop extras, fill missing with 0
         return X.reindex(columns=fitted_names, fill_value=0)
 
     def _align_features(self, X: Any) -> Any:  # noqa: ANN401, N803

@@ -1,46 +1,57 @@
-"""Report generation modules for GlassAlpha audit outputs.
+"""Report generation package for GlassAlpha.
 
-This package provides comprehensive report generation capabilities including
-plotting, templates, and PDF rendering for professional audit documentation.
+Provides functionality for generating audit reports including:
+- HTML report rendering
+- PDF report generation (optional dependency)
+- Plotting and visualization (optional dependency)
 """
 
-from .plots import (
-    AuditPlotter,
-    create_fairness_plots,
-    create_performance_plots,
-    create_shap_plots,
-    plot_drift_analysis,
-)
-from .renderer import (
-    AuditReportRenderer,
-    render_audit_report,
-)
-from .renderers import (
-    AuditPDFRenderer,
-    render_audit_pdf,
-)
-from .renderers.pdf import PDFConfig
+from __future__ import annotations
 
+from .renderer import AuditReportRenderer, render_audit_report
+
+try:
+    from .plots import (
+        AuditPlotter,
+        create_fairness_plots,
+        create_performance_plots,
+        create_shap_plots,
+        plot_drift_analysis,
+    )
+
+    _PLOTS_AVAILABLE = True
+except ImportError:
+    _PLOTS_AVAILABLE = False
+
+try:
+    from .renderers import (
+        AuditPDFRenderer,
+        render_audit_pdf,
+    )
+    from .renderers.pdf import PDFConfig
+
+    _PDF_AVAILABLE = True
+except ImportError:
+    _PDF_AVAILABLE = False
+
+# Public API
 __all__ = [
-    "AuditPDFRenderer",
-    "AuditPlotter",
     "AuditReportRenderer",
-    "PDFConfig",
-    "create_fairness_plots",
-    "create_performance_plots",
-    "create_shap_plots",
-    "plot_drift_analysis",
-    "render_audit_pdf",
     "render_audit_report",
 ]
 
-# Optional packaging validation - enable in CI with GLASSALPHA_ASSERT_PACKAGING=1
-import os
+if _PLOTS_AVAILABLE:
+    __all__ += [
+        "AuditPlotter",
+        "create_fairness_plots",
+        "create_performance_plots",
+        "create_shap_plots",
+        "plot_drift_analysis",
+    ]
 
-if os.getenv("GLASSALPHA_ASSERT_PACKAGING") == "1":
-    from importlib.resources import files
-
-    from glassalpha.constants import STANDARD_AUDIT_TEMPLATE
-
-    template_path = files("glassalpha.report.templates").joinpath(STANDARD_AUDIT_TEMPLATE)
-    assert template_path.is_file(), f"Template not packaged correctly: {template_path}"  # noqa: S101
+if _PDF_AVAILABLE:
+    __all__ += [
+        "AuditPDFRenderer",
+        "PDFConfig",
+        "render_audit_pdf",
+    ]

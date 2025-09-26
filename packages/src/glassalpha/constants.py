@@ -1,30 +1,29 @@
-# SPDX-License-Identifier: Apache-2.0
-"""Constants for fragile contracts - centralized to prevent typos and drift.
+"""Centralized constants and contract strings for Glass Alpha.
 
-These strings are matched exactly by tests and must not change without
-updating corresponding test assertions.
+This module contains all exact strings used in error messages, logging,
+and contract assertions to prevent drift and ensure consistency.
 """
 
-# Error messages - matched by tests
-NO_MODEL_MSG = "Model not loaded. Load a model first."
-MODEL_NOT_FITTED_MSG = "Model not fitted"
-NO_MODEL_TO_SAVE_MSG = "No model to save"
-
-# Log messages - matched by pytest assertions
+# Logging messages
 INIT_LOG_TEMPLATE = "Initialized audit pipeline with profile: {profile}"
 
-# Explainer selection errors
-NO_COMPATIBLE_EXPLAINER_MSG = "No compatible explainer found"
+# Error messages - exact strings used in tests
+ERR_NOT_LOADED = "Model not loaded. Load a model first."
+ERR_NOT_FITTED = "Model not fitted"
+ERR_NO_EXPLAINER = "No compatible explainer found"
+ERR_NO_MODEL = "No model loaded"
 
-# File/path errors
-FILE_NOT_EXIST_MSG = "does not exist"
+# Status values
+STATUS_CLEAN = "clean"
+STATUS_DIRTY = "dirty"
+STATUS_NO_GIT = "no_git"
 
+# Binary classification constants
+BINARY_CLASSES = 2
+BINARY_THRESHOLD = 0.5
 
-# Manifest component structure - matched by E2E tests
-def make_manifest_component(name: str, implementation: str) -> dict[str, str]:
-    """Create manifest component in exact format E2E tests expect."""
-    return {"name": implementation, "type": name}
-
-
-# Template names - matched by packaging/import tests
+# Template names
 STANDARD_AUDIT_TEMPLATE = "standard_audit.html"
+
+# Package paths for resources
+TEMPLATES_PACKAGE = "glassalpha.report.templates"

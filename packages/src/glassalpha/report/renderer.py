@@ -105,7 +105,7 @@ class AuditReportRenderer:
         logger.info("Rendering audit report using template: %s", template_name)
 
         # Prepare template context
-        context = self._prepare_template_context(audit_results, embed_plots)
+        context = self._prepare_template_context(audit_results, embed_plots=embed_plots)
         context.update(template_vars)
 
         # Load and render template
@@ -157,8 +157,10 @@ class AuditReportRenderer:
                 },
             )
 
-        # Contract compliance: Normalize metrics for template compatibility
-        model_performance = self._normalize_metrics(audit_results.model_performance)
+        # Contract compliance: Use centralized normalization
+        from .context import normalize_metrics  # noqa: PLC0415
+
+        model_performance = normalize_metrics(audit_results.model_performance)
 
         # Add core audit results
         context.update(
@@ -352,10 +354,10 @@ class AuditReportRenderer:
 
         mp = dict(metrics) if isinstance(metrics, dict) else {}
 
-        # Normalize each metric - if it's a number, wrap it
+        # Normalize each metric - if it's a number, wrap it for template access
         for k, v in list(mp.items()):
             if isinstance(v, (int, float)):
-                mp[k] = {k: float(v)}
+                mp[k] = {"value": float(v)}
 
         return mp
 
