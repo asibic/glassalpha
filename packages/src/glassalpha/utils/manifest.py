@@ -274,7 +274,7 @@ class ManifestGenerator:
             self.manifest.selected_components[component_type] = {}
         if component_type not in self.components:
             self.components[component_type] = {}
-        
+
         self.manifest.selected_components[component_type][component_name] = component_info
         self.components[component_type][component_name] = component_info
 

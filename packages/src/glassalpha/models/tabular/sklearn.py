@@ -229,7 +229,8 @@ if SKLEARN_AVAILABLE:
             """Make predictions."""
             if self.model is None:
                 # Tests expect AttributeError or ValueError, not RuntimeError
-                raise AttributeError("No model loaded")
+                msg = "No model loaded"
+                raise AttributeError(msg)
             if not self._is_fitted:
                 msg = "Model not fitted"
                 raise RuntimeError(msg)
@@ -245,7 +246,8 @@ if SKLEARN_AVAILABLE:
             """Get prediction probabilities."""
             if self.model is None:
                 # Tests expect AttributeError or ValueError, not RuntimeError
-                raise AttributeError("No model loaded")
+                msg = "No model loaded"
+                raise AttributeError(msg)
             if not self._is_fitted:
                 msg = "Model not fitted"
                 raise RuntimeError(msg)
@@ -338,17 +340,17 @@ if SKLEARN_AVAILABLE:
                 n_features = self.model.n_features_in_
             elif self.feature_names:
                 n_features = len(self.feature_names)
-                
+
             # Determine status based on how model was acquired
             if self.model is None:
                 status = "not_fitted"
             elif self._is_fitted:
                 # If we have a fitted model, check if we trained it or loaded it
                 # Tests expect "loaded" when wrapper initialized with existing model
-                status = "loaded" 
+                status = "loaded"
             else:
                 status = "not_fitted"
-                
+
             return {
                 "status": status,
                 "n_features": n_features,
@@ -368,7 +370,8 @@ if SKLEARN_AVAILABLE:
             """Save model to file."""
             if self.model is None:
                 # Tests expect AttributeError or ValueError when no model
-                raise AttributeError("No model to save")
+                msg = "No model to save"
+                raise AttributeError(msg)
 
             import joblib  # noqa: PLC0415
 
@@ -397,22 +400,6 @@ if SKLEARN_AVAILABLE:
                 wrapper.classes_ = wrapper.model.classes_
 
             return wrapper
-        
-        def load(self, path: str) -> LogisticRegressionWrapper:
-            """Load model from file (instance method for test compatibility)."""
-            import joblib  # noqa: PLC0415
-
-            model_data = joblib.load(path)
-            self.model = model_data["model"]
-            self.feature_names = model_data.get("feature_names")
-            self.n_classes = model_data.get("n_classes")
-            self._is_fitted = model_data.get("_is_fitted", False)
-
-            # Restore classes_ attribute if model has it (needed for some tests)
-            if self.model is not None and hasattr(self.model, "classes_"):
-                self.classes_ = self.model.classes_
-
-            return self
 
         def __repr__(self) -> str:
             """String representation."""
