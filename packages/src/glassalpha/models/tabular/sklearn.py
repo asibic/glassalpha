@@ -227,13 +227,13 @@ if SKLEARN_AVAILABLE:
         def predict(self, X) -> Any:  # noqa: N803, ANN001, ANN401
             """Make predictions."""
             if self.model is None:
-                msg = "No model loaded"
-                raise RuntimeError(msg)
+                # Tests expect AttributeError or ValueError, not RuntimeError
+                raise AttributeError("No model loaded")
             if not self._is_fitted:
                 msg = "Model not fitted"
                 raise RuntimeError(msg)
 
-            # Validate and reorder features if needed
+            # Validate and reorder features if needed (raises clean ValueError if mismatch)
             X_processed = self._validate_and_reorder_features(X)  # noqa: N806
             predictions = self.model.predict(X_processed)
 
@@ -242,11 +242,14 @@ if SKLEARN_AVAILABLE:
 
         def predict_proba(self, X) -> Any:  # noqa: N803, ANN001, ANN401
             """Get prediction probabilities."""
+            if self.model is None:
+                # Tests expect AttributeError or ValueError, not RuntimeError
+                raise AttributeError("No model loaded")
             if not self._is_fitted:
                 msg = "Model not fitted"
                 raise RuntimeError(msg)
 
-            # Validate and reorder features if needed
+            # Validate and reorder features if needed (raises clean ValueError if mismatch)
             X_processed = self._validate_and_reorder_features(X)  # noqa: N806
             return self.model.predict_proba(X_processed)
 
@@ -309,24 +312,24 @@ if SKLEARN_AVAILABLE:
             if hasattr(self.model, "classes_"):
                 self.model.classes_ = value
 
-    def get_feature_importance(self, importance_type: str = "coef") -> dict[str, float]:  # noqa: ANN001
-        """Get feature importance from coefficients."""
-        if not self._is_fitted:
-            msg = "Model not fitted"
-            raise RuntimeError(msg)
+        def get_feature_importance(self, importance_type: str = "coef") -> dict[str, float]:
+            """Get feature importance from coefficients."""
+            if not self._is_fitted:
+                msg = "Model not fitted"
+                raise RuntimeError(msg)
 
-        if importance_type == "coef":
-            # Use raw coefficients
-            importance = np.abs(self.model.coef_[0])  # Take first class for binary
-        else:
-            msg = f"Unknown importance type: {importance_type}"
-            raise ValueError(msg)
+            if importance_type == "coef":
+                # Use raw coefficients
+                importance = np.abs(self.model.coef_[0])  # Take first class for binary
+            else:
+                msg = f"Unknown importance type: {importance_type}"
+                raise ValueError(msg)
 
-        # Create importance dict
-        feature_names = self.feature_names or [f"feature_{i}" for i in range(len(importance))]
-        return dict(zip(feature_names, importance.tolist(), strict=False))
+            # Create importance dict
+            feature_names = self.feature_names or [f"feature_{i}" for i in range(len(importance))]
+            return dict(zip(feature_names, importance.tolist(), strict=False))
 
-        def get_model_info(self) -> dict[str, Any]:  # noqa: ANN001
+        def get_model_info(self) -> dict[str, Any]:
             """Get model information."""
             return {
                 "status": "fitted" if self._is_fitted else "not_fitted",
@@ -335,22 +338,21 @@ if SKLEARN_AVAILABLE:
                 **self.get_params(),
             }
 
-        def get_capabilities(self) -> dict[str, Any]:  # noqa: ANN001
+        def get_capabilities(self) -> dict[str, Any]:
             """Get model capabilities."""
             return self.capabilities.copy()
 
-        def get_model_type(self) -> str:  # noqa: ANN001
+        def get_model_type(self) -> str:
             """Get model type string."""
             return self.model_type
 
-        def save(self, path: str) -> None:  # noqa: ANN001
+        def save(self, path: str) -> None:
             """Save model to file."""
             if self.model is None:
-                # Tests expect this to raise when no model is loaded
-                msg = "Cannot save LogisticRegressionWrapper: no model fitted/loaded"
-                raise ValueError(msg)
+                # Tests expect AttributeError or ValueError when no model
+                raise AttributeError("No model to save")
 
-            import joblib  # noqa: PLC0415  # noqa: PLC0415
+            import joblib  # noqa: PLC0415
 
             model_data = {
                 "model": self.model,
@@ -361,9 +363,9 @@ if SKLEARN_AVAILABLE:
             joblib.dump(model_data, path)
 
         @classmethod
-        def load(cls, path: str) -> LogisticRegressionWrapper:  # noqa: ANN001
+        def load(cls, path: str) -> LogisticRegressionWrapper:
             """Load model from file."""
-            import joblib  # noqa: PLC0415  # noqa: PLC0415
+            import joblib  # noqa: PLC0415
 
             model_data = joblib.load(path)
             wrapper = cls()
@@ -378,13 +380,11 @@ if SKLEARN_AVAILABLE:
 
             return wrapper
 
-        return None
-
-    def __repr__(self) -> str:  # noqa: ANN001, N807
-        """String representation."""
-        status = "fitted" if self._is_fitted else "not_fitted"
-        n_classes = len(self.classes_) if hasattr(self, "classes_") and self.classes_ is not None else "unknown"
-        return f"LogisticRegressionWrapper(status={status}, n_classes={n_classes}, version={self.version})"
+        def __repr__(self) -> str:
+            """String representation."""
+            status = "fitted" if self._is_fitted else "not_fitted"
+            n_classes = len(self.classes_) if hasattr(self, "classes_") and self.classes_ is not None else "unknown"
+            return f"LogisticRegressionWrapper(status={status}, n_classes={n_classes}, version={self.version})"
 
     @ModelRegistry.register("sklearn_generic", priority=70)
     class SklearnGenericWrapper(BaseEstimator):

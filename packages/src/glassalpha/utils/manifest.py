@@ -86,6 +86,7 @@ class AuditManifest(BaseModel):
     # Basic metadata
     manifest_version: str = "1.0"
     audit_id: str
+    version: str = "1.0.0"  # Tests expect this field to exist
     creation_time: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
     # Configuration
@@ -268,12 +269,16 @@ class ManifestGenerator:
         elif hasattr(component, "get_capabilities"):
             component_info.capabilities = component.get_capabilities()
 
-        # Store in manifest and direct attribute for test compatibility
-        key = f"{component_type}_{component_name}"
-        self.manifest.selected_components[key] = component_info
-        self.components[key] = component_info
+        # Store in manifest using type-based keying (tests expect this structure)
+        if component_type not in self.manifest.selected_components:
+            self.manifest.selected_components[component_type] = {}
+        if component_type not in self.components:
+            self.components[component_type] = {}
+        
+        self.manifest.selected_components[component_type][component_name] = component_info
+        self.components[component_type][component_name] = component_info
 
-        logger.debug("Added component to manifest: %s", key)
+        logger.debug("Added component to manifest: %s[%s]", component_type, component_name)
 
     def add_dataset(
         self,
