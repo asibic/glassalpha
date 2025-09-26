@@ -9,7 +9,7 @@ import logging
 import traceback
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable, Optional
 
 import numpy as np
 import pandas as pd
@@ -77,7 +77,7 @@ class AuditPipeline:
 
         logger.info(f"Initialized audit pipeline with profile: {config.audit_profile}")
 
-    def run(self, progress_callback: callable | None = None) -> AuditResults:
+    def run(self, progress_callback: Optional[Callable] = None) -> AuditResults:
         """Execute the complete audit pipeline.
 
         Args:
@@ -273,12 +273,14 @@ class AuditPipeline:
                 model = model_class(model=trained_model)
 
             elif model_type in ["lightgbm", "logistic_regression", "sklearn_generic"]:
-                # These wrappers may have fit methods or need different handling
+                # These wrappers use fit methods - ensure they get preprocessed data
                 model = model_class()
 
                 # Try to use fit method if available
                 if hasattr(model, "fit"):
-                    model.fit(X, y, random_state=model_seed)
+                    # Friend's spec: Always fit with DataFrame so feature_names_in_ is set
+                    model.fit(X_processed, y, random_state=model_seed)
+                    logger.info(f"Fitted {model_type} model with {len(X_processed.columns)} features")
                 else:
                     # For wrappers that don't support direct fitting
                     logger.warning(f"Model type {model_type} doesn't support direct training in pipeline")
@@ -287,7 +289,8 @@ class AuditPipeline:
                 # Default approach
                 model = model_class()
                 if hasattr(model, "fit"):
-                    model.fit(X, y)
+                    # Use preprocessed data for consistent feature handling
+                    model.fit(X_processed, y)
 
             logger.info("Model training completed")
 
@@ -676,7 +679,7 @@ class AuditPipeline:
 
         return with_component_seed(component_name)
 
-    def _update_progress(self, callback: callable, message: str, progress: int) -> None:
+    def _update_progress(self, callback: Callable, message: str, progress: int) -> None:
         """Update progress if callback provided.
 
         Args:
@@ -691,34 +694,100 @@ class AuditPipeline:
         logger.debug(f"Progress: {progress}% - {message}")
 
     def _preprocess_for_training(self, X: pd.DataFrame) -> pd.DataFrame:
-        """Preprocess features for model training.
+        """Preprocess features for model training using ColumnTransformer per friend's spec.
+        
+        Handles categorical features (like German Credit strings "< 0 DM") with OneHotEncoder
+        to prevent ValueError: could not convert string to float during training.
 
         Args:
             X: Raw features DataFrame
 
         Returns:
-            Processed features suitable for training
+            Processed features DataFrame suitable for training
 
         """
-        X_processed = X.copy()
-
-        # Handle categorical columns by label encoding
-        for col in X_processed.columns:
-            if X_processed[col].dtype == "object":
-                # Simple label encoding
-                unique_values = X_processed[col].unique()
-                value_map = {val: idx for idx, val in enumerate(unique_values)}
-                X_processed[col] = X_processed[col].map(value_map)
-                logger.debug(f"Label encoded column '{col}': {value_map}")
-
-        # Ensure all columns are numeric
-        for col in X_processed.columns:
-            if X_processed[col].dtype == "object":
-                X_processed[col] = pd.to_numeric(X_processed[col], errors="coerce")
-                # Fill any NaN values with 0
-                X_processed[col] = X_processed[col].fillna(0)
-
-        return X_processed
+        from sklearn.compose import ColumnTransformer
+        from sklearn.preprocessing import OneHotEncoder
+        from sklearn.exceptions import NotFittedError
+        
+        # Identify categorical and numeric columns
+        categorical_cols = list(X.select_dtypes(include=['object']).columns)
+        numeric_cols = list(X.select_dtypes(exclude=['object']).columns)
+        
+        logger.debug(f"Categorical columns: {categorical_cols}")
+        logger.debug(f"Numeric columns: {numeric_cols}")
+        
+        if not categorical_cols:
+            # No categorical columns, return as-is
+            logger.debug("No categorical columns detected, returning original DataFrame")
+            return X
+        
+        # Build ColumnTransformer with OneHotEncoder for categorical features
+        transformers = []
+        
+        if categorical_cols:
+            transformers.append((
+                'categorical',
+                OneHotEncoder(sparse_output=False, handle_unknown="ignore", drop=None),
+                categorical_cols
+            ))
+        
+        if numeric_cols:
+            transformers.append((
+                'numeric',
+                'passthrough',  # Pass numeric columns through unchanged
+                numeric_cols
+            ))
+        
+        # Create and fit the ColumnTransformer
+        preprocessor = ColumnTransformer(transformers=transformers, remainder='drop')
+        
+        try:
+            # Fit and transform the data
+            X_transformed = preprocessor.fit_transform(X)
+            
+            # Get feature names after transformation
+            feature_names = []
+            
+            # Add categorical feature names (one-hot encoded)
+            if categorical_cols:
+                cat_transformer = preprocessor.named_transformers_['categorical']
+                if hasattr(cat_transformer, 'get_feature_names_out'):
+                    cat_features = cat_transformer.get_feature_names_out(categorical_cols)
+                else:
+                    # Fallback for older sklearn versions
+                    cat_features = []
+                    for i, col in enumerate(categorical_cols):
+                        unique_vals = cat_transformer.categories_[i]
+                        cat_features.extend([f"{col}_{val}" for val in unique_vals])
+                feature_names.extend(cat_features)
+            
+            # Add numeric feature names
+            if numeric_cols:
+                feature_names.extend(numeric_cols)
+            
+            # Convert back to DataFrame with proper feature names
+            X_processed = pd.DataFrame(X_transformed, columns=feature_names, index=X.index)
+            
+            logger.info(f"Preprocessed {len(categorical_cols)} categorical columns with OneHotEncoder")
+            logger.info(f"Final feature count: {len(feature_names)} (from {len(X.columns)} original)")
+            
+            return X_processed
+            
+        except Exception as e:
+            logger.error(f"Preprocessing failed: {e}")
+            logger.warning("Falling back to simple preprocessing")
+            
+            # Fallback: simple label encoding as before
+            X_processed = X.copy()
+            for col in categorical_cols:
+                if X_processed[col].dtype == "object":
+                    unique_values = X_processed[col].unique()
+                    value_map = {val: idx for idx, val in enumerate(unique_values)}
+                    X_processed[col] = X_processed[col].map(value_map)
+                    logger.debug(f"Label encoded column '{col}': {value_map}")
+            
+            return X_processed
 
     def _ensure_components_loaded(self) -> None:
         """Ensure all required components are imported and registered."""
@@ -734,7 +803,7 @@ class AuditPipeline:
             logger.warning(f"Some components could not be imported: {e}")
 
 
-def run_audit_pipeline(config: AuditConfig, progress_callback: callable | None = None) -> AuditResults:
+def run_audit_pipeline(config: AuditConfig, progress_callback: Optional[Callable] = None) -> AuditResults:
     """Convenience function to run audit pipeline.
 
     Args:
