@@ -258,7 +258,7 @@ if SHAP_AVAILABLE:
                     return model_type is not None and isinstance(model_type, str)
                 except (AttributeError, TypeError):
                     return False  # Mock doesn't have proper get_model_type
-            
+
             # KernelSHAP is model-agnostic for real models
             return hasattr(model, "predict") or hasattr(model, "predict_proba")
 
@@ -272,10 +272,21 @@ if SHAP_AVAILABLE:
                 True if model is compatible with KernelSHAP
 
             """
-            # KernelSHAP works with any model (model-agnostic)
+            # Friend's spec: Check specific model types compatible with KernelSHAP
             if isinstance(model, str):
-                return True  # Accept any string model type
-            return self.supports_model(model)
+                return model in {"logistic_regression", "linear_model"}
+
+            # For model objects, check model type via get_model_info()
+            try:
+                model_info = getattr(model, "get_model_info", dict)()
+                model_type = model_info.get("model_type", "")
+            except Exception:  # noqa: BLE001
+                # Fallback to old method for compatibility
+                logger.debug("Could not get model info, using fallback method")
+            else:
+                return model_type in {"logistic_regression", "linear_model"}
+                # Fallback to old method for compatibility
+                return self.supports_model(model)
 
         def _extract_feature_names(self, x: Any) -> Sequence[str] | None:  # noqa: ANN401
             """Extract feature names from input data."""

@@ -42,6 +42,9 @@ class LightGBMWrapper(BaseTabularWrapper):
     BINARY_THRESHOLD = 0.5
     NDIM_MULTICLASS = 2
 
+    # Friend's spec: Mark as trainable (has fit method)
+    trainable_in_pipeline = True
+
     def __init__(self, model_path: str | Path | None = None, model: lgb.Booster | None = None) -> None:
         """Initialize LightGBM wrapper.
 

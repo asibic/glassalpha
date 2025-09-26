@@ -113,7 +113,7 @@ class TreeSHAPExplainer(ExplainerBase):
             True if model is compatible with TreeSHAP
 
         """
-        # Handle string model types
+        # Friend's spec: Check specific tree/ensemble model types
         if isinstance(model, str):
             return model.lower() in [
                 "xgboost",
@@ -122,8 +122,24 @@ class TreeSHAPExplainer(ExplainerBase):
                 "randomforest",
                 "decision_tree",
                 "decisiontree",
+                "gradient_boosting",
             ]
-        return self.supports_model(model)
+
+        # For model objects, check model type via get_model_info()
+        try:
+            model_info = getattr(model, "get_model_info", dict)()
+            model_type = model_info.get("model_type", "")
+        except Exception:  # noqa: BLE001
+            # Fallback to old method for compatibility
+            return self.supports_model(model)
+        else:
+            return model_type in {
+                "xgboost",
+                "lightgbm",
+                "random_forest",
+                "decision_tree",
+                "gradient_boosting",
+            }
 
     def _extract_feature_names(self, x: Any) -> Sequence[str] | None:  # noqa: ANN401
         """Extract feature names from input data.

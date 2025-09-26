@@ -242,6 +242,39 @@ class AuditPipeline:
         """
         logger.info("Loading/training model")
 
+        # Default to trainable model if no config provided (E2E compliance)
+        if not hasattr(self.config, "model") or self.config.model is None:
+            from glassalpha.models.tabular.sklearn import LogisticRegressionWrapper  # noqa: PLC0415
+
+            model = LogisticRegressionWrapper()
+            logger.info("Using default trainable model: LogisticRegressionWrapper")
+
+            # Extract features and target for fitting
+            X, y, _ = self.data_loader.extract_features_target(data, schema)  # noqa: N806
+            X_processed = self._preprocess_for_training(X)  # noqa: N806
+
+            # Fit with component seed
+            model_seed = get_component_seed("model")
+            model.fit(X_processed, y, random_state=model_seed)
+            logger.info("Default model fitted successfully")
+
+            # Store model info and tracking
+            self.results.model_info = {
+                "type": "logistic_regression",
+                "capabilities": model.get_capabilities() if hasattr(model, "get_capabilities") else {},
+                "feature_importance": {},
+            }
+            self.results.selected_components["model"] = {"name": "logistic_regression", "type": "model"}
+
+            # Add to manifest
+            self.manifest_generator.add_component(
+                "model",
+                "logistic_regression",
+                model,
+                details={"default": True, "fitted": True},
+            )
+            return model
+
         # Get model configuration
         model_type = self.config.model.type
         model_path = getattr(self.config.model, "path", None)
@@ -507,12 +540,12 @@ class AuditPipeline:
         # Use processed features for predictions (same as training)
         X_processed = self._preprocess_for_training(X)  # noqa: N806
 
-        # Friend's spec: Ensure model is loaded/trained before computing metrics
+        # Friend's spec: Fit-or-fail approach - never skip metrics
         if self.model is None:
-            logger.warning("Model not loaded, skipping metrics computation")
-            return
+            msg = "Model is None during metrics computation - this should not happen"
+            raise RuntimeError(msg)
 
-        # Check if model needs fitting (for wrapper types that support it)
+        # Check if model needs fitting and fit it (don't skip metrics)
         model_needs_fitting = False
         if hasattr(self.model, "model") and getattr(self.model, "model", None) is None:
             # Model wrapper exists but internal model is None - needs fitting
@@ -521,13 +554,22 @@ class AuditPipeline:
             # Model wrapper tracks fitted state explicitly
             model_needs_fitting = True
 
-        if model_needs_fitting and hasattr(self.model, "fit"):
-            logger.info("Model not fitted, attempting to fit with available data")
+        if model_needs_fitting:
+            if not hasattr(self.model, "fit"):
+                msg = f"Model type {type(self.model).__name__} needs fitting but doesn't support fit method"
+                raise RuntimeError(msg)
+
+            logger.info("Model not fitted, fitting with available data")
             model_seed = (
                 self.manifest_generator.manifest.seeds.get("model", 42)
                 if hasattr(self.manifest_generator, "manifest")
                 else 42
             )
+
+            # Get random state from config if available
+            if hasattr(self.config, "reproducibility") and self.config.reproducibility:
+                model_seed = getattr(self.config.reproducibility, "random_state", model_seed)
+
             self.model.fit(X_processed, y_true, random_state=model_seed)
             logger.info("Model fitted successfully with available data")
 
