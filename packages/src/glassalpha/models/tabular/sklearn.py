@@ -46,7 +46,7 @@ class SklearnGenericWrapper:
             feature_names: Optional feature names for interpretation
 
         """
-            self.model = model
+        self.model = model
         self.feature_names = list(feature_names) if feature_names is not None else None
         self.capabilities = {
             "predict": hasattr(model, "predict"),
@@ -387,6 +387,16 @@ if SKLEARN_AVAILABLE:
             """Get model type string."""
             return self.model_type
 
+        @property
+        def feature_names(self) -> list[str] | None:
+            """Backward compatibility property for feature_names (maps to feature_names_)."""
+            return self.feature_names_
+
+        @feature_names.setter
+        def feature_names(self, value: list[str] | None) -> None:
+            """Setter for feature_names property."""
+            self.feature_names_ = value
+
         def save(self, path: str) -> None:
             """Save model to file."""
             if self.model is None:
@@ -436,24 +446,21 @@ if SKLEARN_AVAILABLE:
             }
             joblib.dump(model_data, path)
 
-        @classmethod
-        def load(cls, path: str) -> LogisticRegressionWrapper:
-            """Load model from file - friend's spec: restore both .model and .feature_names_."""
+        def load(self, path: str) -> LogisticRegressionWrapper:
+            """Load model from file (instance method for test compatibility)."""
             import joblib  # noqa: PLC0415
             
             model_data = joblib.load(path)
-            wrapper = cls(
-                model=model_data["model"],
-                feature_names=model_data.get("feature_names_")
-            )
-            wrapper.n_classes = model_data.get("n_classes")
-            wrapper._is_fitted = model_data.get("_is_fitted", False)
+            self.model = model_data["model"]
+            self.feature_names_ = model_data.get("feature_names_")
+            self.n_classes = model_data.get("n_classes")
+            self._is_fitted = model_data.get("_is_fitted", False)
             
             # Restore classes_ if available
-            if wrapper.model is not None and hasattr(wrapper.model, "classes_"):
-                wrapper.classes_ = wrapper.model.classes_
+            if self.model is not None and hasattr(self.model, "classes_"):
+                self.classes_ = self.model.classes_
                 
-            return wrapper
+            return self
 
         def __repr__(self) -> str:
             """String representation - friend's spec: don't crash when model is None."""
@@ -465,7 +472,7 @@ if SKLEARN_AVAILABLE:
                 n_classes = len(self.classes_) if hasattr(self, "classes_") and self.classes_ is not None else "unknown"
             return f"LogisticRegressionWrapper(status={status}, n_classes={n_classes}, version={self.version})"
 
-@ModelRegistry.register("sklearn_generic", priority=70)
+    @ModelRegistry.register("sklearn_generic", priority=70)
     class SklearnGenericWrapper(BaseEstimator):
         """Generic wrapper for any scikit-learn estimator."""
 
@@ -474,15 +481,15 @@ if SKLEARN_AVAILABLE:
             "supports_shap": True,
             "supports_feature_importance": True,
             "supports_proba": False,  # Will be updated based on model
-        "data_modality": "tabular",
-    }
-    version = "1.0.0"
+            "data_modality": "tabular",
+        }
+        version = "1.0.0"
         model_type = "sklearn_generic"
 
         def __init__(self, model: Any = None, feature_names: list[str] | None = None, **kwargs: Any) -> None:  # noqa: ANN401
-        """Initialize generic sklearn wrapper.
+            """Initialize generic sklearn wrapper.
 
-        Args:
+            Args:
                 model: Pre-fitted sklearn model
                 feature_names: List of feature names
                 **kwargs: If provided without model, raises error
@@ -503,17 +510,17 @@ if SKLEARN_AVAILABLE:
 
         def predict(self, X) -> Any:  # noqa: N803, ANN001, ANN401
             """Make predictions."""
-        if self.model is None:
+            if self.model is None:
                 msg = "No model loaded"
                 raise RuntimeError(msg)
             return self.model.predict(X)
 
         def predict_proba(self, X) -> Any:  # noqa: N803, ANN001, ANN401
             """Get prediction probabilities if supported."""
-        if self.model is None:
+            if self.model is None:
                 msg = "No model loaded"
                 raise RuntimeError(msg)
-        if not hasattr(self.model, "predict_proba"):
+            if not hasattr(self.model, "predict_proba"):
                 msg = "Model does not support predict_proba"
                 raise AttributeError(msg)
             return self.model.predict_proba(X)
@@ -556,7 +563,7 @@ if SKLEARN_AVAILABLE:
         return wrapper
 
 
-        else:
+else:
     # Stub classes when sklearn unavailable
     class LogisticRegressionWrapper:
         """Stub class when scikit-learn is unavailable."""
