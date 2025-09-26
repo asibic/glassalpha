@@ -23,8 +23,7 @@
   "ruff.codeAction.disableRuleComment": {
     "enable": true
   },
-  "black-formatter.enable": true,
-  "black-formatter.path": ["./packages/venv/bin/black"],
+  "black-formatter.enable": false,
   "python.linting.enabled": true,
   "python.linting.ruffEnabled": true,
   "python.linting.mypyEnabled": true,
