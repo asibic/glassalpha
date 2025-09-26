@@ -7,11 +7,12 @@ They run against the installed package to match what CI tests.
 
 from pathlib import Path
 from types import SimpleNamespace
+from unittest.mock import patch
 
 import pytest
 
 
-def test_init_logging_exact(mocker: pytest.MockerFixture) -> None:
+def test_init_logging_exact() -> None:
     """Guard test: Logger uses exact f-string format (single argument).
 
     Prevents regression of: logger.info("%s", arg) vs logger.info(f"{arg}")
@@ -21,11 +22,11 @@ def test_init_logging_exact(mocker: pytest.MockerFixture) -> None:
     import glassalpha.pipeline.audit as audit_mod  # noqa: PLC0415
     from glassalpha.pipeline.audit import AuditPipeline  # noqa: PLC0415
 
-    spy = mocker.patch.object(audit_mod, "logger")
-    AuditPipeline(config=SimpleNamespace(audit_profile="tabular_compliance"))
+    with patch.object(audit_mod, "logger") as spy:
+        AuditPipeline(config=SimpleNamespace(audit_profile="tabular_compliance"))
 
-    # This is the exact call the CI test expects
-    spy.info.assert_any_call("Initialized audit pipeline with profile: tabular_compliance")
+        # This is the exact call the CI test expects
+        spy.info.assert_any_call("Initialized audit pipeline with profile: tabular_compliance")
 
 
 def test_standard_template_packaged() -> None:
