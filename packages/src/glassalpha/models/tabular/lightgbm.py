@@ -96,7 +96,7 @@ class LightGBMWrapper:
         self.model = lgb.Booster(model_file=str(path))
         self._extract_model_info()
 
-    def fit(self, X: Any, y: Any, **kwargs: Any) -> None:  # noqa: N803, ANN401
+    def fit(self, X: Any, y: Any, **kwargs: Any) -> "LightGBMWrapper":  # noqa: N803, ANN401
         """Train LightGBM model on provided data.
 
         Args:
@@ -105,9 +105,7 @@ class LightGBMWrapper:
             **kwargs: Additional parameters including random_state
 
         """
-        import pandas as pd  # noqa: PLC0415
-
-        # Handle random_state
+        # Handle random_state - LightGBM doesn't have set_params but we handle it via params dict
         params = {
             "objective": "binary" if len(np.unique(y)) == self.BINARY_CLASS_COUNT else "multiclass",
             "verbose": -1,
@@ -118,7 +116,7 @@ class LightGBMWrapper:
             params["random_seed"] = kwargs["random_state"]
 
         # Capture feature names from DataFrame
-        if isinstance(X, pd.DataFrame):
+        if hasattr(X, "columns"):
             self.feature_names_ = list(X.columns)
             self.feature_names = list(X.columns)  # Also set for compatibility
 
@@ -134,11 +132,12 @@ class LightGBMWrapper:
             callbacks=[lgb.log_evaluation(0)],  # Silent training
         )
 
-        # Set fitted state
+        # Set fitted state - use len(set(y)) as fallback since LightGBM doesn't have classes_
         self.status = "fitted"
-        self.n_classes = len(np.unique(y))
+        self.n_classes = len(getattr(self.model, "classes_", [])) or len(set(y))
         n_features = len(X_processed.columns) if hasattr(X_processed, "columns") else X_processed.shape[1]
         logger.info("Trained LightGBM model with %d features", n_features)
+        return self
 
     def _extract_model_info(self) -> None:
         """Extract metadata from loaded model."""

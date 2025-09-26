@@ -504,17 +504,16 @@ class AuditPipeline:
         # Use processed features for predictions (same as training)
         X_processed = self._preprocess_for_training(X)  # noqa: N806
 
-        # Ensure model is fitted before computing metrics
-        if hasattr(self.model, "_is_fitted") and not self.model._is_fitted:  # noqa: SLF001
+        # Ensure trainable models are fitted before computing metrics
+        if getattr(self.model, "model", None) is None:
             logger.warning("Model not fitted, attempting to fit with available data")
-            self.model.fit(X_processed, y_true)
+            model_seed = (
+                self.manifest_generator.manifest.seeds.get("model", 42)
+                if hasattr(self.manifest_generator, "manifest")
+                else 42
+            )
+            self.model.fit(X_processed, y_true, random_state=model_seed)
             logger.info("Model fitted successfully with available data")
-        elif not hasattr(self.model, "model") or self.model.model is None:
-            # For models without .model attribute, check if they need fitting
-            if hasattr(self.model, "fit"):
-                logger.warning("Model not fitted, attempting to fit with available data")
-                self.model.fit(X_processed, y_true)
-                logger.info("Model fitted successfully with available data")
 
         # Generate predictions
         y_pred = self.model.predict(X_processed)
