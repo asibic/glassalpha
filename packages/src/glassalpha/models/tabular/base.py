@@ -31,6 +31,23 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
+def _ensure_fitted(obj: Any, attr: str = "_fitted_", message: str = NO_MODEL_MSG) -> None:  # noqa: ANN401
+    """Ensure object is fitted, raise if not.
+
+    Args:
+        obj: Object to check
+        attr: Attribute name to check (not used for tabular wrappers)
+        message: Error message to raise
+
+    Raises:
+        ValueError: If object is not fitted
+
+    """
+    # For tabular wrappers, check if model attribute exists
+    if (hasattr(obj, "model") and obj.model is None) or (hasattr(obj, "_is_fitted") and not obj._is_fitted):
+        raise ValueError(message)
+
+
 class BaseTabularWrapper:
     """Base class for tabular model wrappers with robust save/load and column handling."""
 
@@ -107,8 +124,11 @@ class BaseTabularWrapper:
             "_is_fitted": self._is_fitted,
         }
 
+        # Create parent directory if it doesn't exist
+        Path(path).parent.mkdir(parents=True, exist_ok=True)
+
         joblib.dump(save_dict, path)
-        logger.info("Saved model state to %s", path)
+        logger.info(f"Saved model state to {path}")
 
     def load(self, path: Path) -> "BaseTabularWrapper":
         """Load model state from file.
@@ -134,5 +154,5 @@ class BaseTabularWrapper:
         self.n_classes = save_dict.get("n_classes")
         self._is_fitted = save_dict.get("_is_fitted", True)
 
-        logger.info("Loaded model state from %s", path)
+        logger.info(f"Loaded model state from {path}")
         return self

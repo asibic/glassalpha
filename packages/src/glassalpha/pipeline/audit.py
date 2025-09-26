@@ -99,7 +99,7 @@ class AuditPipeline:
         from datetime import UTC, datetime  # noqa: PLC0415
 
         # Friend's spec: Before doing work - capture start time
-        datetime.now(UTC).isoformat()
+        start = datetime.now(UTC).isoformat()
 
         try:
             logger.info("Starting audit pipeline execution")
@@ -134,7 +134,7 @@ class AuditPipeline:
 
             # Friend's spec: On success - set end time and call set execution info
             end = datetime.now(UTC).isoformat()
-            logger.debug("Pipeline execution: start={start}, end=%s", end)
+            logger.debug(f"Pipeline execution: start={start}, end={end}")
 
             # Update manifest generator with execution info
             self.manifest_generator.mark_completed("completed", None)
@@ -145,11 +145,11 @@ class AuditPipeline:
         except Exception as e:
             # Friend's spec: On exception - set error_message and still write start/end times
             end = datetime.now(UTC).isoformat()
-            logger.debug("Pipeline execution failed: start={start}, end=%s", end)
+            logger.debug(f"Pipeline execution failed: start={start}, end={end}")
             error_msg = f"Audit pipeline failed: {e!s}"
 
             logger.exception(error_msg)
-            logger.debug("Full traceback: %s", traceback.format_exc())
+            logger.debug(f"Full traceback: {traceback.format_exc()}")
 
             self.results.success = False
             self.results.error_message = error_msg
@@ -170,7 +170,7 @@ class AuditPipeline:
         # Add seed information to manifest
         self.manifest_generator.add_seeds()
 
-        logger.debug("Global seed set to %s", master_seed)
+        logger.debug(f"Global seed set to {master_seed}")
 
     def _load_data(self) -> tuple[pd.DataFrame, TabularDataSchema]:
         """Load and validate dataset.
@@ -231,7 +231,7 @@ class AuditPipeline:
             sensitive_features=schema.sensitive_features,
         )
 
-        logger.info("Loaded data: {data.shape[0]} rows, %s columns", data.shape[1])
+        logger.info(f"Loaded data: {data.shape[0]} rows, {data.shape[1]} columns")
 
         return data, schema
 
@@ -297,7 +297,7 @@ class AuditPipeline:
         if model_path and Path(model_path).exists():
             # Load existing model
             model = model_class.from_file(Path(model_path))
-            logger.info("Loaded model from %s", model_path)
+            logger.info(f"Loaded model from {model_path}")
         else:
             # Train new model
             logger.info("Training new model (model path not found or not specified)")
@@ -338,10 +338,10 @@ class AuditPipeline:
                 if hasattr(model, "fit"):
                     # Friend's spec: Always fit with DataFrame so feature_names_in_ is set
                     model.fit(X_processed, y, random_state=model_seed)
-                    logger.info("Fitted {model_type} model with %s features", len(X_processed.columns))
+                    logger.info(f"Fitted {model_type} model with {len(X_processed.columns)} features")
                 else:
                     # This should not happen for these model types
-                    logger.error("Model type %s unexpectedly doesn't support fit method", model_type)
+                    logger.error(f"Model type {model_type} unexpectedly doesn't support fit method")
                     msg = f"Model type {model_type} should support fit method"
                     raise RuntimeError(msg)
             else:
@@ -365,7 +365,7 @@ class AuditPipeline:
                 else:
                     feature_importance = dict(importance) if importance is not None else {}
             except Exception as e:  # noqa: BLE001
-                logger.warning("Could not extract feature importance: %s", e)
+                logger.warning(f"Could not extract feature importance: {e}")
                 feature_importance = {}
 
         self.results.model_info = {
@@ -417,7 +417,7 @@ class AuditPipeline:
             else:
                 selected_name = "auto_detected"
 
-            logger.info("Auto-detected compatible explainer: %s", selected_name)
+            logger.info(f"Auto-detected compatible explainer: {selected_name}")
         else:
             # No automatic compatibility found, try explicit priority order
             logger.debug("No automatic compatibility found, trying priority order")
@@ -440,11 +440,11 @@ class AuditPipeline:
                         if hasattr(instance, "is_compatible") and instance.is_compatible(self.model):
                             explainer_class = candidate_class
                             selected_name = explainer_name
-                            logger.debug("Found compatible explainer: %s", explainer_name)
+                            logger.debug(f"Found compatible explainer: {explainer_name}")
                             break
-                        logger.debug("Explainer %s not compatible with model", explainer_name)
+                        logger.debug(f"Explainer {explainer_name} not compatible with model")
                 except KeyError:
-                    logger.debug("Explainer %s not available in registry", explainer_name)
+                    logger.debug(f"Explainer {explainer_name} not available in registry")
                     continue
 
         # If no explainer found, raise error (required by tests)
@@ -454,7 +454,7 @@ class AuditPipeline:
 
         # Create explainer instance
         selected_explainer = explainer_class()
-        logger.info("Selected explainer: %s", selected_name)
+        logger.info(f"Selected explainer: {selected_name}")
 
         # Store selection info
         self.results.selected_components["explainer"] = {
@@ -513,7 +513,7 @@ class AuditPipeline:
             }
         else:
             # Handle numpy array or other formats - create basic structure
-            logger.warning("Explainer returned %s, creating basic explanation structure", type(explanations))
+            logger.warning(f"Explainer returned {type(explanations)}, creating basic explanation structure")
             explanation_results = {
                 "global_importance": {},
                 "local_explanations_sample": [],
@@ -601,7 +601,7 @@ class AuditPipeline:
             if not hasattr(self.results, "model_performance") or self.results.model_performance is None:
                 self.results.model_performance = {}
             self.results.model_performance["accuracy"] = acc
-            logger.debug("Computed explicit accuracy: %.4f", acc)
+            logger.debug(f"Computed explicit accuracy: {acc:.4f}")
         except Exception:
             logger.exception("Failed to compute explicit accuracy:")
 
@@ -653,10 +653,10 @@ class AuditPipeline:
                     result = metric.compute(y_true, y_pred)
 
                 results[metric_name] = result
-                logger.debug("Computed %s: %s", metric_name, result)
+                logger.debug(f"Computed {metric_name}: {result}")
 
             except Exception as e:  # noqa: BLE001
-                logger.warning("Failed to compute metric %s: %s", metric_name, e)
+                logger.warning(f"Failed to compute metric {metric_name}: {e}")
                 results[metric_name] = {"error": str(e)}
 
         self.results.model_performance = results
@@ -707,10 +707,10 @@ class AuditPipeline:
                         results[col] = {}
                     results[col][metric_name] = result
 
-                    logger.debug("Computed %s for %s: %s", metric_name, col, result)
+                    logger.debug(f"Computed {metric_name} for {col}: {result}")
 
             except Exception as e:  # noqa: BLE001
-                logger.warning("Failed to compute fairness metric %s: %s", metric_name, e)
+                logger.warning(f"Failed to compute fairness metric {metric_name}: {e}")
                 if col not in results:
                     results[col] = {}
                 results[col][metric_name] = {"error": str(e)}
@@ -834,7 +834,7 @@ class AuditPipeline:
         if callback:
             callback(progress, message)
 
-        logger.debug("Progress: %s%% - %s", progress, message)
+        logger.debug(f"Progress: {progress}% - {message}")
 
     def _preprocess_for_training(self, X: pd.DataFrame) -> pd.DataFrame:  # noqa: N803, C901  # noqa: N803 -> pd.DataFrame:
         """Preprocess features for model training using ColumnTransformer per friend's spec.
@@ -856,8 +856,8 @@ class AuditPipeline:
         categorical_cols = list(X.select_dtypes(include=["object"]).columns)
         numeric_cols = list(X.select_dtypes(exclude=["object"]).columns)
 
-        logger.debug("Categorical columns: %s", categorical_cols)
-        logger.debug("Numeric columns: %s", numeric_cols)
+        logger.debug(f"Categorical columns: {categorical_cols}")
+        logger.debug(f"Numeric columns: {numeric_cols}")
 
         if not categorical_cols:
             # No categorical columns, return as-is
@@ -926,14 +926,14 @@ class AuditPipeline:
             # Convert back to DataFrame with sanitized feature names
             X_processed = pd.DataFrame(X_transformed, columns=sanitized_feature_names, index=X.index)  # noqa: N806
 
-            logger.info("Preprocessed %s categorical columns with OneHotEncoder", len(categorical_cols))
-            logger.info("Final feature count: %s (from %s original)", len(sanitized_feature_names), len(X.columns))
-            logger.debug("Sanitized feature names: %s...", sanitized_feature_names[:5])
+            logger.info(f"Preprocessed {len(categorical_cols)} categorical columns with OneHotEncoder")
+            logger.info(f"Final feature count: {len(sanitized_feature_names)} (from {len(X.columns)} original)")
+            logger.debug(f"Sanitized feature names: {sanitized_feature_names[:5]}...")
 
             return X_processed  # noqa: TRY300
 
         except Exception as e:
-            logger.exception("Preprocessing failed: %s", e)  # noqa: TRY401
+            logger.exception(f"Preprocessing failed: {e}")  # noqa: TRY401
             logger.warning("Falling back to simple preprocessing")
 
             # Fallback: simple label encoding as before
@@ -943,7 +943,7 @@ class AuditPipeline:
                     unique_values = X_processed[col].unique()
                     value_map = {val: idx for idx, val in enumerate(unique_values)}
                     X_processed[col] = X_processed[col].map(value_map)
-                    logger.debug("Label encoded column '%s': %s", col, value_map)
+                    logger.debug(f"Label encoded column '{col}': {value_map}")
 
             return X_processed
 
@@ -958,7 +958,7 @@ class AuditPipeline:
 
             logger.debug("All component modules imported and registered")
         except ImportError as e:
-            logger.warning("Some components could not be imported: %s", e)
+            logger.warning(f"Some components could not be imported: {e}")
 
 
 def run_audit_pipeline(config: AuditConfig, progress_callback: Callable | None = None) -> AuditResults:

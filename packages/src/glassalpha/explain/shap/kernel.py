@@ -135,7 +135,7 @@ if SHAP_AVAILABLE:
             else:
                 self.feature_names = None
 
-            logger.debug("KernelSHAPExplainer fitted with %s background samples", len(background_x))
+            logger.debug(f"KernelSHAPExplainer fitted with {len(background_x)} background samples")
             return self
 
         def explain(self, x: Any, background_x: Any = None, **kwargs: Any) -> Any:  # noqa: ANN401
@@ -176,7 +176,7 @@ if SHAP_AVAILABLE:
 
             # Get nsamples from kwargs or use default
             nsamples = kwargs.get("nsamples", self.max_samples or 100)
-            logger.debug("Generating KernelSHAP explanations for %s samples with %s samples", len(x), nsamples)
+            logger.debug(f"Generating KernelSHAP explanations for {len(x)} samples with {nsamples} samples")
 
             # Calculate SHAP values
             shap_values = self._explainer.shap_values(x, nsamples=nsamples)

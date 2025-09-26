@@ -190,7 +190,7 @@ class TreeSHAPExplainer(ExplainerBase):
             try:
                 self.explainer = _shap.TreeExplainer(self.model)
             except RuntimeError as e:  # More specific exception
-                logger.warning("TreeExplainer init failed, falling back to None: %s", e)
+                logger.warning(f"TreeExplainer init failed, falling back to None: {e}")
                 self.explainer = None
         else:
             self.explainer = None

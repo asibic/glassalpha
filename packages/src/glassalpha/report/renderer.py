@@ -53,12 +53,12 @@ class AuditReportRenderer:
                 # Fall back to filesystem loader
                 self.template_dir = Path(__file__).parent / "templates"
                 loader = jinja2.FileSystemLoader(str(self.template_dir))
-                logger.debug("Falling back to FileSystemLoader: %s", self.template_dir)
+                logger.debug(f"Falling back to FileSystemLoader: {self.template_dir}")
         else:
             # Use provided template_dir with filesystem loader
             self.template_dir = template_dir
             loader = jinja2.FileSystemLoader(str(self.template_dir))
-            logger.debug("Using provided template directory: %s", template_dir)
+            logger.debug(f"Using provided template directory: {template_dir}")
 
         # Configure Jinja2 environment
         self.env = jinja2.Environment(
@@ -78,7 +78,7 @@ class AuditReportRenderer:
         # Initialize plotter
         self.plotter = AuditPlotter(style="professional")
 
-        logger.info("Initialized AuditReportRenderer with template directory: %s", self.template_dir)
+        logger.info(f"Initialized AuditReportRenderer with template directory: {self.template_dir}")
 
     def render_audit_report(
         self,
@@ -102,7 +102,7 @@ class AuditReportRenderer:
             Rendered HTML content as string
 
         """
-        logger.info("Rendering audit report using template: %s", template_name)
+        logger.info(f"Rendering audit report using template: {template_name}")
 
         # Prepare template context
         context = self._prepare_template_context(audit_results, embed_plots=embed_plots)
@@ -120,7 +120,7 @@ class AuditReportRenderer:
             with output_path.open("w", encoding="utf-8") as f:
                 f.write(rendered_html)
 
-            logger.info("Saved rendered report to: %s", output_path)
+            logger.info(f"Saved rendered report to: {output_path}")
 
         return rendered_html
 
@@ -193,7 +193,7 @@ class AuditReportRenderer:
                 },
             )
 
-        logger.debug("Template context prepared with %s variables", len(context))
+        logger.debug(f"Template context prepared with {len(context)} variables")
         return context
 
     def _generate_plots(self, audit_results: AuditResults) -> dict[str, dict[str, str]]:
@@ -218,7 +218,7 @@ class AuditReportRenderer:
                 for plot_name, figure in shap_figures.items():
                     plots["shap"][plot_name] = self._figure_to_base64(figure)
 
-                logger.debug("Generated %s SHAP plots", len(shap_figures))
+                logger.debug(f"Generated {len(shap_figures)} SHAP plots")
 
             # Generate performance plots
             if audit_results.model_performance:
@@ -227,7 +227,7 @@ class AuditReportRenderer:
                 for plot_name, figure in perf_figures.items():
                     plots["performance"][plot_name] = self._figure_to_base64(figure)
 
-                logger.debug("Generated %s performance plots", len(perf_figures))
+                logger.debug(f"Generated {len(perf_figures)} performance plots")
 
             # Generate fairness plots
             if audit_results.fairness_analysis:
@@ -236,10 +236,10 @@ class AuditReportRenderer:
                 for plot_name, figure in fairness_figures.items():
                     plots["fairness"][plot_name] = self._figure_to_base64(figure)
 
-                logger.debug("Generated %s fairness plots", len(fairness_figures))
+                logger.debug(f"Generated {len(fairness_figures)} fairness plots")
 
         except Exception as e:  # noqa: BLE001
-            logger.warning("Failed to generate some plots: %s", e)
+            logger.warning(f"Failed to generate some plots: {e}")
 
         return plots
 

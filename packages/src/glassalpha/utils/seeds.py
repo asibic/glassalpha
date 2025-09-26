@@ -64,7 +64,7 @@ class SeedManager:
             # Generate deterministic component seed from master seed and component name
             component_hash = hash(component + str(self.master_seed)) % (2**31)
             self.component_seeds[component] = abs(component_hash)
-            logger.debug("Generated seed for '%s': %s", component, self.component_seeds[component])
+            logger.debug(f"Generated seed for '{component}': {self.component_seeds[component]}")
 
         return self.component_seeds[component]
 
@@ -79,7 +79,7 @@ class SeedManager:
             self.master_seed = seed
             self.component_seeds.clear()  # Clear cached seeds
 
-        logger.info("Setting all random seeds to master seed: %s", self.master_seed)
+        logger.info(f"Setting all random seeds to master seed: {self.master_seed}")
 
         # Set Python random seed
         random.seed(self.master_seed)
@@ -396,7 +396,7 @@ def validate_deterministic_environment() -> dict[str, bool]:
     else:
         validation_results["tensorflow"] = None
 
-    logger.info("Deterministic environment validation: %s", validation_results)
+    logger.info(f"Deterministic environment validation: {validation_results}")
     return validation_results
 
 

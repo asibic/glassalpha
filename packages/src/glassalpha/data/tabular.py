@@ -43,7 +43,7 @@ class TabularDataSchema(DataSchema):
         if self.sensitive_features:
             invalid_sensitive = set(self.sensitive_features) - {*self.features, self.target}
             if invalid_sensitive:
-                logger.warning("Sensitive features not in feature/target columns: %s", invalid_sensitive)
+                logger.warning(f"Sensitive features not in feature/target columns: {invalid_sensitive}")
 
 
 class TabularDataLoader(DataInterface):
@@ -78,7 +78,7 @@ class TabularDataLoader(DataInterface):
             msg = f"Unsupported file format: {path.suffix}. Supported: {', '.join(self.supported_formats)}"
             raise ValueError(msg)
 
-        logger.info("Loading data from %s", path)
+        logger.info(f"Loading data from {path}")
 
         try:
             # Load based on file format
@@ -98,7 +98,7 @@ class TabularDataLoader(DataInterface):
             msg = f"Failed to load data from {path}: {e}"
             raise ValueError(msg) from e
 
-        logger.info("Loaded data: {data.shape[0]} rows, %s columns", data.shape[1])
+        logger.info(f"Loaded data: {data.shape[0]} rows, {data.shape[1]} columns")
 
         # Validate schema if provided
         if schema:
@@ -142,12 +142,12 @@ class TabularDataLoader(DataInterface):
             if schema.categorical_features:
                 missing_cat = set(schema.categorical_features) - set(data.columns)
                 if missing_cat:
-                    logger.warning("Missing categorical columns: %s", missing_cat)
+                    logger.warning(f"Missing categorical columns: {missing_cat}")
 
             if schema.numeric_features:
                 missing_num = set(schema.numeric_features) - set(data.columns)
                 if missing_num:
-                    logger.warning("Missing numeric columns: %s", missing_num)
+                    logger.warning(f"Missing numeric columns: {missing_num}")
 
         # Check for missing values in critical columns
         critical_columns = [schema.target, *schema.features]
@@ -156,7 +156,7 @@ class TabularDataLoader(DataInterface):
 
         missing_counts = data[critical_columns].isna().sum()
         if missing_counts.any():
-            logger.warning("Missing values detected: %s", missing_counts[missing_counts > 0].to_dict())
+            logger.warning(f"Missing values detected: {missing_counts[missing_counts > 0].to_dict()}")
 
         logger.info("Schema validation completed successfully")
 
@@ -186,9 +186,9 @@ class TabularDataLoader(DataInterface):
         if schema.sensitive_features:
             sensitive = data[schema.sensitive_features].copy()
 
-        logger.info("Extracted features: {X.shape}, target: %s", y.shape)
+        logger.info(f"Extracted features: {X.shape}, target: {y.shape}")
         if sensitive is not None:
-            logger.info("Extracted sensitive features: %s", sensitive.shape)
+            logger.info(f"Extracted sensitive features: {sensitive.shape}")
 
         return X, y, sensitive
 
@@ -213,7 +213,7 @@ class TabularDataLoader(DataInterface):
         hash_obj = hashlib.sha256(data_str.encode("utf-8"))
         data_hash = hash_obj.hexdigest()
 
-        logger.info("Generated data hash: %s...", data_hash[:12])
+        logger.info(f"Generated data hash: {data_hash[:12]}...")
         return data_hash
 
     def split_data(
@@ -249,7 +249,7 @@ class TabularDataLoader(DataInterface):
                 raise ValueError(msg)
             stratify = data[stratify_column]
 
-        logger.info("Splitting data: {len(data)} total, test_size=%s", test_size)
+        logger.info(f"Splitting data: {len(data)} total, test_size={test_size}")
 
         try:
             train_data, test_data = train_test_split(
@@ -260,12 +260,12 @@ class TabularDataLoader(DataInterface):
             )
         except ValueError as e:
             if stratify is not None:
-                logger.warning("Stratified split failed: %s. Trying without stratification.", e)
+                logger.warning(f"Stratified split failed: {e}. Trying without stratification.")
                 train_data, test_data = train_test_split(data, test_size=test_size, random_state=random_state)
             else:
                 raise
 
-        logger.info("Split completed: train={len(train_data)}, test=%s", len(test_data))
+        logger.info(f"Split completed: train={len(train_data)}, test={len(test_data)}")
 
         return train_data, test_data
 
@@ -294,7 +294,7 @@ class TabularDataLoader(DataInterface):
         object_cols = X_processed.select_dtypes(include=["object", "category"]).columns.tolist()
 
         if object_cols:
-            logger.info("One-hot encoding categorical columns: %s", object_cols)
+            logger.info(f"One-hot encoding categorical columns: {object_cols}")
             # Apply pd.get_dummies as specified by friend (drop_first=False to keep all categories)
             X_processed = pd.get_dummies(X_processed, columns=object_cols, drop_first=False)  # noqa: N806
 
@@ -304,7 +304,7 @@ class TabularDataLoader(DataInterface):
                 f for f in schema.categorical_features if f in X_processed.columns and X_processed[f].dtype == "object"
             ]
             if remaining_cat_features:
-                logger.info("Processing remaining categorical features: %s", remaining_cat_features)
+                logger.info(f"Processing remaining categorical features: {remaining_cat_features}")
                 for col in remaining_cat_features:
                     X_processed[col] = pd.Categorical(X_processed[col]).codes
 
@@ -324,7 +324,7 @@ class TabularDataLoader(DataInterface):
                     X_processed[col].mode().iloc[0] if not X_processed[col].mode().empty else 0,
                 )
 
-        logger.info("Preprocessing completed: %s -> %s features", X.shape[1], X_processed.shape[1])
+        logger.info(f"Preprocessing completed: {X.shape[1]} -> {X_processed.shape[1]} features")
 
         return X_processed
 

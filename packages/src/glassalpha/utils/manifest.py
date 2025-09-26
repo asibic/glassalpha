@@ -204,7 +204,7 @@ class AuditManifest(BaseModel):
         with path.open("w") as f:
             f.write(self.to_json())
 
-        logger.info("Audit manifest saved to %s", path)
+        logger.info(f"Audit manifest saved to {path}")
 
 
 class ManifestGenerator:
@@ -242,7 +242,7 @@ class ManifestGenerator:
         self.manifest.execution.start_time = self.start_time
         self.manifest.execution_info.start_time = self.start_time
 
-        logger.info("Initialized audit manifest: %s", self.audit_id)
+        logger.info(f"Initialized audit manifest: {self.audit_id}")
 
     def add_config(self, config: dict[str, Any]) -> None:
         """Add configuration to manifest.
@@ -328,7 +328,7 @@ class ManifestGenerator:
             )
             self.components[name] = component
 
-        logger.debug("Added component to manifest: %s (%s)", name, implementation)
+        logger.debug(f"Added component to manifest: {name} ({implementation})")
 
     def add_dataset(
         self,
@@ -377,7 +377,7 @@ class ManifestGenerator:
 
         self.manifest.datasets[dataset_name] = dataset_dict
         self.datasets[dataset_name] = dataset_dict
-        logger.debug("Added dataset to manifest: %s", dataset_name)
+        logger.debug(f"Added dataset to manifest: {dataset_name}")
 
     def add_result_hash(self, result_name: str, result_hash: str) -> None:
         """Add hash of result/output to manifest.
@@ -390,7 +390,7 @@ class ManifestGenerator:
         # Update both manifest and direct attribute for test compatibility
         self.manifest.result_hashes[result_name] = result_hash
         self.result_hashes[result_name] = result_hash
-        logger.debug("Added result hash: %s", result_name)
+        logger.debug(f"Added result hash: {result_name}")
 
     def mark_completed(self, status: str = "completed", error: str | None = None) -> None:
         """Mark audit as completed.
@@ -430,7 +430,7 @@ class ManifestGenerator:
             self.manifest.execution.error_message = error
             self.manifest.execution_info.error_message = error
 
-        logger.info("Audit marked as %s (duration: %.2fs)", status, self.manifest.execution.duration_seconds)
+        logger.info(f"Audit marked as {status} (duration: {self.manifest.execution.duration_seconds:.2f}s)")
 
     def finalize(self) -> AuditManifest:
         """Finalize and return the completed manifest.

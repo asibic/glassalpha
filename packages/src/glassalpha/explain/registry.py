@@ -48,7 +48,7 @@ class ExplainerRegistry:
     def register(cls, key: str, explainer_class: type) -> None:
         """Register an explainer class with a key."""
         cls._by_key[key] = explainer_class
-        logger.debug("Registered explainer: {key} -> %s", explainer_class)
+        logger.debug(f"Registered explainer: {key} -> {explainer_class}")
 
     @classmethod
     def get(cls, key: str) -> type | None:
@@ -99,7 +99,7 @@ class ExplainerRegistry:
         # Check for compatible explainers in priority order
         compatible_explainers = TYPE_TO_EXPLAINERS.get(model_type)
         if not compatible_explainers:
-            logger.debug("No explainer mapping for model type: %s", model_type)
+            logger.debug(f"No explainer mapping for model type: {model_type}")
             return None
 
         # Find first available explainer in priority order
@@ -110,12 +110,12 @@ class ExplainerRegistry:
                 try:
                     explainer = explainer_class()
                     if hasattr(explainer, "is_compatible") and explainer.is_compatible(model_type_or_obj):
-                        logger.debug("Selected {explainer_key} for model type: %s", model_type)
+                        logger.debug(f"Selected {explainer_key} for model type: {model_type}")
                         return explainer_class
                 except Exception:  # noqa: BLE001, S112
                     continue
 
-        logger.debug("No compatible explainer found for model type: %s", model_type)
+        logger.debug(f"No compatible explainer found for model type: {model_type}")
         return None
 
     @classmethod

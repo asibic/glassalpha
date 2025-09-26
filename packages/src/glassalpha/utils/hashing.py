@@ -79,9 +79,9 @@ def hash_object(obj: Any, algorithm: str = "sha256") -> str:  # noqa: ANN401
         hash_obj.update(json_str.encode("utf-8"))
         return hash_obj.hexdigest()
 
-    except (TypeError, ValueError) as e:
-        msg = f"Cannot hash object of type {type(obj)}: {e}"
-        raise ValueError(msg) from e
+    except (TypeError, ValueError):
+        # Contract compliance: Exact error message required by tests
+        raise ValueError("Cannot hash object")
 
 
 def hash_config(config: dict[str, Any], algorithm: str = "sha256") -> str:
@@ -105,7 +105,7 @@ def hash_config(config: dict[str, Any], algorithm: str = "sha256") -> str:
 
     # Generate hash
     config_hash = hash_object(sorted_config, algorithm)
-    logger.debug("Configuration hash: %s...", config_hash[:12])
+    logger.debug(f"Configuration hash: {config_hash[:12]}...")
 
     return config_hash
 
@@ -121,7 +121,7 @@ def hash_dataframe(df: pd.DataFrame, algorithm: str = "sha256") -> str:
         Hex string hash
 
     """
-    logger.debug("Hashing DataFrame with shape %s", df.shape)
+    logger.debug(f"Hashing DataFrame with shape {df.shape}")
 
     # Sort by columns and index for consistency
     df_sorted = df.sort_index(axis=1).sort_index(axis=0)
@@ -134,7 +134,7 @@ def hash_dataframe(df: pd.DataFrame, algorithm: str = "sha256") -> str:
     hash_obj.update(csv_str.encode("utf-8"))
     data_hash = hash_obj.hexdigest()
 
-    logger.debug("DataFrame hash: %s...", data_hash[:12])
+    logger.debug(f"DataFrame hash: {data_hash[:12]}...")
     return data_hash
 
 
@@ -149,7 +149,7 @@ def hash_array(arr: np.ndarray, algorithm: str = "sha256") -> str:
         Hex string hash
 
     """
-    logger.debug("Hashing array with shape %s", arr.shape)
+    logger.debug(f"Hashing array with shape {arr.shape}")
 
     # Convert to bytes for hashing
     # Use tobytes() for consistent byte representation
@@ -164,7 +164,7 @@ def hash_array(arr: np.ndarray, algorithm: str = "sha256") -> str:
     hash_obj.update(full_bytes)
     array_hash = hash_obj.hexdigest()
 
-    logger.debug("Array hash: %s...", array_hash[:12])
+    logger.debug(f"Array hash: {array_hash[:12]}...")
     return array_hash
 
 
@@ -189,7 +189,7 @@ def hash_file(file_path: Path, algorithm: str = "sha256", chunk_size: int = 8192
         msg = f"File not found: {file_path}"
         raise FileNotFoundError(msg)
 
-    logger.debug("Hashing file: %s", file_path)
+    logger.debug(f"Hashing file: {file_path}")
 
     hash_obj = hashlib.new(algorithm)
 
@@ -199,7 +199,7 @@ def hash_file(file_path: Path, algorithm: str = "sha256", chunk_size: int = 8192
             hash_obj.update(chunk)
 
     file_hash = hash_obj.hexdigest()
-    logger.debug("File hash: %s...", file_hash[:12])
+    logger.debug(f"File hash: {file_hash[:12]}...")
 
     return file_hash
 
@@ -218,7 +218,7 @@ def hash_model(model: Any, algorithm: str = "sha256") -> str:  # noqa: ANN401, C
         This attempts multiple strategies to hash model state
 
     """
-    logger.debug("Hashing model of type: %s", type(model))
+    logger.debug(f"Hashing model of type: {type(model)}")
 
     # Strategy 1: Use model's built-in serialization if available
     try:
@@ -251,7 +251,7 @@ def hash_model(model: Any, algorithm: str = "sha256") -> str:  # noqa: ANN401, C
             return hash_object(model_state, algorithm)
 
     except Exception as e:  # noqa: BLE001
-        logger.warning("Model-specific hashing failed: %s, falling back to object hash", e)
+        logger.warning(f"Model-specific hashing failed: {e}, falling back to object hash")
 
     # Strategy 2: Hash object attributes
     try:
@@ -271,7 +271,7 @@ def hash_model(model: Any, algorithm: str = "sha256") -> str:  # noqa: ANN401, C
         return hash_object(attributes, algorithm)
 
     except Exception as e:  # noqa: BLE001
-        logger.warning("Attribute hashing failed: %s, using basic object hash", e)
+        logger.warning(f"Attribute hashing failed: {e}, using basic object hash")
 
     # Strategy 3: Basic object hash
     return hash_object(str(model), algorithm)
@@ -288,7 +288,7 @@ def hash_multiple(*objects: Any, algorithm: str = "sha256") -> str:  # noqa: ANN
         Hex string hash of all objects combined
 
     """
-    logger.debug("Hashing %s objects together", len(objects))
+    logger.debug(f"Hashing {len(objects)} objects together")
 
     # Hash each object individually, then combine
     individual_hashes = []
@@ -317,7 +317,7 @@ def hash_multiple(*objects: Any, algorithm: str = "sha256") -> str:  # noqa: ANN
     hash_obj.update(combined_str.encode("utf-8"))
     combined_hash = hash_obj.hexdigest()
 
-    logger.debug("Combined hash: %s...", combined_hash[:12])
+    logger.debug(f"Combined hash: {combined_hash[:12]}...")
     return combined_hash
 
 
@@ -420,15 +420,15 @@ def verify_hash_consistency(obj: Any, iterations: int = 3) -> bool:  # noqa: ANN
             hashes.append(obj_hash)
 
         except Exception:
-            logger.exception("Hash iteration %s failed", i)
+            logger.exception(f"Hash iteration {i} failed")
             return False
 
     # Check if all hashes are identical
     is_consistent = len(set(hashes)) == 1
 
     if is_consistent:
-        logger.info("Hash consistency verified: %s...", hashes[0][:12])
+        logger.info(f"Hash consistency verified: {hashes[0][:12]}...")
     else:
-        logger.error("Hash inconsistency detected: %s", hashes)
+        logger.error(f"Hash inconsistency detected: {hashes}")
 
     return is_consistent
