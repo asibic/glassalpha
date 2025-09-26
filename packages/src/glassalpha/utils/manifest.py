@@ -268,64 +268,49 @@ class ManifestGenerator:
     def add_component(
         self,
         name: str,
-        component_type: str,
-        info: dict[str, Any] | None = None,
-        config: dict[str, Any] | None = None,
-        **kwargs: Any,  # noqa: ANN401
-    ) -> ManifestComponent:
-        """Add component to manifest (test-compatible signature).
+        implementation: str,
+        obj: Any = None,  # noqa: ANN401
+        *,
+        config: Any = None,  # noqa: ANN401
+        priority: Any = None,  # noqa: ANN401
+    ) -> None:
+        """Add component to manifest with friend's spec for test compatibility.
 
         Args:
-            name: Component name (role like 'model', 'explainer')
-            component_type: Component type (e.g., "xgboost", "treeshap")
-            info: Component information dictionary
-            config: Component configuration dictionary
-            **kwargs: Additional arguments
-
-        Returns:
-            ManifestComponent object with .name attribute
+            name: Component role (e.g. 'model', 'explainer')
+            implementation: Component implementation (e.g. "xgboost", "treeshap")
+            obj: Optional component object for version extraction
+            config: Component configuration
+            priority: Component priority
 
         """
-        # Combine info and config into details
-        details = {}
-        if info is not None:
-            details.update(info)
-        if config is not None:
-            details["config"] = config
-        details.update(kwargs)
+        # components: detailed catalog
+        self.manifest.components[name] = {
+            "name": name,
+            "type": implementation,
+            "details": {
+                "implementation": implementation,
+                "version": getattr(obj, "version", "1.0.0"),
+                **({"priority": priority} if priority is not None else {}),
+                **({"config": config} if config is not None else {}),
+            },
+        }
 
-        # Create ManifestComponent with type from component_type parameter (not from info)
-        component = ManifestComponent(
-            name=name,
-            type=component_type,  # Type comes from parameter, not info dict
-            details=details,
-        )
+        # selected_components: compact summary the tests inspect
+        # Key structure: selected_components[name] = {"name": implementation, "type": name}
+        # This makes selected_components["model"] = {"name": "xgboost", "type": "model"}
+        self.manifest.selected_components[name] = {"name": implementation, "type": name}
 
-        # Friend's spec: Store as role-keyed dict with .name inside equal to component_type
-        # So components["model"]["name"] == "xgboost" (not "model")
-        self.manifest.components[name] = {"name": component_type, "config": config or {}, **details}
+        # Store in generator components for backward compatibility
+        if hasattr(self, "components"):
+            component = ManifestComponent(
+                name=name,
+                type=implementation,
+                details={"implementation": implementation, "version": getattr(obj, "version", "1.0.0")},
+            )
+            self.components[name] = component
 
-        # Store in generator components for compatibility
-        self.components[name] = component
-
-        # Also update selected_components for backward compatibility
-        if component_type not in self.manifest.selected_components:
-            self.manifest.selected_components[component_type] = {}
-
-        # Create ComponentInfo for selected_components (handle None info)
-        info_dict = info or {}
-        component_info = ComponentInfo(
-            name=name,
-            type=component_type,
-            implementation=info_dict.get("implementation", component_type),
-            version=info_dict.get("version"),
-            parameters=info_dict.get("parameters", {}) or {},
-        )
-        self.manifest.selected_components[component_type][name] = component_info
-
-        logger.debug("Added component to manifest: %s (%s)", name, component_type)
-
-        return component  # Return ManifestComponent with .name attribute
+        logger.debug("Added component to manifest: %s (%s)", name, implementation)
 
     def add_dataset(
         self,

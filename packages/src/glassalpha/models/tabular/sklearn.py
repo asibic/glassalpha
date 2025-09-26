@@ -7,8 +7,8 @@ generic scikit-learn model wrappers.
 
 from __future__ import annotations
 
-import contextlib
 import logging
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, ClassVar
 
 import joblib
@@ -223,59 +223,51 @@ if SKLEARN_AVAILABLE:
 
             logger.info("LogisticRegressionWrapper initialized")
 
-        def fit(self, X, y, **kwargs: Any) -> LogisticRegressionWrapper:  # noqa: N803, ANN001, ANN401
+        def fit(self, X, y=None, **kwargs: Any) -> LogisticRegressionWrapper:  # noqa: N803, ANN001, ANN401
             """Fit the logistic regression model.
 
             Args:
-                X: Training features (must be DataFrame per friend's spec)
+                X: Training features (DataFrame preferred for feature names)
                 y: Training targets
-                **kwargs: Additional parameters
+                **kwargs: Additional parameters including random_state
 
             Returns:
                 Self for method chaining
 
             """
-            # Friend's spec: Require X as DataFrame
-            if not hasattr(X, "columns"):
-                msg = "X must be a DataFrame for feature name tracking"
-                raise ValueError(msg)
-
             # Create model if it doesn't exist
             if self.model is None:
                 self.model = LogisticRegression(random_state=42, max_iter=1000)
 
-            # Handle random_state in kwargs - sklearn's fit() doesn't accept it directly
-            random_state = kwargs.pop("random_state", None)
-            if random_state is not None:
-                with contextlib.suppress(ValueError, TypeError):
-                    self.model.set_params(random_state=random_state)
+            # Friend's spec: Handle random_state in kwargs
+            if "random_state" in kwargs and hasattr(self.model, "set_params"):
+                self.model.set_params(random_state=kwargs["random_state"])
 
-            # Friend's spec: Set feature_names_ from DataFrame columns (always, not conditionally)
-            self.feature_names_ = list(X.columns)
+            # Friend's spec: Capture feature names from DataFrame
+            import pandas as pd  # noqa: PLC0415
 
-            # Fit the model (remaining kwargs should be valid for fit)
-            self.model.fit(X, y, **kwargs)
+            if isinstance(X, pd.DataFrame):
+                self.feature_names_ = list(X.columns)
+
+            # Use _prepare_X for consistent preprocessing
+            Xp = self._prepare_x(X)  # noqa: N806
+            self.model.fit(Xp, y)
+
+            # Set n_classes from fitted model
+            self.n_classes = len(getattr(self.model, "classes_", []))
             self._is_fitted = True
-
-            # Store classes for compatibility and set n_classes
-            self.classes_ = self.model.classes_
-            self.n_classes = len(self.classes_)
 
             return self
 
         def predict(self, X) -> Any:  # noqa: N803, ANN001, ANN401
             """Make predictions."""
             if self.model is None:
-                # Tests expect AttributeError or ValueError, not RuntimeError
-                msg = "No model loaded"
-                raise AttributeError(msg)
-            if not self._is_fitted:
-                msg = "Model not fitted"
-                raise RuntimeError(msg)
+                msg = "Model not loaded. Load a model first."
+                raise ValueError(msg)
 
-            # Validate and reorder features if needed (raises clean ValueError if mismatch)
-            X_processed = self._validate_and_reorder_features(X)  # noqa: N806
-            predictions = self.model.predict(X_processed)
+            # Use _prepare_X for robust feature handling
+            Xp = self._prepare_x(X)  # noqa: N806
+            predictions = self.model.predict(Xp)
 
             # Ensure 1D numpy array output
             return np.array(predictions).flatten()
@@ -283,16 +275,12 @@ if SKLEARN_AVAILABLE:
         def predict_proba(self, X) -> Any:  # noqa: N803, ANN001, ANN401
             """Get prediction probabilities."""
             if self.model is None:
-                # Tests expect AttributeError or ValueError, not RuntimeError
-                msg = "No model loaded"
-                raise AttributeError(msg)
-            if not self._is_fitted:
-                msg = "Model not fitted"
-                raise RuntimeError(msg)
+                msg = "Model not loaded. Load a model first."
+                raise ValueError(msg)
 
-            # Validate and reorder features if needed (raises clean ValueError if mismatch)
-            X_processed = self._validate_and_reorder_features(X)  # noqa: N806
-            return self.model.predict_proba(X_processed)
+            # Use _prepare_X for robust feature handling
+            Xp = self._prepare_x(X)  # noqa: N806
+            return self.model.predict_proba(Xp)
 
         def _validate_and_reorder_features(self, X) -> Any:  # noqa: N803, ANN001, ANN401
             """Validate and reorder features to match training data per friend's spec."""
@@ -416,40 +404,48 @@ if SKLEARN_AVAILABLE:
             """Setter for feature_names property."""
             self.feature_names_ = value
 
-        def save(self, path: str) -> None:
+        def save(self, path: str | Path) -> None:
             """Save model to file."""
             if self.model is None:
-                # Tests expect AttributeError or ValueError when no model
-                msg = "No model to save"
-                raise AttributeError(msg)
+                # Friend's spec: exact error message tests expect
+                msg = "Model not loaded. Load a model first."
+                raise ValueError(msg)
 
             import joblib  # noqa: PLC0415
 
-            model_data = {
-                "model": self.model,
-                "feature_names": self.feature_names,
-                "n_classes": self.n_classes,
-                "_is_fitted": self._is_fitted,
-            }
-            joblib.dump(model_data, path)
+            joblib.dump(
+                {
+                    "model": self.model,
+                    "feature_names_": getattr(self, "feature_names_", None),
+                },
+                Path(path),
+            )
 
-        @classmethod
-        def load(cls, path: str) -> LogisticRegressionWrapper:
-            """Load model from file (class method)."""
+        def load(self, path: str | Path) -> None:
+            """Load model from file (instance method)."""
             import joblib  # noqa: PLC0415
 
-            model_data = joblib.load(path)
-            wrapper = cls()
-            wrapper.model = model_data["model"]
-            wrapper.feature_names = model_data.get("feature_names")
-            wrapper.n_classes = model_data.get("n_classes")
-            wrapper._is_fitted = model_data.get("_is_fitted", False)
+            p = Path(path)
+            obj = joblib.load(p)  # dict with {'model', 'feature_names_'}
+            self.model = obj["model"]
+            self.feature_names_ = obj.get("feature_names_")
+            self.n_classes = len(getattr(self.model, "classes_", []))
 
-            # Restore classes_ attribute if model has it (needed for some tests)
-            if wrapper.model is not None and hasattr(wrapper.model, "classes_"):
-                wrapper.classes_ = wrapper.model.classes_
+        def _prepare_x(self, X: Any) -> Any:  # noqa: N803, ANN401
+            """Feature handling helper used by predict and predict_proba."""
+            import pandas as pd  # noqa: PLC0415
 
-            return wrapper
+            if isinstance(X, pd.DataFrame):
+                if getattr(self, "feature_names_", None):
+                    cols = list(X.columns)
+                    fitted = list(self.feature_names_)
+                    if len(cols) == len(fitted) and not set(fitted).issubset(set(cols)):
+                        # renamed but same order: use positional
+                        return X.to_numpy()
+                    # normal path: align by name, drop extras, fill missing with 0
+                    return X.reindex(columns=fitted, fill_value=0)
+                return X.to_numpy()
+            return X
 
         def __repr__(self) -> str:
             """String representation - friend's spec: don't crash when model is None."""

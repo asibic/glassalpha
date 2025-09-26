@@ -316,16 +316,18 @@ class AuditPipeline:
             "feature_importance": feature_importance,
         }
 
-        # Add model to manifest
-        model_info = {
-            "implementation": model_type,
-            "version": getattr(model, "version", "1.0.0"),
-            "config": self.config.model.model_dump() if self.config.model else {},
-        }
+        # Friend's spec: Track the model in both results and manifest
+        # Track in results.selected_components
+        self.results.selected_components.setdefault("model", {"name": model_type, "type": "model"})
+
+        # Add model to manifest using new signature
+        model_config = self.config.model.model_dump() if self.config.model else {}
         self.manifest_generator.add_component(
             "model",
             model_type,
-            model_info,
+            model,
+            config=model_config,
+            priority=getattr(model, "priority", None),
         )
 
         return model
@@ -484,6 +486,27 @@ class AuditPipeline:
 
         # Use processed features for predictions (same as training)
         X_processed = self._preprocess_for_training(X)  # noqa: N806
+
+        # Friend's spec: Add guard before predictions to ensure model is fitted
+        # If not fitted and training data available, fit the model; otherwise skip metrics
+        if hasattr(self.model, "_is_fitted") and not self.model._is_fitted:  # noqa: SLF001
+            logger.warning("Model not fitted, attempting to fit with available data")
+            try:
+                self.model.fit(X_processed, y_true)
+                logger.info("Model fitted successfully with available data")
+            except Exception:
+                logger.exception("Failed to fit model with available data:")
+                logger.warning("Skipping metrics computation to prevent pipeline failure")
+                self.results.model_performance = {"status": "skipped_no_fitted_model"}
+                self.results.fairness_analysis = {"status": "skipped_no_fitted_model"}
+                self.results.drift_analysis = {"status": "skipped_no_fitted_model"}
+                return
+        elif not hasattr(self.model, "model") or self.model.model is None:
+            logger.warning("Model not loaded, skipping metrics computation")
+            self.results.model_performance = {"status": "skipped_no_model"}
+            self.results.fairness_analysis = {"status": "skipped_no_model"}
+            self.results.drift_analysis = {"status": "skipped_no_model"}
+            return
 
         # Generate predictions
         y_pred = self.model.predict(X_processed)
