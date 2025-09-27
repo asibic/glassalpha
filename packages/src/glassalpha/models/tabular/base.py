@@ -86,7 +86,10 @@ class BaseTabularWrapper:
     def _align_features(self, X: Any) -> Any:  # noqa: ANN401, N803
         """Shared feature alignment helper - contract compliance.
 
-        Uses centralized align_features function for consistency across all wrappers.
+        Implements the exact feature drift contract:
+        1. Same names → return in expected order
+        2. Same width but renamed → accept positionally
+        3. Otherwise → reindex (drop extras, fill missing with 0)
 
         Args:
             X: Input features (DataFrame or array)
@@ -94,33 +97,26 @@ class BaseTabularWrapper:
         Returns:
             Aligned features with proper column handling
 
-        Raises:
-            ValueError: If features cannot be aligned and strict validation is needed
-
         """
-        from glassalpha.models._features import align_features  # noqa: PLC0415
+        # Pass-through when not a DataFrame or we don't know expected names
+        expected = getattr(self, "feature_names_", None)
+        if not PANDAS_AVAILABLE or not isinstance(X, pd.DataFrame) or not expected:
+            return X
 
-        feature_names = getattr(self, "feature_names_", None)
+        expected = list(expected)
 
-        # For strict validation, check for mismatched features before alignment
-        if PANDAS_AVAILABLE and hasattr(X, "columns") and feature_names:
-            expected = list(feature_names)
-            actual = list(X.columns)
+        # 1) Exact name match → return in expected order
+        if list(X.columns) == expected:
+            return X[expected]
 
-            # If it's not a simple rename (same width), check for strict mismatch
-            if len(actual) != len(expected) or set(actual) != set(expected):
-                missing = [c for c in expected if c not in actual]
-                extra = [c for c in actual if c not in expected]
+        # 2) Same width but renamed → accept positionally, then name as expected
+        if X.shape[1] == len(expected):
+            X_positional = X.iloc[:, : len(expected)].copy()
+            X_positional.columns = expected
+            return X_positional
 
-                # If there are both missing and extra features, this might be a true mismatch
-                # rather than just a column order issue
-                if missing and extra and len(missing) == len(expected):
-                    # Complete mismatch - no overlap in features
-                    raise ValueError(
-                        f"Feature mismatch: expected {expected}; missing {missing}; extra {extra}",
-                    )
-
-        return align_features(X, feature_names)
+        # 3) Otherwise reindex: drop extras, fill missing with 0
+        return X.reindex(columns=expected, fill_value=0)
 
     def save(self, path: Path) -> None:
         """Save model state to file.
