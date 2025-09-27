@@ -10,7 +10,7 @@ reproducibility:
 
 # Dataset configuration
 data:
-  path: /Users/gabe/.glassalpha/data/customer_segmentation.csv
+  path: ~/.glassalpha/data/customer_segmentation.csv
   target_column: customer_segment
   protected_attributes:
     - age

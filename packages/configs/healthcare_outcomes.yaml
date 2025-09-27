@@ -10,7 +10,7 @@ reproducibility:
 
 # Dataset configuration
 data:
-  path: /Users/gabe/.glassalpha/data/healthcare_outcomes.csv
+  path: ~/.glassalpha/data/healthcare_outcomes.csv
   target_column: treatment_outcome
   protected_attributes:
     - age

@@ -10,7 +10,7 @@ reproducibility:
 
 # Dataset configuration
 data:
-  path: /Users/gabe/.glassalpha/data/fraud_detection.csv
+  path: ~/.glassalpha/data/fraud_detection.csv
   target_column: is_fraud
   protected_attributes:
     - cardholder_age

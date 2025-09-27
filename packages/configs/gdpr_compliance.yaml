@@ -10,7 +10,7 @@ reproducibility:
 
 # Dataset configuration
 data:
-  path: /Users/gabe/.glassalpha/data/gdpr_compliance.csv
+  path: ~/.glassalpha/data/gdpr_compliance.csv
   target_column: marketing_consent_granted
   protected_attributes:
     - age
