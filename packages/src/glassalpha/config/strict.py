@@ -16,8 +16,6 @@ logger = logging.getLogger(__name__)
 class StrictModeError(ValueError):
     """Raised when strict mode validation fails."""
 
-    pass
-
 
 def validate_strict_mode(config: AuditConfig) -> None:
     """Validate configuration meets strict mode requirements.
@@ -55,7 +53,7 @@ def validate_strict_mode(config: AuditConfig) -> None:
     if not config.data.path:
         errors.append("Data path must be specified in strict mode")
 
-    if not config.data.schema_path and not config.data.schema:
+    if not config.data.schema_path and not config.data.data_schema:
         errors.append("Data schema must be specified (either path or inline) in strict mode")
 
     if not config.data.protected_attributes:

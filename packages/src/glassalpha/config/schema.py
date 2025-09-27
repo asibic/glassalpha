@@ -63,7 +63,7 @@ class DataConfig(BaseModel):
 
     path: Path | None = Field(None, description="Path to data file")
     schema_path: Path | None = Field(None, description="Path to data schema file")
-    schema: dict[str, Any] | None = Field(None, description="Inline data schema")
+    data_schema: dict[str, Any] | None = Field(None, description="Inline data schema")
     protected_attributes: list[str] = Field(
         default_factory=list,
         description="List of protected/sensitive attributes for fairness analysis",
