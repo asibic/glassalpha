@@ -166,7 +166,7 @@ def _add_medical_demographics(df: pd.DataFrame, random_state: int) -> pd.DataFra
         (df["age"] >= 80),
     ]
     choices = ["Young_Adult", "Middle_Age", "Senior", "Elderly", "Very_Elderly"]
-    df["age_group"] = np.select(conditions, choices)
+    df["age_group"] = np.select(conditions, choices, default="Unknown")
 
     # Race/ethnicity (protected attribute)
     df["race_ethnicity"] = np.random.choice(

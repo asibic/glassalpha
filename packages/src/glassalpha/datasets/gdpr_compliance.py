@@ -181,7 +181,7 @@ def _add_gdpr_demographics(df: pd.DataFrame, random_state: int) -> pd.DataFrame:
         (df["age"] >= 65),
     ]
     choices = ["Young", "Young_Adult", "Middle_Age", "Senior", "Elderly"]
-    df["age_group"] = np.select(conditions, choices)
+    df["age_group"] = np.select(conditions, choices, default="Unknown")
 
     # EU citizenship status (GDPR protected)
     df["eu_citizenship"] = np.random.choice(["EU_Citizen", "Non_EU_Resident"], size=len(df), p=[0.85, 0.15])

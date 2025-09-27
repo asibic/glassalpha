@@ -54,7 +54,8 @@ class XGBoostWrapper(BaseTabularWrapper):
         self.model: xgb.Booster | None = model
         self.feature_names: list | None = None
         self.feature_names_: list | None = None  # For sklearn compatibility
-        self.n_classes: int = 2  # Default to binary classification
+        self.n_classes_: int = 2  # Default to binary classification
+        self.classes_: np.ndarray | None = None  # Original class labels
 
         if model_path:
             self.load(model_path)
@@ -74,69 +75,71 @@ class XGBoostWrapper(BaseTabularWrapper):
         Args:
             X: Training features (DataFrame or array)
             y: Target values
-            **kwargs: Additional parameters including random_state
+            **kwargs: Additional parameters including objective, num_class, etc.
 
         Returns:
             Self for method chaining
 
+        Raises:
+            ValueError: If objective and num_class are inconsistent
+
         """
         import numpy as np  # noqa: PLC0415
-        import xgboost as xgb  # noqa: PLC0415
+        import pandas as pd  # noqa: PLC0415
 
-        # Extract random_state from kwargs
-        random_state = kwargs.pop("random_state", None)
+        # Convert inputs to proper format
+        X = pd.DataFrame(X)
+        y = np.asarray(y)
 
-        # Initialize XGBoost model if not already done
-        if self.model is None:
-            xgb_kwargs = {"objective": "binary:logistic", "max_depth": 6, "eta": 0.1}
-            if random_state is not None:
-                xgb_kwargs.update({"seed": random_state, "random_state": random_state})
-            xgb_kwargs.update(kwargs)  # Allow override of defaults
+        # Normalize labels to 0..k-1 but keep original labels for mapping
+        classes, y_enc = np.unique(y, return_inverse=True)
+        self.classes_ = classes
+        self.n_classes_ = classes.size
 
-            # Use XGBClassifier for easier fitting
-            from xgboost import XGBClassifier  # noqa: PLC0415
+        # Store feature names
+        self.feature_names_ = list(X.columns)
 
-            sklearn_model = XGBClassifier(**xgb_kwargs)
-        else:
-            # Update existing model's random state if provided
-            if hasattr(self.model, "set_params") and random_state is not None:
-                self.model.set_params(random_state=random_state)
-            sklearn_model = None
+        # Set defaults that can be overridden by kwargs
+        defaults = {"max_depth": 6, "eta": 0.1}
 
-        # Prepare features using shared alignment helper
-        X_processed = self._prepare_x(X)  # noqa: N806
+        # Auto-infer objective if not provided
+        if "objective" not in kwargs:
+            if self.n_classes_ > 2:
+                defaults["objective"] = "multi:softprob"
+                # Set num_class if not provided for multiclass
+                if "num_class" not in kwargs:
+                    kwargs["num_class"] = self.n_classes_
+            else:
+                defaults["objective"] = "binary:logistic"
 
-        # Capture feature names for DataFrame inputs
-        if hasattr(X_processed, "columns"):
-            self.feature_names_ = list(X_processed.columns)
-            X_processed = X_processed.values
-        elif hasattr(X, "columns"):
-            self.feature_names_ = list(X.columns)
+        # Merge defaults with kwargs (kwargs win)
+        params = {**defaults, **kwargs}
 
-        # Fit the model
-        if sklearn_model is not None:
-            sklearn_model.fit(X_processed, y)
-            # Convert to Booster for consistency
-            self.model = sklearn_model.get_booster()
-        else:
-            # Use existing model - convert to DMatrix and train
-            # Convert to NumPy array to avoid pandas dtype compatibility issues with XGBoost
-            X_np = (
-                X_processed.to_numpy(dtype="float32", copy=False) if hasattr(X_processed, "to_numpy") else X_processed
-            )
-            dtrain = xgb.DMatrix(X_np, label=y, feature_names=self.feature_names_)
-            # Update model with new data (this may not work with pre-trained boosters)
-            # For simplicity, replace with new training
-            params = {"objective": "binary:logistic", "max_depth": 6, "eta": 0.1}
-            if random_state is not None:
-                params.update({"seed": random_state, "random_state": random_state})
-            self.model = xgb.train(params, dtrain, num_boost_round=100)
+        # Validate objective/num_class consistency
+        objective = params.get("objective", "")
+        num_class = params.get("num_class")
 
-        # Set class information
-        self.n_classes = len(np.unique(y))
+        if "multi" in objective and num_class is not None:
+            if num_class != self.n_classes_:
+                msg = f"Inconsistent num_class: config specifies {num_class} but data has {self.n_classes_} classes"
+                raise ValueError(msg)
+        elif "binary" in objective and self.n_classes_ > 2:
+            msg = f"Binary objective '{objective}' incompatible with {self.n_classes_} classes"
+            raise ValueError(msg)
+
+        # Create and fit XGBoost model
+        from xgboost import XGBClassifier  # noqa: PLC0415
+
+        sklearn_model = XGBClassifier(**params)
+        sklearn_model.fit(X, y_enc)
+
+        # Convert to Booster for consistency with rest of the codebase
+        self.model = sklearn_model.get_booster()
 
         # Mark as fitted
         self._is_fitted = True
+
+        logger.info(f"Fitted XGBoost model: {self.n_classes_} classes, objective={params.get('objective', 'unknown')}")
 
         return self
 
@@ -218,7 +221,6 @@ class XGBoostWrapper(BaseTabularWrapper):
             try:
                 # For binary classification, XGBoost often outputs single value
                 # For multiclass, it outputs multiple values
-                # This is a heuristic - may need refinement based on actual usage
                 config = self.model.save_config()
                 if '"num_class"' in config:
                     import json  # noqa: PLC0415
@@ -227,13 +229,13 @@ class XGBoostWrapper(BaseTabularWrapper):
                     learner = config_dict.get("learner", {})
                     learner_params = learner.get("learner_model_param", {})
                     num_class = learner_params.get("num_class", "0")
-                    self.n_classes = max(2, int(num_class))
+                    self.n_classes_ = max(2, int(num_class))
                 else:
-                    self.n_classes = 2  # Default to binary
+                    self.n_classes_ = 2  # Default to binary
             except Exception:  # noqa: BLE001
                 # Graceful fallback - config parsing can fail for various reasons
                 logger.debug("Could not determine number of classes, defaulting to binary")
-                self.n_classes = 2
+                self.n_classes_ = 2
 
     def predict(self, X: pd.DataFrame) -> np.ndarray:  # noqa: N803
         """Generate predictions for input data.
@@ -242,37 +244,43 @@ class XGBoostWrapper(BaseTabularWrapper):
             X: Input features as DataFrame
 
         Returns:
-            Array of predictions
+            Array of predictions (original class labels)
 
         """
         self._ensure_fitted()
 
-        # Use centralized feature handling
-        X_processed = self._prepare_x(X)  # noqa: N806
+        # Convert to DataFrame if needed
+        X = pd.DataFrame(X)
 
-        # Convert to DMatrix for XGBoost
-        feature_names = list(X.columns) if hasattr(X, "columns") else None
-        if hasattr(X_processed, "columns"):
-            feature_names = list(X_processed.columns)
+        # Align features using utility function
+        if self.feature_names_:
+            from ...utils.features import align_features  # noqa: PLC0415
 
-        # Convert to NumPy array to avoid pandas dtype compatibility issues with XGBoost
-        X_np = X_processed.to_numpy(dtype="float32", copy=False) if hasattr(X_processed, "to_numpy") else X_processed
-        dmatrix = xgb.DMatrix(X_np, feature_names=feature_names)
+            X = align_features(X, self.feature_names_)
+
+        # Get encoded predictions (0..k-1)
+        import xgboost as xgb  # noqa: PLC0415
+
+        # Convert back to DMatrix for prediction
+        dmatrix = xgb.DMatrix(X)
 
         # Get raw predictions
-        preds = self.model.predict(dmatrix)
+        raw_preds = self.model.predict(dmatrix)
 
-        # Contract compliance: Handle binary/multiclass shape consistently
-        if self.n_classes == self.BINARY_CLASSES and preds.ndim == 1:
-            # Convert logits/prob of class 1 into two-column proba
-            proba1 = preds
-            proba0 = 1.0 - proba1
-            probs = np.column_stack([proba0, proba1])
+        # Convert to class indices
+        if self.n_classes_ > 2:
+            # Multi-class: argmax to get class indices
+            if raw_preds.ndim > 1:
+                class_indices = np.argmax(raw_preds, axis=1)
+            else:
+                # This shouldn't happen for multiclass, but handle gracefully
+                class_indices = (raw_preds > self.BINARY_THRESHOLD).astype(int)
         else:
-            probs = preds
+            # Binary: threshold predictions
+            class_indices = (raw_preds > self.BINARY_THRESHOLD).astype(int)
 
-        # Use argmax for predict to get class predictions
-        predictions = np.argmax(probs, axis=1) if probs.ndim > 1 else (probs > self.BINARY_THRESHOLD).astype(int)
+        # Map indices back to original labels
+        predictions = self.classes_[class_indices.astype(int)]
 
         logger.debug(f"Generated predictions for {len(X)} samples")
         return predictions
@@ -289,29 +297,38 @@ class XGBoostWrapper(BaseTabularWrapper):
         """
         self._ensure_fitted()
 
-        # Use centralized feature handling
-        X_processed = self._prepare_x(X)  # noqa: N806
+        # Convert to DataFrame if needed
+        X = pd.DataFrame(X)
 
-        # Convert to DMatrix
-        feature_names = list(X.columns) if hasattr(X, "columns") else None
-        if hasattr(X_processed, "columns"):
-            feature_names = list(X_processed.columns)
+        # Align features using utility function
+        if self.feature_names_:
+            from ...utils.features import align_features  # noqa: PLC0415
 
-        # Convert to NumPy array to avoid pandas dtype compatibility issues with XGBoost
-        X_np = X_processed.to_numpy(dtype="float32", copy=False) if hasattr(X_processed, "to_numpy") else X_processed
-        dmatrix = xgb.DMatrix(X_np, feature_names=feature_names)
+            X = align_features(X, self.feature_names_)
 
-        # Get raw predictions (probabilities)
-        preds = self.model.predict(dmatrix)
+        # Get probabilities from XGBoost
+        # We need to use XGBClassifier for predict_proba, not the raw Booster
+        import xgboost as xgb  # noqa: PLC0415
 
-        # Contract compliance: Handle binary/multiclass shape consistently
-        if self.n_classes == self.BINARY_CLASSES and preds.ndim == 1:
-            # Convert logits/prob of class 1 into two-column proba
-            proba1 = preds
+        # Convert back to DMatrix for prediction
+        dmatrix = xgb.DMatrix(X)
+
+        # Get raw predictions (probabilities for multiclass, logits for binary)
+        raw_preds = self.model.predict(dmatrix)
+
+        # Handle different output formats
+        if self.n_classes_ > 2:
+            # Multi-class: raw_preds should already be probabilities
+            probs = raw_preds
+        # Binary: convert logits to probabilities
+        elif raw_preds.ndim == 1:
+            # Single output - convert to probabilities
+            proba1 = 1.0 / (1.0 + np.exp(-raw_preds))  # Sigmoid
             proba0 = 1.0 - proba1
             probs = np.column_stack([proba0, proba1])
         else:
-            probs = preds
+            # Already in probability format
+            probs = raw_preds
 
         logger.debug(f"Generated probability predictions for {len(X)} samples")
         return probs
@@ -343,7 +360,8 @@ class XGBoostWrapper(BaseTabularWrapper):
         """
         return {
             "model_type": "xgboost",
-            "n_classes": self.n_classes,
+            "n_classes": self.n_classes_,
+            "classes": self.classes_.tolist() if self.classes_ is not None else None,
             "status": "loaded" if self.model else "not_loaded",
             "n_features": len(self.feature_names_) if self.feature_names_ else None,
         }

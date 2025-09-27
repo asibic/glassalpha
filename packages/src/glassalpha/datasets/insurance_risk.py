@@ -148,7 +148,7 @@ def _add_demographic_features(df: pd.DataFrame, random_state: int) -> pd.DataFra
         (df["age"] >= 65),
     ]
     choices = ["Young", "Young_Adult", "Middle_Age", "Senior", "Elderly"]
-    df["age_group"] = np.select(conditions, choices)
+    df["age_group"] = np.select(conditions, choices, default="Unknown")
 
     # Income brackets (socioeconomic status)
     conditions = [
@@ -157,7 +157,7 @@ def _add_demographic_features(df: pd.DataFrame, random_state: int) -> pd.DataFra
         (df["annual_mileage"] >= 15000),
     ]
     choices = ["Low", "Middle", "High"]
-    df["income_bracket"] = np.select(conditions, choices)
+    df["income_bracket"] = np.select(conditions, choices, default="Unknown")
 
     return df
 

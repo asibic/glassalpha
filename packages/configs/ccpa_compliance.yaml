@@ -10,7 +10,7 @@ reproducibility:
 
 # Dataset configuration
 data:
-  path: ~/.glassalpha/data/ccpa_compliance.csv
+  path: /Users/gabe/.glassalpha/data/ccpa_compliance.csv
   target_column: automated_decision_consent
   protected_attributes:
     - gender
@@ -68,6 +68,3 @@ metrics:
 # Professional CCPA audit report
 report:
   template: standard_audit
-  styling:
-    color_scheme: professional
-    compliance_statement: true

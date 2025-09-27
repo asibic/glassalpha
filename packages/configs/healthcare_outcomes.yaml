@@ -10,7 +10,7 @@ reproducibility:
 
 # Dataset configuration
 data:
-  path: ~/.glassalpha/data/healthcare_outcomes.csv
+  path: /Users/gabe/.glassalpha/data/healthcare_outcomes.csv
   target_column: treatment_outcome
   protected_attributes:
     - gender
@@ -68,6 +68,3 @@ metrics:
 # Professional clinical audit report
 report:
   template: standard_audit
-  styling:
-    color_scheme: professional
-    compliance_statement: true

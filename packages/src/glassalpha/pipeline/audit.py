@@ -233,7 +233,7 @@ class AuditPipeline:
 
         return data, schema
 
-    def _load_model(self, data: pd.DataFrame, schema: TabularDataSchema) -> Any:  # noqa: ANN401, C901, PLR0912, PLR0915
+    def _load_model(self, data: pd.DataFrame, schema: TabularDataSchema) -> Any:  # noqa: ANN401
         """Load or train model.
 
         Args:
@@ -289,73 +289,23 @@ class AuditPipeline:
             msg = f"Unknown model type: {model_type}"
             raise ValueError(msg)
 
-        # Initialize model with component seed
-        model_seed = get_component_seed("model")
-
         if model_path and Path(model_path).exists():
             # Load existing model
             model = model_class.from_file(Path(model_path))
             logger.info(f"Loaded model from {model_path}")
         else:
-            # Train new model
-            logger.info("Training new model (model path not found or not specified)")
+            # Train new model using configuration-driven approach
+            logger.info("Training new model from configuration")
 
             # Extract features and target
             X, y, _ = self.data_loader.extract_features_target(data, schema)  # noqa: N806
-
-            # Preprocess features for training (handle categorical variables)
             X_processed = self._preprocess_for_training(X)  # noqa: N806
 
-            # Handle different model types for training
-            if model_type == "xgboost":
-                # Train XGBoost directly and wrap it
-                import xgboost as xgb  # noqa: PLC0415
+            # Use the new train_from_config function
+            from .train import train_from_config  # noqa: PLC0415
 
-                # Convert to NumPy array to avoid pandas dtype compatibility issues with XGBoost
-                X_np = (
-                    X_processed.to_numpy(dtype="float32", copy=False)
-                    if hasattr(X_processed, "to_numpy")
-                    else X_processed
-                )
-                dtrain = xgb.DMatrix(X_np, label=y, feature_names=list(X_processed.columns))
-
-                # XGBoost parameters with seed
-                params = {
-                    "objective": "binary:logistic",
-                    "max_depth": 6,
-                    "eta": 0.1,
-                    "seed": model_seed,
-                    "random_state": model_seed,
-                }
-
-                # Train model
-                trained_model = xgb.train(params, dtrain, num_boost_round=100)
-
-                # Wrap in our wrapper
-                model = model_class(model=trained_model)
-
-            elif model_type in ["lightgbm", "logistic_regression", "sklearn_generic"]:
-                # These wrappers use fit methods - ensure they get preprocessed data
-                model = model_class()
-
-                # All these wrappers support fit method
-                if hasattr(model, "fit"):
-                    # Friend's spec: Always fit with DataFrame so feature_names_in_ is set
-                    model.fit(X_processed, y, random_state=model_seed)
-                    logger.info(f"Fitted {model_type} model with {len(X_processed.columns)} features")
-                else:
-                    # This should not happen for these model types
-                    logger.error(f"Model type {model_type} unexpectedly doesn't support fit method")
-                    msg = f"Model type {model_type} should support fit method"
-                    raise RuntimeError(msg)
-            else:
-                # Default approach
-                model = model_class()
-                if hasattr(model, "fit"):
-                    # Use preprocessed data for consistent feature handling
-                    model.fit(X_processed, y)
-
-            logger.info("Model training completed")
+            model = train_from_config(self.config, X_processed, y)
+            logger.info("Model training completed using configuration")
 
         # Store model information
         feature_importance = {}
@@ -690,7 +640,7 @@ class AuditPipeline:
 
         # Get available fairness metrics
         all_metrics = MetricRegistry.get_all()
-        fairness_metrics = {}
+        fairness_metrics = []
 
         for name, metric_class in all_metrics.items():
             # Check if it's a fairness metric
@@ -700,31 +650,29 @@ class AuditPipeline:
                 "equalized_odds",
                 "predictive_parity",
             ]:
-                fairness_metrics[name] = metric_class  # noqa: PERF403
+                fairness_metrics.append(metric_class)
 
-        results = {}
-        for metric_name, metric_class in fairness_metrics.items():
-            try:
-                metric = metric_class()
+        if not fairness_metrics:
+            logger.warning("No fairness metrics found")
+            self.results.fairness_analysis = {}
+            return
 
-                # Compute for each sensitive feature
-                for col in sensitive_features.columns:
-                    sensitive_attr = sensitive_features[col].values  # noqa: PD011
-                    result = metric.compute(y_true, y_pred, sensitive_features=sensitive_attr)
+        # Use the new fairness runner
+        from ..metrics.fairness.runner import run_fairness_metrics  # noqa: PLC0415
 
-                    if col not in results:
-                        results[col] = {}
-                    results[col][metric_name] = result
+        try:
+            fairness_results = run_fairness_metrics(
+                y_true,
+                y_pred,
+                sensitive_features,
+                fairness_metrics,
+            )
+            self.results.fairness_analysis = fairness_results
+            logger.info(f"Computed fairness metrics: {list(fairness_results.keys())}")
 
-                    logger.debug(f"Computed {metric_name} for {col}: {result}")
-
-            except Exception as e:  # noqa: BLE001
-                logger.warning(f"Failed to compute fairness metric {metric_name}: {e}")
-                if col not in results:
-                    results[col] = {}
-                results[col][metric_name] = {"error": str(e)}
-
-        self.results.fairness_analysis = results
+        except Exception as e:
+            logger.error(f"Failed to compute fairness metrics: {e}")
+            self.results.fairness_analysis = {"error": str(e)}
 
     def _compute_drift_metrics(self, X: pd.DataFrame, y: np.ndarray) -> None:  # noqa: N803, ARG002
         """Compute drift metrics (placeholder implementation).

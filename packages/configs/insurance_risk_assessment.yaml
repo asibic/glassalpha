@@ -10,11 +10,11 @@ reproducibility:
 
 # Dataset configuration
 data:
-  path: ~/.glassalpha/data/insurance_risk.csv
+  path: /Users/gabe/.glassalpha/data/insurance_risk.csv
   target_column: claim_outcome
   protected_attributes:
-    - gender
-    - age_group
+    - age
+    - marital_status
 
 # LightGBM model optimized for insurance risk assessment
 model:
@@ -67,6 +67,3 @@ metrics:
 # Professional audit report
 report:
   template: standard_audit
-  styling:
-    color_scheme: professional
-    compliance_statement: true

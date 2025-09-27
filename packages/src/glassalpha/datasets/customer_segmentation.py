@@ -175,7 +175,7 @@ def _add_customer_demographics(df: pd.DataFrame, random_state: int) -> pd.DataFr
         (df["age"] >= 65),
     ]
     choices = ["Young", "Young_Adult", "Middle_Age", "Senior", "Elderly"]
-    df["age_group"] = np.select(conditions, choices)
+    df["age_group"] = np.select(conditions, choices, default="Unknown")
 
     # Income brackets (socioeconomic status)
     conditions = [
@@ -185,7 +185,7 @@ def _add_customer_demographics(df: pd.DataFrame, random_state: int) -> pd.DataFr
         (df["income"] >= 150000),
     ]
     choices = ["Low", "Lower_Middle", "Upper_Middle", "High"]
-    df["income_bracket"] = np.select(conditions, choices)
+    df["income_bracket"] = np.select(conditions, choices, default="Unknown")
 
     # Education level proxy
     conditions = [
@@ -195,7 +195,7 @@ def _add_customer_demographics(df: pd.DataFrame, random_state: int) -> pd.DataFr
         (df["education_years"] >= 20),
     ]
     choices = ["High_School", "Bachelor", "Master", "Doctorate"]
-    df["education_level"] = np.select(conditions, choices)
+    df["education_level"] = np.select(conditions, choices, default="Unknown")
 
     return df
 

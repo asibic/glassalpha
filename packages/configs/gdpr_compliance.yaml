@@ -10,7 +10,7 @@ reproducibility:
 
 # Dataset configuration
 data:
-  path: ~/.glassalpha/data/gdpr_compliance.csv
+  path: /Users/gabe/.glassalpha/data/gdpr_compliance.csv
   target_column: marketing_consent_granted
   protected_attributes:
     - gender
@@ -68,6 +68,3 @@ metrics:
 # Professional GDPR audit report
 report:
   template: standard_audit
-  styling:
-    color_scheme: professional
-    compliance_statement: true

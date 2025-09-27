@@ -38,7 +38,10 @@ class BaseMetric:
         logger.debug(f"BaseMetric {name} initialized")
 
     def validate_inputs(
-        self, y_true: np.ndarray, y_pred: np.ndarray, sensitive_features: pd.DataFrame | None = None
+        self,
+        y_true: np.ndarray,
+        y_pred: np.ndarray,
+        sensitive_features: pd.DataFrame | np.ndarray | None = None,
     ) -> dict[str, Any]:
         """Validate common metric inputs.
 
@@ -51,6 +54,10 @@ class BaseMetric:
             Dictionary with validation results and processed inputs
 
         """
+        # Convert to numpy arrays for consistent handling
+        y_true = np.asarray(y_true)
+        y_pred = np.asarray(y_pred)
+
         # Basic shape validation
         if len(y_true) != len(y_pred):
             raise ValueError(f"Shape mismatch: y_true has {len(y_true)} samples, y_pred has {len(y_pred)}")
@@ -62,17 +69,19 @@ class BaseMetric:
             logger.warning("y_pred contains NaN values")
 
         # Sensitive features validation
-        if sensitive_features is not None and len(sensitive_features) != len(y_true):
-            raise ValueError(
-                f"Sensitive features length {len(sensitive_features)} doesn't match target length {len(y_true)}"
-            )
+        if sensitive_features is not None:
+            sensitive_features = np.asarray(sensitive_features)
+            if len(sensitive_features) != len(y_true):
+                raise ValueError(
+                    f"Sensitive features length {len(sensitive_features)} doesn't match target length {len(y_true)}",
+                )
 
         return {
             "n_samples": len(y_true),
             "y_true_type": str(y_true.dtype),
             "y_pred_type": str(y_pred.dtype),
             "has_sensitive_features": sensitive_features is not None,
-            "sensitive_feature_columns": list(sensitive_features.columns) if sensitive_features is not None else None,
+            "sensitive_feature_columns": None,  # Not applicable for numpy arrays
         }
 
     def _safe_divide(self, numerator: float, denominator: float, default: float = 0.0) -> float:

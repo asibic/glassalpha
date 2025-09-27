@@ -183,7 +183,7 @@ def _add_fraud_demographics(df: pd.DataFrame, random_state: int) -> pd.DataFrame
         (df["cardholder_age"] >= 65),
     ]
     choices = ["Young", "Young_Adult", "Middle_Age", "Senior", "Elderly"]
-    df["age_group"] = np.select(conditions, choices)
+    df["age_group"] = np.select(conditions, choices, default="Unknown")
 
     # Income proxy (based on transaction patterns)
     conditions = [
@@ -192,7 +192,7 @@ def _add_fraud_demographics(df: pd.DataFrame, random_state: int) -> pd.DataFrame
         (df["amount_avg_24h"] >= 200),
     ]
     choices = ["Low", "Middle", "High"]
-    df["income_bracket"] = np.select(conditions, choices)
+    df["income_bracket"] = np.select(conditions, choices, default="Unknown")
 
     return df
 

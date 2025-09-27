@@ -175,7 +175,7 @@ def _add_ccpa_demographics(df: pd.DataFrame, random_state: int) -> pd.DataFrame:
         (df["age"] >= 65),
     ]
     choices = ["Young", "Young_Adult", "Middle_Age", "Senior", "Elderly"]
-    df["age_group"] = np.select(conditions, choices)
+    df["age_group"] = np.select(conditions, choices, default="Unknown")
 
     # California regions (for geographic analysis)
     df["california_region"] = np.random.choice(
@@ -198,7 +198,7 @@ def _add_ccpa_demographics(df: pd.DataFrame, random_state: int) -> pd.DataFrame:
         (df["income_usd"] >= 150000),
     ]
     choices = ["Low", "Middle", "Upper_Middle", "High"]
-    df["income_bracket"] = np.select(conditions, choices)
+    df["income_bracket"] = np.select(conditions, choices, default="Unknown")
 
     return df
 

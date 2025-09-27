@@ -10,11 +10,11 @@ reproducibility:
 
 # Dataset configuration
 data:
-  path: ~/.glassalpha/data/fraud_detection.csv
+  path: /Users/gabe/.glassalpha/data/fraud_detection.csv
   target_column: is_fraud
   protected_attributes:
-    - gender
-    - age_group
+    - cardholder_age
+    - card_type
 
 # XGBoost model optimized for fraud detection
 model:
@@ -68,6 +68,3 @@ metrics:
 # Professional audit report
 report:
   template: standard_audit
-  styling:
-    color_scheme: professional
-    compliance_statement: true

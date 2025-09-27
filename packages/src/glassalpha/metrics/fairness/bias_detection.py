@@ -44,67 +44,91 @@ class DemographicParityMetric(BaseMetric):
         self,
         y_true: np.ndarray,
         y_pred: np.ndarray,
-        sensitive_features: pd.DataFrame | None = None,
+        sensitive_features: pd.DataFrame | np.ndarray | None = None,
     ) -> dict[str, float]:
         """Compute demographic parity metric.
 
         Args:
             y_true: Ground truth labels
             y_pred: Predicted labels
-            sensitive_features: DataFrame with sensitive attribute columns
+            sensitive_features: DataFrame with sensitive attribute columns or numpy array
 
         Returns:
             Dictionary with demographic parity metrics
 
         """
+        # Convert inputs to numpy arrays
+        y_true = np.asarray(y_true)
+        y_pred = np.asarray(y_pred)
+
         if sensitive_features is None:
             logger.warning("Demographic parity requires sensitive features")
             return {"demographic_parity": 0.0, "error": "No sensitive features provided"}
 
-        validation = self.validate_inputs(y_true, y_pred, sensitive_features)
+        # Handle sensitive features as numpy array or DataFrame
+        if isinstance(sensitive_features, pd.DataFrame):
+            # Multiple sensitive features
+            results = {}
+            for attr_name in sensitive_features.columns:
+                attr_values = sensitive_features[attr_name].values
+                attr_results = self._compute_single_attribute(y_true, y_pred, attr_values, attr_name)
+                results.update(attr_results)
+        else:
+            # Single sensitive feature as numpy array
+            sensitive_features = np.asarray(sensitive_features)
+            results = self._compute_single_attribute(y_true, y_pred, sensitive_features, "sensitive")
+
+        return results
+
+    def _compute_single_attribute(
+        self,
+        y_true: np.ndarray,
+        y_pred: np.ndarray,
+        sensitive_values: np.ndarray,
+        attr_name: str,
+    ) -> dict[str, float]:
+        """Compute demographic parity for a single sensitive attribute."""
+        validation = self.validate_inputs(y_true, y_pred, sensitive_values)
 
         try:
             results = {}
 
-            # Compute for each sensitive attribute
-            for attr_name in sensitive_features.columns:
-                attr_values = sensitive_features[attr_name]
-                unique_groups = np.unique(attr_values)
+            unique_groups = np.unique(sensitive_values)
 
-                # Compute selection rates for each group
-                group_rates = {}
-                for group in unique_groups:
-                    group_mask = attr_values == group
-                    group_y_pred = y_pred[group_mask]
+            # Compute selection rates for each group
+            group_rates = {}
+            for group in unique_groups:
+                group_mask = sensitive_values == group
+                group_y_pred = y_pred[group_mask]
 
-                    if len(group_y_pred) > 0:
-                        selection_rate = np.mean(group_y_pred)
-                        group_rates[f"{attr_name}_{group}"] = float(selection_rate)
-                    else:
-                        group_rates[f"{attr_name}_{group}"] = 0.0
+                if len(group_y_pred) > 0:
+                    selection_rate = np.mean(group_y_pred)
+                    group_rates[f"{attr_name}_{group}"] = float(selection_rate)
+                else:
+                    group_rates[f"{attr_name}_{group}"] = 0.0
 
-                # Calculate parity metrics
-                rates = list(group_rates.values())
-                if len(rates) >= 2:
-                    max_rate = max(rates)
-                    min_rate = min(rates)
+            # Calculate parity metrics
+            rates = list(group_rates.values())
+            if len(rates) >= 2:
+                max_rate = max(rates)
+                min_rate = min(rates)
 
-                    # Demographic parity difference
-                    parity_diff = max_rate - min_rate
-                    results[f"{attr_name}_parity_difference"] = float(parity_diff)
+                # Demographic parity difference
+                parity_diff = max_rate - min_rate
+                results[f"{attr_name}_parity_difference"] = float(parity_diff)
 
-                    # Demographic parity ratio (min/max)
-                    parity_ratio = min_rate / max_rate if max_rate > 0 else 1.0
-                    results[f"{attr_name}_parity_ratio"] = float(parity_ratio)
+                # Demographic parity ratio (min/max)
+                parity_ratio = min_rate / max_rate if max_rate > 0 else 1.0
+                results[f"{attr_name}_parity_ratio"] = float(parity_ratio)
 
-                    # Fairness indicator (within tolerance)
-                    is_fair = parity_diff <= self.tolerance
-                    results[f"{attr_name}_is_fair"] = float(is_fair)
+                # Fairness indicator (within tolerance)
+                is_fair = parity_diff <= self.tolerance
+                results[f"{attr_name}_is_fair"] = float(is_fair)
 
-                    # Add individual group rates
-                    results.update(group_rates)
+                # Add individual group rates
+                results.update(group_rates)
 
-                logger.debug(f"Demographic parity for {attr_name}: {group_rates}")
+            logger.debug(f"Demographic parity for {attr_name}: {group_rates}")
 
             # Overall fairness score (average across attributes)
             fair_indicators = [v for k, v in results.items() if k.endswith("_is_fair")]
@@ -115,8 +139,8 @@ class DemographicParityMetric(BaseMetric):
                 {
                     "n_samples": float(validation["n_samples"]),
                     "tolerance": self.tolerance,
-                    "n_sensitive_attributes": len(sensitive_features.columns),
-                }
+                    "n_sensitive_attributes": 1,
+                },
             )
 
             return results
@@ -162,76 +186,100 @@ class EqualOpportunityMetric(BaseMetric):
         self,
         y_true: np.ndarray,
         y_pred: np.ndarray,
-        sensitive_features: pd.DataFrame | None = None,
+        sensitive_features: pd.DataFrame | np.ndarray | None = None,
     ) -> dict[str, float]:
         """Compute equal opportunity metric.
 
         Args:
             y_true: Ground truth labels
             y_pred: Predicted labels
-            sensitive_features: DataFrame with sensitive attribute columns
+            sensitive_features: DataFrame with sensitive attribute columns or numpy array
 
         Returns:
             Dictionary with equal opportunity metrics
 
         """
+        # Convert inputs to numpy arrays
+        y_true = np.asarray(y_true)
+        y_pred = np.asarray(y_pred)
+
         if sensitive_features is None:
             logger.warning("Equal opportunity requires sensitive features")
             return {"equal_opportunity": 0.0, "error": "No sensitive features provided"}
 
-        validation = self.validate_inputs(y_true, y_pred, sensitive_features)
+        # Handle sensitive features as numpy array or DataFrame
+        if isinstance(sensitive_features, pd.DataFrame):
+            # Multiple sensitive features
+            results = {}
+            for attr_name in sensitive_features.columns:
+                attr_values = sensitive_features[attr_name].values
+                attr_results = self._compute_single_attribute(y_true, y_pred, attr_values, attr_name)
+                results.update(attr_results)
+        else:
+            # Single sensitive feature as numpy array
+            sensitive_features = np.asarray(sensitive_features)
+            results = self._compute_single_attribute(y_true, y_pred, sensitive_features, "sensitive")
+
+        return results
+
+    def _compute_single_attribute(
+        self,
+        y_true: np.ndarray,
+        y_pred: np.ndarray,
+        sensitive_values: np.ndarray,
+        attr_name: str,
+    ) -> dict[str, float]:
+        """Compute equal opportunity for a single sensitive attribute."""
+        validation = self.validate_inputs(y_true, y_pred, sensitive_values)
 
         try:
             results = {}
 
-            # Compute for each sensitive attribute
-            for attr_name in sensitive_features.columns:
-                attr_values = sensitive_features[attr_name]
-                unique_groups = np.unique(attr_values)
+            unique_groups = np.unique(sensitive_values)
 
-                # Compute TPR for each group
-                group_tprs = {}
-                for group in unique_groups:
-                    group_mask = attr_values == group
-                    group_y_true = y_true[group_mask]
-                    group_y_pred = y_pred[group_mask]
+            # Compute TPR for each group
+            group_tprs = {}
+            for group in unique_groups:
+                group_mask = sensitive_values == group
+                group_y_true = y_true[group_mask]
+                group_y_pred = y_pred[group_mask]
 
-                    if len(group_y_true) > 0:
-                        # Calculate TPR = TP / (TP + FN)
-                        positive_mask = group_y_true == 1
-                        if np.sum(positive_mask) > 0:
-                            tp = np.sum((group_y_true == 1) & (group_y_pred == 1))
-                            fn = np.sum((group_y_true == 1) & (group_y_pred == 0))
-                            tpr = tp / (tp + fn) if (tp + fn) > 0 else 0.0
-                        else:
-                            tpr = 0.0  # No positive cases in this group
-
-                        group_tprs[f"{attr_name}_{group}_tpr"] = float(tpr)
+                if len(group_y_true) > 0:
+                    # Calculate TPR = TP / (TP + FN)
+                    positive_mask = group_y_true == 1
+                    if np.sum(positive_mask) > 0:
+                        tp = np.sum((group_y_true == 1) & (group_y_pred == 1))
+                        fn = np.sum((group_y_true == 1) & (group_y_pred == 0))
+                        tpr = tp / (tp + fn) if (tp + fn) > 0 else 0.0
                     else:
-                        group_tprs[f"{attr_name}_{group}_tpr"] = 0.0
+                        tpr = 0.0  # No positive cases in this group
 
-                # Calculate opportunity metrics
-                tprs = list(group_tprs.values())
-                if len(tprs) >= 2:
-                    max_tpr = max(tprs)
-                    min_tpr = min(tprs)
+                    group_tprs[f"{attr_name}_{group}_tpr"] = float(tpr)
+                else:
+                    group_tprs[f"{attr_name}_{group}_tpr"] = 0.0
 
-                    # Equal opportunity difference
-                    opportunity_diff = max_tpr - min_tpr
-                    results[f"{attr_name}_opportunity_difference"] = float(opportunity_diff)
+            # Calculate opportunity metrics
+            tprs = list(group_tprs.values())
+            if len(tprs) >= 2:
+                max_tpr = max(tprs)
+                min_tpr = min(tprs)
 
-                    # Equal opportunity ratio (min/max)
-                    opportunity_ratio = min_tpr / max_tpr if max_tpr > 0 else 1.0
-                    results[f"{attr_name}_opportunity_ratio"] = float(opportunity_ratio)
+                # Equal opportunity difference
+                opportunity_diff = max_tpr - min_tpr
+                results[f"{attr_name}_opportunity_difference"] = float(opportunity_diff)
 
-                    # Fairness indicator (within tolerance)
-                    is_fair = opportunity_diff <= self.tolerance
-                    results[f"{attr_name}_is_fair"] = float(is_fair)
+                # Equal opportunity ratio (min/max)
+                opportunity_ratio = min_tpr / max_tpr if max_tpr > 0 else 1.0
+                results[f"{attr_name}_opportunity_ratio"] = float(opportunity_ratio)
 
-                    # Add individual group TPRs
-                    results.update(group_tprs)
+                # Fairness indicator (within tolerance)
+                is_fair = opportunity_diff <= self.tolerance
+                results[f"{attr_name}_is_fair"] = float(is_fair)
 
-                logger.debug(f"Equal opportunity for {attr_name}: {group_tprs}")
+                # Add individual group TPRs
+                results.update(group_tprs)
+
+            logger.debug(f"Equal opportunity for {attr_name}: {group_tprs}")
 
             # Overall fairness score
             fair_indicators = [v for k, v in results.items() if k.endswith("_is_fair")]
@@ -242,8 +290,8 @@ class EqualOpportunityMetric(BaseMetric):
                 {
                     "n_samples": float(validation["n_samples"]),
                     "tolerance": self.tolerance,
-                    "n_sensitive_attributes": len(sensitive_features.columns),
-                }
+                    "n_sensitive_attributes": 1,
+                },
             )
 
             return results
@@ -381,7 +429,7 @@ class EqualizedOddsMetric(BaseMetric):
                     "n_samples": float(validation["n_samples"]),
                     "tolerance": self.tolerance,
                     "n_sensitive_attributes": len(sensitive_features.columns),
-                }
+                },
             )
 
             return results
@@ -508,7 +556,7 @@ class PredictiveParityMetric(BaseMetric):
                     "n_samples": float(validation["n_samples"]),
                     "tolerance": self.tolerance,
                     "n_sensitive_attributes": len(sensitive_features.columns),
-                }
+                },
             )
 
             return results

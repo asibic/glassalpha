@@ -10,30 +10,36 @@ reproducibility:
 
 # Dataset configuration
 data:
-  path: ~/.glassalpha/data/customer_segmentation.csv
+  path: /Users/gabe/.glassalpha/data/customer_segmentation.csv
   target_column: customer_segment
   protected_attributes:
-    - gender
-    - age_group
+    - age
+    - income
 
-# Random Forest model for multi-class segmentation
+# XGBoost model for multi-class segmentation
 model:
-  type: sklearn_generic
+  type: xgboost
   params:
-    model_type: RandomForestClassifier
+    objective: multi:softmax
+    eval_metric: mlogloss
     n_estimators: 100
-    max_depth: 10
+    max_depth: 6
+    learning_rate: 0.1
+    subsample: 0.8
+    colsample_bytree: 0.8
+    num_class: 4
     random_state: 42
 
-# Explanation configuration (Random Forest needs KernelSHAP)
+# Explanation configuration
 explainers:
   strategy: first_compatible
   priority:
-    - kernelshap  # Random Forest requires model-agnostic explanations
+    - treeshap    # XGBoost supports TreeSHAP for exact explanations
+    - kernelshap  # Fallback for any model type
   config:
-    kernelshap:
-      n_samples: 1000
-      background_size: 100
+    treeshap:
+      max_samples: 1000
+      check_additivity: true
 
 # Multi-class specific metrics
 metrics:
@@ -57,6 +63,3 @@ metrics:
 # Professional audit report
 report:
   template: standard_audit
-  styling:
-    color_scheme: professional
-    compliance_statement: true
