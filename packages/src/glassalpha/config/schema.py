@@ -7,7 +7,7 @@ configuration files, ensuring type safety and consistency.
 from pathlib import Path
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
 class ModelConfig(BaseModel):
@@ -83,7 +83,8 @@ class MetricsConfig(BaseModel):
         description="Fairness metrics",
     )
     drift: list[str] | MetricCategory = Field(
-        default_factory=lambda: MetricCategory(metrics=["psi"]), description="Drift metrics"
+        default_factory=lambda: MetricCategory(metrics=["psi"]),
+        description="Drift metrics",
     )
     custom: dict[str, list[str]] | None = Field(None, description="Custom metric categories")
 
@@ -104,7 +105,8 @@ class RecourseConfig(BaseModel):
     enabled: bool = Field(False, description="Whether to generate recourse")
     immutable_features: list[str] = Field(default_factory=list, description="Features that cannot be changed")
     monotonic_constraints: dict[str, str] = Field(
-        default_factory=dict, description="Monotonic constraints (increase_only, decrease_only)"
+        default_factory=dict,
+        description="Monotonic constraints (increase_only, decrease_only)",
     )
     cost_function: str = Field("weighted_l1", description="Cost function for optimization")
     max_iterations: int = Field(100, description="Maximum optimization iterations")
@@ -117,7 +119,7 @@ class RecourseConfig(BaseModel):
         for feature, constraint in v.items():
             if constraint not in valid_constraints:
                 raise ValueError(
-                    f"Invalid constraint '{constraint}' for feature '{feature}'. Must be one of {valid_constraints}"
+                    f"Invalid constraint '{constraint}' for feature '{feature}'. Must be one of {valid_constraints}",
                 )
         return v
 
@@ -192,7 +194,8 @@ class AuditConfig(BaseModel):
     recourse: RecourseConfig = Field(default_factory=RecourseConfig, description="Recourse configuration")
     report: ReportConfig = Field(default_factory=ReportConfig, description="Report configuration")
     reproducibility: ReproducibilityConfig = Field(
-        default_factory=ReproducibilityConfig, description="Reproducibility configuration"
+        default_factory=ReproducibilityConfig,
+        description="Reproducibility configuration",
     )
     manifest: ManifestConfig = Field(default_factory=ManifestConfig, description="Manifest configuration")
 
@@ -201,6 +204,36 @@ class AuditConfig(BaseModel):
 
     # Additional metadata
     metadata: dict[str, Any] | None = Field(None, description="Additional metadata for audit trail")
+
+    @model_validator(mode="before")
+    @classmethod
+    def _compat_old_fields(cls, values: Any) -> Any:
+        """Back-compatibility shim for old flat field names.
+
+        Maps old schema format to new nested structure:
+        - data_path -> data.path
+        - model_config -> model
+        - output -> report
+        """
+        if isinstance(values, dict):
+            # Convert old data_path to new nested data structure
+            if "data_path" in values and "data" not in values:
+                values["data"] = {"path": values.pop("data_path")}
+
+            # Convert old model_config to new model structure
+            if "model_config" in values and "model" not in values:
+                values["model"] = values.pop("model_config")
+
+            # Convert old output to new report structure (drop path since it's now CLI-level)
+            if "output" in values and "report" not in values:
+                old_output = values.pop("output")
+                if isinstance(old_output, dict):
+                    # Extract report config fields, ignore path (now handled at CLI level)
+                    report_config = {k: v for k, v in old_output.items() if k != "path"}
+                    if report_config:
+                        values["report"] = report_config
+                    # Note: output.path is now passed directly to CLI, not in config
+        return values
 
     @field_validator("audit_profile")
     @classmethod

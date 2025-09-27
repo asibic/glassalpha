@@ -144,14 +144,21 @@ class TestGoldenReportSnapshots:
             output={"path": "dummy.pdf"},
         )
 
-        # Create minimal audit results
-        results = AuditResults(
+        # Create minimal audit results with proper manifest structure
+        from glassalpha.utils.manifest import AuditManifest
+
+        manifest = AuditManifest(
             audit_id="test-audit-123",
-            config=config,
-            model_info={},
-            explanations={},
-            metrics={},
-            manifest={},
+            config=config.to_dict(),
+            audit_profile=config.audit_profile,
+        )
+        manifest.execution.status = "completed"  # Set proper status for template
+
+        results = AuditResults(
+            model_info={"type": "logistic_regression", "version": "test"},
+            explanations={"global_importance": {"feature_1": 0.8, "feature_2": 0.2}},
+            manifest=manifest.model_dump(),  # Convert to dict for compatibility
+            success=True,
         )
 
         # Test renderer can be created

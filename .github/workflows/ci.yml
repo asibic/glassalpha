@@ -163,6 +163,20 @@ jobs:
           export MPLBACKEND=Agg
           env PYTHONPATH="" python -m pytest tests/contracts/ -v --tb=short || echo "Contract tests not found, skipping"
 
+      - name: Critical-path coverage gate
+        working-directory: packages
+        run: |
+          echo "=== Critical-path coverage gate (90%+ on core modules) ==="
+          export MPLBACKEND=Agg
+          env PYTHONPATH="" python -m pytest -q \
+            --cov=glassalpha.pipeline.audit \
+            --cov=glassalpha.report.renderer \
+            --cov=glassalpha.config.schema \
+            --cov=glassalpha.config.loader \
+            --cov=glassalpha.core \
+            --cov-fail-under=90 \
+            tests/
+
       - name: Run tests against installed package
         working-directory: packages
         run: |
