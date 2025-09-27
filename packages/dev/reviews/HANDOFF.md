@@ -62,7 +62,7 @@
 
 ### Environment Setup
 ```bash
-cd /Users/gabe/Sites/glassalpha/packages
+cd /path/to/glassalpha/packages
 source venv/bin/activate  # Activate existing virtual environment
 
 # Additional dependencies for Phase 2

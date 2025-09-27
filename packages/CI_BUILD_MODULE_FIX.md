@@ -56,7 +56,7 @@
 
 ## 🎯 Next CI Run Expectations
 
-Now that the build stage will succeed, we can expect to see results from the product-level fixes that were completed earlier:
+With the build stage now working, we can expect to see results from the product-level fixes that were completed:
 
 ### ✅ Should Pass (Previously Fixed)
 - **Explainer registry**: RuntimeError for unsupported models, XGBoost→TreeSHAP mapping

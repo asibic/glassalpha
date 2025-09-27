@@ -4,7 +4,7 @@
 
 ```bash
 # Navigate to project
-cd /Users/gabe/Sites/glassalpha/packages
+cd /path/to/glassalpha/packages
 
 # Activate virtual environment
 source venv/bin/activate

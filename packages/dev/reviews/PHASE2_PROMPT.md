@@ -126,7 +126,7 @@ The PDF must include:
 
 ```bash
 # 1. Navigate to project
-cd /Users/gabe/Sites/glassalpha/packages
+cd /path/to/glassalpha/packages
 
 # 2. Activate environment
 source venv/bin/activate

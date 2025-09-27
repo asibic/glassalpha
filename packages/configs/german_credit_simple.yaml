@@ -4,7 +4,7 @@ reproducibility:
   random_seed: 42
 
 data:
-  path: /Users/gabe/.glassalpha/data/german_credit_processed.csv
+  path: ~/.glassalpha/data/german_credit_processed.csv
   target_column: credit_risk
   feature_columns:
     - checking_account_status
