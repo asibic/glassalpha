@@ -10,6 +10,35 @@ from typing import Any
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
+class CalibrationConfig(BaseModel):
+    """Probability calibration configuration."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    method: str | None = Field(None, description="Calibration method ('isotonic' or 'sigmoid')")
+    cv: int = Field(5, description="Number of cross-validation folds")
+    ensemble: bool = Field(True, description="Whether to use ensemble calibration")
+
+    @field_validator("method")
+    @classmethod
+    def validate_method(cls, v: str | None) -> str | None:
+        """Validate calibration method."""
+        if v is None:
+            return v
+        v = v.lower()
+        if v not in {"isotonic", "sigmoid"}:
+            raise ValueError(f"Calibration method must be 'isotonic' or 'sigmoid', got: {v}")
+        return v
+
+    @field_validator("cv")
+    @classmethod
+    def validate_cv(cls, v: int) -> int:
+        """Validate CV folds."""
+        if v < 2:
+            raise ValueError(f"CV folds must be >= 2, got: {v}")
+        return v
+
+
 class ModelConfig(BaseModel):
     """Model configuration."""
 
@@ -18,6 +47,7 @@ class ModelConfig(BaseModel):
     type: str = Field(..., description="Model type (xgboost, lightgbm, logistic_regression, etc.)")
     path: Path | None = Field(None, description="Path to saved model file")
     params: dict[str, Any] | None = Field(default_factory=dict, description="Additional model parameters")
+    calibration: CalibrationConfig | None = Field(None, description="Optional probability calibration")
 
     @field_validator("type")
     @classmethod

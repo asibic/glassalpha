@@ -81,8 +81,10 @@ def generate_insurance_risk_dataset(
         freq="D",
     ).strftime("%Y-%m-%d")
 
-    # Reorder columns
-    cols = ["policy_id", "policy_start_date"] + feature_names + ["claim_outcome"]
+    # Reorder columns (include all columns, including demographic ones added later)
+    base_cols = ["policy_id", "policy_start_date"] + feature_names + ["claim_outcome"]
+    demographic_cols = ["gender", "age_group", "income_bracket"]  # Added by _add_demographic_features
+    cols = base_cols + demographic_cols
     df = df[cols]
 
     # Perform health checks on generated dataset
@@ -102,6 +104,7 @@ def generate_insurance_risk_dataset(
         "credit_score",
     ]
 
+    # Note: High cardinality in policy_start_date and policy_id is expected and acceptable
     assert_dataset_health(
         df,
         expect_cols=required_cols,

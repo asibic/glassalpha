@@ -16,15 +16,15 @@ logger = logging.getLogger(__name__)
 
 
 def train_from_config(cfg: Any, X: pd.DataFrame, y: Any) -> Any:
-    """Train a model from configuration parameters.
+    """Train a model from configuration parameters with optional calibration.
 
     Args:
-        cfg: Configuration object with model.type and model.params
+        cfg: Configuration object with model.type, model.params, and optional model.calibration
         X: Training features
         y: Target values
 
     Returns:
-        Trained model instance
+        Trained model instance (potentially calibrated)
 
     Raises:
         ValueError: If model type is not found in registry
@@ -49,7 +49,7 @@ def train_from_config(cfg: Any, X: pd.DataFrame, y: Any) -> Any:
         msg = f"Unknown model type: {model_type}"
         raise ValueError(msg)
 
-    logger.info(f"Training {model_type} model from configuration")
+    logger.info("Training %s model from configuration", model_type)
 
     # Create model instance
     model = model_class()
@@ -66,9 +66,53 @@ def train_from_config(cfg: Any, X: pd.DataFrame, y: Any) -> Any:
         msg = f"Model type {model_type} does not support fit method"
         raise RuntimeError(msg)
 
-    logger.info(f"Fitting model with parameters: {list(params.keys())}")
-    logger.info(f"Parameter values: {params}")
-    model.fit(X, y, **params)
+    logger.info("Fitting model with parameters: %s", list(params.keys()))
+    logger.info("Parameter values: %s", params)
 
-    logger.info(f"Model training completed for {model_type}")
+    # Check if we need probability predictions for calibration
+    calibration_config = getattr(cfg.model, "calibration", None)
+    require_proba = bool(calibration_config and calibration_config.method)
+
+    model.fit(X, y, require_proba=require_proba, **params)
+
+    logger.info("Model training completed for %s", model_type)
+
+    # Apply calibration if requested
+    if calibration_config and calibration_config.method:
+        from ..models.calibration import maybe_calibrate  # noqa: PLC0415
+
+        logger.info("Applying probability calibration")
+
+        # Get the underlying sklearn-compatible estimator
+        base_estimator = getattr(model, "model", model)
+
+        # Apply calibration
+        calibrated_estimator = maybe_calibrate(
+            base_estimator,
+            method=calibration_config.method,
+            cv=calibration_config.cv,
+            ensemble=calibration_config.ensemble,
+        )
+
+        # Update the model's estimator
+        if hasattr(model, "model"):
+            model.model = calibrated_estimator
+            logger.info("Updated wrapper with calibrated estimator")
+        else:
+            # For models that don't have a .model attribute, we need to handle differently
+            logger.warning("Model wrapper doesn't have .model attribute, calibration may not work properly")
+
+        # Re-fit the calibrated estimator (CalibratedClassifierCV needs this)
+        if hasattr(calibrated_estimator, "fit"):
+            # Encode labels if the wrapper has label encoding
+            y_for_calibration = y
+            if hasattr(model, "_encode_labels"):
+                y_for_calibration = model._encode_labels(y)
+            elif hasattr(model, "classes_") and hasattr(model, "_label_encoder"):
+                # Use existing label encoding if available
+                y_for_calibration = model._label_encoder.transform(y)
+
+            calibrated_estimator.fit(X, y_for_calibration)
+            logger.info("Calibrated estimator fitted successfully")
+
     return model

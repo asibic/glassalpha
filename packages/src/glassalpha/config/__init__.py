@@ -11,6 +11,7 @@ from .loader import (
 )
 from .schema import (
     AuditConfig,
+    CalibrationConfig,
     DataConfig,
     ExplainerConfig,
     ManifestConfig,
@@ -28,6 +29,7 @@ from .strict import (
 __all__ = [
     # Config schemas
     "AuditConfig",
+    "CalibrationConfig",
     "ModelConfig",
     "DataConfig",
     "ExplainerConfig",

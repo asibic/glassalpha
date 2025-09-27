@@ -223,6 +223,10 @@ def assert_dataset_health(
     dtype_issues = []
     for col in df.columns:
         if df[col].dtype == "object":
+            # Skip cardinality check for likely ID/date columns
+            if col.lower().endswith(("_id", "_date", "id", "date")):
+                continue
+
             # Check if object columns have reasonable cardinality
             n_unique = df[col].nunique()
             if n_unique > len(df) * 0.8:  # More than 80% unique values
@@ -241,7 +245,7 @@ def assert_dataset_health(
     logger.info(
         f"Dataset health check passed: {df.shape[0]} rows, {df.shape[1]} columns, "
         f"{df.select_dtypes(include=[np.number]).shape[1]} numeric, "
-        f"{df.select_dtypes(include=['object', 'string', 'category']).shape[1]} categorical"
+        f"{df.select_dtypes(include=['object', 'string', 'category']).shape[1]} categorical",
     )
 
 
