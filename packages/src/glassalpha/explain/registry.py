@@ -111,7 +111,7 @@ class ExplainerRegistry:
         compatible_explainers = TYPE_TO_EXPLAINERS.get(model_type)
         if not compatible_explainers:
             logger.debug(f"No explainer mapping for model type: {model_type}")
-            return None
+            raise RuntimeError(NO_EXPLAINER_MSG)
 
         # Find first available explainer in priority order
         for explainer_key in PRIORITY:
@@ -121,7 +121,7 @@ class ExplainerRegistry:
                 return explainer_class
 
         logger.debug(f"No compatible explainer found for model type: {model_type}")
-        return None
+        raise RuntimeError(NO_EXPLAINER_MSG)
 
     @classmethod
     def select_for_model(cls, model_type_or_obj: Any) -> type:  # noqa: ANN401
@@ -137,10 +137,8 @@ class ExplainerRegistry:
             RuntimeError: If no compatible explainer found with exact contract message
 
         """
-        explainer_class = cls.find_compatible(model_type_or_obj)
-        if explainer_class is None:
-            raise RuntimeError(NO_EXPLAINER_MSG)
-        return explainer_class
+        # find_compatible now raises RuntimeError if no compatible explainer found
+        return cls.find_compatible(model_type_or_obj)
 
 
 # Initialize registry with available explainers

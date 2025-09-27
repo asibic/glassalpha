@@ -697,7 +697,7 @@
                             </td>
                             <td class="text-small">
                                 {{ 'Increases' if importance > 0 else 'Decreases' }} prediction probability
-                                (magnitude: {{ 'High' if abs(importance) > 0.1 else ('Medium' if abs(importance) > 0.05 else 'Low') }})
+                                (magnitude: {{ 'High' if (importance|abs) > 0.1 else ('Medium' if (importance|abs) > 0.05 else 'Low') }})
                             </td>
                         </tr>
                         {% endfor %}

@@ -115,7 +115,25 @@ class BaseTabularWrapper:
             X_positional.columns = expected
             return X_positional
 
-        # 3) Otherwise reindex: drop extras, fill missing with 0
+        # 3) Check for feature mismatch before reindexing
+        actual_cols = set(X.columns)
+        expected_cols = set(expected)
+        overlap = actual_cols.intersection(expected_cols)
+
+        # If there's no overlap in feature names, this is likely an error
+        if not overlap:
+            raise ValueError(
+                f"Input features do not match trained feature set. Expected: {expected}, got: {list(X.columns)}"
+            )
+
+        # If we're missing too many features (more than half), also raise error
+        missing_count = len(expected_cols - actual_cols)
+        if missing_count > len(expected) // 2:
+            raise ValueError(
+                f"Too many missing features: expected {len(expected)}, got {len(X.columns)}, missing {missing_count}"
+            )
+
+        # Otherwise reindex: drop extras, fill missing with 0
         return X.reindex(columns=expected, fill_value=0)
 
     def save(self, path: Path) -> None:
