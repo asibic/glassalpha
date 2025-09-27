@@ -177,17 +177,13 @@ jobs:
             --cov-report=xml \
             tests/
 
-      - name: Combine coverage data
-        working-directory: packages
-        run: |
-          echo "=== Combine coverage data shards ==="
-          python -m coverage combine || true
-          python -m coverage debug data
-
       - name: Gate 1 — Critical modules coverage
         working-directory: packages
         run: |
           echo "--- Gate 1: Critical-path modules (${COV_FLOOR_CRITICAL}%+) ---"
+          # Combine & inspect coverage data before gate
+          python -m coverage combine || true
+          python -m coverage debug data  # shows which files were measured
           python -m coverage report \
             --fail-under=${COV_FLOOR_CRITICAL} \
             --include="*/glassalpha/pipeline/*,*/glassalpha/models/*,*/glassalpha/explain/*,*/glassalpha/config/*,*/glassalpha/report/renderer.py"
@@ -196,6 +192,9 @@ jobs:
         working-directory: packages
         run: |
           echo "--- Gate 2: Overall sanity floor (${COV_FLOOR_OVERALL}%+) ---"
+          # Combine & inspect coverage data before gate
+          python -m coverage combine || true
+          python -m coverage debug data  # shows which files were measured
           python -m coverage report --fail-under=${COV_FLOOR_OVERALL}
 
       - name: Run tests against installed package
