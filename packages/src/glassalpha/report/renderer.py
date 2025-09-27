@@ -162,13 +162,16 @@ class AuditReportRenderer:
 
         model_performance = normalize_metrics(audit_results.model_performance)
 
+        # Normalize explanations to ensure all importances are scalar floats
+        normalized_explanations = self._normalize_explanations(audit_results.explanations)
+
         # Add core audit results
         context.update(
             {
                 "model_performance": model_performance,
                 "fairness_analysis": audit_results.fairness_analysis,
                 "drift_analysis": audit_results.drift_analysis,
-                "explanations": audit_results.explanations,
+                "explanations": normalized_explanations,
                 "data_summary": audit_results.data_summary,
                 "schema_info": audit_results.schema_info,
                 "model_info": audit_results.model_info,
@@ -360,6 +363,67 @@ class AuditReportRenderer:
                 mp[k] = {"value": float(v)}
 
         return mp
+
+    def _normalize_explanations(self, explanations: dict[str, Any]) -> dict[str, Any]:
+        """Normalize explanations to ensure all importances are scalar floats for template rendering.
+
+        Args:
+            explanations: Raw explanations dictionary
+
+        Returns:
+            Normalized explanations with scalar importance values
+
+        """
+        if not explanations:
+            return explanations
+
+        # Create a copy to avoid modifying the original
+        normalized = explanations.copy()
+
+        # Normalize global_importance if it exists
+        if "global_importance" in normalized:
+            normalized["global_importance"] = self._normalize_importance_dict(
+                normalized["global_importance"],
+            )
+
+        return normalized
+
+    def _normalize_importance_dict(self, importance_dict: dict[str, Any]) -> dict[str, float]:
+        """Normalize importance dictionary to ensure all values are scalar floats.
+
+        Args:
+            importance_dict: Dictionary with feature names and importance values
+
+        Returns:
+            Dictionary with scalar float importance values
+
+        """
+        if not importance_dict:
+            return {}
+
+        normalized = {}
+        for feature, importance in importance_dict.items():
+            try:
+                # Convert to numpy array and take mean if it's multi-dimensional
+                import numpy as np  # noqa: PLC0415
+
+                arr = np.asarray(importance)
+                if arr.ndim == 0:
+                    # Already a scalar
+                    normalized[feature] = float(arr)
+                else:
+                    # Multi-dimensional - take mean to get scalar
+                    normalized[feature] = float(np.mean(arr))
+            except (TypeError, ValueError, AttributeError):
+                # Fallback - try to convert directly to float
+                try:
+                    normalized[feature] = float(importance)
+                except (TypeError, ValueError):
+                    # If all else fails, use 0.0
+                    normalized[feature] = 0.0
+                    logger.warning(f"Could not normalize importance for feature {feature}: {importance}")
+
+        return normalized
 
 
 def render_audit_report(

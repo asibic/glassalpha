@@ -94,10 +94,32 @@ class BaseTabularWrapper:
         Returns:
             Aligned features with proper column handling
 
+        Raises:
+            ValueError: If features cannot be aligned and strict validation is needed
+
         """
         from glassalpha.models._features import align_features  # noqa: PLC0415
 
         feature_names = getattr(self, "feature_names_", None)
+
+        # For strict validation, check for mismatched features before alignment
+        if PANDAS_AVAILABLE and hasattr(X, "columns") and feature_names:
+            expected = list(feature_names)
+            actual = list(X.columns)
+
+            # If it's not a simple rename (same width), check for strict mismatch
+            if len(actual) != len(expected) or set(actual) != set(expected):
+                missing = [c for c in expected if c not in actual]
+                extra = [c for c in actual if c not in expected]
+
+                # If there are both missing and extra features, this might be a true mismatch
+                # rather than just a column order issue
+                if missing and extra and len(missing) == len(expected):
+                    # Complete mismatch - no overlap in features
+                    raise ValueError(
+                        f"Feature mismatch: expected {expected}; missing {missing}; extra {extra}",
+                    )
+
         return align_features(X, feature_names)
 
     def save(self, path: Path) -> None:

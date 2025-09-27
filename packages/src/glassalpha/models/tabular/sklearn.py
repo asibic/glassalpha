@@ -518,7 +518,7 @@ if SKLEARN_AVAILABLE:
                     else:
                         # Invalid model data - missing required fields
                         raise ValueError(
-                            "Invalid model data: legacy format must contain coef_, intercept_, and classes_"
+                            "Invalid model data: legacy format must contain coef_, intercept_, and classes_",
                         )
                 else:
                     raise ValueError("No model data found in legacy format")
@@ -538,9 +538,11 @@ if SKLEARN_AVAILABLE:
                     self._is_fitted = obj.get("_is_fitted", True)
                 except Exception as e:
                     raise ValueError(
-                        f"Failed to load model from {path_obj}: unable to parse as JSON or joblib format"
+                        f"Failed to load model from {path_obj}: unable to parse as JSON or joblib format",
                     ) from e
-            except (FileNotFoundError, KeyError) as e:
+            except FileNotFoundError:
+                raise  # Let FileNotFoundError bubble up unchanged for tests
+            except KeyError as e:
                 raise ValueError(f"Failed to load model from {path_obj}: {e}") from e
 
             # Friend's spec: Ensure model is not None after loading

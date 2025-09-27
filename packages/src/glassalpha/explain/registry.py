@@ -81,7 +81,7 @@ class ExplainerRegistry:
         # Extract model type string
         if isinstance(model_type_or_obj, str):
             model_type = model_type_or_obj.lower()
-        # Try to get model type from wrapper object
+        # Try to get model type from wrapper object - prefer explicit methods
         elif hasattr(model_type_or_obj, "get_model_type"):
             try:
                 model_type = model_type_or_obj.get_model_type().lower()
@@ -92,8 +92,15 @@ class ExplainerRegistry:
                 model_type = model_type_or_obj.model_type.lower()
             except Exception:  # noqa: BLE001
                 model_type = ""
+        # Fallback to get_model_info() for compatibility with existing objects
+        elif hasattr(model_type_or_obj, "get_model_info"):
+            try:
+                model_info = model_type_or_obj.get_model_info()
+                model_type = (model_info or {}).get("type", "").lower()
+            except Exception:  # noqa: BLE001
+                model_type = ""
         else:
-            # Fallback to class name
+            # Final fallback to class name
             model_type = type(model_type_or_obj).__name__.lower()
 
         if not model_type:
