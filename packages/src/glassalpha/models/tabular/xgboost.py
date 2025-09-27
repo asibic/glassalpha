@@ -69,6 +69,33 @@ class XGBoostWrapper(BaseTabularWrapper):
         else:
             logger.info("XGBoostWrapper initialized without model")
 
+    def _canonicalize_params(self, kwargs: dict[str, Any]) -> dict[str, Any]:
+        """Canonicalize XGBoost parameters to handle aliases and ensure consistency.
+
+        Args:
+            kwargs: Raw parameters from configuration
+
+        Returns:
+            Canonicalized parameters
+
+        """
+        params = dict(kwargs)
+
+        # Handle seed aliases
+        if "random_state" not in params and "seed" in params:
+            params["random_state"] = params["seed"]
+
+        # Handle boosting rounds aliases
+        if "n_estimators" not in params and "num_boost_round" in params:
+            params["n_estimators"] = params["num_boost_round"]
+
+        # Coerce multi:softmax to multi:softprob for audits (need predict_proba)
+        if params.get("objective") == "multi:softmax":
+            logger.warning("Coercing multi:softmax to multi:softprob for audit compatibility (predict_proba required)")
+            params["objective"] = "multi:softprob"
+
+        return params
+
     def fit(self, X: Any, y: Any, **kwargs: Any) -> "XGBoostWrapper":  # noqa: ANN401, N803
         """Fit XGBoost model with training data.
 
@@ -112,10 +139,10 @@ class XGBoostWrapper(BaseTabularWrapper):
             else:
                 defaults["objective"] = "binary:logistic"
 
-        # Merge defaults with kwargs (kwargs win)
-        params = {**defaults, **kwargs}
+        # Canonicalize parameters to handle aliases
+        params = self._canonicalize_params({**defaults, **kwargs})
 
-        # Validate objective/num_class consistency
+        # Validate objective/num_class consistency after canonicalization
         objective = params.get("objective", "")
         num_class = params.get("num_class")
 
@@ -133,8 +160,8 @@ class XGBoostWrapper(BaseTabularWrapper):
         sklearn_model = XGBClassifier(**params)
         sklearn_model.fit(X, y_enc)
 
-        # Convert to Booster for consistency with rest of the codebase
-        self.model = sklearn_model.get_booster()
+        # Keep XGBClassifier for full functionality (predict_proba, etc.)
+        self.model = sklearn_model
 
         # Mark as fitted
         self._is_fitted = True
@@ -259,25 +286,15 @@ class XGBoostWrapper(BaseTabularWrapper):
             X = align_features(X, self.feature_names_)
 
         # Get encoded predictions (0..k-1)
-        import xgboost as xgb  # noqa: PLC0415
-
-        # Convert back to DMatrix for prediction
-        dmatrix = xgb.DMatrix(X)
-
-        # Get raw predictions
-        raw_preds = self.model.predict(dmatrix)
+        encoded_preds = self.model.predict(X)
 
         # Convert to class indices
         if self.n_classes_ > 2:
-            # Multi-class: argmax to get class indices
-            if raw_preds.ndim > 1:
-                class_indices = np.argmax(raw_preds, axis=1)
-            else:
-                # This shouldn't happen for multiclass, but handle gracefully
-                class_indices = (raw_preds > self.BINARY_THRESHOLD).astype(int)
+            # Multi-class: argmax returns class indices
+            class_indices = np.argmax(encoded_preds, axis=1) if encoded_preds.ndim > 1 else encoded_preds
         else:
             # Binary: threshold predictions
-            class_indices = (raw_preds > self.BINARY_THRESHOLD).astype(int)
+            class_indices = (encoded_preds > self.BINARY_THRESHOLD).astype(int)
 
         # Map indices back to original labels
         predictions = self.classes_[class_indices.astype(int)]
@@ -307,28 +324,14 @@ class XGBoostWrapper(BaseTabularWrapper):
             X = align_features(X, self.feature_names_)
 
         # Get probabilities from XGBoost
-        # We need to use XGBClassifier for predict_proba, not the raw Booster
-        import xgboost as xgb  # noqa: PLC0415
+        probs = self.model.predict_proba(X)
 
-        # Convert back to DMatrix for prediction
-        dmatrix = xgb.DMatrix(X)
-
-        # Get raw predictions (probabilities for multiclass, logits for binary)
-        raw_preds = self.model.predict(dmatrix)
-
-        # Handle different output formats
-        if self.n_classes_ > 2:
-            # Multi-class: raw_preds should already be probabilities
-            probs = raw_preds
-        # Binary: convert logits to probabilities
-        elif raw_preds.ndim == 1:
-            # Single output - convert to probabilities
-            proba1 = 1.0 / (1.0 + np.exp(-raw_preds))  # Sigmoid
+        # Ensure shape (n, k) even for binary
+        if probs.ndim == 1:
+            # Binary case - XGBoost sometimes returns 1D array
+            proba1 = probs
             proba0 = 1.0 - proba1
             probs = np.column_stack([proba0, proba1])
-        else:
-            # Already in probability format
-            probs = raw_preds
 
         logger.debug(f"Generated probability predictions for {len(X)} samples")
         return probs

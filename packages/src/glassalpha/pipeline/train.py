@@ -34,6 +34,15 @@ def train_from_config(cfg: Any, X: pd.DataFrame, y: Any) -> Any:
     # Get model type from config
     model_type = cfg.model.type
 
+    # Ensure model modules are imported for registration
+    if (
+        model_type == "xgboost"
+        or model_type == "lightgbm"
+        or model_type == "logistic_regression"
+        or model_type == "sklearn_generic"
+    ):
+        pass
+
     # Get model class from registry
     model_class = ModelRegistry.get(model_type)
     if not model_class:
