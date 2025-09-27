@@ -213,7 +213,30 @@ class AuditPipeline:
         # Load data
         data = self.data_loader.load(data_path, schema)
 
-        # Validate schema
+        # First-class schema validation before proceeding
+        from ..data.schema import get_schema_summary, validate_config_schema, validate_data_quality  # noqa: PLC0415
+
+        try:
+            # Convert config to dict for schema validation
+            config_dict = {"data": self.config.data.model_dump()}
+            validated_schema = validate_config_schema(data, config_dict)
+
+            # Run data quality checks
+            validate_data_quality(data, validated_schema)
+
+            # Log schema summary
+            schema_summary = get_schema_summary(data, validated_schema)
+            logger.info(
+                f"Schema validation passed: {schema_summary['n_features']} features, "
+                f"{schema_summary['n_classes']} classes, "
+                f"{schema_summary['n_protected_attributes']} protected attributes"
+            )
+
+        except ValueError as e:
+            logger.error(f"Schema validation failed: {e}")
+            raise
+
+        # Validate schema (legacy validation)
         self.data_loader.validate_schema(data, schema)
 
         # Store data information in results
@@ -248,19 +271,29 @@ class AuditPipeline:
 
         # Default to trainable model if no config provided (E2E compliance)
         if not hasattr(self.config, "model") or self.config.model is None:
-            from glassalpha.models.tabular.sklearn import LogisticRegressionWrapper  # noqa: PLC0415
-
-            model = LogisticRegressionWrapper()
             logger.info("Using default trainable model: LogisticRegressionWrapper")
 
-            # Extract features and target for fitting
+            # Create default config for LogisticRegression
+            from types import SimpleNamespace  # noqa: PLC0415
+
+            default_model_config = SimpleNamespace()
+            default_model_config.type = "logistic_regression"
+            default_model_config.params = {"random_state": get_component_seed("model")}
+
+            # Create temporary config with default model
+            temp_config = SimpleNamespace()
+            temp_config.model = default_model_config
+            temp_config.reproducibility = getattr(self.config, "reproducibility", None)
+
+            # Extract features and target for training
             X, y, _ = self.data_loader.extract_features_target(data, schema)  # noqa: N806
             X_processed = self._preprocess_for_training(X)  # noqa: N806
 
-            # Fit with component seed
-            model_seed = get_component_seed("model")
-            model.fit(X_processed, y, random_state=model_seed)
-            logger.info("Default model fitted successfully")
+            # Use train_from_config for consistency
+            from .train import train_from_config  # noqa: PLC0415
+
+            model = train_from_config(temp_config, X_processed, y)
+            logger.info("Default model training completed using configuration")
 
             # Store model info and tracking
             self.results.model_info = {
@@ -520,11 +553,15 @@ class AuditPipeline:
             model_needs_fitting = True
 
         if model_needs_fitting:
+            logger.warning("Model not fitted - this should not happen with proper wrapper-based training")
+            logger.warning("All models should be trained via train_from_config() in _load_model()")
+
+            # This is a fallback that should rarely be used
             if not hasattr(self.model, "fit"):
                 msg = f"Model type {type(self.model).__name__} needs fitting but doesn't support fit method"
                 raise RuntimeError(msg)
 
-            logger.info("Model not fitted, fitting with available data")
+            logger.info("Fallback: fitting model with available data")
             model_seed = (
                 self.manifest_generator.manifest.seeds.get("model", 42)
                 if hasattr(self.manifest_generator, "manifest")
@@ -535,8 +572,14 @@ class AuditPipeline:
             if hasattr(self.config, "reproducibility") and self.config.reproducibility:
                 model_seed = getattr(self.config.reproducibility, "random_state", model_seed)
 
-            self.model.fit(X_processed, y_true, random_state=model_seed)
-            logger.info("Model fitted successfully with available data")
+            # Use wrapper fit method with proper parameters
+            if hasattr(self.config, "model") and hasattr(self.config.model, "params"):
+                model_params = dict(self.config.model.params)
+                model_params["random_state"] = model_seed
+                self.model.fit(X_processed, y_true, **model_params)
+            else:
+                self.model.fit(X_processed, y_true, random_state=model_seed)
+            logger.info("Fallback model fitting completed")
 
         # Generate predictions
         y_pred = self.model.predict(X_processed)

@@ -89,34 +89,25 @@ class XGBoostWrapper(BaseTabularWrapper):
         if "n_estimators" not in params and "num_boost_round" in params:
             params["n_estimators"] = params["num_boost_round"]
 
-        # Filter out XGBoost-specific parameters not supported by XGBClassifier
-        # XGBClassifier doesn't support num_class, num_boost_round, etc.
-        xgb_specific_params = ["num_class", "num_boost_round"]
-        for param in xgb_specific_params:
-            if param in params:
-                logger.warning(f"Removing XGBoost-specific parameter '{param}' not supported by XGBClassifier")
-                del params[param]
-
-        # Coerce multi:softmax to multi:softprob for audits (need predict_proba)
-        if params.get("objective") == "multi:softmax":
-            logger.warning("Coercing multi:softmax to multi:softprob for audit compatibility (predict_proba required)")
-            params["objective"] = "multi:softprob"
+        # Keep num_class - do not filter it out, it's needed for validation
+        # XGBClassifier will handle it appropriately
 
         return params
 
-    def fit(self, X: Any, y: Any, **kwargs: Any) -> "XGBoostWrapper":  # noqa: ANN401, N803
+    def fit(self, X: Any, y: Any, require_proba: bool = True, **kwargs: Any) -> "XGBoostWrapper":  # noqa: ANN401, N803
         """Fit XGBoost model with training data.
 
         Args:
             X: Training features (DataFrame or array)
             y: Target values
+            require_proba: If True, ensure model can produce probabilities for audits
             **kwargs: Additional parameters including objective, num_class, etc.
 
         Returns:
             Self for method chaining
 
         Raises:
-            ValueError: If objective and num_class are inconsistent
+            ValueError: If objective and num_class are inconsistent with data
 
         """
         import numpy as np  # noqa: PLC0415
@@ -138,26 +129,30 @@ class XGBoostWrapper(BaseTabularWrapper):
         defaults = {"max_depth": 6, "eta": 0.1}
 
         # Auto-infer objective if not provided
-        if "objective" not in kwargs:
-            if self.n_classes_ > 2:
-                defaults["objective"] = "multi:softprob"
-                # Set num_class if not provided for multiclass
-                if "num_class" not in kwargs:
-                    kwargs["num_class"] = self.n_classes_
-            else:
-                defaults["objective"] = "binary:logistic"
+        obj = kwargs.get("objective")
+        if obj is None:
+            obj = "multi:softprob" if self.n_classes_ > 2 else "binary:logistic"
+            kwargs["objective"] = obj
+
+        # Handle require_proba: coerce multi:softmax to multi:softprob for audit compatibility
+        if require_proba and obj == "multi:softmax":
+            logger.warning("Coercing multi:softmax to multi:softprob for audit compatibility (predict_proba required)")
+            kwargs["objective"] = "multi:softprob"
+            obj = "multi:softprob"
+
+        # Strict validations before training
+        if "binary" in obj and self.n_classes_ > 2:
+            msg = f"Binary objective '{obj}' incompatible with {self.n_classes_} classes"
+            raise ValueError(msg)
+
+        if obj.startswith("multi:"):
+            num_class_cfg = kwargs.get("num_class", self.n_classes_)
+            if num_class_cfg != self.n_classes_:
+                msg = f"num_class={num_class_cfg} does not match observed classes={self.n_classes_}"
+                raise ValueError(msg)
 
         # Canonicalize parameters to handle aliases
         params = self._canonicalize_params({**defaults, **kwargs})
-
-        # Validate objective consistency after canonicalization
-        objective = params.get("objective", "")
-
-        # For XGBClassifier, objective validation is handled automatically
-        # Just ensure binary objective isn't used with multi-class data
-        if "binary" in objective and self.n_classes_ > 2:
-            msg = f"Binary objective '{objective}' incompatible with {self.n_classes_} classes"
-            raise ValueError(msg)
 
         # Create and fit XGBoost model
         from xgboost import XGBClassifier  # noqa: PLC0415

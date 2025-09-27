@@ -85,6 +85,30 @@ def generate_insurance_risk_dataset(
     cols = ["policy_id", "policy_start_date"] + feature_names + ["claim_outcome"]
     df = df[cols]
 
+    # Perform health checks on generated dataset
+    from ..data.gen_utils import assert_dataset_health  # noqa: PLC0415
+
+    required_cols = [
+        "claim_outcome",
+        "age",
+        "gender",
+        "age_group",
+        "annual_mileage",
+        "vehicle_value",
+        "deductible_amount",
+        "coverage_limit",
+        "years_insured",
+        "previous_claims",
+        "credit_score",
+    ]
+
+    assert_dataset_health(
+        df,
+        expect_cols=required_cols,
+        target_col="claim_outcome",
+        protected_cols=["gender", "age_group"],
+    )
+
     if output_path:
         output_path = Path(output_path)
         output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -133,13 +157,15 @@ def _transform_features(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def _add_demographic_features(df: pd.DataFrame, random_state: int) -> pd.DataFrame:
-    """Add demographic features for fairness analysis."""
+    """Add demographic features for fairness analysis using safe utilities."""
+    from ..data.gen_utils import safe_categorical_select  # noqa: PLC0415
+
     np.random.seed(random_state)
 
     # Gender (protected attribute)
     df["gender"] = np.random.choice(["Male", "Female"], size=len(df))
 
-    # Age groups (protected attribute)
+    # Age groups (protected attribute) - using safe categorical selection
     conditions = [
         (df["age"] < 25),
         (df["age"] >= 25) & (df["age"] < 35),
@@ -148,16 +174,16 @@ def _add_demographic_features(df: pd.DataFrame, random_state: int) -> pd.DataFra
         (df["age"] >= 65),
     ]
     choices = ["Young", "Young_Adult", "Middle_Age", "Senior", "Elderly"]
-    df["age_group"] = np.select(conditions, choices, default="Unknown")
+    df["age_group"] = safe_categorical_select(conditions, choices, "Unknown")
 
-    # Income brackets (socioeconomic status)
+    # Income brackets (socioeconomic status) - using safe categorical selection
     conditions = [
         (df["annual_mileage"] < 8000),
         (df["annual_mileage"] >= 8000) & (df["annual_mileage"] < 15000),
         (df["annual_mileage"] >= 15000),
     ]
     choices = ["Low", "Middle", "High"]
-    df["income_bracket"] = np.select(conditions, choices, default="Unknown")
+    df["income_bracket"] = safe_categorical_select(conditions, choices, "Unknown")
 
     return df
 

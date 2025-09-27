@@ -127,7 +127,7 @@ class RecourseConfig(BaseModel):
 class ReportConfig(BaseModel):
     """Report generation configuration."""
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="ignore")  # Allow unknown fields like styling
 
     template: str = Field("standard_audit", description="Report template name")
     output_format: str = Field("pdf", description="Output format (pdf, html, json)")

@@ -156,16 +156,40 @@ def load_config(config_dict: dict[str, Any], profile_name: str | None = None, st
     if strict:
         config_dict["strict_mode"] = True
 
+    # Import warning utilities
+    from .warnings import (  # noqa: PLC0415
+        check_config_security,
+        suggest_config_improvements,
+        validate_config_completeness,
+        warn_deprecated_options,
+        warn_unknown_keys,
+    )
+
+    # Check for deprecated options and security issues
+    warn_deprecated_options(config_dict)
+    check_config_security(config_dict)
+
     # Apply defaults and validate
     config_dict = apply_profile_defaults(config_dict, config_dict.get("audit_profile"))
     audit_config = validate_config(config_dict)
 
+    # Warn about unknown keys in non-critical sections
+    warn_unknown_keys(config_dict, audit_config.report, "report")
+    if hasattr(audit_config, "recourse") and audit_config.recourse:
+        warn_unknown_keys(config_dict, audit_config.recourse, "recourse")
+
+    # Validate completeness and suggest improvements (unless in strict mode)
+    if not (audit_config.strict_mode or strict):
+        validate_config_completeness(config_dict)
+        suggest_config_improvements(config_dict)
+
     # Apply strict mode validation if enabled
     if audit_config.strict_mode or strict:
-        from .strict import validate_strict_mode
+        from .strict import validate_strict_mode  # noqa: PLC0415
 
         validate_strict_mode(audit_config)
 
+    logger.info("Configuration validated successfully")
     return audit_config
 
 
