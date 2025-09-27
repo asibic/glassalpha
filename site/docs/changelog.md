@@ -66,9 +66,9 @@ See [Installation Guide](getting-started/installation.md) for complete setup ins
 - **September 2024**: End-to-end testing and documentation completion
 - **September 24, 2024**: Production release v0.1.0
 
-## Future Enhancement Areas
+## Potential Future Enhancement Areas
 
-Future releases may include enhancements based on community needs:
+Potential future releases may include enhancements based on community needs:
 
 - Additional model type support
 - Extended compliance framework coverage

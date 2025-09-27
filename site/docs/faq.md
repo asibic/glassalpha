@@ -207,11 +207,11 @@ Deep learning models can be supported through the generic model interface, but:
 
 ### What about time series or text models?
 
-GlassAlpha currently focuses on **tabular data** for classification tasks. Additional data modalities may be supported in future versions based on user demand and community contributions:
+GlassAlpha currently focuses on **tabular data** for classification tasks. Additional data modalities may be supported in potential future versions based on user demand and community contributions:
 
-- **Time Series**: Under consideration for future releases
-- **Text/NLP**: Under consideration for future releases
-- **Computer Vision**: Under consideration for future releases
+- **Time Series**: Under consideration for potential future releases
+- **Text/NLP**: Under consideration for potential future releases
+- **Computer Vision**: Under consideration for potential future releases
 
 ## Compliance & Regulatory
 

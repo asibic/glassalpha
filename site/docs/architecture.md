@@ -306,7 +306,7 @@ def deep_shap_explain():
     # Enterprise implementation
 ```
 
-**Future Approach (Package Separation):**
+**Potential Future Approach (Package Separation):**
 ```python
 # glassalpha (OSS) - Core functionality only
 # glassalpha-enterprise - Advanced features in separate package
@@ -363,10 +363,10 @@ The architecture provides multiple extension points:
 - **Data integrity** - Hash verification detects changes
 - **Output verification** - PDF byte-level comparison for reproducibility
 
-## Future Architecture Considerations
+## Potential Future Architecture Considerations
 
 ### Extensibility Planning
-The current architecture supports planned extensions:
+The current architecture supports potential future extensions:
 
 - **New Model Types** - LLMs, vision models through same interfaces
 - **New Explanation Methods** - Gradient-based, attention analysis
@@ -379,7 +379,7 @@ The current architecture supports planned extensions:
 - **Documentation** - Architecture decisions documented for future maintainers
 - **Performance monitoring** - Metrics collection for optimization guidance
 
-This architecture balances immediate needs (professional tabular ML auditing) with future extensibility, ensuring GlassAlpha can evolve while maintaining stability and trust for regulated industry use.
+This architecture balances immediate needs (professional tabular ML auditing) with potential future extensibility, ensuring GlassAlpha can evolve while maintaining stability and trust for regulated industry use.
 
 ---
 

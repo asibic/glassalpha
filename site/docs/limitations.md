@@ -175,7 +175,7 @@ Be aware of:
 - Sufficient sample sizes for statistical testing
 - Reasonable feature-to-sample ratios
 
-## Future Enhancement Areas
+## Potential Future Enhancement Areas
 
 GlassAlpha may evolve to include:
 - Enhanced model type support based on user needs

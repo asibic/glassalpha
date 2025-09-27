@@ -25,7 +25,7 @@ Complete installation instructions for GlassAlpha on different platforms and env
 
 ### Standard Installation (Recommended)
 
-GlassAlpha is currently distributed as source code via GitHub. PyPI distribution may be available in future releases.
+GlassAlpha is currently distributed as source code via GitHub. PyPI distribution may be available in potential future releases.
 
 ```bash
 # Clone the repository

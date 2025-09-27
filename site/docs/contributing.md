@@ -599,7 +599,7 @@ Understanding our direction helps target valuable contributions:
 - Better error handling and user experience
 - Comprehensive documentation and examples
 
-**Future Considerations** (community-driven):
+**Potential Future Considerations** (community-driven):
 - Additional data modalities based on demand
 - Extended compliance framework support
 - Enhanced integration capabilities
