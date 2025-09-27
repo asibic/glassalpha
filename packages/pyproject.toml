@@ -149,7 +149,7 @@ testpaths = ["tests"]
 branch = true
 source = ["glassalpha"]          # measure the installed package
 relative_files = true
-parallel = true
+parallel = false                 # disable shards to simplify coverage collection in CI
 
 [tool.coverage.paths]
 # Unify local src and site-packages under one logical path to fix "module-not-measured" warnings

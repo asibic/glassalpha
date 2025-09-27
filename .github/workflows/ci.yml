@@ -177,13 +177,20 @@ jobs:
             --cov-report=xml \
             tests/
 
+      - name: Combine coverage data
+        working-directory: packages
+        run: |
+          echo "=== Combine coverage data shards ==="
+          python -m coverage combine || true
+          python -m coverage debug data
+
       - name: Gate 1 — Critical modules coverage
         working-directory: packages
         run: |
           echo "--- Gate 1: Critical-path modules (${COV_FLOOR_CRITICAL}%+) ---"
           python -m coverage report \
-            --include="*site-packages/glassalpha/core/registry.py,*site-packages/glassalpha/config/schema.py,*site-packages/glassalpha/models/tabular/base.py,*site-packages/glassalpha/pipeline/audit.py,*site-packages/glassalpha/config/loader.py,*site-packages/glassalpha/report/renderer.py" \
-            --fail-under=${COV_FLOOR_CRITICAL}
+            --fail-under=${COV_FLOOR_CRITICAL} \
+            --include="*/glassalpha/pipeline/*,*/glassalpha/models/*,*/glassalpha/explain/*,*/glassalpha/config/*,*/glassalpha/report/renderer.py"
 
       - name: Gate 2 — Overall sanity floor
         working-directory: packages
