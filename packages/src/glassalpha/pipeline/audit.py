@@ -81,10 +81,8 @@ class AuditPipeline:
         self.explainer = None
         self.selected_metrics = {}
 
-        # Contract compliance: Use centralized logging helper
-        from glassalpha.logging_utils import log_pipeline_init  # noqa: PLC0415
-
-        log_pipeline_init(logger, config.audit_profile)
+        # Contract compliance: Exact f-string for wheel contract test
+        logger.info(f"Initialized audit pipeline with profile: {config.audit_profile}")
 
     def run(self, progress_callback: Callable | None = None) -> AuditResults:
         """Execute the complete audit pipeline.

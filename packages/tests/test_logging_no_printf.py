@@ -19,7 +19,7 @@ LOG_METHODS = {"debug", "info", "warning", "error", "critical", "exception"}
 
 def test_no_printf_style_logging_single_arg_only():
     """Ensure all logging calls use single-argument format (no printf-style)."""
-    src_root = pathlib.Path(__file__).parents[2] / "src" / "glassalpha"
+    src_root = pathlib.Path(__file__).parents[1] / "src" / "glassalpha"
     offenders = []
 
     for path in src_root.rglob("*.py"):
@@ -49,7 +49,7 @@ def test_no_printf_style_logging_single_arg_only():
 
 def test_pipeline_init_message_exact_format():
     """Ensure pipeline init message uses exact expected format."""
-    src_root = pathlib.Path(__file__).parents[2] / "src" / "glassalpha"
+    src_root = pathlib.Path(__file__).parents[1] / "src" / "glassalpha"
     pipeline_file = src_root / "pipeline" / "audit.py"
 
     if not pipeline_file.exists():

@@ -23,6 +23,15 @@ from .seeds import get_seeds_manifest
 logger = logging.getLogger(__name__)
 
 
+def _safe_platform() -> str:
+    """Get platform information safely, avoiding subprocess decode issues."""
+    try:
+        return platform.platform()
+    except (AttributeError, OSError, UnicodeDecodeError):
+        # Fallback to basic system info when platform.platform() fails
+        return f"{platform.system()} {platform.release()}"
+
+
 class EnvironmentInfo(BaseModel):
     """System and environment information."""
 
@@ -120,8 +129,8 @@ class AuditManifest(BaseModel):
     environment: EnvironmentInfo = Field(
         default_factory=lambda: EnvironmentInfo(
             python_version=platform.python_version(),
-            platform=platform.platform(),
-            architecture=f"{8 * struct.calcsize('P')}-bit/{platform.machine()}",
+            platform=_safe_platform(),
+            architecture=f"{8 * struct.calcsize('P')}-bit/{platform.machine() or 'unknown'}",
             processor=platform.processor() or "unknown",
             hostname=platform.node(),
             user=Path.home().name,
@@ -498,12 +507,12 @@ class ManifestGenerator:
 
         # Contract compliance: Collect git info with proper commands per triage
         info = {
-            "commit_sha": run_text("git", "rev-parse", "--short", "HEAD"),
+            "commit_sha": run_text("git", "rev-parse", "HEAD"),
             "branch": run_text("git", "rev-parse", "--abbrev-ref", "HEAD"),
+            "porcelain_status": run_text("git", "status", "--porcelain"),
             "remote_url": run_text("git", "config", "--get", "remote.origin.url"),
             "last_commit_message": run_text("git", "log", "-1", "--pretty=%B"),
-            "last_commit_date": run_text("git", "log", "-1", "--date=iso-strict", "--pretty=%cd"),
-            "porcelain_status": run_text("git", "status", "--porcelain"),
+            "last_commit_date": run_text("git", "log", "-1", "--pretty=%ci"),
         }
 
         # Contract compliance: Return None only if git not available (FileNotFoundError)

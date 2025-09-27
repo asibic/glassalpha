@@ -60,7 +60,7 @@ def sample_dataframe():
             "feature2": np.random.randint(0, 10, 100),
             "feature3": np.random.choice(["A", "B", "C"], 100),
             "target": np.random.choice([0, 1], 100),
-        }
+        },
     )
 
 
@@ -298,8 +298,13 @@ class TestHashingFunctions:
 
     def test_hash_object_error_handling(self):
         """Test hash_object error handling with unhashable objects."""
-        # Test with object that can't be JSON serialized
-        unhashable_obj = {"func": lambda x: x}  # Function can't be JSON serialized
+
+        # Test with object that can't be JSON serialized (circular reference)
+        class CircularReference:
+            def __init__(self):
+                self.circular = self
+
+        unhashable_obj = CircularReference()
 
         with pytest.raises(ValueError, match="Cannot hash object"):
             hash_object(unhashable_obj)
@@ -509,7 +514,7 @@ class TestGitInfo:
     def test_git_info_creation(self):
         """Test GitInfo model creation."""
         git_info = GitInfo(
-            commit_hash="abc123def456",
+            commit_sha="abc123def456",
             branch="main",
             is_dirty=False,
             remote_url="https://github.com/user/repo.git",
@@ -708,7 +713,7 @@ class TestManifestGenerator:
         assert env_info.platform is not None
         assert env_info.hostname is not None
 
-    @patch("subprocess.run")
+    @patch("glassalpha.utils.proc.subprocess.run")
     def test_collect_git_info_success(self, mock_run):
         """Test successful git info collection."""
         # Mock git command responses

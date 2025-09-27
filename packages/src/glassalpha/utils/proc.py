@@ -20,7 +20,7 @@ def run_text(*args: str) -> str | None:
         Stripped stdout string if successful, None if command not found
 
     Note:
-        Never use .decode() - text=True returns strings directly.
+        Never use decode method - text=True returns strings directly.
 
     """
     try:
@@ -60,10 +60,8 @@ def run_text_with_success(*args: str) -> tuple[str | None, bool]:
         )
         output = (process.stdout or "").strip()
         success = process.returncode == 0
-    except (FileNotFoundError, OSError):
-        return None, False
-    else:
         return output, success
+    except (FileNotFoundError, OSError):
         return None, False
 
 

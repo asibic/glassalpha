@@ -79,7 +79,7 @@ class TestGoldenReportSnapshots:
         # Key Jinja2 variables that should be present
         expected_variables = [
             "{{ audit_id",  # Audit identification
-            "{{ timestamp",  # Report generation time
+            "{{ generation_date",  # Report generation time
             "{{ model_info",  # Model information
             "{% for",  # At least one loop construct
             "{% if",  # At least one conditional

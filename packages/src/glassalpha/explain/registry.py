@@ -81,11 +81,15 @@ class ExplainerRegistry:
         # Extract model type string
         if isinstance(model_type_or_obj, str):
             model_type = model_type_or_obj.lower()
-        # Try to get model info from object
-        elif hasattr(model_type_or_obj, "get_model_info"):
+        # Try to get model type from wrapper object
+        elif hasattr(model_type_or_obj, "get_model_type"):
             try:
-                model_info = model_type_or_obj.get_model_info()
-                model_type = model_info.get("type", "").lower()
+                model_type = model_type_or_obj.get_model_type().lower()
+            except Exception:  # noqa: BLE001
+                model_type = ""
+        elif hasattr(model_type_or_obj, "model_type"):
+            try:
+                model_type = model_type_or_obj.model_type.lower()
             except Exception:  # noqa: BLE001
                 model_type = ""
         else:
