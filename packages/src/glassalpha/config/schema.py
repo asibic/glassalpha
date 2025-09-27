@@ -223,6 +223,9 @@ class ReproducibilityConfig(BaseModel):
     random_seed: int | None = Field(42, description="Random seed for determinism")
     deterministic: bool = Field(True, description="Enforce deterministic behavior")
     capture_environment: bool = Field(True, description="Capture environment information")
+    strict: bool = Field(False, description="Enable strict reproduction mode (may impact performance)")
+    thread_control: bool = Field(False, description="Control thread counts for deterministic parallel processing")
+    warn_on_failure: bool = Field(True, description="Warn if some determinism controls fail")
 
     @field_validator("random_seed")
     @classmethod

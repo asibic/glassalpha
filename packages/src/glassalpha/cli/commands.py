@@ -227,6 +227,11 @@ def audit(
         "-s",
         help="Enable strict mode for regulatory compliance",
     ),
+    repro: bool = typer.Option(
+        False,
+        "--repro",
+        help="Enable deterministic reproduction mode for byte-identical results",
+    ),
     profile: str | None = typer.Option(
         None,
         "--profile",
@@ -289,12 +294,45 @@ def audit(
 
         audit_config = load_config_from_file(config, override_path=override_config, profile_name=profile, strict=strict)
 
+        # Apply repro mode if requested
+        if repro:
+            from ..runtime import set_repro  # noqa: PLC0415
+
+            # Use config seed if available, otherwise default
+            seed = (
+                getattr(audit_config.reproducibility, "random_seed", 42)
+                if hasattr(audit_config, "reproducibility")
+                else 42
+            )
+
+            typer.echo("🔒 Enabling deterministic reproduction mode...")
+            repro_status = set_repro(
+                seed=seed,
+                strict=True,  # Always use strict mode with --repro flag
+                thread_control=True,  # Control threads for determinism
+                warn_on_failure=True,
+            )
+
+            successful = sum(1 for control in repro_status["controls"].values() if control.get("success", False))
+            total = len(repro_status["controls"])
+            typer.echo(f"   Configured {successful}/{total} determinism controls")
+
+            if successful < total:
+                typer.secho(
+                    "⚠️  Some determinism controls failed - results may not be fully reproducible",
+                    fg=typer.colors.YELLOW,
+                )
+
         # Report configuration
         typer.echo(f"Audit profile: {audit_config.audit_profile}")
         typer.echo(f"Strict mode: {'ENABLED' if audit_config.strict_mode else 'disabled'}")
+        typer.echo(f"Repro mode: {'ENABLED' if repro else 'disabled'}")
 
         if audit_config.strict_mode:
             typer.secho("⚠️  Strict mode enabled - enforcing regulatory compliance", fg=typer.colors.YELLOW)
+
+        if repro:
+            typer.secho("🔒 Repro mode enabled - results will be deterministic", fg=typer.colors.BLUE)
 
         # Validate components exist
         available = list_components()

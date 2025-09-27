@@ -170,6 +170,31 @@ class AuditPipeline:
         master_seed = self.config.reproducibility.random_seed if self.config.reproducibility else 42
         set_global_seed(master_seed)
 
+        # Apply advanced reproduction controls if configured
+        if (
+            self.config.reproducibility
+            and hasattr(self.config.reproducibility, "strict")
+            and self.config.reproducibility.strict
+        ):
+            from ..runtime import set_repro  # noqa: PLC0415
+
+            logger.info("Applying advanced deterministic reproduction controls")
+            repro_status = set_repro(
+                seed=master_seed,
+                strict=self.config.reproducibility.strict,
+                thread_control=getattr(self.config.reproducibility, "thread_control", False),
+                warn_on_failure=getattr(self.config.reproducibility, "warn_on_failure", True),
+            )
+
+            # Store repro status in results for provenance
+            if not hasattr(self.results, "execution_info") or self.results.execution_info is None:
+                self.results.execution_info = {}
+            self.results.execution_info["reproduction_status"] = repro_status
+
+            successful = sum(1 for control in repro_status["controls"].values() if control.get("success", False))
+            total = len(repro_status["controls"])
+            logger.info("Advanced reproduction controls: %d/%d successful", successful, total)
+
         # Add seed information to manifest
         self.manifest_generator.add_seeds()
 
