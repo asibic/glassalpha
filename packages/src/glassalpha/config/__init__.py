@@ -20,6 +20,7 @@ from .schema import (
     RecourseConfig,
     ReportConfig,
     ReproducibilityConfig,
+    SecurityConfig,
     ThresholdConfig,
 )
 from .strict import (
@@ -38,6 +39,7 @@ __all__ = [
     "RecourseConfig",
     "ReportConfig",
     "ReproducibilityConfig",
+    "SecurityConfig",
     "ThresholdConfig",
     "ManifestConfig",
     # Loaders

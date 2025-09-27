@@ -249,6 +249,41 @@ class ManifestConfig(BaseModel):
     output_path: Path | None = Field(None, description="Path to save manifest (default: alongside report)")
 
 
+class SecurityConfig(BaseModel):
+    """Security configuration."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    strict: bool = Field(False, description="Enable strict security mode")
+    model_paths: dict[str, Any] = Field(
+        default_factory=lambda: {
+            "allowed_dirs": [".", "~/models", "./models"],
+            "allow_remote": False,
+            "require_hash": False,
+            "max_size_mb": 256.0,
+            "allow_symlinks": False,
+            "allow_world_writable": False,
+        },
+        description="Model path security configuration",
+    )
+    yaml_loading: dict[str, Any] = Field(
+        default_factory=lambda: {
+            "max_file_size_mb": 10.0,
+            "max_depth": 20,
+            "max_keys": 1000,
+        },
+        description="YAML loading security configuration",
+    )
+    logging: dict[str, Any] = Field(
+        default_factory=lambda: {
+            "sanitize_messages": True,
+            "enable_json": False,
+            "max_message_length": 10000,
+        },
+        description="Logging security configuration",
+    )
+
+
 class AuditConfig(BaseModel):
     """Main audit configuration."""
 
@@ -269,6 +304,7 @@ class AuditConfig(BaseModel):
         description="Reproducibility configuration",
     )
     manifest: ManifestConfig = Field(default_factory=ManifestConfig, description="Manifest configuration")
+    security: SecurityConfig = Field(default_factory=SecurityConfig, description="Security configuration")
 
     # Mode flags
     strict_mode: bool = Field(False, description="Enable strict mode for regulatory compliance")
