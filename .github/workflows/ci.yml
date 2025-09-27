@@ -64,22 +64,24 @@ jobs:
           echo "=== Case-mismatch smoke test ==="
           grep -R --line-number -E 'from +[Gg]lass[A-Z][a-zA-Z_]*|import +[Gg]lass[A-Z][a-zA-Z_]*' . || true
 
+      - name: Install build tools
+        run: |
+          echo "=== Install build tools ==="
+          python -m pip install -U pip setuptools wheel build
+
       - name: Upgrade toolchain and install dependencies
         run: |
           cd packages
-          echo "=== Install toolchain ==="
-          python -m pip install -U pip setuptools wheel hatchling
           echo "=== Pre-install conservative dependency stack ==="
           python -m pip install "numpy>=1.24,<2.0" "scipy>=1.10,<1.14" "scikit-learn>=1.3,<1.5" "matplotlib>=3.7,<3.9" "shap>=0.43,<0.46"
 
       - name: Build wheel and install (no editable)
+        working-directory: packages
         run: |
-          cd packages
           echo "=== Clean dist directory to prevent multiple wheels ==="
           rm -rf dist build *.egg-info
           mkdir -p dist
           echo "=== Build project wheel only (no dependencies) ==="
-          python -m pip uninstall -y glassalpha || true
           python -m build --wheel --outdir dist
           echo "=== Verify dist hygiene: only project wheel ==="
           ls -la dist
@@ -101,8 +103,8 @@ jobs:
           python -m pip install --force-reinstall dist/glassalpha*.whl
 
       - name: Verify installation and dependencies
+        working-directory: packages
         run: |
-          cd packages
           echo "=== Dependency guardrail: check for unwanted heavy deps ==="
           python -c "
           import pkg_resources
@@ -128,12 +130,11 @@ jobs:
 
       - name: Install test dependencies
         run: |
-          cd packages
           python -m pip install pytest pytest-cov pytest-asyncio
 
       - name: Syntax check (prevent broken Python files)
+        working-directory: packages
         run: |
-          cd packages
           echo "=== Compile all Python files to catch syntax errors ==="
           python - <<'PY'
           import compileall, sys, pkgutil, inspect, glassalpha, pathlib
@@ -148,22 +149,22 @@ jobs:
           PY
 
       - name: Run contract regression tests first
+        working-directory: packages
         run: |
-          cd packages
           echo "=== Run critical contract regression tests ==="
           export MPLBACKEND=Agg
           env PYTHONPATH="" python -m pytest tests/test_*_contract.py -v --tb=short
 
       - name: Run core contract tests
+        working-directory: packages
         run: |
-          cd packages
           echo "=== Run core contract guard tests ==="
           export MPLBACKEND=Agg
           env PYTHONPATH="" python -m pytest tests/contracts/ -v --tb=short || echo "Contract tests not found, skipping"
 
       - name: Run tests against installed package
+        working-directory: packages
         run: |
-          cd packages
           echo "=== Run full test suite against installed package (no source tree access) ==="
           export MPLBACKEND=Agg
           env PYTHONPATH="" python -m pytest tests/ -v
@@ -192,8 +193,8 @@ jobs:
           pip install -e .[dev]
 
       - name: Lint with ruff
+        working-directory: packages
         run: |
-          cd packages
           ruff check src/ tests/
           black --check src/ tests/
           # mypy --strict src/ # Disabled during architectural foundation phase
