@@ -229,7 +229,7 @@ class AuditPipeline:
             logger.info(
                 f"Schema validation passed: {schema_summary['n_features']} features, "
                 f"{schema_summary['n_classes']} classes, "
-                f"{schema_summary['n_protected_attributes']} protected attributes"
+                f"{schema_summary['n_protected_attributes']} protected attributes",
             )
 
         except ValueError as e:
@@ -587,8 +587,8 @@ class AuditPipeline:
         if hasattr(self.model, "predict_proba"):
             try:
                 y_proba = self.model.predict_proba(X_processed)
-                if y_proba.ndim > 1 and y_proba.shape[1] > 1:
-                    y_proba = y_proba[:, 1]  # Binary classification positive class
+                # Keep full probability matrix for multiclass, don't extract single column
+                logger.debug(f"Generated probability predictions with shape: {y_proba.shape}")
             except Exception as e:  # noqa: BLE001
                 logger.warning(f"Could not get prediction probabilities: {e}")
 
@@ -617,7 +617,7 @@ class AuditPipeline:
         logger.info("Metrics computation completed")
 
     def _compute_performance_metrics(self, y_true: np.ndarray, y_pred: np.ndarray, y_proba: np.ndarray = None) -> None:
-        """Compute performance metrics.
+        """Compute performance metrics using auto-detecting engine.
 
         Args:
             y_true: True labels
@@ -625,41 +625,96 @@ class AuditPipeline:
             y_proba: Prediction probabilities
 
         """
-        logger.debug("Computing performance metrics")
+        from ..metrics.core import compute_classification_metrics  # noqa: PLC0415
 
-        # Get available performance metrics
-        all_metrics = MetricRegistry.get_all()
-        performance_metrics = {}
+        logger.debug("Computing performance metrics with auto-detection engine")
 
-        for name, metric_class in all_metrics.items():
-            # Check if it's a performance metric
-            if (hasattr(metric_class, "metric_type") and metric_class.metric_type == "performance") or name in [
-                "accuracy",
-                "precision",
-                "recall",
-                "f1",
-                "auc_roc",
-                "classification_report",
-            ]:
-                performance_metrics[name] = metric_class  # noqa: PERF403
+        # Get averaging strategy from config if specified
+        performance_config = self.config.metrics.performance
+        if hasattr(performance_config, "config"):
+            averaging_override = performance_config.config.get("average")
+        else:
+            averaging_override = None
 
-        results = {}
-        for metric_name, metric_class in performance_metrics.items():
-            try:
-                metric = metric_class()
+        # Use the new auto-detecting metrics engine
+        try:
+            metrics_result = compute_classification_metrics(
+                y_true=y_true,
+                y_pred=y_pred,
+                y_proba=y_proba,
+                average=averaging_override,
+            )
 
-                # Determine what arguments the metric needs
-                if metric_name in ["auc_roc"] and y_proba is not None:
-                    result = metric.compute(y_true, y_proba)
-                else:
-                    result = metric.compute(y_true, y_pred)
+            # Convert to the expected format for compatibility
+            results = {
+                "accuracy": {
+                    "accuracy": metrics_result["accuracy"],
+                    "n_samples": len(y_true),
+                },
+                "precision": {
+                    "precision": metrics_result["precision"],
+                    "n_samples": len(y_true),
+                    "problem_type": metrics_result["problem_type"],
+                    "averaging_strategy": metrics_result["averaging_strategy"],
+                },
+                "recall": {
+                    "recall": metrics_result["recall"],
+                    "n_samples": len(y_true),
+                    "problem_type": metrics_result["problem_type"],
+                    "averaging_strategy": metrics_result["averaging_strategy"],
+                },
+                "f1": {
+                    "f1": metrics_result["f1_score"],
+                    "n_samples": len(y_true),
+                    "problem_type": metrics_result["problem_type"],
+                    "averaging_strategy": metrics_result["averaging_strategy"],
+                },
+                "classification_report": {
+                    "accuracy": metrics_result["accuracy"],
+                    "n_samples": len(y_true),
+                    "n_classes": metrics_result["n_classes"],
+                    "problem_type": metrics_result["problem_type"],
+                    "averaging_strategy": metrics_result["averaging_strategy"],
+                },
+            }
 
-                results[metric_name] = result
-                logger.debug(f"Computed {metric_name}: {result}")
+            # Add probability-based metrics if available
+            if metrics_result["roc_auc"] is not None:
+                results["auc_roc"] = {
+                    "roc_auc": metrics_result["roc_auc"],
+                    "n_samples": len(y_true),
+                    "problem_type": metrics_result["problem_type"],
+                }
 
-            except Exception as e:  # noqa: BLE001
-                logger.warning(f"Failed to compute metric {metric_name}: {e}")
-                results[metric_name] = {"error": str(e)}
+            if metrics_result["log_loss"] is not None:
+                results["log_loss"] = {
+                    "log_loss": metrics_result["log_loss"],
+                    "n_samples": len(y_true),
+                    "problem_type": metrics_result["problem_type"],
+                }
+
+            # Log any warnings or errors from the metrics engine
+            if metrics_result["warnings"]:
+                for warning in metrics_result["warnings"]:
+                    logger.warning("Metrics engine warning: %s", warning)
+
+            if metrics_result["errors"]:
+                for error in metrics_result["errors"]:
+                    logger.error("Metrics engine error: %s", error)
+
+            # Filter out None values to maintain compatibility
+            results = {
+                k: v
+                for k, v in results.items()
+                if v and all(val is not None for val in v.values() if isinstance(val, (int, float)))
+            }
+
+            logger.info("Successfully computed %d performance metrics using auto-detection engine", len(results))
+
+        except Exception as e:
+            logger.error("Failed to compute performance metrics with auto-detection engine: %s", e)
+            # Fallback to empty results with error
+            results = {"error": f"Auto-detection engine failed: {e}"}
 
         self.results.model_performance = results
 
