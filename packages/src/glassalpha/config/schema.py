@@ -154,6 +154,43 @@ class RecourseConfig(BaseModel):
         return v
 
 
+class ThresholdConfig(BaseModel):
+    """Threshold selection configuration."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    policy: str = Field(default="youden", description="Threshold selection policy")
+    threshold: float | None = Field(None, description="Fixed threshold value (for 'fixed' policy)")
+    cost_fp: float | None = Field(None, description="False positive cost (for 'cost_sensitive' policy)")
+    cost_fn: float | None = Field(None, description="False negative cost (for 'cost_sensitive' policy)")
+
+    @field_validator("policy")
+    @classmethod
+    def validate_policy(cls, v: str) -> str:
+        """Validate threshold policy."""
+        v = v.lower()
+        valid_policies = {"youden", "fixed", "prevalence", "cost_sensitive"}
+        if v not in valid_policies:
+            raise ValueError(f"Invalid threshold policy: '{v}'. Must be one of: {valid_policies}")
+        return v
+
+    @field_validator("threshold")
+    @classmethod
+    def validate_threshold(cls, v: float | None) -> float | None:
+        """Validate fixed threshold value."""
+        if v is not None and not (0.0 <= v <= 1.0):
+            raise ValueError(f"Threshold must be in [0, 1], got: {v}")
+        return v
+
+    @field_validator("cost_fp", "cost_fn")
+    @classmethod
+    def validate_costs(cls, v: float | None) -> float | None:
+        """Validate cost values."""
+        if v is not None and v < 0:
+            raise ValueError(f"Cost must be non-negative, got: {v}")
+        return v
+
+
 class ReportConfig(BaseModel):
     """Report generation configuration."""
 
@@ -161,6 +198,7 @@ class ReportConfig(BaseModel):
 
     template: str = Field("standard_audit", description="Report template name")
     output_format: str = Field("pdf", description="Output format (pdf, html, json)")
+    threshold: ThresholdConfig | None = Field(None, description="Threshold selection configuration")
     include_sections: list[str] = Field(
         default_factory=lambda: [
             "lineage",

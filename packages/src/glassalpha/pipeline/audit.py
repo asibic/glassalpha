@@ -9,6 +9,7 @@ import logging
 import traceback
 from collections.abc import Callable
 from dataclasses import dataclass, field
+from datetime import UTC
 from pathlib import Path
 from typing import Any
 
@@ -108,6 +109,10 @@ class AuditPipeline:
 
             # Step 2: Load and validate data
             data, schema = self._load_data()
+            # Store dataset for provenance tracking
+            self._dataset_df = data.copy()  # Store copy for provenance
+            self._feature_count = len(schema.features) if schema.features else data.shape[1] - 1
+            self._class_count = data[schema.target].nunique() if schema.target in data.columns else None
             self._update_progress(progress_callback, "Data loaded and validated", 20)
 
             # Step 3: Load/initialize model
@@ -581,8 +586,7 @@ class AuditPipeline:
                 self.model.fit(X_processed, y_true, random_state=model_seed)
             logger.info("Fallback model fitting completed")
 
-        # Generate predictions
-        y_pred = self.model.predict(X_processed)
+        # Generate probability predictions first
         y_proba = None
         if hasattr(self.model, "predict_proba"):
             try:
@@ -591,6 +595,17 @@ class AuditPipeline:
                 logger.debug(f"Generated probability predictions with shape: {y_proba.shape}")
             except Exception as e:  # noqa: BLE001
                 logger.warning(f"Could not get prediction probabilities: {e}")
+
+        # Generate predictions using threshold policy (if binary classification with probabilities)
+        if y_proba is not None and y_proba.shape[1] == 2:  # Binary classification
+            # Use threshold policy for binary classification
+            y_pred, threshold_info = self._apply_threshold_policy(y_true, y_proba[:, 1])
+            # Store threshold information in results
+            self.results.model_performance["threshold_selection"] = threshold_info
+        else:
+            # Fallback to model's default predict method (multiclass or no probabilities)
+            y_pred = self.model.predict(X_processed)
+            logger.info("Using model's default predictions (multiclass or no probabilities available)")
 
         # Compute performance metrics
         self._compute_performance_metrics(y_true, y_pred, y_proba)
@@ -615,6 +630,109 @@ class AuditPipeline:
         self._compute_drift_metrics(X, y_true)
 
         logger.info("Metrics computation completed")
+
+    def _apply_threshold_policy(self, y_true: np.ndarray, y_proba: np.ndarray) -> tuple[np.ndarray, dict[str, Any]]:
+        """Apply threshold selection policy for binary classification.
+
+        Args:
+            y_true: True binary labels
+            y_proba: Predicted probabilities for positive class
+
+        Returns:
+            Tuple of (predictions, threshold_info)
+
+        """
+        from ..metrics.thresholds import pick_threshold, validate_threshold_config  # noqa: PLC0415
+
+        # Get threshold configuration from report config
+        threshold_config = {}
+        if hasattr(self.config, "report") and hasattr(self.config.report, "threshold") and self.config.report.threshold:
+            threshold_config = self.config.report.threshold.model_dump()
+
+        # Validate and normalize config
+        validated_config = validate_threshold_config(threshold_config)
+
+        logger.info("Applying threshold policy: %s", validated_config["policy"])
+
+        # Select threshold using policy
+        threshold_result = pick_threshold(y_true, y_proba, **validated_config)
+
+        # Generate predictions using selected threshold
+        selected_threshold = threshold_result["threshold"]
+        y_pred = (y_proba >= selected_threshold).astype(int)
+
+        logger.info("Selected threshold: %.3f using %s policy", selected_threshold, threshold_result["policy"])
+
+        return y_pred, threshold_result
+
+    def _generate_provenance_manifest(self) -> None:
+        """Generate comprehensive provenance manifest for audit reproducibility."""
+        from ..provenance import generate_run_manifest  # noqa: PLC0415
+
+        logger.info("Generating comprehensive provenance manifest")
+
+        # Gather all provenance information
+        config_dict = self.config.model_dump() if hasattr(self.config, "model_dump") else dict(vars(self.config))
+
+        # Get dataset information
+        dataset_path = getattr(self.config.data, "path", None) if hasattr(self.config, "data") else None
+        dataset_df = getattr(self, "_dataset_df", None)  # Store dataset if available
+
+        # Get model information
+        model_info = {
+            "type": self.model.__class__.__name__ if self.model else None,
+            "parameters": getattr(self.model, "get_params", dict)() if self.model else {},
+            "calibration": self._get_calibration_info(),
+            "feature_count": getattr(self, "_feature_count", None),
+            "class_count": getattr(self, "_class_count", None),
+        }
+
+        # Get selected components
+        selected_components = {
+            "explainer": self.explainer.__class__.__name__ if self.explainer else None,
+            "metrics": list(self.selected_metrics.keys()) if self.selected_metrics else [],
+            "threshold_policy": self.results.model_performance.get("threshold_selection", {}).get("policy")
+            if hasattr(self.results, "model_performance")
+            else None,
+        }
+
+        # Get execution information
+        execution_info = {
+            "start_time": getattr(self, "_start_time", None),
+            "end_time": getattr(self, "_end_time", None),
+            "success": True,  # If we're here, it succeeded
+            "random_seed": getattr(self.config.reproducibility, "random_seed", None)
+            if hasattr(self.config, "reproducibility")
+            else None,
+        }
+
+        # Generate the manifest
+        manifest = generate_run_manifest(
+            config=config_dict,
+            dataset_path=dataset_path,
+            dataset_df=dataset_df,
+            model_info=model_info,
+            selected_components=selected_components,
+            execution_info=execution_info,
+        )
+
+        # Store in results for PDF embedding
+        self.results.execution_info["provenance_manifest"] = manifest
+
+        logger.info("Provenance manifest generated with %d sections", len(manifest))
+
+    def _get_calibration_info(self) -> dict[str, Any] | None:
+        """Get calibration information from model if available."""
+        if not self.model:
+            return None
+
+        try:
+            from ..models.calibration import get_calibration_info  # noqa: PLC0415
+
+            base_estimator = getattr(self.model, "model", self.model)
+            return get_calibration_info(base_estimator)
+        except Exception:
+            return None
 
     def _compute_performance_metrics(self, y_true: np.ndarray, y_pred: np.ndarray, y_proba: np.ndarray = None) -> None:
         """Compute performance metrics using auto-detecting engine.
@@ -824,6 +942,14 @@ class AuditPipeline:
 
         # Mark manifest as completed successfully before finalizing (friend's spec)
         self.manifest_generator.mark_completed("success")
+
+        # Record end time for provenance
+        from datetime import datetime  # noqa: PLC0415
+
+        self._end_time = datetime.now(UTC).isoformat()
+
+        # Generate comprehensive provenance manifest
+        self._generate_provenance_manifest()
 
         # Finalize manifest
         final_manifest = self.manifest_generator.finalize()

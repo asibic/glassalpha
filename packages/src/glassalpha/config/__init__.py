@@ -20,6 +20,7 @@ from .schema import (
     RecourseConfig,
     ReportConfig,
     ReproducibilityConfig,
+    ThresholdConfig,
 )
 from .strict import (
     StrictModeError,
@@ -37,6 +38,7 @@ __all__ = [
     "RecourseConfig",
     "ReportConfig",
     "ReproducibilityConfig",
+    "ThresholdConfig",
     "ManifestConfig",
     # Loaders
     "load_config",

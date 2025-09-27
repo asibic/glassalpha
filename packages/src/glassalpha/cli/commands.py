@@ -91,6 +91,20 @@ def _run_audit_pipeline(config, output_path: Path) -> None:
         pdf_time = time.time() - pdf_start
         file_size = pdf_path.stat().st_size
 
+        # Generate manifest sidecar if provenance manifest is available
+        manifest_path = None
+        if hasattr(audit_results, "execution_info") and "provenance_manifest" in audit_results.execution_info:
+            from ..provenance import write_manifest_sidecar  # noqa: PLC0415
+
+            try:
+                manifest_path = write_manifest_sidecar(
+                    audit_results.execution_info["provenance_manifest"],
+                    output_path,
+                )
+                typer.echo(f"📋 Manifest: {manifest_path}")
+            except Exception as e:
+                logger.warning("Failed to write manifest sidecar: %s", e)
+
         # Success message
         total_time = time.time() - start_time
         typer.echo("\n🎉 Audit Report Generated Successfully!")
