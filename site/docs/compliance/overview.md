@@ -21,8 +21,14 @@ GlassAlpha addresses key regulatory frameworks governing AI and algorithmic deci
 
 ### EU AI Act
 **Jurisdiction:** European Union
-**Status:** Adopted 2024, phased implementation through 2027
-**Key Requirements:** Risk classification, transparency, human oversight
+**Status:** Adopted April 2024, phased implementation through 2027
+**Key Requirements:** Risk classification, transparency, human oversight, quality management
+
+**Implementation Timeline:**
+- **August 2024**: Prohibited practices banned
+- **February 2025**: General purpose AI model obligations
+- **August 2026**: High-risk AI system requirements
+- **August 2027**: Full implementation for all provisions
 
 ### Fair Housing Act (FHA)
 **Jurisdiction:** United States
@@ -82,6 +88,24 @@ report:
 - **Statistical Metrics**: Performance statistics in accessible format
 
 ## ECOA Compliance (Fair Lending)
+
+### Regulatory Context
+
+The Equal Credit Opportunity Act prohibits credit discrimination and establishes specific requirements for credit decision-making. Regulation B (12 CFR 1002) implements ECOA with detailed compliance obligations.
+
+**Prohibited Bases (15 USC 1691(a)):**
+Creditors may not discriminate on the basis of:
+- Race or color
+- Religion
+- National origin
+- Sex or gender identity
+- Marital status
+- Age (with exceptions for legal capacity)
+- Receipt of public assistance
+- Good faith exercise of Consumer Credit Protection Act rights
+
+**Disparate Impact Standard:**
+Under ECOA, practices that have a disparate impact on protected classes may be unlawful even without discriminatory intent, unless the practice serves legitimate business needs that cannot reasonably be achieved by less discriminatory means.
 
 ### Prohibition of Discrimination
 
@@ -186,7 +210,7 @@ compliance:
     fairness_analysis: true
 ```
 
-### Healthcare (GDPR/Medical Device Regulations)
+### Healthcare (GDPR/FDA/Medical Device Regulations)
 
 ```yaml
 audit_profile: healthcare_compliance

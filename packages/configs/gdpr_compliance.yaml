@@ -2,7 +2,7 @@
 # Example configuration for auditing automated decision-making systems
 # Focuses on EU GDPR Article 22 compliance and data protection impact assessments
 
-audit_profile: gdpr_compliance
+audit_profile: tabular_compliance
 
 # Reproducibility for regulatory compliance
 reproducibility:
@@ -10,11 +10,19 @@ reproducibility:
 
 # Dataset configuration
 data:
-  path: ~/.glassalpha/data/gdpr_compliance.csv
-  target_column: marketing_consent_granted
+  path: ~/.glassalpha/data/german_credit_processed.csv
+  target_column: credit_risk
+  feature_columns:
+    - checking_account_status
+    - duration_months
+    - credit_amount
+    - savings_account
+    - employment_duration
+    - age_years
+    - gender
   protected_attributes:
-    - age
-    - geographic_region
+    - gender
+    - age_years
 
 # LightGBM model for consent prediction
 model:

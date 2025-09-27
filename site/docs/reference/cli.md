@@ -54,6 +54,7 @@ glassalpha audit --config CONFIG --output OUTPUT [OPTIONS]
 | Argument | Type | Default | Description |
 |----------|------|---------|-------------|
 | `--strict`, `-s` | Flag | False | Enable strict mode for regulatory compliance |
+| `--repro` | Flag | False | Enable deterministic reproduction mode for byte-identical results |
 | `--profile`, `-p` | String | None | Override audit profile from config |
 | `--override` | Path | None | Additional config file to override settings |
 | `--dry-run` | Flag | False | Validate configuration without generating report |
@@ -89,6 +90,19 @@ glassalpha audit \
   --config configs/test.yaml \
   --output test.pdf \
   --dry-run
+
+# Enable deterministic reproduction for byte-identical results
+glassalpha audit \
+  --config configs/audit.yaml \
+  --output audit.pdf \
+  --repro
+
+# Combine strict and repro modes for maximum compliance
+glassalpha audit \
+  --config configs/audit.yaml \
+  --output audit.pdf \
+  --strict \
+  --repro
 ```
 
 #### Strict Mode
@@ -104,12 +118,61 @@ Strict mode enforces additional regulatory compliance requirements:
 
 Use strict mode for regulatory submissions and compliance documentation.
 
+#### Reproduction Mode
+
+Reproduction mode (`--repro`) enables deterministic execution for byte-identical results:
+
+- Controls NumPy, pandas, and scikit-learn random states
+- Sets thread counts for consistent parallel processing
+- Enables strict determinism controls across all libraries
+- Automatically uses configuration random seed or defaults to 42
+
+Reproduction mode is essential for regulatory audits that require identical outputs across different execution environments.
+
 #### Output
 
 The audit command produces:
 - **PDF Report**: Professional audit document with visualizations
-- **Manifest File**: Complete audit trail (same directory as PDF)
-- **Console Output**: Progress updates and summary statistics
+- **Manifest File**: Complete audit trail (same directory as PDF, `.manifest.json` extension)
+- **Console Output**: Progress updates and detailed audit summary
+
+**Console Output Format:**
+The CLI provides detailed progress feedback and results summary:
+
+```
+GlassAlpha Audit Generation
+========================================
+Loading configuration from: config.yaml
+Audit profile: tabular_compliance
+Strict mode: ENABLED
+
+Running audit pipeline...
+  Loading data and initializing components...
+✓ Audit pipeline completed in 4.23s
+
+📊 Audit Summary:
+  ✅ Performance metrics: 6 computed
+     ✅ accuracy: 75.2%
+  ⚖️ Fairness metrics: 12/12 computed
+     ⚠️ Bias detected in: gender.demographic_parity
+  🔍 Explanations: ✅ Global feature importance
+     Most important: checking_account_status (+0.234)
+  📋 Dataset: 1,000 samples, 21 features
+  🔧 Components: 3 selected
+     Model: xgboost
+
+🎉 Audit Report Generated Successfully!
+==================================================
+📁 Output: /path/to/audit.pdf
+📊 Size: 1,247,832 bytes (1.2 MB)
+⏱️ Total time: 5.67s
+   • Pipeline: 4.23s
+   • PDF generation: 1.44s
+
+🛡️ Strict mode: Report meets regulatory compliance requirements
+
+The audit report is ready for review and regulatory submission.
+```
 
 ### validate
 
@@ -159,9 +222,22 @@ glassalpha validate \
 Validation provides:
 - Configuration parsing results
 - Schema compliance verification
-- Component availability checks
-- Profile compatibility assessment
+- Profile and model type identification
+- Warnings for missing optional settings
 - Strict mode requirement validation
+
+**Example Output:**
+```
+Validating configuration: audit.yaml
+Profile: tabular_compliance
+Model type: xgboost
+Strict mode: valid
+
+✓ Configuration is valid
+
+Warning: No random seed specified - results may vary
+Warning: No protected attributes - fairness analysis limited
+```
 
 ### list
 
@@ -211,18 +287,50 @@ glassalpha list models --include-enterprise --verbose
 
 | Type | Description | Examples |
 |------|-------------|----------|
-| `models` | ML model wrappers | xgboost, lightgbm, sklearn |
-| `explainers` | Explanation methods | treeshap, kernelshap |
-| `metrics` | Evaluation metrics | accuracy, demographic_parity |
+| `models` | ML model wrappers | xgboost, lightgbm, logistic_regression, sklearn_generic, passthrough |
+| `explainers` | Explanation methods | treeshap, kernelshap, noop |
+| `metrics` | Evaluation metrics | accuracy, precision, recall, f1, auc_roc, demographic_parity, equal_opportunity |
 | `profiles` | Audit profiles | tabular_compliance, german_credit_default |
 
 #### Output
 
 The list command shows:
 - Registered component names by type
-- Enterprise vs OSS availability
 - Component counts and status
-- License requirements for enterprise features
+- License requirements for enterprise features (when `--include-enterprise` used)
+
+**Example Output:**
+```
+Available Components
+========================================
+
+MODELS:
+  - lightgbm
+  - logistic_regression
+  - passthrough
+  - sklearn_generic
+  - xgboost
+
+EXPLAINERS:
+  - kernelshap
+  - noop
+  - treeshap
+
+METRICS:
+  - accuracy
+  - auc_roc
+  - demographic_parity
+  - equal_opportunity
+  - equalized_odds
+  - f1
+  - precision
+  - predictive_parity
+  - recall
+
+PROFILES:
+  - german_credit_default
+  - tabular_compliance
+```
 
 ## Enterprise Commands
 
@@ -282,11 +390,13 @@ GlassAlpha provides clear error messages for common issues:
 ### Configuration Errors
 ```bash
 Configuration error: Missing required field 'data.path'
+Validation failed: Invalid audit profile 'nonexistent_profile'
 ```
 
 ### File Not Found Errors
 ```bash
-Error: Configuration file 'missing.yaml' not found
+File 'missing.yaml' does not exist.
+Override file 'overrides.yaml' does not exist.
 ```
 
 ### Component Errors
@@ -294,10 +404,21 @@ Error: Configuration file 'missing.yaml' not found
 Warning: Model type 'unknown_model' not found in registry
 ```
 
+### Audit Pipeline Errors
+```bash
+❌ Audit pipeline failed: Dataset file 'data/missing.csv' not found
+❌ Audit failed: Input contains NaN, infinity or a value too large
+```
+
 ### Enterprise License Errors
 ```bash
 Enterprise feature 'dashboard' requires valid license key
 Set GLASSALPHA_LICENSE_KEY environment variable
+```
+
+### Reproduction Mode Warnings
+```bash
+⚠️ Some determinism controls failed - results may not be fully reproducible
 ```
 
 ## Exit Codes
@@ -310,11 +431,12 @@ Set GLASSALPHA_LICENSE_KEY environment variable
 
 ## Environment Variables
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `GLASSALPHA_LICENSE_KEY` | Enterprise license key | None |
-| `GLASSALPHA_LOG_LEVEL` | Logging level | INFO |
-| `GLASSALPHA_CONFIG_DIR` | Default config directory | ~/.glassalpha |
+| Variable | Description | Default | Usage |
+|----------|-------------|---------|-------|
+| `GLASSALPHA_LICENSE_KEY` | Enterprise license key | None | Required for enterprise features |
+| `GLASSALPHA_LOG_LEVEL` | Logging level (DEBUG, INFO, WARNING, ERROR) | INFO | Controls console output verbosity |
+| `GLASSALPHA_CONFIG_DIR` | Default config directory | ~/.glassalpha | Used for automatic config discovery |
+| `GLASSALPHA_DATA_DIR` | Default data directory | ~/.glassalpha/data | Used for built-in datasets (German Credit) |
 
 ## Performance Notes
 
