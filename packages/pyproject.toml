@@ -148,6 +148,9 @@ addopts = [
     # Final: 90% when full audit PDF generation is production-ready
     "--cov-fail-under=49",  # Phase 1 nearly complete (49.60%) - comprehensive testing across all core modules
 ]
+markers = [
+    "requires_xgboost: tests that need XGBoost runtime (can be skipped on incompatible environments)",
+]
 testpaths = ["tests"]
 # pythonpath = ["src"]  # Removed: forces testing against installed package, not source tree
 

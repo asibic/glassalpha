@@ -311,7 +311,13 @@ class AuditPipeline:
                 # Train XGBoost directly and wrap it
                 import xgboost as xgb  # noqa: PLC0415
 
-                dtrain = xgb.DMatrix(X_processed, label=y, feature_names=list(X_processed.columns))
+                # Convert to NumPy array to avoid pandas dtype compatibility issues with XGBoost
+                X_np = (
+                    X_processed.to_numpy(dtype="float32", copy=False)
+                    if hasattr(X_processed, "to_numpy")
+                    else X_processed
+                )
+                dtrain = xgb.DMatrix(X_np, label=y, feature_names=list(X_processed.columns))
 
                 # XGBoost parameters with seed
                 params = {

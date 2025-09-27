@@ -120,7 +120,11 @@ class XGBoostWrapper(BaseTabularWrapper):
             self.model = sklearn_model.get_booster()
         else:
             # Use existing model - convert to DMatrix and train
-            dtrain = xgb.DMatrix(X_processed, label=y, feature_names=self.feature_names_)
+            # Convert to NumPy array to avoid pandas dtype compatibility issues with XGBoost
+            X_np = (
+                X_processed.to_numpy(dtype="float32", copy=False) if hasattr(X_processed, "to_numpy") else X_processed
+            )
+            dtrain = xgb.DMatrix(X_np, label=y, feature_names=self.feature_names_)
             # Update model with new data (this may not work with pre-trained boosters)
             # For simplicity, replace with new training
             params = {"objective": "binary:logistic", "max_depth": 6, "eta": 0.1}
@@ -251,7 +255,9 @@ class XGBoostWrapper(BaseTabularWrapper):
         if hasattr(X_processed, "columns"):
             feature_names = list(X_processed.columns)
 
-        dmatrix = xgb.DMatrix(X_processed, feature_names=feature_names)
+        # Convert to NumPy array to avoid pandas dtype compatibility issues with XGBoost
+        X_np = X_processed.to_numpy(dtype="float32", copy=False) if hasattr(X_processed, "to_numpy") else X_processed
+        dmatrix = xgb.DMatrix(X_np, feature_names=feature_names)
 
         # Get raw predictions
         preds = self.model.predict(dmatrix)
@@ -291,7 +297,9 @@ class XGBoostWrapper(BaseTabularWrapper):
         if hasattr(X_processed, "columns"):
             feature_names = list(X_processed.columns)
 
-        dmatrix = xgb.DMatrix(X_processed, feature_names=feature_names)
+        # Convert to NumPy array to avoid pandas dtype compatibility issues with XGBoost
+        X_np = X_processed.to_numpy(dtype="float32", copy=False) if hasattr(X_processed, "to_numpy") else X_processed
+        dmatrix = xgb.DMatrix(X_np, feature_names=feature_names)
 
         # Get raw predictions (probabilities)
         preds = self.model.predict(dmatrix)
