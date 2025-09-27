@@ -49,3 +49,48 @@ def test_backward_compatible_aliases():
     # These aliases should still work for existing code
     assert isinstance(ERR_NOT_LOADED, str)
     assert isinstance(ERR_NO_EXPLAINER, str)
+
+
+def test_import_contract_critical_modules():
+    """Ensure contract-critical modules import cleanly and basic functions work."""
+    import numpy as np
+    import pandas as pd
+
+    from glassalpha.constants import NO_MODEL_MSG
+    from glassalpha.models._features import align_features
+
+    # Import base wrapper and feature alignment (covered by contract tests)
+    from glassalpha.models.tabular.base import BaseTabularWrapper, _ensure_fitted
+
+    # Test _ensure_fitted functionality
+    class MockModel:
+        def __init__(self):
+            self.model = None
+            self._is_fitted = False
+
+    mock = MockModel()
+    try:
+        _ensure_fitted(mock)
+        assert False, "Should have raised ValueError"
+    except ValueError as e:
+        assert str(e) == NO_MODEL_MSG
+
+    # Test align_features with basic DataFrame
+    df = pd.DataFrame({"a": [1, 2], "b": [3, 4]})
+    feature_names = ["a", "b"]
+    aligned = align_features(df, feature_names)
+    assert list(aligned.columns) == ["a", "b"]
+
+    # Test align_features with renamed columns (same width)
+    df_renamed = pd.DataFrame({"x": [1, 2], "y": [3, 4]})
+    aligned_renamed = align_features(df_renamed, feature_names)
+    assert list(aligned_renamed.columns) == ["a", "b"]
+    assert aligned_renamed.values.tolist() == [[1, 3], [2, 4]]
+
+    # Test with non-DataFrame (should pass through)
+    arr = np.array([[1, 2], [3, 4]])
+    aligned_arr = align_features(arr, feature_names)
+    assert np.array_equal(aligned_arr, arr)
+
+    # Verify base wrapper can be imported (class exists)
+    assert BaseTabularWrapper is not None

@@ -1,0 +1,15 @@
+# Used only by the 'critical contracts' CI job to scope coverage to contract-critical modules.
+# This ensures coverage percentage reflects what the contract tests actually validate.
+
+[run]
+source = glassalpha
+
+[report]
+# Only count files that the critical-contract tests are meant to exercise
+include =
+    */glassalpha/constants.py
+    */glassalpha/models/_features.py
+    */glassalpha/models/tabular/base.py
+
+fail_under = 49
+show_missing = True
