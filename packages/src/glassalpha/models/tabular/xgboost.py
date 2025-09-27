@@ -89,6 +89,14 @@ class XGBoostWrapper(BaseTabularWrapper):
         if "n_estimators" not in params and "num_boost_round" in params:
             params["n_estimators"] = params["num_boost_round"]
 
+        # Filter out XGBoost-specific parameters not supported by XGBClassifier
+        # XGBClassifier doesn't support num_class, num_boost_round, etc.
+        xgb_specific_params = ["num_class", "num_boost_round"]
+        for param in xgb_specific_params:
+            if param in params:
+                logger.warning(f"Removing XGBoost-specific parameter '{param}' not supported by XGBClassifier")
+                del params[param]
+
         # Coerce multi:softmax to multi:softprob for audits (need predict_proba)
         if params.get("objective") == "multi:softmax":
             logger.warning("Coercing multi:softmax to multi:softprob for audit compatibility (predict_proba required)")
@@ -142,20 +150,20 @@ class XGBoostWrapper(BaseTabularWrapper):
         # Canonicalize parameters to handle aliases
         params = self._canonicalize_params({**defaults, **kwargs})
 
-        # Validate objective/num_class consistency after canonicalization
+        # Validate objective consistency after canonicalization
         objective = params.get("objective", "")
-        num_class = params.get("num_class")
 
-        if "multi" in objective and num_class is not None:
-            if num_class != self.n_classes_:
-                msg = f"Inconsistent num_class: config specifies {num_class} but data has {self.n_classes_} classes"
-                raise ValueError(msg)
-        elif "binary" in objective and self.n_classes_ > 2:
+        # For XGBClassifier, objective validation is handled automatically
+        # Just ensure binary objective isn't used with multi-class data
+        if "binary" in objective and self.n_classes_ > 2:
             msg = f"Binary objective '{objective}' incompatible with {self.n_classes_} classes"
             raise ValueError(msg)
 
         # Create and fit XGBoost model
         from xgboost import XGBClassifier  # noqa: PLC0415
+
+        logger.info(f"Creating XGBClassifier with params: {params}")
+        logger.info(f"Target classes: {self.classes_}, n_classes: {self.n_classes_}")
 
         sklearn_model = XGBClassifier(**params)
         sklearn_model.fit(X, y_enc)

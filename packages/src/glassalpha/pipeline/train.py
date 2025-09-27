@@ -67,6 +67,7 @@ def train_from_config(cfg: Any, X: pd.DataFrame, y: Any) -> Any:
         raise RuntimeError(msg)
 
     logger.info(f"Fitting model with parameters: {list(params.keys())}")
+    logger.info(f"Parameter values: {params}")
     model.fit(X, y, **params)
 
     logger.info(f"Model training completed for {model_type}")
