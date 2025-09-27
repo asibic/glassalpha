@@ -1,0 +1,26 @@
+# Critical modules coverage configuration - surgical, meaningful coverage
+# Focus on blast radius components that customers interact with directly
+
+[run]
+source = glassalpha
+# Enable branch coverage tracking
+branch = True
+
+[report]
+# Critical blast radius modules - these need high coverage
+# Pipeline, wrappers, explainer registry, manifest/git
+include =
+    */glassalpha/pipeline/*
+    */glassalpha/models/tabular/*
+    */glassalpha/explain/registry.py
+    */glassalpha/utils/manifest.py
+    */glassalpha/utils/proc.py
+
+fail_under = 50
+show_missing = True
+skip_covered = False
+precision = 2
+
+[html]
+directory = htmlcov_critical
+skip_covered = False

@@ -1,0 +1,23 @@
+# Utilities coverage configuration - lower risk but still important
+# Focus on supporting utilities: hashing, seeds, config validators
+
+[run]
+source = glassalpha
+# Enable branch coverage
+branch = True
+
+[report]
+# Utility modules - important for correctness but lower blast radius
+include =
+    */glassalpha/utils/hashing.py
+    */glassalpha/utils/seeds.py
+    */glassalpha/config/*
+
+fail_under = 80
+show_missing = True
+skip_covered = False
+precision = 2
+
+[html]
+directory = htmlcov_utilities
+skip_covered = False
