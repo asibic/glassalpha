@@ -5,6 +5,7 @@ schema validation, protected attribute extraction, and dataset hashing.
 These tests focus on covering the data handling logic.
 """
 
+import importlib.util
 from pathlib import Path
 
 import numpy as np
@@ -13,6 +14,11 @@ import pytest
 
 from glassalpha.data.base import DataInterface, DataSchema
 from glassalpha.data.tabular import TabularDataLoader, TabularDataSchema
+
+
+def _parquet_engine_available() -> bool:
+    """Check if a parquet engine (pyarrow or fastparquet) is available."""
+    return bool(importlib.util.find_spec("pyarrow") or importlib.util.find_spec("fastparquet"))
 
 
 @pytest.fixture
@@ -468,6 +474,7 @@ class TestTabularDataLoaderErrorHandling:
         assert isinstance(hash_result, str)
 
 
+@pytest.mark.skipif(not _parquet_engine_available(), reason="Parquet engine (pyarrow/fastparquet) not installed")
 class TestTabularDataLoaderFileFormats:
     """Test different file format support."""
 
