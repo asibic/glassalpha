@@ -157,7 +157,14 @@ class XGBoostWrapper(BaseTabularWrapper):
             if num_class != n_classes:
                 raise ValueError(f"num_class={num_class} does not match observed classes={n_classes}")
 
-    def fit(self, X: Any, y: Any, random_state: int | None = None, **kwargs: Any) -> "XGBoostWrapper":  # noqa: ANN401, N803
+    def fit(
+        self,
+        X: Any,
+        y: Any,
+        random_state: int | None = None,
+        require_proba: bool = True,
+        **kwargs: Any,
+    ) -> "XGBoostWrapper":
         """Fit XGBoost model with training data using native XGBoost API.
 
         Args:
@@ -198,6 +205,14 @@ class XGBoostWrapper(BaseTabularWrapper):
 
         # Add any additional parameters
         params.update(kwargs)
+
+        # Handle softmax to softprob coercion for audit compatibility
+        user_objective = params.get("objective")
+        if user_objective == "multi:softmax" and self.n_classes > 2 and require_proba:
+            logger.warning(
+                "Coercing multi:softmax to multi:softprob for audit compatibility (predict_proba required)",
+            )
+            params["objective"] = "multi:softprob"
 
         # Validate objective compatibility with number of classes
         self._validate_objective_compatibility(params, self.n_classes)
