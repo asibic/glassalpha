@@ -83,24 +83,35 @@ jobs:
         PY
       working-directory: packages
 
-    # Run contract guard tests first (fast feedback)
-    - name: Run contract guard tests
-      run: pytest -xvs tests/contracts/
-      working-directory: packages
-
-    # Run hot spot tests (the critical 4 contracts)
-    - name: Run hot spot tests
+    # Run tests with coverage collection
+    - name: Run tests with coverage
       run: |
-        # Install minimal test dependencies
+        # Install test dependencies
         pip install numpy pandas scikit-learn pyyaml
-        pytest -q tests/test_pipeline_basic.py::test_pipeline_logs_initialization tests/test_end_to_end.py::test_multiple_model_types tests/test_model_integration.py::test_model_saving_and_loading
+
+        # Run contract guard tests (fast feedback)
+        echo "Running contract guard tests..."
+        pytest -xvs tests/contracts/ --cov=src --cov-report=term-missing
+
+        # Run hot spot tests with coverage
+        echo "Running hot spot tests with coverage..."
+        pytest -q tests/test_pipeline_basic.py::test_pipeline_logs_initialization tests/test_end_to_end.py::test_multiple_model_types tests/test_model_integration.py::test_model_saving_and_loading --cov=src --cov-report=term-missing --cov-append
+
+        # Run full test suite with coverage
+        echo "Running full test suite with coverage..."
+        pytest -q --cov=src --cov-report=term-missing
       working-directory: packages
 
     # Coverage Gates
     - name: Coverage Gates
       run: |
-        # Ensure we have coverage data
-        coverage combine || true
+        # Combine coverage data from all test runs (handle single file case)
+        echo "Combining coverage data..."
+        if coverage combine 2>/dev/null; then
+          echo "Coverage data combined successfully"
+        else
+          echo "Single coverage file or no data to combine"
+        fi
 
         echo '--- Gate 1: Critical-path modules (90%+) ---'
         coverage report --precision=2 \
