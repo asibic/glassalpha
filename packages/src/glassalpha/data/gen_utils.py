@@ -353,8 +353,9 @@ def add_realistic_noise(
     for col in numeric_cols:
         if col in df.columns and pd.api.types.is_numeric_dtype(df[col]):
             col_std = df[col].std()
-            if col_std > 0:  # Only add noise if there's variation
-                noise = np.random.normal(0, col_std * noise_level, size=len(df))
-                result_df[col] = df[col] + noise
+            # Use column std if > 0, otherwise use column mean as base for noise scale
+            noise_scale = col_std if col_std > 0 else abs(df[col].mean()) if df[col].mean() != 0 else 1.0
+            noise = np.random.normal(0, noise_scale * noise_level, size=len(df))
+            result_df[col] = df[col] + noise
 
     return result_df

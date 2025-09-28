@@ -28,6 +28,24 @@ def assert_explainer_capabilities(
     assert capabilities["data_modality"] == data_modality
 
 
+# Conditional imports for SHAP explainers (SHAP may not be available in CI)
+try:
+    from glassalpha.explain.shap.kernel import KernelSHAPExplainer
+    from glassalpha.explain.shap.tree import TreeSHAPExplainer
+
+    SHAP_EXPLAINERS_AVAILABLE = True
+except ImportError:
+    # Create dummy classes for when SHAP is not available
+    class KernelSHAPExplainer:
+        def __init__(self, *args, **kwargs):
+            raise ImportError("SHAP not available")
+
+    class TreeSHAPExplainer:
+        def __init__(self, *args, **kwargs):
+            raise ImportError("SHAP not available")
+
+    SHAP_EXPLAINERS_AVAILABLE = False
+
 # Conditional sklearn import with graceful fallback for CI compatibility
 try:
     from sklearn.datasets import make_classification
@@ -39,10 +57,11 @@ except ImportError:
     LogisticRegression = None
     SKLEARN_AVAILABLE = False
 
-pytestmark = pytest.mark.skipif(not SKLEARN_AVAILABLE, reason="sklearn not available - CI compatibility issues")
+pytestmark = [
+    pytest.mark.skipif(not SKLEARN_AVAILABLE, reason="sklearn not available - CI compatibility issues"),
+    pytest.mark.skipif(not SHAP_EXPLAINERS_AVAILABLE, reason="SHAP explainers not available - CI compatibility issues"),
+]
 
-from glassalpha.explain.shap.kernel import KernelSHAPExplainer
-from glassalpha.explain.shap.tree import TreeSHAPExplainer
 from glassalpha.models.tabular.sklearn import LogisticRegressionWrapper
 
 
