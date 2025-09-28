@@ -35,7 +35,7 @@ class TestEndToEndWorkflow:
     def setup_components(self):
         """Ensure all required components are imported and registered."""
         # Import all component modules to trigger registration
-        yield "components_loaded"
+        return "components_loaded"
 
     @pytest.fixture(scope="class")
     def test_data_dir(self):
@@ -201,7 +201,9 @@ class TestEndToEndWorkflow:
         start_time = time.time()
 
         generated_path = render_audit_pdf(
-            audit_results=results, output_path=pdf_path, report_title="End-to-End Test Audit"
+            audit_results=results,
+            output_path=pdf_path,
+            report_title="End-to-End Test Audit",
         )
 
         pdf_time = time.time() - start_time
@@ -463,7 +465,7 @@ class TestCLIEndToEnd:
     def setup_components(self):
         """Ensure all required components are imported and registered."""
         # Import all component modules to trigger registration
-        yield "components_loaded"
+        return "components_loaded"
 
     @pytest.fixture(scope="class")
     def cli_test_dir(self):
@@ -522,7 +524,7 @@ class TestCLIEndToEnd:
         ]
 
         start_time = time.time()
-        result = subprocess.run(cmd, capture_output=True, text=True, env=env, timeout=60)
+        result = subprocess.run(cmd, check=False, capture_output=True, text=True, encoding="utf-8", env=env, timeout=60)
         execution_time = time.time() - start_time
 
         # Validate command success
@@ -546,7 +548,7 @@ class TestCLIEndToEnd:
 
         cmd = [sys.executable, "-m", "glassalpha.cli.main", "validate", "--config", str(config_path)]
 
-        result = subprocess.run(cmd, capture_output=True, text=True, env=env, timeout=30)
+        result = subprocess.run(cmd, check=False, capture_output=True, text=True, encoding="utf-8", env=env, timeout=30)
 
         assert result.returncode == 0, f"Validation failed: {result.stderr}"
         assert "Configuration is valid" in result.stdout, "Validation success message not found"
@@ -558,7 +560,7 @@ class TestCLIEndToEnd:
 
         cmd = [sys.executable, "-m", "glassalpha.cli.main", "list"]
 
-        result = subprocess.run(cmd, capture_output=True, text=True, env=env, timeout=30)
+        result = subprocess.run(cmd, check=False, capture_output=True, text=True, encoding="utf-8", env=env, timeout=30)
 
         assert result.returncode == 0, f"Component listing failed: {result.stderr}"
         assert "Available Components" in result.stdout, "Component listing header not found"
@@ -583,7 +585,7 @@ class TestCLIEndToEnd:
             "test.pdf",
         ]
 
-        result = subprocess.run(cmd, capture_output=True, text=True, env=env, timeout=30)
+        result = subprocess.run(cmd, check=False, capture_output=True, text=True, encoding="utf-8", env=env, timeout=30)
 
         assert result.returncode != 0, "Should fail with nonexistent config"
         assert "does not exist" in result.stderr, "Should show file error message"
@@ -596,7 +598,7 @@ class TestScalabilityAndLimits:
     def setup_components(self):
         """Ensure all required components are imported and registered."""
         # Import all component modules to trigger registration
-        yield "components_loaded"
+        return "components_loaded"
 
     def test_small_dataset_handling(self, setup_components, test_data_dir):
         """Test audit with very small datasets."""

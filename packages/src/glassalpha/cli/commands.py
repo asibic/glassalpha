@@ -49,6 +49,7 @@ def _ensure_components_loaded() -> None:
         from ..explain.shap import kernel, tree  # noqa: F401
         from ..metrics.fairness import bias_detection  # noqa: F401
         from ..metrics.performance import classification  # noqa: F401
+        from ..models.tabular import sklearn, xgboost  # noqa: F401
 
         logger.debug("All component modules imported and registered")
     except ImportError as e:
@@ -81,7 +82,9 @@ def _run_audit_pipeline(config, output_path: Path) -> None:
 
         if not audit_results.success:
             typer.secho(
-                _ascii(f"❌ Audit pipeline failed: {audit_results.error_message}"), fg=typer.colors.RED, err=True
+                _ascii(f"❌ Audit pipeline failed: {audit_results.error_message}"),
+                fg=typer.colors.RED,
+                err=True,
             )
             raise typer.Exit(1)
 
@@ -143,7 +146,8 @@ def _run_audit_pipeline(config, output_path: Path) -> None:
         # Regulatory compliance message
         if config.strict_mode:
             typer.secho(
-                _ascii("\n🛡️  Strict mode: Report meets regulatory compliance requirements"), fg=typer.colors.YELLOW
+                _ascii("\n🛡️  Strict mode: Report meets regulatory compliance requirements"),
+                fg=typer.colors.YELLOW,
             )
 
         typer.echo("\nThe audit report is ready for review and regulatory submission.")
