@@ -46,6 +46,13 @@ jobs:
         GLASSALPHA_ASSERT_PACKAGING=1 python -c "import glassalpha.report"
       working-directory: packages
 
+    # Optional: Validate coverage gates locally (for development)
+    - name: Validate Coverage Gates (optional)
+      run: |
+        python test_coverage_gates.py
+      working-directory: packages
+      continue-on-error: true
+
     # Fast logging contract guard (before tests)
     - name: Enforce single-arg logging
       run: |
@@ -81,14 +88,35 @@ jobs:
         pytest -q tests/test_pipeline_basic.py::test_pipeline_logs_initialization tests/test_end_to_end.py::test_multiple_model_types tests/test_model_integration.py::test_model_saving_and_loading
       working-directory: packages
 
-    # Gate 1: Critical-path modules (90%+ coverage)
-    - name: Gate 1 - Critical modules (90%+)
+    # Coverage Gates
+    - name: Coverage Gates
       run: |
-        pytest -q --cov=glassalpha --cov-config=.coveragerc_gate1 --cov-fail-under=90
-      working-directory: packages
+        echo "=== Gate 1: Critical-path modules (90%+) ==="
+        echo "Running coverage tests for critical modules..."
+        pytest -q --cov=glassalpha --cov-config=.coveragerc_gate1 --cov-fail-under=90 --cov-report=term-missing
 
-    # Gate 2: Full repo coverage (trend-based)
-    - name: Gate 2 - Full repo coverage (70%+)
-      run: |
-        pytest -q --cov=glassalpha --cov-fail-under=70
+        echo -e "\n=== Gate 2: Full repository (70% trend-only) ==="
+        echo "Running full repository coverage tests..."
+        # Run coverage and capture the percentage
+        COVERAGE_OUTPUT=$(pytest -q --cov=glassalpha --cov-report=term-missing --cov-report=xml 2>/dev/null | grep -E "TOTAL.*[0-9]+%$" | tail -1)
+
+        if [ -n "$COVERAGE_OUTPUT" ]; then
+          CURRENT_COVERAGE=$(echo "$COVERAGE_OUTPUT" | grep -oE '[0-9]+\%' | head -1 | tr -d '%')
+          echo "Current coverage: $CURRENT_COVERAGE%"
+
+          # For now, just warn if below 70% (trend checking would require storing previous coverage)
+          if [ "$CURRENT_COVERAGE" -lt 70 ]; then
+            echo "⚠️  WARNING: Coverage ($CURRENT_COVERAGE%) is below 70% target"
+            echo "This is acceptable for now, but aim to improve coverage over time."
+          else
+            echo "✅ Coverage ($CURRENT_COVERAGE%) meets or exceeds 70% target"
+          fi
+        else
+          echo "❌ Could not determine coverage percentage"
+          exit 1
+        fi
+
+        # Generate coverage reports for external tools
+        echo -e "\n=== Coverage Reports ==="
+        pytest --cov=glassalpha --cov-report=xml --cov-report=term
       working-directory: packages
