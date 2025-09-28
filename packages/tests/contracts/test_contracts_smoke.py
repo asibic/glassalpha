@@ -42,7 +42,7 @@ def test_standard_template_packaged() -> None:
 
 
 @pytest.mark.skipif(
-    condition=True,  # Skip for now - needs sklearn deps
+    condition=False,  # Enable now - sklearn deps are available
     reason="Requires sklearn dependencies - enable when ready",
 )
 def test_lr_roundtrip(tmp_path: Path) -> None:

@@ -27,7 +27,7 @@ class TabularDataSchema(DataSchema):
     """Schema for tabular data validation with additional constraints."""
 
     target: str = Field(..., description="Name of target column")
-    features: list[str] = Field(..., min_items=1, description="List of feature column names")
+    features: list[str] = Field(..., min_length=1, description="List of feature column names")
     sensitive_features: list[str] | None = Field(None, description="Protected attributes for fairness analysis")
     categorical_features: list[str] | None = Field(None, description="Columns that should be treated as categorical")
     numeric_features: list[str] | None = Field(None, description="Columns that should be treated as numeric")
