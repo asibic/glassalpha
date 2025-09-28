@@ -170,7 +170,7 @@ testpaths = ["tests"]
 
 [tool.coverage.run]
 branch = true
-source = ["glassalpha"]          # measure the installed package
+source = ["src"]                 # measure source code
 relative_files = true
 parallel = false                 # disable shards to simplify coverage collection in CI
 
@@ -180,6 +180,7 @@ glassalpha = [
   "src/glassalpha",
   "*/site-packages/glassalpha"
 ]
+source = ["src/glassalpha"]
 
 [tool.coverage.report]
 # Temporary omissions to keep Gate 2 meaningful while we add tests
