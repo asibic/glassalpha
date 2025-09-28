@@ -187,11 +187,19 @@ class TestAuditPipelineExecution:
     @patch("glassalpha.pipeline.audit.AuditPipeline._load_data")
     @patch("glassalpha.pipeline.audit.AuditPipeline._load_model")
     def test_run_pipeline_basic_flow(
-        self, mock_load_model, mock_load_data, mock_setup, minimal_config, sample_dataframe
+        self,
+        mock_load_model,
+        mock_load_data,
+        mock_setup,
+        minimal_config,
+        sample_dataframe,
     ):
         """Test basic pipeline execution flow."""
         # Setup mocks
-        mock_load_data.return_value = (sample_dataframe, Mock())
+        mock_schema = Mock()
+        mock_schema.features = ["feature1", "feature2"]
+        mock_schema.target = "target"
+        mock_load_data.return_value = (sample_dataframe, mock_schema)
         mock_load_model.return_value = Mock()
 
         pipeline = AuditPipeline(minimal_config)
@@ -228,9 +236,12 @@ class TestAuditPipelineExecution:
         pipeline = AuditPipeline(minimal_config)
 
         # Mock all major methods to avoid dependencies
+        mock_schema = Mock()
+        mock_schema.features = ["feature1", "feature2"]
+        mock_schema.target = "target"
         with (
             patch.object(pipeline, "_setup_reproducibility"),
-            patch.object(pipeline, "_load_data", return_value=(Mock(), Mock())),
+            patch.object(pipeline, "_load_data", return_value=(Mock(), mock_schema)),
             patch.object(pipeline, "_load_model", return_value=Mock()),
             patch.object(pipeline, "_select_explainer", return_value=Mock()),
             patch.object(pipeline, "_generate_explanations", return_value={}),

@@ -115,6 +115,48 @@ class XGBoostWrapper(BaseTabularWrapper):
 
         return params
 
+    def _validate_objective_compatibility(self, params: dict[str, Any], n_classes: int) -> None:
+        """Validate that the objective is compatible with the number of classes.
+
+        Args:
+            params: XGBoost parameters including objective
+            n_classes: Number of unique classes in target
+
+        Raises:
+            ValueError: If objective is incompatible with number of classes
+
+        """
+        objective = params.get("objective", "")
+
+        # Binary objectives
+        binary_objectives = ["binary:logistic", "binary:hinge", "binary:logitraw"]
+        if objective in binary_objectives and n_classes != 2:
+            raise ValueError(f"Binary objective '{objective}' incompatible with {n_classes} classes")
+
+        # Multi-class objectives
+        multiclass_objectives = ["multi:softmax", "multi:softprob"]
+        if objective in multiclass_objectives and n_classes == 2:
+            raise ValueError(f"Multi-class objective '{objective}' incompatible with {n_classes} classes")
+
+    def _validate_num_class_parameter(self, params: dict[str, Any], n_classes: int) -> None:
+        """Validate that num_class parameter matches observed classes.
+
+        Args:
+            params: XGBoost parameters including num_class
+            n_classes: Number of unique classes in target
+
+        Raises:
+            ValueError: If num_class doesn't match observed classes
+
+        """
+        num_class = params.get("num_class")
+        if num_class is not None:
+            # Validate that num_class is reasonable
+            if num_class <= 0:
+                raise ValueError(f"num_class={num_class} must be > 0")
+            if num_class != n_classes:
+                raise ValueError(f"num_class={num_class} does not match observed classes={n_classes}")
+
     def fit(self, X: Any, y: Any, random_state: int | None = None, **kwargs: Any) -> "XGBoostWrapper":  # noqa: ANN401, N803
         """Fit XGBoost model with training data using native XGBoost API.
 
@@ -135,6 +177,9 @@ class XGBoostWrapper(BaseTabularWrapper):
         X = pd.DataFrame(X)
         self.feature_names_ = list(X.columns)
         self.n_classes = int(np.unique(y).size)
+        if self.n_classes <= 0:
+            raise ValueError(f"Invalid number of classes: {self.n_classes}")
+        self.n_classes_ = self.n_classes  # sklearn compatibility
 
         # Create DMatrix for training
         dtrain = self._to_dmatrix(X, y)
@@ -144,11 +189,29 @@ class XGBoostWrapper(BaseTabularWrapper):
         if random_state is not None:
             params["seed"] = random_state
 
+        # For multi-class objectives, num_class is required
+        if self.n_classes > 2:
+            params["num_class"] = self.n_classes
+        elif self.n_classes == 2:
+            # For binary, ensure num_class is not set (XGBoost handles binary automatically)
+            params.pop("num_class", None)
+
         # Add any additional parameters
         params.update(kwargs)
 
+        # Validate objective compatibility with number of classes
+        self._validate_objective_compatibility(params, self.n_classes)
+
+        # Validate num_class parameter if provided by user (not automatic)
+        user_num_class = kwargs.get("num_class")
+        if user_num_class is not None:
+            self._validate_num_class_parameter({"num_class": user_num_class}, self.n_classes)
+
+        # Extract n_estimators from params (default to 50)
+        num_boost_round = params.pop("n_estimators", 50)
+
         # Train the model using xgb.train (not sklearn wrapper)
-        self.model = xgb.train(params, dtrain, num_boost_round=50)
+        self.model = xgb.train(params, dtrain, num_boost_round=num_boost_round)
         self._is_fitted = True
 
         logger.info(f"Fitted XGBoost model: {self.n_classes} classes using native API")
@@ -332,8 +395,7 @@ class XGBoostWrapper(BaseTabularWrapper):
         self.model.save_model(str(path))
         Path(str(path) + ".meta.json").write_text(json.dumps(meta), encoding="utf-8")
         logger.debug(
-            f"Saved XGBoost model to {path} "
-            f"(features={len(self.feature_names_)}, classes={self.n_classes})"
+            f"Saved XGBoost model to {path} (features={len(self.feature_names_)}, classes={self.n_classes})",
         )
 
     def __repr__(self) -> str:

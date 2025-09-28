@@ -24,7 +24,7 @@ class TestGoldenReportSnapshots:
         if not template.is_file():
             pytest.fail("standard_audit.html template not found in package")
 
-        content = template.read_text()
+        content = template.read_text(encoding="utf-8")
 
         # Critical sections that customers/regulators expect
         required_sections = [
@@ -55,7 +55,7 @@ class TestGoldenReportSnapshots:
 
         template_files = files("glassalpha.report.templates")
         template = template_files.joinpath("standard_audit.html")
-        content = template.read_text()
+        content = template.read_text(encoding="utf-8")
 
         # Basic HTML validation checks
         assert content.count("<html") == 1, "Must have exactly one <html> tag"
@@ -74,7 +74,7 @@ class TestGoldenReportSnapshots:
 
         template_files = files("glassalpha.report.templates")
         template = template_files.joinpath("standard_audit.html")
-        content = template.read_text()
+        content = template.read_text(encoding="utf-8")
 
         # Key Jinja2 variables that should be present
         expected_variables = [
@@ -101,7 +101,7 @@ class TestGoldenReportSnapshots:
 
         template_files = files("glassalpha.report.templates")
         template = template_files.joinpath("standard_audit.html")
-        content = template.read_text()
+        content = template.read_text(encoding="utf-8")
 
         # Should have some CSS styling
         has_style_tag = "<style>" in content or "<style " in content
@@ -121,7 +121,7 @@ class TestGoldenReportSnapshots:
 
         template_files = files("glassalpha.report.templates")
         template = template_files.joinpath("standard_audit.html")
-        content = template.read_text()
+        content = template.read_text(encoding="utf-8")
 
         # Size checks
         assert len(content) > 1000, "Template should have substantial content (>1KB)"
@@ -188,7 +188,7 @@ class TestGoldenReportSnapshots:
 
         template_files = files("glassalpha.report.templates")
         template = template_files.joinpath("standard_audit.html")
-        content = template.read_text()
+        content = template.read_text(encoding="utf-8")
 
         # Check for potential security issues
         security_risks = [
