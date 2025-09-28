@@ -46,6 +46,28 @@ jobs:
         GLASSALPHA_ASSERT_PACKAGING=1 python -c "import glassalpha.report"
       working-directory: packages
 
+    # Fast logging contract guard (before tests)
+    - name: Enforce single-arg logging
+      run: |
+        python - <<'PY'
+        import ast, sys, pathlib
+        bad = []
+        root = pathlib.Path("src/glassalpha")
+        for p in root.rglob("*.py"):
+            tree = ast.parse(p.read_text(encoding="utf-8"))
+            for node in ast.walk(tree):
+                if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute):
+                    if node.func.attr in {"debug","info","warning","error","critical","exception"}:
+                        # More than one positional arg means printf-style or extra args
+                        if len(node.args) > 1:
+                            bad.append(f"{p}:{node.lineno}")
+        if bad:
+            print("printf-style logging detected (multiple positional args):")
+            print("\n".join(bad))
+            sys.exit(1)
+        PY
+      working-directory: packages
+
     # Run contract guard tests first (fast feedback)
     - name: Run contract guard tests
       run: pytest -xvs tests/contracts/
