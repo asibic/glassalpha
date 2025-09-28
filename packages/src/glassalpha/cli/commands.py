@@ -18,6 +18,30 @@ import typer
 logger = logging.getLogger(__name__)
 
 
+def _ascii(s: str) -> str:
+    """Convert Unicode characters to ASCII equivalents for CLI compatibility."""
+    return (
+        s.replace("✓", "OK")
+        .replace("•", "*")
+        .replace("—", "-")
+        .replace("–", "-")
+        .replace("…", "...")
+        .replace(""", '"').replace(""", '"')
+        .replace("'", "'")
+        .replace("❌", "X")
+        .replace("⚠️", "!")
+        .replace("🎉", "")
+        .replace("📊", "")
+        .replace("📁", "")
+        .replace("⏱️", "")
+        .replace("🛡️", "")
+        .replace("⚖️", "")
+        .replace("🔍", "")
+        .replace("📋", "")
+        .replace("🔧", "")
+    )
+
+
 def _ensure_components_loaded() -> None:
     """Ensure all required components are imported and registered."""
     try:
@@ -25,7 +49,6 @@ def _ensure_components_loaded() -> None:
         from ..explain.shap import kernel, tree  # noqa: F401
         from ..metrics.fairness import bias_detection  # noqa: F401
         from ..metrics.performance import classification  # noqa: F401
-        from ..models.tabular import lightgbm, sklearn, xgboost  # noqa: F401
 
         logger.debug("All component modules imported and registered")
     except ImportError as e:
@@ -57,11 +80,13 @@ def _run_audit_pipeline(config, output_path: Path) -> None:
         audit_results = run_audit_pipeline(config)
 
         if not audit_results.success:
-            typer.secho(f"❌ Audit pipeline failed: {audit_results.error_message}", fg=typer.colors.RED, err=True)
+            typer.secho(
+                _ascii(f"❌ Audit pipeline failed: {audit_results.error_message}"), fg=typer.colors.RED, err=True
+            )
             raise typer.Exit(1)
 
         pipeline_time = time.time() - start_time
-        typer.secho(f"✓ Audit pipeline completed in {pipeline_time:.2f}s", fg=typer.colors.GREEN)
+        typer.secho(_ascii(f"✓ Audit pipeline completed in {pipeline_time:.2f}s"), fg=typer.colors.GREEN)
 
         # Show audit summary
         _display_audit_summary(audit_results)
@@ -101,28 +126,30 @@ def _run_audit_pipeline(config, output_path: Path) -> None:
                     audit_results.execution_info["provenance_manifest"],
                     output_path,
                 )
-                typer.echo(f"📋 Manifest: {manifest_path}")
+                typer.echo(_ascii(f"📋 Manifest: {manifest_path}"))
             except Exception as e:
                 logger.warning(f"Failed to write manifest sidecar: {e}")
 
         # Success message
         total_time = time.time() - start_time
-        typer.echo("\n🎉 Audit Report Generated Successfully!")
-        typer.echo(f"{'=' * 50}")
-        typer.secho(f"📁 Output: {pdf_path}", fg=typer.colors.GREEN)
-        typer.echo(f"📊 Size: {file_size:,} bytes ({file_size / 1024:.1f} KB)")
-        typer.echo(f"⏱️  Total time: {total_time:.2f}s")
-        typer.echo(f"   • Pipeline: {pipeline_time:.2f}s")
-        typer.echo(f"   • PDF generation: {pdf_time:.2f}s")
+        typer.echo(_ascii("\n🎉 Audit Report Generated Successfully!"))
+        typer.echo("=" * 50)
+        typer.secho(_ascii(f"📁 Output: {pdf_path}"), fg=typer.colors.GREEN)
+        typer.echo(_ascii(f"📊 Size: {file_size:,} bytes ({file_size / 1024:.1f} KB)"))
+        typer.echo(_ascii(f"⏱️  Total time: {total_time:.2f}s"))
+        typer.echo(_ascii(f"   • Pipeline: {pipeline_time:.2f}s"))
+        typer.echo(_ascii(f"   • PDF generation: {pdf_time:.2f}s"))
 
         # Regulatory compliance message
         if config.strict_mode:
-            typer.secho("\n🛡️  Strict mode: Report meets regulatory compliance requirements", fg=typer.colors.YELLOW)
+            typer.secho(
+                _ascii("\n🛡️  Strict mode: Report meets regulatory compliance requirements"), fg=typer.colors.YELLOW
+            )
 
         typer.echo("\nThe audit report is ready for review and regulatory submission.")
 
     except Exception as e:
-        typer.secho(f"\n❌ Audit failed: {e!s}", fg=typer.colors.RED, err=True)
+        typer.secho(_ascii(f"\n❌ Audit failed: {e!s}"), fg=typer.colors.RED, err=True)
 
         # Show more details in verbose mode
         if "--verbose" in sys.argv or "-v" in sys.argv:
@@ -133,21 +160,21 @@ def _run_audit_pipeline(config, output_path: Path) -> None:
 
 def _display_audit_summary(audit_results) -> None:
     """Display a summary of audit results."""
-    typer.echo("\n📊 Audit Summary:")
+    typer.echo(_ascii("\n📊 Audit Summary:"))
 
     # Model performance
     if audit_results.model_performance:
         perf_count = len(
             [m for m in audit_results.model_performance.values() if isinstance(m, dict) and "error" not in m],
         )
-        typer.echo(f"  ✅ Performance metrics: {perf_count} computed")
+        typer.echo(_ascii(f"  ✅ Performance metrics: {perf_count} computed"))
 
         # Show key metrics
         for name, result in audit_results.model_performance.items():
             if isinstance(result, dict) and "accuracy" in result:
                 accuracy = result["accuracy"]
                 status = "✅" if accuracy > 0.8 else "⚠️" if accuracy > 0.6 else "❌"
-                typer.echo(f"     {status} {name}: {accuracy:.1%}")
+                typer.echo(_ascii(f"     {status} {name}: {accuracy:.1%}"))
                 break
 
     # Fairness analysis
@@ -166,19 +193,19 @@ def _display_audit_summary(audit_results) -> None:
                         bias_detected.append(f"{attr}.{metric}")
 
         computed_metrics = total_metrics - failed_metrics
-        typer.echo(f"  ⚖️  Fairness metrics: {computed_metrics}/{total_metrics} computed")
+        typer.echo(_ascii(f"  ⚖️  Fairness metrics: {computed_metrics}/{total_metrics} computed"))
 
         if bias_detected:
-            typer.secho(f"     ⚠️  Bias detected in: {', '.join(bias_detected[:2])}", fg=typer.colors.YELLOW)
+            typer.secho(_ascii(f"     ⚠️  Bias detected in: {', '.join(bias_detected[:2])}"), fg=typer.colors.YELLOW)
         elif computed_metrics > 0:
-            typer.secho("     ✅ No bias detected", fg=typer.colors.GREEN)
+            typer.secho(_ascii("     ✅ No bias detected"), fg=typer.colors.GREEN)
 
     # SHAP explanations
     if audit_results.explanations:
         has_importance = "global_importance" in audit_results.explanations
 
         if has_importance:
-            typer.echo("  🔍 Explanations: ✅ Global feature importance")
+            typer.echo(_ascii("  🔍 Explanations: ✅ Global feature importance"))
 
             # Show top feature
             importance = audit_results.explanations.get("global_importance", {})
@@ -186,16 +213,16 @@ def _display_audit_summary(audit_results) -> None:
                 top_feature = max(importance.items(), key=lambda x: abs(x[1]))
                 typer.echo(f"     Most important: {top_feature[0]} ({top_feature[1]:+.3f})")
         else:
-            typer.echo("  🔍 Explanations: ❌ Not available")
+            typer.echo(_ascii("  🔍 Explanations: ❌ Not available"))
 
     # Data summary
     if audit_results.data_summary and "shape" in audit_results.data_summary:
         rows, cols = audit_results.data_summary["shape"]
-        typer.echo(f"  📋 Dataset: {rows:,} samples, {cols} features")
+        typer.echo(_ascii(f"  📋 Dataset: {rows:,} samples, {cols} features"))
 
     # Selected components
     if audit_results.selected_components:
-        typer.echo(f"  🔧 Components: {len(audit_results.selected_components)} selected")
+        typer.echo(_ascii(f"  🔧 Components: {len(audit_results.selected_components)} selected"))
 
         # Show model type
         for _comp_name, comp_info in audit_results.selected_components.items():
@@ -342,7 +369,7 @@ def audit(
             typer.secho(f"Warning: Model type '{model_type}' not found in registry", fg=typer.colors.YELLOW)
 
         if dry_run:
-            typer.secho("✓ Configuration valid (dry run - no report generated)", fg=typer.colors.GREEN)
+            typer.secho(_ascii("✓ Configuration valid (dry run - no report generated)"), fg=typer.colors.GREEN)
             return
 
         # Run audit pipeline
@@ -416,7 +443,7 @@ def validate(
         typer.echo(f"Strict mode: {'valid' if strict else 'not checked'}")
 
         # Report validation results
-        typer.secho("\n✓ Configuration is valid", fg=typer.colors.GREEN)
+        typer.secho(_ascii("\n✓ Configuration is valid"), fg=typer.colors.GREEN)
 
         # Show warnings if any
         if not audit_config.reproducibility.random_seed:

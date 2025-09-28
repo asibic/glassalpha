@@ -5,6 +5,7 @@ to work within the GlassAlpha pipeline. It supports SHAP explanations and
 provides feature importance capabilities.
 """
 
+import json
 import logging
 from pathlib import Path
 from typing import Any, ClassVar
@@ -69,6 +70,26 @@ class XGBoostWrapper(BaseTabularWrapper):
         else:
             logger.info("XGBoostWrapper initialized without model")
 
+    def _to_dmatrix(self, X, y=None):  # noqa: N803
+        """Convert input to XGBoost DMatrix with proper feature alignment.
+
+        Args:
+            X: Input features (DataFrame, array, or existing DMatrix)
+            y: Target values (optional)
+
+        Returns:
+            xgb.DMatrix: Properly formatted DMatrix with aligned features
+
+        """
+        if isinstance(X, xgb.DMatrix):
+            return X
+        X = pd.DataFrame(X)
+        if getattr(self, "feature_names_", None):
+            from ...utils.features import align_features  # lazy import  # noqa: PLC0415
+
+            X = align_features(X, self.feature_names_)
+        return xgb.DMatrix(X, label=y, feature_names=list(X.columns))
+
     def _canonicalize_params(self, kwargs: dict[str, Any]) -> dict[str, Any]:
         """Canonicalize XGBoost parameters to handle aliases and ensure consistency.
 
@@ -94,14 +115,14 @@ class XGBoostWrapper(BaseTabularWrapper):
 
         return params
 
-    def fit(self, X: Any, y: Any, require_proba: bool = True, **kwargs: Any) -> "XGBoostWrapper":  # noqa: ANN401, N803
-        """Fit XGBoost model with training data.
+    def fit(self, X: Any, y: Any, random_state: int | None = None, **kwargs: Any) -> "XGBoostWrapper":  # noqa: ANN401, N803
+        """Fit XGBoost model with training data using native XGBoost API.
 
         Args:
             X: Training features (DataFrame or array)
             y: Target values
-            require_proba: If True, ensure model can produce probabilities for audits
-            **kwargs: Additional parameters including objective, num_class, etc.
+            random_state: Random seed for reproducibility
+            **kwargs: Additional XGBoost parameters
 
         Returns:
             Self for method chaining
@@ -110,67 +131,27 @@ class XGBoostWrapper(BaseTabularWrapper):
             ValueError: If objective and num_class are inconsistent with data
 
         """
-        import numpy as np  # noqa: PLC0415
-        import pandas as pd  # noqa: PLC0415
-
         # Convert inputs to proper format
         X = pd.DataFrame(X)
-        y = np.asarray(y)
-
-        # Normalize labels to 0..k-1 but keep original labels for mapping
-        classes, y_enc = np.unique(y, return_inverse=True)
-        self.classes_ = classes
-        self.n_classes_ = classes.size
-
-        # Store feature names
         self.feature_names_ = list(X.columns)
+        self.n_classes = int(np.unique(y).size)
 
-        # Set defaults that can be overridden by kwargs
-        defaults = {"max_depth": 6, "eta": 0.1}
+        # Create DMatrix for training
+        dtrain = self._to_dmatrix(X, y)
 
-        # Auto-infer objective if not provided
-        obj = kwargs.get("objective")
-        if obj is None:
-            obj = "multi:softprob" if self.n_classes_ > 2 else "binary:logistic"
-            kwargs["objective"] = obj
+        # Set up training parameters
+        params = {"objective": "binary:logistic" if self.n_classes == 2 else "multi:softprob"}
+        if random_state is not None:
+            params["seed"] = random_state
 
-        # Handle require_proba: coerce multi:softmax to multi:softprob for audit compatibility
-        if require_proba and obj == "multi:softmax":
-            logger.warning("Coercing multi:softmax to multi:softprob for audit compatibility (predict_proba required)")
-            kwargs["objective"] = "multi:softprob"
-            obj = "multi:softprob"
+        # Add any additional parameters
+        params.update(kwargs)
 
-        # Strict validations before training
-        if "binary" in obj and self.n_classes_ > 2:
-            msg = f"Binary objective '{obj}' incompatible with {self.n_classes_} classes"
-            raise ValueError(msg)
-
-        if obj.startswith("multi:"):
-            num_class_cfg = kwargs.get("num_class", self.n_classes_)
-            if num_class_cfg != self.n_classes_:
-                msg = f"num_class={num_class_cfg} does not match observed classes={self.n_classes_}"
-                raise ValueError(msg)
-
-        # Canonicalize parameters to handle aliases
-        params = self._canonicalize_params({**defaults, **kwargs})
-
-        # Create and fit XGBoost model
-        from xgboost import XGBClassifier  # noqa: PLC0415
-
-        logger.info(f"Creating XGBClassifier with params: {params}")
-        logger.info(f"Target classes: {self.classes_}, n_classes: {self.n_classes_}")
-
-        sklearn_model = XGBClassifier(**params)
-        sklearn_model.fit(X, y_enc)
-
-        # Keep XGBClassifier for full functionality (predict_proba, etc.)
-        self.model = sklearn_model
-
-        # Mark as fitted
+        # Train the model using xgb.train (not sklearn wrapper)
+        self.model = xgb.train(params, dtrain, num_boost_round=50)
         self._is_fitted = True
 
-        logger.info(f"Fitted XGBoost model: {self.n_classes_} classes, objective={params.get('objective', 'unknown')}")
-
+        logger.info("Fitted XGBoost model: %d classes using native API", self.n_classes)
         return self
 
     def load(self, path: str | Path) -> "XGBoostWrapper":
@@ -203,33 +184,18 @@ class XGBoostWrapper(BaseTabularWrapper):
             msg = f"Model file not found: {path}"
             raise FileNotFoundError(msg)
 
-        logger.info(f"Loading XGBoost model from {path}")
-
-        # Contract compliance: Load JSON with model/feature_names_/n_classes
-        import json  # noqa: PLC0415
-        import tempfile  # noqa: PLC0415
+        logger.info("Loading XGBoost model from %s", path)
 
         try:
-            with Path(path).open(encoding="utf-8") as f:
-                data = json.load(f)
-
-            # Reconstruct from saved structure using temp file
-            with tempfile.NamedTemporaryFile(delete=False, suffix=".json") as tmp:
-                tmp.write(data["model"].encode("utf-8"))
-                tmp.flush()
-
-                self.model = xgb.Booster()
-                self.model.load_model(tmp.name)
-
-            # Clean up temp file
-            Path(tmp.name).unlink(missing_ok=True)
-
-            self.feature_names_ = data.get("feature_names_")
-            self.n_classes = data.get("n_classes", 2)
+            # Try to load with metadata
+            self.model = xgb.Booster()
+            self.model.load_model(str(path))
+            meta = json.loads(Path(str(path) + ".meta.json").read_text(encoding="utf-8"))
+            self.feature_names_ = meta.get("feature_names_", [])
+            self.n_classes = meta.get("n_classes", None)
             self._is_fitted = True
-
-        except (json.JSONDecodeError, KeyError):
-            # Fallback to direct XGBoost model loading (old format)
+        except (FileNotFoundError, json.JSONDecodeError):
+            # Fallback to direct XGBoost model loading without metadata
             self.model = xgb.Booster()
             self.model.load_model(str(path))
             self._is_fitted = True
@@ -253,8 +219,6 @@ class XGBoostWrapper(BaseTabularWrapper):
                 # For multiclass, it outputs multiple values
                 config = self.model.save_config()
                 if '"num_class"' in config:
-                    import json  # noqa: PLC0415
-
                     config_dict = json.loads(config)
                     learner = config_dict.get("learner", {})
                     learner_params = learner.get("learner_model_param", {})
@@ -267,45 +231,24 @@ class XGBoostWrapper(BaseTabularWrapper):
                 logger.debug("Could not determine number of classes, defaulting to binary")
                 self.n_classes_ = 2
 
-    def predict(self, X: pd.DataFrame) -> np.ndarray:  # noqa: N803
+    def predict(self, X):  # noqa: N803
         """Generate predictions for input data.
 
         Args:
             X: Input features as DataFrame
 
         Returns:
-            Array of predictions (original class labels)
+            Array of predictions
 
         """
         self._ensure_fitted()
+        dm = self._to_dmatrix(X)
+        raw = self.model.predict(dm)
+        if raw.ndim == 1:  # binary
+            return (raw >= 0.5).astype(int)
+        return np.argmax(raw, axis=1)
 
-        # Convert to DataFrame if needed
-        X = pd.DataFrame(X)
-
-        # Align features using utility function
-        if self.feature_names_:
-            from ...utils.features import align_features  # noqa: PLC0415
-
-            X = align_features(X, self.feature_names_)
-
-        # Get encoded predictions (0..k-1)
-        encoded_preds = self.model.predict(X)
-
-        # Convert to class indices
-        if self.n_classes_ > 2:
-            # Multi-class: argmax returns class indices
-            class_indices = np.argmax(encoded_preds, axis=1) if encoded_preds.ndim > 1 else encoded_preds
-        else:
-            # Binary: threshold predictions
-            class_indices = (encoded_preds > self.BINARY_THRESHOLD).astype(int)
-
-        # Map indices back to original labels
-        predictions = self.classes_[class_indices.astype(int)]
-
-        logger.debug(f"Generated predictions for {len(X)} samples")
-        return predictions
-
-    def predict_proba(self, X: pd.DataFrame) -> np.ndarray:  # noqa: N803
+    def predict_proba(self, X):  # noqa: N803
         """Generate probability predictions for input data.
 
         Args:
@@ -316,28 +259,11 @@ class XGBoostWrapper(BaseTabularWrapper):
 
         """
         self._ensure_fitted()
-
-        # Convert to DataFrame if needed
-        X = pd.DataFrame(X)
-
-        # Align features using utility function
-        if self.feature_names_:
-            from ...utils.features import align_features  # noqa: PLC0415
-
-            X = align_features(X, self.feature_names_)
-
-        # Get probabilities from XGBoost
-        probs = self.model.predict_proba(X)
-
-        # Ensure shape (n, k) even for binary
-        if probs.ndim == 1:
-            # Binary case - XGBoost sometimes returns 1D array
-            proba1 = probs
-            proba0 = 1.0 - proba1
-            probs = np.column_stack([proba0, proba1])
-
-        logger.debug(f"Generated probability predictions for {len(X)} samples")
-        return probs
+        dm = self._to_dmatrix(X)
+        raw = self.model.predict(dm)
+        if raw.ndim == 1:  # binary -> (n,2)
+            return np.column_stack([1.0 - raw, raw])
+        return raw
 
     def get_model_type(self) -> str:
         """Return the model type identifier.
@@ -394,60 +320,19 @@ class XGBoostWrapper(BaseTabularWrapper):
         return importance
 
     def save(self, path: str | Path) -> None:
-        """Save trained XGBoost model to disk in structured JSON format.
-
-        Persists the complete model structure including boosted trees, learned
-        parameters, and feature mappings in XGBoost's native JSON format.
-        This format provides cross-platform compatibility and enables detailed
-        model inspection for compliance verification.
+        """Save trained XGBoost model with metadata for round-trip compatibility.
 
         Args:
-            path: Target file path for model storage (recommended: .json extension)
-
-        Side Effects:
-            - Creates or overwrites model file at specified path
-            - Creates parent directories if they don't exist
-            - Saves in JSON format (~500KB-20MB depending on model complexity)
-            - File contains complete tree structure and training metadata
-
-        Raises:
-            ValueError: If no trained model exists to save
-            IOError: If path is not writable or insufficient disk space
-            XGBoostError: If model serialization fails due to corrupted state
-
-        Note:
-            JSON format enables detailed model audit for regulatory compliance.
-            Contains full tree structure, split conditions, and leaf values
-            required for explainability and bias analysis verification.
+            path: Target file path for model storage
 
         """
         self._ensure_fitted()
 
-        path = Path(path)
-        path.parent.mkdir(parents=True, exist_ok=True)
+        meta = {"feature_names_": self.feature_names_, "n_classes": self.n_classes}
+        self.model.save_model(str(path))
+        Path(str(path) + ".meta.json").write_text(json.dumps(meta), encoding="utf-8")
 
-        # Contract compliance: Save JSON with model/feature_names_/n_classes
-        import json  # noqa: PLC0415
-        import tempfile  # noqa: PLC0415
-
-        # Save model to temp file then read as string
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".json") as tmp:
-            self.model.save_model(tmp.name)
-            model_str = Path(tmp.name).read_text(encoding="utf-8")
-
-        # Clean up temp file
-        Path(tmp.name).unlink(missing_ok=True)
-
-        data = {
-            "model": model_str,
-            "feature_names_": self.feature_names_,
-            "n_classes": self.n_classes,
-        }
-
-        with Path(path).open("w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2)
-
-        logger.info(f"Saved XGBoost model to {path}")
+        logger.info("Saved XGBoost model to %s", path)
 
     def __repr__(self) -> str:
         """String representation of the wrapper."""

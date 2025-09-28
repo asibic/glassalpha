@@ -14,6 +14,42 @@ import yaml
 logger = logging.getLogger(__name__)
 
 
+def _looks_like_path(s: str) -> bool:
+    """Conservatively determine if a string looks like a file path.
+
+    Args:
+        s: String to check
+
+    Returns:
+        True if string looks like a path, False if it looks like YAML content
+
+    """
+    # very conservative: treat as path only if no newlines and contains a path separator
+    return ("\n" not in s) and ("/" in s or "\\" in s)
+
+
+def _enforce_yaml_depth(text: str, max_depth: int) -> None:
+    """Enforce YAML nesting depth limit using fast indentation heuristic.
+
+    Args:
+        text: YAML text content
+        max_depth: Maximum allowed nesting depth
+
+    Raises:
+        YAMLSecurityError: If nesting is too deep
+
+    """
+    depth = 0
+    for line in text.splitlines():
+        if not line.strip():
+            continue
+        indent = len(line) - len(line.lstrip(" "))
+        level = indent // 2
+        depth = max(depth, level)
+        if depth > max_depth:
+            raise YAMLSecurityError("YAML nesting too deep")
+
+
 class YAMLSecurityError(Exception):
     """Raised when YAML security validation fails."""
 
@@ -74,10 +110,14 @@ def safe_load_yaml(
         }
 
     # Handle file vs string input
-    if isinstance(source, Path) or (isinstance(source, str) and len(source) < 1000 and Path(source).exists()):
-        # Load from file (only if string is short enough to be a path)
+    if isinstance(source, Path):
+        yaml_path = source
+    elif isinstance(source, str) and _looks_like_path(source):
         yaml_path = Path(source)
+    else:
+        yaml_path = None
 
+    if yaml_path is not None:
         # Check file size
         file_size_mb = yaml_path.stat().st_size / (1024 * 1024)
         if file_size_mb > max_file_size_mb:
@@ -104,6 +144,9 @@ def safe_load_yaml(
             raise YAMLSecurityError(
                 f"YAML content too large: {content_size_mb:.1f}MB > {max_file_size_mb}MB limit",
             )
+
+    # Enforce depth limit before parsing
+    _enforce_yaml_depth(yaml_content, max_depth)
 
     # Parse YAML using safe_load only
     try:

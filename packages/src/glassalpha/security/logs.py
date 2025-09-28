@@ -53,14 +53,15 @@ class LogSanitizer:
         """
         patterns = []
 
-        # API keys and tokens
+        # API keys and tokens (enhanced)
+        api_key_re = re.compile(r"(?i)\b(api[_-]?key|token|secret|password)\s*[:=]\s*([A-Za-z0-9_\-]{6,})")
         patterns.extend(
             [
                 (re.compile(r"\b[A-Za-z0-9]{32,}\b"), "[REDACTED_TOKEN]"),
-                (re.compile(r'api[_-]?key["\']?\s*[:=]\s*["\']?([A-Za-z0-9]+)', re.IGNORECASE), 'api_key="[REDACTED]"'),
+                (api_key_re, lambda m: f"{m.group(1)}: [REDACTED]"),
                 (re.compile(r'token["\']?\s*[:=]\s*["\']?([A-Za-z0-9]+)', re.IGNORECASE), 'token="[REDACTED]"'),
                 (re.compile(r'secret["\']?\s*[:=]\s*["\']?([A-Za-z0-9]+)', re.IGNORECASE), 'secret="[REDACTED]"'),
-            ]
+            ],
         )
 
         # Passwords
@@ -69,7 +70,7 @@ class LogSanitizer:
                 (re.compile(r'password["\']?\s*[:=]\s*["\']?([^\s"\']+)', re.IGNORECASE), 'password="[REDACTED]"'),
                 (re.compile(r'passwd["\']?\s*[:=]\s*["\']?([^\s"\']+)', re.IGNORECASE), 'passwd="[REDACTED]"'),
                 (re.compile(r'pwd["\']?\s*[:=]\s*["\']?([^\s"\']+)', re.IGNORECASE), 'pwd="[REDACTED]"'),
-            ]
+            ],
         )
 
         # Email addresses (partial redaction)
@@ -77,7 +78,7 @@ class LogSanitizer:
             (
                 re.compile(r"\b([A-Za-z0-9._%+-]+)@([A-Za-z0-9.-]+\.[A-Z|a-z]{2,})\b"),
                 r"\1***@\2",
-            )
+            ),
         )
 
         # IP addresses (partial redaction)
@@ -85,16 +86,17 @@ class LogSanitizer:
             (
                 re.compile(r"\b(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})\b"),
                 r"\1.\2.***.\4",
-            )
+            ),
         )
 
         # File paths (redact user directories)
+        user_path_re = re.compile(r"(?i)(/Users/|/home/|\\Users\\)([A-Za-z0-9._-]+)")
         patterns.extend(
             [
-                (re.compile(r"/Users/([^/\s]+)"), "/Users/[USER]"),
+                (user_path_re, lambda m: m.group(1) + "[REDACTED]"),
                 (re.compile(r"/home/([^/\s]+)"), "/home/[USER]"),
                 (re.compile(r"C:\\\\Users\\\\([^\\\\s]+)", re.IGNORECASE), r"C:\\Users\\[USER]"),
-            ]
+            ],
         )
 
         # Credit card numbers (full redaction)
@@ -102,7 +104,7 @@ class LogSanitizer:
             (
                 re.compile(r"\b(?:\d{4}[-\s]?){3}\d{4}\b"),
                 "[REDACTED_CC]",
-            )
+            ),
         )
 
         # Social Security Numbers (full redaction)
@@ -110,7 +112,7 @@ class LogSanitizer:
             (
                 re.compile(r"\b\d{3}-?\d{2}-?\d{4}\b"),
                 "[REDACTED_SSN]",
-            )
+            ),
         )
 
         # Control characters (security)
@@ -118,7 +120,7 @@ class LogSanitizer:
             (
                 re.compile(r"[\x00-\x1f\x7f-\x9f]"),
                 "[CTRL]",
-            )
+            ),
         )
 
         return patterns
@@ -158,6 +160,24 @@ class LogSanitizer:
         self.patterns.append((pattern, replacement))
 
 
+def sanitize(text: str) -> str:
+    """Standalone sanitization function matching LogSanitizer behavior.
+
+    Args:
+        text: Text to sanitize
+
+    Returns:
+        Sanitized text
+
+    """
+    api_key_re = re.compile(r"(?i)\b(api[_-]?key|token|secret|password)\s*[:=]\s*([A-Za-z0-9_\-]{6,})")
+    user_path_re = re.compile(r"(?i)(/Users/|/home/|\\Users\\)([A-Za-z0-9._-]+)")
+
+    s = api_key_re.sub(lambda m: f"{m.group(1)}: [REDACTED]", text)
+    s = user_path_re.sub(lambda m: m.group(1) + "[REDACTED]", s)
+    return s
+
+
 def sanitize_log_message(message: str) -> str:
     """Sanitize a single log message.
 
@@ -168,8 +188,7 @@ def sanitize_log_message(message: str) -> str:
         Sanitized log message
 
     """
-    sanitizer = LogSanitizer()
-    return sanitizer.sanitize(message)
+    return sanitize(message)
 
 
 def setup_secure_logging(

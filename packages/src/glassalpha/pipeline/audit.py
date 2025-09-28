@@ -1160,7 +1160,6 @@ class AuditPipeline:
             from glassalpha.explain.shap import kernel, tree  # noqa: F401, PLC0415
             from glassalpha.metrics.fairness import bias_detection  # noqa: F401, PLC0415
             from glassalpha.metrics.performance import classification  # noqa: F401, PLC0415
-            from glassalpha.models.tabular import lightgbm, sklearn, xgboost  # noqa: F401, PLC0415
 
             logger.debug("All component modules imported and registered")
         except ImportError as e:

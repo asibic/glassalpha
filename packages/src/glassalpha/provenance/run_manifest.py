@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 
 def generate_run_manifest(
-    config: dict[str, Any],
+    config: dict[str, Any] | None = None,
     dataset_path: str | Path | None = None,
     dataset_df: pd.DataFrame | None = None,
     model_info: dict[str, Any] | None = None,
@@ -45,6 +45,14 @@ def generate_run_manifest(
 
     """
     logger.info("Generating comprehensive run manifest")
+
+    # Handle None config
+    if config is None:
+        config = {
+            "audit_profile": "unknown",
+            "model": {"type": "unknown"},
+            "data": {"path": "unknown"},
+        }
 
     manifest = {
         "manifest_version": "1.0",

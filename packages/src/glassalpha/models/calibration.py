@@ -15,8 +15,10 @@ logger = logging.getLogger(__name__)
 
 def maybe_calibrate(
     estimator: Any,
+    X=None,
+    y=None,
     method: str | None = None,
-    cv: int | None = None,
+    cv: int | None = 5,
     ensemble: bool = True,
 ) -> Any:
     """Optionally calibrate a trained estimator's probability predictions.
@@ -27,6 +29,8 @@ def maybe_calibrate(
 
     Args:
         estimator: Trained sklearn-compatible estimator
+        X: Training features (required for calibration)
+        y: Training targets (required for calibration)
         method: Calibration method ('isotonic', 'sigmoid', or None for no calibration)
         cv: Number of cross-validation folds (default: 5)
         ensemble: Whether to use ensemble=True (recommended for better calibration)
@@ -40,30 +44,20 @@ def maybe_calibrate(
     Examples:
         >>> from sklearn.ensemble import RandomForestClassifier
         >>> rf = RandomForestClassifier().fit(X, y)
-        >>> calibrated_rf = maybe_calibrate(rf, method='isotonic', cv=5)
+        >>> calibrated_rf = maybe_calibrate(rf, X, y, method='isotonic', cv=5)
         >>> # Now calibrated_rf.predict_proba() gives better calibrated probabilities
 
     """
-    if not method:
-        logger.debug("No calibration method specified, returning original estimator")
+    if method in (None, "", False):
         return estimator
 
-    method = method.lower()
     if method not in {"isotonic", "sigmoid"}:
-        raise ValueError(f"Unknown calibration method: '{method}'. Must be 'isotonic' or 'sigmoid'")
-
-    cv = cv or 5  # Default to 5-fold CV
+        raise ValueError(f"Unknown calibration method: {method}")
 
     logger.info(f"Applying {method} calibration with {cv}-fold cross-validation")
 
     try:
-        calibrated_estimator = CalibratedClassifierCV(
-            estimator,
-            method=method,
-            cv=cv,
-            ensemble=ensemble,
-        )
-
+        calibrated_estimator = CalibratedClassifierCV(estimator, method=method, cv=cv, ensemble=ensemble).fit(X, y)
         logger.info("Successfully created calibrated estimator wrapper")
         return calibrated_estimator
 

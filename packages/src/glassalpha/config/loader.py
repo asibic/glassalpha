@@ -65,6 +65,32 @@ def merge_configs(base: dict[str, Any], override: dict[str, Any]) -> dict[str, A
     return result
 
 
+def _migrate_deprecated(cfg: dict[str, Any]) -> tuple[dict[str, Any], list[str]]:
+    """Migrate deprecated configuration options to current format.
+
+    Args:
+        cfg: Configuration dictionary to migrate
+
+    Returns:
+        Tuple of (migrated_config, deprecation_notes)
+
+    """
+    notes = []
+    cfg = cfg.copy()  # Don't modify original
+
+    if "random_seed" in cfg:
+        cfg.setdefault("reproducibility", {})
+        cfg["reproducibility"]["random_seed"] = cfg.pop("random_seed")
+        notes.append("• 'random_seed' is deprecated, use 'reproducibility.random_seed'")
+
+    return cfg, notes
+
+
+def validate_config_completeness(_: "AuditConfig") -> None:
+    """Hook for additional completeness checks (patched in tests)."""
+    return
+
+
 def apply_profile_defaults(config: dict[str, Any], profile_name: str | None = None) -> dict[str, Any]:
     """Apply audit profile defaults to configuration.
 
@@ -123,11 +149,20 @@ def validate_config(config: dict[str, Any] | AuditConfig) -> AuditConfig:
         return config
 
     try:
+        # Migrate deprecated options before validation
+        config, notes = _migrate_deprecated(config)
+        if notes:
+            logger.warning("Deprecated configuration options found:\n  " + "\n  ".join(notes))
+
         # Apply profile defaults first
         config = apply_profile_defaults(config, config.get("audit_profile"))
 
         # Create and validate config object
         audit_config = AuditConfig(**config)
+
+        # Call completeness hook (can be patched by tests)
+        validate_config_completeness(audit_config)
+
         logger.info("Configuration validated successfully")
         return audit_config
 
@@ -173,10 +208,20 @@ def load_config(config_dict: dict[str, Any], profile_name: str | None = None, st
     config_dict = apply_profile_defaults(config_dict, config_dict.get("audit_profile"))
     audit_config = validate_config(config_dict)
 
-    # Warn about unknown keys in non-critical sections
-    warn_unknown_keys(config_dict, audit_config.report, "report")
-    if hasattr(audit_config, "recourse") and audit_config.recourse:
-        warn_unknown_keys(config_dict, audit_config.recourse, "recourse")
+    # Warn about unknown keys in non-critical sections (routed to loader logger)
+    from . import warnings as warnmod  # noqa: PLC0415
+
+    # Store original logger to temporarily redirect warnings
+    original_warnmod_logger = warnmod.logger
+    warnmod.logger = logger
+
+    try:
+        warn_unknown_keys(config_dict, audit_config.report, "report")
+        if hasattr(audit_config, "recourse") and audit_config.recourse:
+            warn_unknown_keys(config_dict, audit_config.recourse, "recourse")
+    finally:
+        # Restore original logger
+        warnmod.logger = original_warnmod_logger
 
     # Validate completeness and suggest improvements (unless in strict mode)
     if not (audit_config.strict_mode or strict):
