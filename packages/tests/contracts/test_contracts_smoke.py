@@ -77,7 +77,7 @@ def test_lr_roundtrip(tmp_path: Path) -> None:
 
 
 @pytest.mark.skipif(
-    condition=True,  # Skip for now - needs deps
+    condition=False,  # Enable now - manifest dependencies are available
     reason="Requires manifest dependencies - enable when ready",
 )
 def test_manifest_tracks_model() -> None:

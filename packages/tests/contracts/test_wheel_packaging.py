@@ -36,9 +36,8 @@ class TestWheelPackaging:
                 check=False,
             )
 
-            # Skip test if build tools not available
-            if result.returncode != 0:
-                pytest.skip(f"Wheel build failed: {result.stderr}")
+            # Fail test if build tools not available
+            assert result.returncode == 0, f"Wheel build failed: {result.stderr}"
 
             # Find the built wheel
             wheel_files = list(temp_path.glob("*.whl"))

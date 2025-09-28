@@ -506,7 +506,6 @@ class TestTabularDataLoaderFileFormats:
         # Should preserve NaN values
         assert data.isnull().sum().sum() > 0
 
-    @pytest.mark.skip(reason="Parquet support may not be implemented yet")
     def test_parquet_loading(self, sample_csv_data, tmp_path):
         """Test Parquet file loading (if supported)."""
         parquet_path = tmp_path / "test_data.parquet"
