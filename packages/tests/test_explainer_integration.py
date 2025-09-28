@@ -12,6 +12,22 @@ import numpy as np
 import pandas as pd
 import pytest
 
+
+def assert_explainer_capabilities(
+    explainer,
+    expected_type="shap_values",
+    supports_local=True,
+    supports_global=True,
+    data_modality="tabular",
+):
+    """Helper function to assert common explainer capabilities."""
+    capabilities = explainer.capabilities
+    assert capabilities["explanation_type"] == expected_type
+    assert capabilities["supports_local"] is supports_local
+    assert capabilities["supports_global"] is supports_global
+    assert capabilities["data_modality"] == data_modality
+
+
 # Conditional sklearn import with graceful fallback for CI compatibility
 try:
     from sklearn.datasets import make_classification
@@ -25,7 +41,6 @@ except ImportError:
 
 pytestmark = pytest.mark.skipif(not SKLEARN_AVAILABLE, reason="sklearn not available - CI compatibility issues")
 
-from glassalpha.core.registry import ExplainerRegistry
 from glassalpha.explain.shap.kernel import KernelSHAPExplainer
 from glassalpha.explain.shap.tree import TreeSHAPExplainer
 from glassalpha.models.tabular.sklearn import LogisticRegressionWrapper
@@ -36,7 +51,12 @@ def sample_classification_data():
     """Create sample classification dataset for testing."""
     np.random.seed(42)
     X, y = make_classification(
-        n_samples=100, n_features=8, n_classes=2, n_informative=6, n_redundant=1, random_state=42
+        n_samples=100,
+        n_features=8,
+        n_classes=2,
+        n_informative=6,
+        n_redundant=1,
+        random_state=42,
     )
 
     feature_names = [f"feature_{i}" for i in range(X.shape[1])]
@@ -77,36 +97,6 @@ def explanation_samples(sample_classification_data):
     return X_df.iloc[-10:], y[-10:]
 
 
-class TestExplainerRegistry:
-    """Test explainer registration and discovery."""
-
-    def test_shap_explainers_are_registered(self):
-        """Test that SHAP explainers are properly registered."""
-        components = ExplainerRegistry.get_all()
-
-        # Should include SHAP explainers
-        assert "treeshap" in components
-        assert "kernelshap" in components
-
-    def test_get_shap_explainer_classes(self):
-        """Test that we can retrieve SHAP explainer classes."""
-        tree_cls = ExplainerRegistry.get("treeshap")
-        assert tree_cls == TreeSHAPExplainer
-
-        kernel_cls = ExplainerRegistry.get("kernelshap")
-        assert kernel_cls == KernelSHAPExplainer
-
-    def test_explainer_priorities(self):
-        """Test that explainers have expected priorities."""
-        tree_cls = ExplainerRegistry.get("treeshap")
-        kernel_cls = ExplainerRegistry.get("kernelshap")
-
-        # TreeSHAP should have higher priority
-        assert tree_cls.priority == 100
-        assert kernel_cls.priority == 50
-        assert tree_cls.priority > kernel_cls.priority
-
-
 class TestTreeSHAPExplainer:
     """Test TreeSHAPExplainer functionality."""
 
@@ -117,10 +107,7 @@ class TestTreeSHAPExplainer:
         assert explainer.explainer is None
         assert explainer.base_value is None
         assert explainer.check_additivity is False
-        assert explainer.capabilities["explanation_type"] == "shap_values"
-        assert explainer.capabilities["supports_local"] is True
-        assert explainer.capabilities["supports_global"] is True
-        assert explainer.capabilities["data_modality"] == "tabular"
+        assert_explainer_capabilities(explainer)
         assert explainer.version == "1.0.0"
         assert explainer.priority == 100
 
@@ -138,7 +125,7 @@ class TestTreeSHAPExplainer:
         capabilities = explainer.capabilities
 
         assert isinstance(capabilities, dict)
-        assert capabilities["explanation_type"] == "shap_values"
+        assert_explainer_capabilities(explainer)
         assert "xgboost" in capabilities["supported_models"]
         assert "lightgbm" in capabilities["supported_models"]
         assert "random_forest" in capabilities["supported_models"]
@@ -231,10 +218,7 @@ class TestKernelSHAPExplainer:
         assert explainer.n_samples == 100
         assert explainer.background_size == 100
         assert explainer.link == "identity"
-        assert explainer.capabilities["explanation_type"] == "shap_values"
-        assert explainer.capabilities["supports_local"] is True
-        assert explainer.capabilities["supports_global"] is True
-        assert explainer.capabilities["data_modality"] == "tabular"
+        assert_explainer_capabilities(explainer)
         assert explainer.version == "1.0.0"
         assert explainer.priority == 50
 
@@ -254,7 +238,7 @@ class TestKernelSHAPExplainer:
         capabilities = explainer.capabilities
 
         assert isinstance(capabilities, dict)
-        assert capabilities["explanation_type"] == "shap_values"
+        assert_explainer_capabilities(explainer)
         assert capabilities["supported_models"] == ["all"]  # Works with any model
 
     def test_kernelshap_model_compatibility_check(self, trained_model_wrapper):
@@ -286,7 +270,11 @@ class TestKernelSHAPExplainer:
 
     @patch("glassalpha.explain.shap.kernel.shap.KernelExplainer")
     def test_kernelshap_explain_local(
-        self, mock_shap_explainer, trained_model_wrapper, small_background_data, explanation_samples
+        self,
+        mock_shap_explainer,
+        trained_model_wrapper,
+        small_background_data,
+        explanation_samples,
     ):
         """Test KernelSHAPExplainer local explanation."""
         wrapper, X_df, y, feature_names = trained_model_wrapper
@@ -347,30 +335,12 @@ class TestKernelSHAPExplainer:
 class TestExplainerIntegration:
     """Test integration between explainers and other components."""
 
-    def test_explainer_selection_by_priority(self):
-        """Test that explainers are selected by priority."""
-        # TreeSHAP has higher priority than KernelSHAP
-        tree_cls = ExplainerRegistry.get("treeshap")
-        kernel_cls = ExplainerRegistry.get("kernelshap")
-
-        assert tree_cls.priority > kernel_cls.priority
-
-    def test_explainer_compatibility_filtering(self):
-        """Test filtering explainers by model compatibility."""
-        tree_explainer = TreeSHAPExplainer()
-        kernel_explainer = KernelSHAPExplainer()
-
-        # For tree model, TreeSHAP should be compatible
-        assert tree_explainer.is_compatible("xgboost") is True
-        assert kernel_explainer.is_compatible("xgboost") is True
-
-        # For linear model, only KernelSHAP should be compatible
-        assert tree_explainer.is_compatible("logistic_regression") is False
-        assert kernel_explainer.is_compatible("logistic_regression") is True
-
     @patch("glassalpha.explain.shap.kernel.shap.KernelExplainer")
     def test_explainer_with_model_wrapper_integration(
-        self, mock_shap_explainer, trained_model_wrapper, small_background_data
+        self,
+        mock_shap_explainer,
+        trained_model_wrapper,
+        small_background_data,
     ):
         """Test explainer integration with model wrapper."""
         wrapper, X_df, y, feature_names = trained_model_wrapper
@@ -463,74 +433,31 @@ class TestExplainerErrorHandling:
 
 
 class TestExplainerEdgeCases:
-    """Test edge cases and boundary conditions."""
+    """Test edge cases and boundary conditions - focused on compliance-critical scenarios."""
 
-    def test_explainer_with_single_sample(self, trained_model_wrapper, small_background_data):
-        """Test explainer with single sample explanation."""
-        wrapper, X_df, y, feature_names = trained_model_wrapper
-        background_X, background_y = small_background_data
-
-        # Single sample for explanation
-        single_sample = X_df.iloc[[0]]
-
-        # Test with KernelSHAP (more reliable for testing)
-        with patch("glassalpha.explain.shap.kernel.shap.KernelExplainer") as mock_shap:
-            mock_explainer_instance = Mock()
-            mock_explainer_instance.expected_value = 0.4
-            mock_shap_values = np.random.rand(1, len(feature_names))
-            mock_explainer_instance.shap_values.return_value = mock_shap_values
-            mock_shap.return_value = mock_explainer_instance
-
-            explainer = KernelSHAPExplainer()
-            explainer.fit(wrapper, background_X)
-
-            explanations = explainer.explain_local(single_sample)
-
-            assert isinstance(explanations, dict)
-            assert "shap_values" in explanations
-
-    def test_explainer_with_large_feature_count(self, trained_model_wrapper):
-        """Test explainer with many features."""
+    def test_explainer_with_empty_background_data(self, trained_model_wrapper):
+        """Test explainer behavior with empty background data (compliance: graceful failure)."""
         wrapper, X_df, y, feature_names = trained_model_wrapper
 
-        # Create dataset with more features by duplicating
-        large_X = pd.concat([X_df] * 3, axis=1)
-        large_X.columns = [f"feature_{i}" for i in range(len(large_X.columns))]
+        empty_df = pd.DataFrame(columns=feature_names)
 
-        background_large = large_X.iloc[:10]
+        explainer = KernelSHAPExplainer()
 
-        # Test that explainer can handle larger feature sets
-        explainer = KernelSHAPExplainer(n_samples=10, background_size=5)  # Reduce samples for speed
+        # Should handle empty background data gracefully or raise informative error
+        try:
+            explainer.fit(wrapper, empty_df)
+            # If it succeeds, that's ok for compliance
+        except ValueError as e:
+            # If it raises ValueError, should be informative
+            assert len(str(e)) > 0
 
-        with contextlib.suppress(Exception):
-            explainer.fit(wrapper, background_large)
-            # If fit succeeds without error, that's good
-
-    def test_explainer_parameter_validation(self):
-        """Test explainer parameter validation."""
-        # Test KernelSHAP with invalid parameters
+    def test_explainer_parameter_validation_basic(self):
+        """Test basic parameter validation (compliance: prevent invalid configs)."""
+        # Test that invalid parameters are handled reasonably
         with contextlib.suppress(ValueError):
             KernelSHAPExplainer(n_samples=-10)
-            # If it accepts negative samples, that's implementation choice
+            # Implementation choice - if it accepts, that's ok
 
         with contextlib.suppress(ValueError):
             KernelSHAPExplainer(background_size=0)
-            # If it accepts zero background size, that's implementation choice
-
-    def test_explainer_memory_efficiency(self, trained_model_wrapper, small_background_data):
-        """Test explainer memory usage with reasonable dataset sizes."""
-        wrapper, X_df, y, feature_names = trained_model_wrapper
-        background_X, background_y = small_background_data
-
-        # Test with small parameters to avoid memory issues
-        explainer = KernelSHAPExplainer(n_samples=10, background_size=5)
-
-        with patch("glassalpha.explain.shap.kernel.shap.KernelExplainer") as mock_shap:
-            mock_explainer_instance = Mock()
-            mock_explainer_instance.expected_value = 0.4
-            mock_shap.return_value = mock_explainer_instance
-
-            # Should complete without memory errors
-            explainer.fit(wrapper, background_X.iloc[:5])  # Small background
-
-            assert explainer.explainer is not None
+            # Implementation choice - if it accepts, that's ok

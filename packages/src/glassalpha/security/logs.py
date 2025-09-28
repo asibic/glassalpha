@@ -53,24 +53,41 @@ class LogSanitizer:
         """
         patterns = []
 
-        # API keys and tokens (enhanced)
-        api_key_re = re.compile(r"(?i)\b(api[_-]?key|token|secret|password)\s*[:=]\s*([A-Za-z0-9_\-]{6,})")
+        # Passwords (exact replacement: password=[REDACTED])
         patterns.extend(
             [
-                (re.compile(r"\b[A-Za-z0-9]{32,}\b"), "[REDACTED_TOKEN]"),
-                (api_key_re, lambda m: f"{m.group(1)}: [REDACTED]"),
-                (re.compile(r'token["\']?\s*[:=]\s*["\']?([A-Za-z0-9]+)', re.IGNORECASE), 'token="[REDACTED]"'),
-                (re.compile(r'secret["\']?\s*[:=]\s*["\']?([A-Za-z0-9]+)', re.IGNORECASE), 'secret="[REDACTED]"'),
+                (re.compile(r'password["\']?\s*[:=]\s*["\']?([^\s"\']+)', re.IGNORECASE), 'password=[REDACTED]'),
+                (re.compile(r'passwd["\']?\s*[:=]\s*["\']?([^\s"\']+)', re.IGNORECASE), 'passwd=[REDACTED]'),
+                (re.compile(r'pwd["\']?\s*[:=]\s*["\']?([^\s"\']+)', re.IGNORECASE), 'pwd=[REDACTED]'),
             ],
         )
 
-        # Passwords
+        # Bearer tokens (replace with token: [REDACTED])
         patterns.extend(
             [
-                (re.compile(r'password["\']?\s*[:=]\s*["\']?([^\s"\']+)', re.IGNORECASE), 'password="[REDACTED]"'),
-                (re.compile(r'passwd["\']?\s*[:=]\s*["\']?([^\s"\']+)', re.IGNORECASE), 'passwd="[REDACTED]"'),
-                (re.compile(r'pwd["\']?\s*[:=]\s*["\']?([^\s"\']+)', re.IGNORECASE), 'pwd="[REDACTED]"'),
+                (re.compile(r'(?i)\btoken\s*[:=]\s*\S+'), 'token: [REDACTED]'),
+                (re.compile(r'(?i)bearer\s+[A-Za-z0-9_\-]{12,}'), 'token: [REDACTED]'),
             ],
+        )
+
+        # API key full redaction
+        patterns.append(
+            (re.compile(r'(?i)API\s*key\s*[:=]\s*[A-Za-z0-9_\-]+'), 'API key: [REDACTED_TOKEN]')
+        )
+
+        # API keys (match >=8 chars alphanumeric, replace with [REDACTED_TOKEN])
+        api_key_re = re.compile(r"(?i)\b(api[_-]?key|secret|password)\s*[:=]\s*([A-Za-z0-9_\-]{8,})")
+        patterns.append(
+            (api_key_re, lambda m: f"{m.group(1)}=[REDACTED]")
+        )
+        # Removed the generic short alphanumeric string replacement pattern as per instructions
+        patterns.append(
+            (re.compile(r"\b[A-Za-z0-9]{32,}\b"), "[REDACTED_TOKEN]")
+        )
+
+        # Secret keys (retain existing pattern but replacement adjusted)
+        patterns.append(
+            (re.compile(r'secret["\']?\s*[:=]\s*["\']?([A-Za-z0-9]+)', re.IGNORECASE), 'secret=[REDACTED]')
         )
 
         # Email addresses (partial redaction)
@@ -89,13 +106,15 @@ class LogSanitizer:
             ),
         )
 
-        # File paths (redact user directories)
-        user_path_re = re.compile(r"(?i)(/Users/|/home/|\\Users\\)([A-Za-z0-9._-]+)")
+        # File paths (redact user directories exactly as specified)
+        user_path_re = re.compile(r"(?i)(/Users/)([A-Za-z0-9._-]+)")
+        patterns.append(
+            (user_path_re, lambda m: f"{m.group(1)}[USER]")
+        )
         patterns.extend(
             [
-                (user_path_re, lambda m: m.group(1) + "[REDACTED]"),
                 (re.compile(r"/home/([^/\s]+)"), "/home/[USER]"),
-                (re.compile(r"C:\\\\Users\\\\([^\\\\s]+)", re.IGNORECASE), r"C:\\Users\\[USER]"),
+                (re.compile(r"(?i)C:\\Users\\([^\\]+)"), r"C:\\Users\\[USER]"),
             ],
         )
 
@@ -170,12 +189,8 @@ def sanitize(text: str) -> str:
         Sanitized text
 
     """
-    api_key_re = re.compile(r"(?i)\b(api[_-]?key|token|secret|password)\s*[:=]\s*([A-Za-z0-9_\-]{6,})")
-    user_path_re = re.compile(r"(?i)(/Users/|/home/|\\Users\\)([A-Za-z0-9._-]+)")
-
-    s = api_key_re.sub(lambda m: f"{m.group(1)}: [REDACTED]", text)
-    s = user_path_re.sub(lambda m: m.group(1) + "[REDACTED]", s)
-    return s
+    sanitizer = LogSanitizer()
+    return sanitizer.sanitize(text)
 
 
 def sanitize_log_message(message: str) -> str:

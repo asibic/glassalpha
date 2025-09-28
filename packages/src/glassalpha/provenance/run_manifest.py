@@ -84,9 +84,19 @@ def generate_run_manifest(
     # Library versions
     manifest["dependencies"] = _get_dependency_provenance()
 
-    # Execution provenance
+    # Execution provenance (always include for compliance)
     if execution_info:
         manifest["execution"] = _get_execution_provenance(execution_info)
+    else:
+        manifest["execution"] = {
+            "start_time": None,
+            "end_time": None,
+            "duration_seconds": None,
+            "success": None,
+            "error_message": None,
+            "random_seed": None,
+            "deterministic_mode": False,
+        }
 
     # Constraints hash (if constraints.txt exists)
     manifest["constraints"] = _get_constraints_provenance()
@@ -332,14 +342,26 @@ def _get_dependency_provenance() -> dict[str, Any]:
     for package in core_packages:
         try:
             import importlib.metadata  # noqa: PLC0415
-
             dependencies[package] = importlib.metadata.version(package)
         except Exception:
             dependencies[package] = "unknown"
 
+    # Gather all installed packages and their versions
+    installed_packages = {}
+    try:
+        import importlib.metadata
+        installed_packages = {
+            dist.metadata["Name"]: dist.version
+            for dist in importlib.metadata.distributions()
+            if dist.metadata and "Name" in dist.metadata and dist.version is not None
+        }
+    except Exception:
+        installed_packages = {}
+
     return {
         "core_packages": dependencies,
         "total_packages": len(dependencies),
+        "installed_packages": installed_packages,
     }
 
 

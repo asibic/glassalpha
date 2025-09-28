@@ -69,7 +69,7 @@ def warn_deprecated_options(config_dict: dict[str, Any]) -> None:
         for key, value in obj.items():
             full_key = f"{prefix}.{key}" if prefix else key
 
-            if key in deprecated_mappings:
+            if key in deprecated_mappings and prefix == "":  # Only check top-level keys
                 old_key, new_section = deprecated_mappings[key]
                 deprecated_found.append((full_key, old_key))
 

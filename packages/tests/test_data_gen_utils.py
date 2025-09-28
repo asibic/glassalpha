@@ -119,7 +119,7 @@ def test_assert_dataset_health_passes():
             "feature2": np.random.randn(100),
             "age": np.random.randint(18, 80, 100),
             "target": np.random.choice([0, 1], 100, p=[0.7, 0.3]),
-        }
+        },
     )
 
     required_cols = ["feature1", "feature2", "age", "target"]
@@ -134,7 +134,7 @@ def test_assert_dataset_health_missing_columns():
         {
             "feature1": np.random.randn(50),
             "target": np.random.choice([0, 1], 50),
-        }
+        },
     )
 
     required_cols = ["feature1", "feature2", "target"]  # feature2 is missing
@@ -153,7 +153,7 @@ def test_assert_dataset_health_null_values():
             "feature1": np.random.randn(50),
             "age": [None] * 10 + list(range(40)),  # 10 null values
             "target": np.random.choice([0, 1], 50),
-        }
+        },
     )
 
     required_cols = ["feature1", "age", "target"]
@@ -171,7 +171,7 @@ def test_assert_dataset_health_class_imbalance():
         {
             "feature1": np.random.randn(100),
             "target": [0] * 98 + [1] * 2,  # Severe imbalance: 2% minority class
-        }
+        },
     )
 
     required_cols = ["feature1", "target"]
@@ -191,7 +191,7 @@ def test_assert_dataset_health_constant_features():
             "feature1": [1] * 50,  # Constant feature
             "feature2": np.random.randn(50),
             "target": np.random.choice([0, 1], 50),
-        }
+        },
     )
 
     required_cols = ["feature1", "feature2", "target"]
@@ -212,7 +212,7 @@ def test_validate_feature_correlations():
             "feature1": x,
             "feature2": x + np.random.randn(100) * 0.01,  # Almost identical to feature1
             "feature3": np.random.randn(100),  # Independent
-        }
+        },
     )
 
     numeric_cols = ["feature1", "feature2", "feature3"]
@@ -232,7 +232,7 @@ def test_validate_feature_correlations_passes():
             "feature1": np.random.randn(100),
             "feature2": np.random.randn(100),
             "feature3": np.random.randn(100),
-        }
+        },
     )
 
     numeric_cols = ["feature1", "feature2", "feature3"]
@@ -268,7 +268,7 @@ def test_add_realistic_noise():
             "feature1": [1.0] * 100,  # Constant values
             "feature2": np.arange(100),
             "categorical": ["A"] * 100,
-        }
+        },
     )
 
     numeric_cols = ["feature1", "feature2"]

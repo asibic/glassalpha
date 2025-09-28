@@ -81,10 +81,13 @@ def safe_numeric_binning(
         ordered=True,
     )
 
-    # Fill any NaN values with "Unknown"
-    result = result.cat.add_categories("Unknown").fillna("Unknown")
+    # Convert to Series to handle categorical operations properly
+    result_series = pd.Series(result, dtype="category")
 
-    return result
+    # Fill any NaN values with "Unknown"
+    result_series = result_series.cat.add_categories("Unknown").fillna("Unknown")
+
+    return result_series
 
 
 def generate_correlated_features(
@@ -182,11 +185,13 @@ def assert_dataset_health(
     if missing_cols:
         issues.append(f"Dataset missing required columns: {missing_cols}")
 
-    # Check for null values in required columns
-    if df[expect_cols].isnull().any().any():
-        null_cols = df[expect_cols].columns[df[expect_cols].isnull().any()].tolist()
-        null_counts = {col: df[col].isnull().sum() for col in null_cols}
-        issues.append(f"Nulls in required columns: {null_counts}")
+    # Check for null values in existing required columns only
+    existing_cols = [col for col in expect_cols if col in df.columns]
+    if existing_cols:
+        null_cols = df[existing_cols].columns[df[existing_cols].isnull().any()].tolist()
+        if null_cols:
+            null_counts = {col: df[col].isnull().sum() for col in null_cols}
+            issues.append(f"Nulls in required columns: {null_counts}")
 
     # Check target column distribution
     if target_col and target_col in df.columns:
@@ -348,7 +353,8 @@ def add_realistic_noise(
     for col in numeric_cols:
         if col in df.columns and pd.api.types.is_numeric_dtype(df[col]):
             col_std = df[col].std()
-            noise = np.random.normal(0, col_std * noise_level, size=len(df))
-            result_df[col] = df[col] + noise
+            if col_std > 0:  # Only add noise if there's variation
+                noise = np.random.normal(0, col_std * noise_level, size=len(df))
+                result_df[col] = df[col] + noise
 
     return result_df
