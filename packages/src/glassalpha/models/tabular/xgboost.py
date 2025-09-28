@@ -151,7 +151,7 @@ class XGBoostWrapper(BaseTabularWrapper):
         self.model = xgb.train(params, dtrain, num_boost_round=50)
         self._is_fitted = True
 
-        logger.info("Fitted XGBoost model: %d classes using native API", self.n_classes)
+        logger.info(f"Fitted XGBoost model: {self.n_classes} classes using native API")
         return self
 
     def load(self, path: str | Path) -> "XGBoostWrapper":
@@ -184,7 +184,7 @@ class XGBoostWrapper(BaseTabularWrapper):
             msg = f"Model file not found: {path}"
             raise FileNotFoundError(msg)
 
-        logger.info("Loading XGBoost model from %s", path)
+        logger.info(f"Loaded XGBoost model from {path}")
 
         try:
             # Try to load with metadata
@@ -332,7 +332,7 @@ class XGBoostWrapper(BaseTabularWrapper):
         self.model.save_model(str(path))
         Path(str(path) + ".meta.json").write_text(json.dumps(meta), encoding="utf-8")
 
-        logger.info("Saved XGBoost model to %s", path)
+        logger.debug(f"Predict proba shape: {probs.shape}")
 
     def __repr__(self) -> str:
         """String representation of the wrapper."""
