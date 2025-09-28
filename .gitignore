@@ -1,5 +1,49 @@
-# GlassAlpha specific
-# ====================
+# Python build & packaging
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+wheels/
+pip-wheel-metadata/
+
+# Test & tooling caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.nox/
+.coverage*
+coverage.xml
+htmlcov/
+
+# Virtualenvs
+.venv/
+venv/
+
+# Editors & OS
+.vscode/
+.idea/
+.DS_Store
+
+# Env & secrets
+.env
+.env.*
+.envrc
+*.pem
+*.key
+*.p12
+id_rsa*
+id_ed25519*
+*.keystore
+
+# Generated reports/artifacts
+/outputs/**
+*.pdf
 
 # Data directories (test datasets, outputs) - but NOT source code packages
 /data/
@@ -36,6 +80,12 @@ logs/
 # Environment variations
 .env.*
 .envrc
+
+# Virtual envs
+.venv/
+.venv*/
+venv/
+env/
 
 # Security
 secrets/

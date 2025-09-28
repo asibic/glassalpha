@@ -1,250 +1,209 @@
-"""Probability calibration utilities for GlassAlpha models.
+from __future__ import annotations
 
-This module provides optional probability calibration using sklearn's
-CalibratedClassifierCV to improve probability estimates for compliance
-use cases that depend on calibrated risk scores.
-"""
-
+from typing import Any, Dict, Optional, Union, Iterable
 import logging
-from typing import Any
+import warnings
 
+import numpy as np
 from sklearn.calibration import CalibratedClassifierCV
+from sklearn.metrics import brier_score_loss
+from sklearn.utils.validation import check_is_fitted
 
 logger = logging.getLogger(__name__)
 
 
-def maybe_calibrate(
-    estimator: Any,
-    X=None,
-    y=None,
-    method: str | None = None,
-    cv: int | None = 5,
-    ensemble: bool = True,
-) -> Any:
-    """Optionally calibrate a trained estimator's probability predictions.
+# ---------- Public API expected by tests ----------
 
-    This function wraps an estimator with CalibratedClassifierCV if calibration
-    is requested. It's designed to be called after model training to improve
-    probability estimates for compliance and risk assessment use cases.
-
-    Args:
-        estimator: Trained sklearn-compatible estimator
-        X: Training features (required for calibration)
-        y: Training targets (required for calibration)
-        method: Calibration method ('isotonic', 'sigmoid', or None for no calibration)
-        cv: Number of cross-validation folds (default: 5)
-        ensemble: Whether to use ensemble=True (recommended for better calibration)
-
-    Returns:
-        Original estimator if method is None, otherwise CalibratedClassifierCV wrapper
-
-    Raises:
-        ValueError: If method is not recognized
-
-    Examples:
-        >>> from sklearn.ensemble import RandomForestClassifier
-        >>> rf = RandomForestClassifier().fit(X, y)
-        >>> calibrated_rf = maybe_calibrate(rf, X, y, method='isotonic', cv=5)
-        >>> # Now calibrated_rf.predict_proba() gives better calibrated probabilities
-
+def assess_calibration_quality(y_true: Iterable[int], y_prob_pos: Iterable[float], *, n_bins: int = 10) -> Dict[str, float]:
     """
-    if method in (None, "", False):
-        return estimator
+    Compute simple calibration quality diagnostics for binary classification.
 
-    if method not in {"isotonic", "sigmoid"}:
-        raise ValueError(f"Unknown calibration method: {method}")
-
-    logger.info(f"Applying {method} calibration with {cv}-fold cross-validation")
-
-    try:
-        calibrated_estimator = CalibratedClassifierCV(estimator, method=method, cv=cv, ensemble=ensemble).fit(X, y)
-        logger.info("Successfully created calibrated estimator wrapper")
-        return calibrated_estimator
-
-    except Exception as e:
-        logger.error(f"Failed to create calibrated estimator: {e}")
-        logger.warning("Falling back to uncalibrated estimator")
-        return estimator
-
-
-def validate_calibration_config(config: dict[str, Any]) -> dict[str, Any]:
-    """Validate and normalize calibration configuration.
-
-    Args:
-        config: Raw calibration configuration dictionary
-
-    Returns:
-        Validated and normalized configuration
-
-    Raises:
-        ValueError: If configuration is invalid
-
+    Returns a dict containing:
+      - brier_score
+      - expected_calibration_error (ECE, equal-width bins)
+      - maximum_calibration_error (MCE)
     """
-    if not config:
-        return {}
+    y_true_arr = np.asarray(y_true).astype(int)
+    prob = np.asarray(y_prob_pos, dtype=float)
 
-    # Normalize method
-    method = config.get("method")
-    if method:
-        method = method.lower()
-        if method not in {"isotonic", "sigmoid"}:
-            raise ValueError(f"Invalid calibration method: '{method}'. Must be 'isotonic' or 'sigmoid'")
+    if y_true_arr.ndim != 1 or prob.ndim != 1 or y_true_arr.shape[0] != prob.shape[0]:
+        raise ValueError("y_true and y_prob_pos must be 1D arrays of the same length")
 
-    # Validate CV folds
-    cv = config.get("cv", 5)
-    if not isinstance(cv, int) or cv < 2:
-        raise ValueError(f"CV folds must be an integer >= 2, got: {cv}")
+    # Brier score
+    brier = brier_score_loss(y_true_arr, prob)
 
-    # Validate ensemble flag
-    ensemble = config.get("ensemble", True)
-    if not isinstance(ensemble, bool):
-        raise ValueError(f"Ensemble must be a boolean, got: {ensemble}")
+    # ECE / MCE with equal-width bins
+    bins = np.linspace(0.0, 1.0, n_bins + 1)
+    bin_ids = np.digitize(prob, bins) - 1
+    ece = 0.0
+    mce = 0.0
+    n = len(prob)
 
-    validated_config = {
-        "method": method,
-        "cv": cv,
-        "ensemble": ensemble,
+    for b in range(n_bins):
+        in_bin = bin_ids == b
+        m = np.count_nonzero(in_bin)
+        if m == 0:
+            continue
+        avg_conf = float(np.mean(prob[in_bin]))
+        avg_acc = float(np.mean(y_true_arr[in_bin]))
+        gap = abs(avg_acc - avg_conf)
+        ece += (m / n) * gap
+        mce = max(mce, gap)
+
+    return {
+        "brier_score": float(brier),
+        "expected_calibration_error": float(ece),
+        "maximum_calibration_error": float(mce),
     }
 
-    logger.debug(f"Validated calibration config: {validated_config}")
-    return validated_config
 
-
-def get_calibration_info(estimator: Any) -> dict[str, Any]:
-    """Get information about calibration status of an estimator.
-
-    Args:
-        estimator: Estimator to inspect
-
-    Returns:
-        Dictionary with calibration information
-
+def get_calibration_info(estimator: Any) -> Dict[str, Any]:
     """
-    info = {
+    Describe whether an estimator is a CalibratedClassifierCV and expose key fields.
+    """
+    info: Dict[str, Any] = {
         "is_calibrated": False,
         "calibration_method": None,
         "cv_folds": None,
-        "ensemble": None,
         "base_estimator_type": type(estimator).__name__,
     }
 
     if isinstance(estimator, CalibratedClassifierCV):
-        info.update(
-            {
-                "is_calibrated": True,
-                "calibration_method": estimator.method,
-                "cv_folds": estimator.cv,
-                "ensemble": estimator.ensemble,
-                "base_estimator_type": type(estimator.estimator).__name__,
-            },
-        )
+        info["is_calibrated"] = True
+        # method_: attribute on CalibratedClassifierCV
+        method = getattr(estimator, "method", None) or getattr(estimator, "method_", None)
+        info["calibration_method"] = str(method) if method is not None else None
+        info["cv_folds"] = getattr(estimator, "cv", None)
+        base = getattr(estimator, "estimator", None)
+        if base is not None:
+            info["base_estimator_type"] = type(base).__name__
 
     return info
 
 
-def assess_calibration_quality(y_true, y_proba, n_bins: int = 10) -> dict[str, float]:
-    """Assess the quality of probability calibration using reliability metrics.
-
-    This function computes calibration metrics to evaluate how well-calibrated
-    the probability predictions are. Well-calibrated probabilities are crucial
-    for compliance and risk assessment applications.
-
-    Args:
-        y_true: True binary labels (0 or 1)
-        y_proba: Predicted probabilities for positive class
-        n_bins: Number of bins for calibration curve
-
-    Returns:
-        Dictionary with calibration quality metrics
-
+def validate_calibration_config(cfg: Optional[Dict[str, Any]]) -> Dict[str, Any]:
     """
-    import numpy as np  # noqa: PLC0415
-    from sklearn.calibration import calibration_curve  # noqa: PLC0415
-    from sklearn.metrics import brier_score_loss  # noqa: PLC0415
+    Normalize and validate a calibration configuration dict.
 
-    try:
-        # Compute calibration curve
-        fraction_of_positives, mean_predicted_value = calibration_curve(
-            y_true,
-            y_proba,
-            n_bins=n_bins,
-            strategy="uniform",
-        )
+    Returns a dict with keys: method (str|None), cv (int), ensemble (bool)
 
-        # Compute Brier score (lower is better)
-        brier_score = brier_score_loss(y_true, y_proba)
-
-        # Compute Expected Calibration Error (ECE)
-        bin_boundaries = np.linspace(0, 1, n_bins + 1)
-        bin_lowers = bin_boundaries[:-1]
-        bin_uppers = bin_boundaries[1:]
-
-        ece = 0
-        for bin_lower, bin_upper in zip(bin_lowers, bin_uppers, strict=False):
-            # Find predictions in this bin
-            in_bin = (y_proba > bin_lower) & (y_proba <= bin_upper)
-            prop_in_bin = in_bin.mean()
-
-            if prop_in_bin > 0:
-                # Accuracy in this bin
-                accuracy_in_bin = y_true[in_bin].mean()
-                # Average confidence in this bin
-                avg_confidence_in_bin = y_proba[in_bin].mean()
-                # Add to ECE
-                ece += np.abs(avg_confidence_in_bin - accuracy_in_bin) * prop_in_bin
-
-        # Compute Maximum Calibration Error (MCE)
-        mce = 0
-        for bin_lower, bin_upper in zip(bin_lowers, bin_uppers, strict=False):
-            in_bin = (y_proba > bin_lower) & (y_proba <= bin_upper)
-            if in_bin.sum() > 0:
-                accuracy_in_bin = y_true[in_bin].mean()
-                avg_confidence_in_bin = y_proba[in_bin].mean()
-                mce = max(mce, np.abs(avg_confidence_in_bin - accuracy_in_bin))
-
-        return {
-            "brier_score": float(brier_score),
-            "expected_calibration_error": float(ece),
-            "maximum_calibration_error": float(mce),
-            "n_bins": n_bins,
-        }
-
-    except Exception as e:
-        logger.error(f"Failed to assess calibration quality: {e}")
-        return {
-            "brier_score": None,
-            "expected_calibration_error": None,
-            "maximum_calibration_error": None,
-            "error": str(e),
-        }
-
-
-def recommend_calibration_method(estimator_type: str, dataset_size: int) -> str:
-    """Recommend calibration method based on estimator type and dataset size.
-
-    Args:
-        estimator_type: Type of base estimator (e.g., 'XGBClassifier', 'LogisticRegression')
-        dataset_size: Number of training samples
-
-    Returns:
-        Recommended calibration method ('isotonic' or 'sigmoid')
-
+    Raises ValueError for invalid configurations.
     """
-    # General recommendations based on sklearn documentation and best practices
+    cfg = dict(cfg or {})
+    method = cfg.get("method")
+    cv = cfg.get("cv", 5)
+    ensemble = cfg.get("ensemble", False)
 
-    # For small datasets, sigmoid is more stable
-    if dataset_size < 1000:
+    if method is not None:
+        method_norm = str(method).lower()
+        if method_norm not in {"isotonic", "sigmoid"}:
+            raise ValueError("Unknown calibration method")
+        method = method_norm
+
+    # cv must be int >= 2
+    if not isinstance(cv, int):
+        raise ValueError("cv must be an integer")
+    if cv < 2:
+        raise ValueError("cv must be >= 2")
+
+    if not isinstance(ensemble, bool):
+        raise ValueError("ensemble must be a boolean")
+
+    return {"method": method, "cv": cv, "ensemble": ensemble}
+
+
+def recommend_calibration_method(model_name: str, n_samples: int, *, min_samples_isotonic: int = 1000) -> str:
+    """
+    Heuristic recommendation of calibration method based on model family and sample size.
+
+    - Small datasets favor 'sigmoid'
+    - Tree-based models favor 'isotonic' when sufficiently large
+    - Unknown large datasets default to 'isotonic'
+    """
+    name = (model_name or "").lower()
+    if n_samples < min_samples_isotonic:
         return "sigmoid"
 
-    # For tree-based models, isotonic often works better
-    tree_based = {"XGBClassifier", "LGBMClassifier", "RandomForestClassifier", "GradientBoostingClassifier"}
-    if any(tree_type in estimator_type for tree_type in tree_based):
+    tree_families = {
+        "randomforestclassifier",
+        "xgbclassifier",
+        "lgbmclassifier",
+        "decisiontreeclassifier",
+        "extratreesclassifier",
+        "catboostclassifier",
+        "gradientboostingclassifier",
+    }
+    if any(fam in name for fam in tree_families):
         return "isotonic"
 
-    # For linear models, sigmoid is often sufficient
-    linear_models = {"LogisticRegression", "LinearSVC", "SGDClassifier"}
-    if any(linear_type in estimator_type for linear_type in linear_models):
+    linear_families = {"logisticregression", "linearsvc", "sgdclassifier"}
+    if any(fam in name for fam in linear_families):
         return "sigmoid"
 
-    # Default to isotonic for larger datasets (more flexible)
+    # Large unknown: prefer isotonic
     return "isotonic"
+
+
+def maybe_calibrate(
+    estimator: Any,
+    method: Optional[str] = None,
+    cv: Optional[Union[int, str]] = None,
+    ensemble: bool = False,
+) -> Any:
+    """
+    Return a CalibratedClassifierCV wrapper if a calibration method is requested;
+    otherwise return the estimator unchanged.
+
+    Note: This function does not call `.fit()`. It only constructs the wrapper so
+    that callers can inspect configuration (e.g., for reporting) or fit later.
+
+    Supports legacy call pattern maybe_calibrate(estimator, X, y, method) by detecting
+    array-like second/third arguments and emitting a deprecation warning, returning a
+    *fitted* CalibratedClassifierCV in that case to preserve prior behavior.
+    """
+    # --- Legacy signature detection: maybe_calibrate(estimator, X, y, method) ---
+    # If `method` is array-like and `cv` is array-like, assume old order and swap.
+    if hasattr(method, "__array__") or isinstance(method, (list, tuple)):
+        # method actually holds X, and cv holds y, and ensemble holds the string method
+        X, y, real_method = method, cv, ensemble  # type: ignore[assignment]
+        warnings.warn(
+            "maybe_calibrate(estimator, X, y, method) signature is deprecated; "
+            "use maybe_calibrate(estimator, method=..., cv=...) and call .fit(X, y) later.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        m = str(real_method).lower()
+        if m not in {"isotonic", "sigmoid"}:
+            raise ValueError("Unknown calibration method")
+        cv_folds: Union[int, str, None] = 5
+        wrapper = CalibratedClassifierCV(estimator=estimator, method=m, cv=cv_folds, ensemble=False)
+        # Fit now to mimic legacy behavior
+        return wrapper.fit(np.asarray(X), np.asarray(y))
+
+    # --- Modern, explicit signature ---
+    if method is None:
+        return estimator
+
+    method_norm = str(method).lower()
+    if method_norm not in {"isotonic", "sigmoid"}:
+        raise ValueError("Unknown calibration method")
+
+    # default cv
+    if cv is None:
+        cv = 5
+    if isinstance(cv, str) and cv.lower() in {"prefit"}:
+        # We don't support prefit pathway here; keep interface simple for tests
+        raise ValueError("cv='prefit' not supported in this context")
+
+    if not isinstance(cv, int) or cv < 2:
+        raise ValueError("cv must be an integer >= 2")
+
+    try:
+        wrapper = CalibratedClassifierCV(
+            estimator=estimator, method=method_norm, cv=cv, ensemble=bool(ensemble)
+        )
+        return wrapper
+    except Exception as exc:  # pragma: no cover - defensive
+        logger.error("Failed to create calibrated estimator: %s", exc)
+        logger.warning("Falling back to uncalibrated estimator")
+        return estimator

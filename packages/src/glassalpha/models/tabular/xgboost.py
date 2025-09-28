@@ -331,8 +331,10 @@ class XGBoostWrapper(BaseTabularWrapper):
         meta = {"feature_names_": self.feature_names_, "n_classes": self.n_classes}
         self.model.save_model(str(path))
         Path(str(path) + ".meta.json").write_text(json.dumps(meta), encoding="utf-8")
-
-        logger.debug(f"Predict proba shape: {probs.shape}")
+        logger.debug(
+            f"Saved XGBoost model to {path} "
+            f"(features={len(self.feature_names_)}, classes={self.n_classes})"
+        )
 
     def __repr__(self) -> str:
         """String representation of the wrapper."""
