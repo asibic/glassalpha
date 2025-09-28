@@ -187,25 +187,25 @@ monitoring:
 ```bash
 # Standard healthcare audit
 glassalpha audit \
-  --config configs/healthcare_audit.yaml \
+  --config configs/healthcare_outcomes.yaml \
   --output healthcare_bias_assessment.pdf \
   --strict
 
 # With additional validation
 glassalpha validate \
-  --config configs/healthcare_audit.yaml \
-  --profile healthcare_compliance \
+  --config configs/healthcare_outcomes.yaml \
+  --profile tabular_compliance \
   --strict
 
 # Multi-model comparison for robustness
 glassalpha audit \
-  --config configs/healthcare_audit.yaml \
+  --config configs/healthcare_outcomes.yaml \
   --output xgboost_healthcare.pdf \
   --override '{"model": {"type": "xgboost"}}' \
   --strict
 
 glassalpha audit \
-  --config configs/healthcare_audit.yaml \
+  --config configs/healthcare_outcomes.yaml \
   --output lightgbm_healthcare.pdf \
   --override '{"model": {"type": "lightgbm"}}' \
   --strict

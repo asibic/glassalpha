@@ -24,7 +24,7 @@ Credit scoring models must comply with fair lending laws including:
 
 ## Prerequisites
 
-- GlassAlpha installed ([Installation Guide](../getting-started/quickstart.md))
+- GlassAlpha installed ([Installation Guide](../getting-started/installation.md))
 - Basic understanding of credit risk modeling
 - Familiarity with bias and fairness concepts
 
@@ -66,8 +66,8 @@ The German Credit dataset contains:
 Create a configuration file for the German Credit audit:
 
 ```yaml
-# german_credit_audit.yaml
-audit_profile: german_credit_default
+# german_credit.yaml
+audit_profile: tabular_compliance
 
 # Reproducibility for consistent results
 reproducibility:
@@ -145,7 +145,7 @@ Execute the audit with regulatory compliance mode enabled:
 ```bash
 # Generate comprehensive audit
 glassalpha audit \
-  --config german_credit_audit.yaml \
+  --config configs/german_credit.yaml \
   --output german_credit_audit.pdf \
   --strict
 ```
@@ -155,8 +155,8 @@ glassalpha audit \
 ```
 GlassAlpha Audit Generation
 ========================================
-Loading configuration from: german_credit_audit.yaml
-Audit profile: german_credit_default
+Loading configuration from: configs/german_credit.yaml
+Audit profile: tabular_compliance
 Strict mode: ENABLED
 ⚠️ Strict mode enabled - enforcing regulatory compliance
 

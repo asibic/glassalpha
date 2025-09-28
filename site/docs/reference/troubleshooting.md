@@ -7,18 +7,57 @@ Common issues, error messages, and solutions for GlassAlpha. This guide helps di
 If you're experiencing issues, start with these diagnostic commands:
 
 ```bash
-# Verify installation
+# Verify installation (if package is installed)
 glassalpha --version
+
+# Alternative: Use module invocation (development/uninstalled)
+PYTHONPATH=src python3 -m glassalpha --version
 
 # Check component availability
 glassalpha list
+# Alternative: PYTHONPATH=src python3 -m glassalpha list
 
 # Validate configuration
-glassalpha validate --config your_config.yaml
+glassalpha validate --config configs/german_credit_simple.yaml
+# Alternative: PYTHONPATH=src python3 -m glassalpha validate --config configs/german_credit_simple.yaml
 
 # Test with minimal configuration
 glassalpha audit --config configs/german_credit_simple.yaml --output test.pdf --dry-run
+# Alternative: PYTHONPATH=src python3 -m glassalpha audit --config configs/german_credit_simple.yaml --output test.pdf --dry-run
 ```
+
+## CLI Command Issues
+
+### `glassalpha: command not found`
+
+This indicates GlassAlpha isn't properly installed or the CLI entry point isn't available.
+
+**Solutions:**
+
+1. **Install the package** (recommended for users):
+   ```bash
+   cd glassalpha/packages
+   pip install -e .
+
+   # Verify installation
+   glassalpha --version
+   ```
+
+2. **Use module invocation** (development/troubleshooting):
+   ```bash
+   cd glassalpha/packages
+   PYTHONPATH=src python3 -m glassalpha --version
+   PYTHONPATH=src python3 -m glassalpha audit --config configs/german_credit_simple.yaml --output test.pdf --dry-run
+   ```
+
+3. **Check your environment**:
+   ```bash
+   # Check if package is installed
+   pip list | grep glassalpha
+
+   # Check Python path
+   python3 -c "import sys; print('\n'.join(sys.path))"
+   ```
 
 ## Installation Issues
 

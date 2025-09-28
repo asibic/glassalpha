@@ -413,10 +413,10 @@ report:
 **Multiple Configurations:**
 ```bash
 # Development environment
-glassalpha audit --config configs/dev.yaml --output dev_audit.pdf
+glassalpha audit --config configs/german_credit_simple.yaml --output dev_audit.pdf
 
 # Production environment
-glassalpha audit --config configs/prod.yaml --output prod_audit.pdf --strict
+glassalpha audit --config configs/gdpr_compliance.yaml --output prod_audit.pdf --strict
 ```
 
 **Configuration Overrides:**

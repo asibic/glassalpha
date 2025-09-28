@@ -81,25 +81,25 @@ glassalpha audit \
 
 # Apply configuration overrides
 glassalpha audit \
-  --config configs/base.yaml \
-  --override configs/overrides.yaml \
+  --config configs/german_credit_simple.yaml \
+  --override configs/example_audit.yaml \
   --output modified_audit.pdf
 
 # Validate configuration without running audit
 glassalpha audit \
-  --config configs/test.yaml \
+  --config configs/german_credit_simple.yaml \
   --output test.pdf \
   --dry-run
 
 # Enable deterministic reproduction for byte-identical results
 glassalpha audit \
-  --config configs/audit.yaml \
+  --config configs/german_credit_simple.yaml \
   --output audit.pdf \
   --repro
 
 # Combine strict and repro modes for maximum compliance
 glassalpha audit \
-  --config configs/audit.yaml \
+  --config configs/german_credit_simple.yaml \
   --output audit.pdf \
   --strict \
   --repro

@@ -32,7 +32,7 @@ We'll compare four configuration approaches using the same German Credit dataset
 
 ## 1. Minimal Configuration
 
-**File**: `configs/minimal_audit.yaml`
+**File**: `configs/german_credit_simple.yaml`
 
 ```yaml
 # Minimal configuration for quick testing
@@ -64,7 +64,7 @@ report:
 
 **Command**:
 ```bash
-glassalpha audit --config configs/minimal_audit.yaml --output minimal_audit.pdf
+glassalpha audit --config configs/german_credit_simple.yaml --output minimal_audit.pdf
 ```
 
 **Results**:
@@ -81,7 +81,7 @@ glassalpha audit --config configs/minimal_audit.yaml --output minimal_audit.pdf
 
 ## 2. Standard Compliance Configuration
 
-**File**: `configs/standard_audit.yaml`
+**File**: `configs/example_audit.yaml`
 
 ```yaml
 # Standard configuration for production use
@@ -137,7 +137,7 @@ validation:
 
 **Command**:
 ```bash
-glassalpha audit --config configs/standard_audit.yaml --output standard_audit.pdf
+glassalpha audit --config configs/example_audit.yaml --output standard_audit.pdf
 ```
 
 **Results**:
@@ -154,7 +154,7 @@ glassalpha audit --config configs/standard_audit.yaml --output standard_audit.pd
 
 ## 3. Strict Regulatory Configuration
 
-**File**: `configs/regulatory_audit.yaml`
+**File**: `configs/gdpr_compliance.yaml`
 
 ```yaml
 # Strict configuration for regulatory compliance
@@ -244,7 +244,7 @@ manifest:
 
 **Command**:
 ```bash
-glassalpha audit --config configs/regulatory_audit.yaml --output regulatory_audit.pdf --strict
+glassalpha audit --config configs/gdpr_compliance.yaml --output regulatory_audit.pdf --strict
 ```
 
 **Results**:
@@ -263,7 +263,7 @@ glassalpha audit --config configs/regulatory_audit.yaml --output regulatory_audi
 
 ## 4. Performance Optimized Configuration
 
-**File**: `configs/performance_audit.yaml`
+**File**: `configs/fraud_detection.yaml`
 
 ```yaml
 # Performance-optimized configuration for scale
@@ -315,7 +315,7 @@ validation:
 
 **Command**:
 ```bash
-glassalpha audit --config configs/performance_audit.yaml --output performance_audit.pdf
+glassalpha audit --config configs/fraud_detection.yaml --output performance_audit.pdf
 ```
 
 **Results**:
@@ -407,14 +407,14 @@ Gender bias analysis across configurations:
 ```bash
 # Base configuration with environment-specific overrides
 glassalpha audit \
-  --config configs/base_audit.yaml \
-  --override configs/production_overrides.yaml \
+  --config configs/example_audit.yaml \
+  --override configs/gdpr_compliance.yaml \
   --output production_audit.pdf \
   --strict
 
 # Dynamic configuration for different models
 glassalpha audit \
-  --config configs/standard_audit.yaml \
+  --config configs/example_audit.yaml \
   --override '{"model": {"type": "lightgbm", "params": {"num_leaves": 31}}}' \
   --output lightgbm_comparison.pdf
 ```
@@ -432,10 +432,10 @@ glassalpha audit --config config.yaml --profile performance --output fast.pdf
 
 ```bash
 # Validate configuration before full run
-glassalpha validate --config configs/complex_audit.yaml --strict
+glassalpha validate --config configs/german_credit.yaml --strict
 
 # Dry run to check configuration
-glassalpha audit --config configs/regulatory_audit.yaml --output test.pdf --dry-run
+glassalpha audit --config configs/gdpr_compliance.yaml --output test.pdf --dry-run
 ```
 
 ## Best Practices
