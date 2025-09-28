@@ -7,7 +7,10 @@ import pandas as pd
 import pytest
 
 from glassalpha.config import AuditConfig
+from glassalpha.pipeline import audit
 from glassalpha.pipeline.audit import AuditPipeline
+
+from ._utils.source_loader import get_module_source
 
 
 def test_pipeline_uses_train_from_config_only():
@@ -102,9 +105,8 @@ def test_pipeline_uses_train_from_config_only():
 
 def test_no_direct_estimator_imports_in_pipeline():
     """Test that pipeline modules don't import estimators directly."""
-    # Read the pipeline audit file
-    with open("/Users/gabe/Sites/glassalpha/packages/src/glassalpha/pipeline/audit.py") as f:
-        audit_content = f.read()
+    # Get the source code for the audit module
+    audit_content = get_module_source(audit, pkg_fallback="glassalpha.pipeline", filename="audit.py")
 
     # Check for forbidden direct estimator imports/usage
     forbidden_patterns = [
