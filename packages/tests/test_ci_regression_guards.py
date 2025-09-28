@@ -268,8 +268,16 @@ class TestFeatureRegressionGuards:
 
         assert proba_binary.shape == (100, 2), f"Binary calibration broke shape: {proba_binary.shape}"
 
-        # Test multiclass classification
-        X_multi, y_multi = make_classification(n_samples=100, n_features=4, n_classes=3, random_state=42)
+        # Test multiclass classification (adjusted n_informative to satisfy sklearn constraints)
+        X_multi, y_multi = make_classification(
+            n_samples=100,
+            n_features=6,
+            n_informative=3,
+            n_redundant=0,
+            n_classes=3,
+            n_clusters_per_class=2,
+            random_state=42
+        )
         rf_multi = RandomForestClassifier(n_estimators=10, random_state=42)
         rf_multi.fit(X_multi, y_multi)
 

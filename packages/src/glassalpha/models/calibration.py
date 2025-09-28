@@ -204,6 +204,6 @@ def maybe_calibrate(
         )
         return wrapper
     except Exception as exc:  # pragma: no cover - defensive
-        logger.error("Failed to create calibrated estimator: %s", exc)
+        logger.error(f"Failed to create calibrated estimator: {exc}")
         logger.warning("Falling back to uncalibrated estimator")
         return estimator
