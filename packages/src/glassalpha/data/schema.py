@@ -123,6 +123,9 @@ def validate_config_schema(df: pd.DataFrame, cfg: dict[str, Any]) -> DatasetConf
         ]
         if available_protected:
             hints.append(f"Available protected-like columns: {available_protected}")
+        else:
+            # Always show available columns when protected attributes are missing, even if no obvious protected-like columns
+            hints.append(f"Available columns: {sorted(df.columns.tolist())}")
 
     if errors:
         error_msg = "Schema validation failed:\n"
@@ -135,7 +138,7 @@ def validate_config_schema(df: pd.DataFrame, cfg: dict[str, Any]) -> DatasetConf
 
     logger.info(
         f"Schema validation passed: {len(dataset_config.features)} features, "
-        f"1 target, {len(dataset_config.protected_attributes)} protected attributes"
+        f"1 target, {len(dataset_config.protected_attributes)} protected attributes",
     )
 
     return dataset_config
