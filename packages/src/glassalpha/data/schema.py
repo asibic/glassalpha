@@ -106,6 +106,9 @@ def validate_config_schema(df: pd.DataFrame, cfg: dict[str, Any]) -> DatasetConf
         available_targets = [col for col in df.columns if col.lower() in ["target", "label", "outcome", "class"]]
         if available_targets:
             hints.append(f"Available target-like columns: {available_targets}")
+        else:
+            # Always show available columns when target is missing, even if no obvious target-like columns
+            hints.append(f"Available columns: {sorted(df.columns.tolist())}")
 
     if missing_features:
         errors.append(f"Missing feature columns: {missing_features}")

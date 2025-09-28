@@ -35,13 +35,14 @@ def train_from_config(cfg: Any, X: pd.DataFrame, y: Any) -> Any:
     model_type = cfg.model.type
 
     # Ensure model modules are imported for registration
-    if (
-        model_type == "xgboost"
-        or model_type == "lightgbm"
-        or model_type == "logistic_regression"
-        or model_type == "sklearn_generic"
-    ):
-        pass
+    import importlib  # noqa: PLC0415
+
+    if model_type == "xgboost":
+        importlib.import_module("glassalpha.models.tabular.xgboost")
+    elif model_type == "lightgbm":
+        importlib.import_module("glassalpha.models.tabular.lightgbm")
+    elif model_type == "logistic_regression" or model_type == "sklearn_generic":
+        importlib.import_module("glassalpha.models.tabular.sklearn")
 
     # Get model class from registry
     model_class = ModelRegistry.get(model_type)

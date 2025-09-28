@@ -346,6 +346,20 @@ class AuditPipeline:
         model_type = self.config.model.type
         model_path = getattr(self.config.model, "path", None)
 
+        # Ensure model modules are imported for registration
+        if model_type == "xgboost":
+            import importlib  # noqa: PLC0415
+
+            importlib.import_module("glassalpha.models.tabular.xgboost")
+        elif model_type == "lightgbm":
+            import importlib  # noqa: PLC0415
+
+            importlib.import_module("glassalpha.models.tabular.lightgbm")
+        elif model_type in ["logistic_regression", "sklearn_generic"]:
+            import importlib  # noqa: PLC0415
+
+            importlib.import_module("glassalpha.models.tabular.sklearn")
+
         # Get model class from registry
         model_class = ModelRegistry.get(model_type)
         if not model_class:
@@ -1156,7 +1170,7 @@ class AuditPipeline:
     def _ensure_components_loaded(self) -> None:
         """Ensure all required components are imported and registered."""
         try:
-            # Import model modules to trigger registration
+            # Import explainer and metrics modules to trigger registration
             from glassalpha.explain.shap import kernel, tree  # noqa: F401, PLC0415
             from glassalpha.metrics.fairness import bias_detection  # noqa: F401, PLC0415
             from glassalpha.metrics.performance import classification  # noqa: F401, PLC0415

@@ -239,20 +239,35 @@ class TestAuditPipelineExecution:
         mock_schema = Mock()
         mock_schema.features = ["feature1", "feature2"]
         mock_schema.target = "target"
+
+        # Create a mock DataFrame that behaves like pandas DataFrame
+        mock_data = Mock()
+        mock_data.columns = ["feature1", "feature2", "target"]
+        # Configure shape to return an iterable tuple
+        mock_data.configure_mock(shape=(100, 3))
+
+        # Mock the specific operations used in the pipeline
+        mock_target_column = Mock()
+        mock_target_column.nunique.return_value = 2  # 2 classes
+        mock_data.__getitem__ = Mock(return_value=mock_target_column)
+        mock_data.__contains__ = Mock(return_value=True)  # contains target column
+
         with (
             patch.object(pipeline, "_setup_reproducibility"),
-            patch.object(pipeline, "_load_data", return_value=(Mock(), mock_schema)),
+            patch.object(pipeline, "_load_data", return_value=(mock_data, mock_schema)),
             patch.object(pipeline, "_load_model", return_value=Mock()),
             patch.object(pipeline, "_select_explainer", return_value=Mock()),
             patch.object(pipeline, "_generate_explanations", return_value={}),
             patch.object(pipeline, "_compute_metrics"),
-            patch.object(pipeline, "_finalize_results"),
+            patch("glassalpha.provenance.run_manifest._get_dataset_provenance", return_value={"shape": [100, 3]}),
+            # Don't mock _finalize_results so the final progress callback can be called
         ):
             results = pipeline.run(progress_callback=callback_mock)
 
         assert isinstance(results, AuditResults)
         # Should have been called multiple times with progress updates
-        assert callback_mock.call_count > 1
+        # The pipeline calls progress callback at 10%, 20%, 35%, 45%, 60%, 80%, 100%
+        assert callback_mock.call_count >= 7
 
 
 class TestAuditPipelineResults:

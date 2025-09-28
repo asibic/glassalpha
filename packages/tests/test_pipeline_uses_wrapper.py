@@ -51,46 +51,53 @@ def test_pipeline_uses_train_from_config_only():
             "feature2": np.random.randn(100),
             "age": np.random.randint(18, 80, 100),
             "target": np.random.randint(0, 2, 100),
-        }
+        },
     )
 
     # Mock the data loader to return our test data
     with patch("glassalpha.data.tabular.TabularDataLoader.load") as mock_load:
         mock_load.return_value = mock_data
 
-        # Mock train_from_config to track if it's called
-        with patch("glassalpha.pipeline.train.train_from_config") as mock_train:
-            mock_model = MagicMock()
-            mock_model.get_capabilities.return_value = {"supports_shap": True}
-            mock_model.predict.return_value = np.random.randint(0, 2, 100)
-            mock_model.predict_proba.return_value = np.random.rand(100, 2)
-            mock_train.return_value = mock_model
+        # Mock _load_data to avoid file path validation
+        with patch("glassalpha.pipeline.audit.AuditPipeline._load_data") as mock_load_data:
+            mock_schema = MagicMock()
+            mock_schema.features = ["feature1", "feature2"]
+            mock_schema.target = "target"
+            mock_load_data.return_value = (mock_data, mock_schema)
 
-            # Mock other pipeline components
-            with patch("glassalpha.pipeline.audit.AuditPipeline._select_explainer") as mock_explainer:
-                mock_explainer.return_value = MagicMock()
+            # Mock train_from_config to track if it's called
+            with patch("glassalpha.pipeline.train.train_from_config") as mock_train:
+                mock_model = MagicMock()
+                mock_model.get_capabilities.return_value = {"supports_shap": True}
+                mock_model.predict.return_value = np.random.randint(0, 2, 100)
+                mock_model.predict_proba.return_value = np.random.rand(100, 2)
+                mock_train.return_value = mock_model
 
-                with patch("glassalpha.pipeline.audit.AuditPipeline._compute_metrics") as mock_metrics:
-                    mock_metrics.return_value = None
+                # Mock other pipeline components
+                with patch("glassalpha.pipeline.audit.AuditPipeline._select_explainer") as mock_explainer:
+                    mock_explainer.return_value = MagicMock()
 
-                    # Create and run pipeline
-                    pipeline = AuditPipeline(config)
+                    with patch("glassalpha.pipeline.audit.AuditPipeline._compute_metrics") as mock_metrics:
+                        mock_metrics.return_value = None
 
-                    # This should call train_from_config, not direct estimator training
-                    try:
-                        pipeline.run()
-                    except Exception:
-                        # We expect some failures due to mocking, but train_from_config should be called
-                        pass
+                        # Create and run pipeline
+                        pipeline = AuditPipeline(config)
 
-                    # Verify train_from_config was called
-                    mock_train.assert_called_once()
+                        # This should call train_from_config, not direct estimator training
+                        try:
+                            pipeline.run()
+                        except Exception:
+                            # We expect some failures due to mocking, but train_from_config should be called
+                            pass
 
-                    # Verify the call signature
-                    call_args = mock_train.call_args
-                    assert call_args[0][0] == config  # First arg should be config
-                    assert isinstance(call_args[0][1], pd.DataFrame)  # Second arg should be features
-                    assert isinstance(call_args[0][2], (pd.Series, np.ndarray))  # Third arg should be target
+                        # Verify train_from_config was called
+                        mock_train.assert_called_once()
+
+                        # Verify the call signature
+                        call_args = mock_train.call_args
+                        assert call_args[0][0] == config  # First arg should be config
+                        assert isinstance(call_args[0][1], pd.DataFrame)  # Second arg should be features
+                        assert isinstance(call_args[0][2], (pd.Series, np.ndarray))  # Third arg should be target
 
 
 def test_no_direct_estimator_imports_in_pipeline():
@@ -144,34 +151,41 @@ def test_wrapper_training_enforced():
             "feature1": np.random.randn(50),
             "age": np.random.randint(18, 80, 50),
             "target": np.random.randint(0, 2, 50),
-        }
+        },
     )
 
     with patch("glassalpha.data.tabular.TabularDataLoader.load") as mock_load:
         mock_load.return_value = mock_data
 
-        # Patch the wrapper's fit method to track calls
-        with patch("glassalpha.models.tabular.xgboost.XGBoostWrapper.fit") as mock_wrapper_fit:
-            mock_model = MagicMock()
-            mock_model.get_capabilities.return_value = {"supports_shap": True}
-            mock_wrapper_fit.return_value = mock_model
+        # Mock _load_data to avoid file path validation
+        with patch("glassalpha.pipeline.audit.AuditPipeline._load_data") as mock_load_data:
+            mock_schema = MagicMock()
+            mock_schema.features = ["feature1"]
+            mock_schema.target = "target"
+            mock_load_data.return_value = (mock_data, mock_schema)
 
-            # Mock train_from_config to use the wrapper
-            with patch("glassalpha.pipeline.train.train_from_config") as mock_train:
-                mock_train.return_value = mock_model
+            # Patch the wrapper's fit method to track calls
+            with patch("glassalpha.models.tabular.xgboost.XGBoostWrapper.fit") as mock_wrapper_fit:
+                mock_model = MagicMock()
+                mock_model.get_capabilities.return_value = {"supports_shap": True}
+                mock_wrapper_fit.return_value = mock_model
 
-                # Mock other components
-                with patch("glassalpha.pipeline.audit.AuditPipeline._select_explainer"):
-                    with patch("glassalpha.pipeline.audit.AuditPipeline._compute_metrics"):
-                        pipeline = AuditPipeline(config)
+                # Mock train_from_config to use the wrapper
+                with patch("glassalpha.pipeline.train.train_from_config") as mock_train:
+                    mock_train.return_value = mock_model
 
-                        try:
-                            pipeline.run()
-                        except Exception:
-                            pass  # Ignore failures due to mocking
+                    # Mock other components
+                    with patch("glassalpha.pipeline.audit.AuditPipeline._select_explainer"):
+                        with patch("glassalpha.pipeline.audit.AuditPipeline._compute_metrics"):
+                            pipeline = AuditPipeline(config)
 
-                        # Verify that train_from_config was called (which should use wrapper)
-                        mock_train.assert_called_once()
+                            try:
+                                pipeline.run()
+                            except Exception:
+                                pass  # Ignore failures due to mocking
+
+                            # Verify that train_from_config was called (which should use wrapper)
+                            mock_train.assert_called_once()
 
 
 if __name__ == "__main__":
