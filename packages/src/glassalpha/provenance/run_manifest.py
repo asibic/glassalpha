@@ -87,7 +87,7 @@ def generate_run_manifest(
     manifest_for_hash = manifest.copy()
     manifest["manifest_hash"] = _compute_dict_hash(manifest_for_hash)
 
-    logger.info("Run manifest generated with %d sections", len(manifest))
+    logger.info(f"Run manifest generated with {len(manifest)} sections")
     return manifest
 
 
@@ -207,7 +207,7 @@ def _get_git_provenance() -> dict[str, Any]:
             git_info["last_commit_message"] = result.stdout.strip()
 
     except Exception as e:
-        logger.debug("Failed to get git provenance: %s", e)
+        logger.debug(f"Failed to get git provenance: {e}")
 
     return git_info
 
@@ -464,7 +464,7 @@ def write_manifest_sidecar(manifest: dict[str, Any], output_path: str | Path) ->
     with manifest_path.open("w") as f:
         json.dump(manifest, f, indent=2, default=str)
 
-    logger.info("Wrote manifest sidecar: %s", manifest_path)
+    logger.info(f"Wrote manifest sidecar: {manifest_path}")
     return manifest_path
 
 

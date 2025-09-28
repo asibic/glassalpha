@@ -103,7 +103,7 @@ def _run_audit_pipeline(config, output_path: Path) -> None:
                 )
                 typer.echo(f"📋 Manifest: {manifest_path}")
             except Exception as e:
-                logger.warning("Failed to write manifest sidecar: %s", e)
+                logger.warning(f"Failed to write manifest sidecar: {e}")
 
         # Success message
         total_time = time.time() - start_time

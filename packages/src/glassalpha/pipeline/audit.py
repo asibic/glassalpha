@@ -193,7 +193,7 @@ class AuditPipeline:
 
             successful = sum(1 for control in repro_status["controls"].values() if control.get("success", False))
             total = len(repro_status["controls"])
-            logger.info("Advanced reproduction controls: %d/%d successful", successful, total)
+            logger.info(f"Advanced reproduction controls: {successful}/{total} successful")
 
         # Add seed information to manifest
         self.manifest_generator.add_seeds()
@@ -677,7 +677,7 @@ class AuditPipeline:
         # Validate and normalize config
         validated_config = validate_threshold_config(threshold_config)
 
-        logger.info("Applying threshold policy: %s", validated_config["policy"])
+        logger.info(f"Applying threshold policy: {validated_config['policy']}")
 
         # Select threshold using policy
         threshold_result = pick_threshold(y_true, y_proba, **validated_config)
@@ -686,7 +686,7 @@ class AuditPipeline:
         selected_threshold = threshold_result["threshold"]
         y_pred = (y_proba >= selected_threshold).astype(int)
 
-        logger.info("Selected threshold: %.3f using %s policy", selected_threshold, threshold_result["policy"])
+        logger.info(f"Selected threshold: {selected_threshold:.3f} using {threshold_result['policy']} policy")
 
         return y_pred, threshold_result
 
@@ -744,7 +744,7 @@ class AuditPipeline:
         # Store in results for PDF embedding
         self.results.execution_info["provenance_manifest"] = manifest
 
-        logger.info("Provenance manifest generated with %d sections", len(manifest))
+        logger.info(f"Provenance manifest generated with {len(manifest)} sections")
 
     def _get_calibration_info(self) -> dict[str, Any] | None:
         """Get calibration information from model if available."""
@@ -839,11 +839,11 @@ class AuditPipeline:
             # Log any warnings or errors from the metrics engine
             if metrics_result["warnings"]:
                 for warning in metrics_result["warnings"]:
-                    logger.warning("Metrics engine warning: %s", warning)
+                    logger.warning(f"Metrics engine warning: {warning}")
 
             if metrics_result["errors"]:
                 for error in metrics_result["errors"]:
-                    logger.error("Metrics engine error: %s", error)
+                    logger.error(f"Metrics engine error: {error}")
 
             # Filter out None values to maintain compatibility
             results = {
@@ -852,10 +852,10 @@ class AuditPipeline:
                 if v and all(val is not None for val in v.values() if isinstance(val, (int, float)))
             }
 
-            logger.info("Successfully computed %d performance metrics using auto-detection engine", len(results))
+            logger.info(f"Successfully computed {len(results)} performance metrics using auto-detection engine")
 
         except Exception as e:
-            logger.error("Failed to compute performance metrics with auto-detection engine: %s", e)
+            logger.error(f"Failed to compute performance metrics with auto-detection engine: {e}")
             # Fallback to empty results with error
             results = {"error": f"Auto-detection engine failed: {e}"}
 

@@ -59,7 +59,7 @@ def safe_load_yaml(
         ... )
 
     """
-    logger.debug("Loading YAML with security controls: %s", source)
+    logger.debug(f"Loading YAML with security controls: {source}")
 
     # Set default allowed types (safe types only)
     if allowed_types is None:
@@ -92,7 +92,7 @@ def safe_load_yaml(
         except Exception as e:
             raise YAMLSecurityError(f"Failed to read YAML file {yaml_path}: {e}") from e
 
-        logger.debug("Read YAML file: %s (%.1fMB)", yaml_path, file_size_mb)
+        logger.debug(f"Read YAML file: {yaml_path} ({file_size_mb:.1f}MB)")
 
     else:
         # Treat as YAML string content
@@ -132,7 +132,7 @@ def safe_load_yaml(
         allowed_types=allowed_types,
     )
 
-    logger.info("YAML loaded successfully with %d top-level keys", len(parsed_data))
+    logger.info(f"YAML loaded successfully with {len(parsed_data)} top-level keys")
     return parsed_data
 
 
@@ -235,7 +235,7 @@ def _check_suspicious_key(key: str) -> None:
     key_lower = key.lower()
     for pattern in dangerous_patterns:
         if pattern in key_lower:
-            logger.warning("Suspicious key detected in YAML: %s", key)
+            logger.warning(f"Suspicious key detected in YAML: {key}")
             # Don't fail by default, just warn
             break
 
@@ -290,7 +290,7 @@ def _validate_strict_mode_config(content: dict[str, Any]) -> None:
             if field in content[section]:
                 value = content[section][field]
                 if isinstance(value, str) and Path(value).is_absolute():
-                    logger.warning("Strict mode warning: %s: %s", description, value)
+                    logger.warning(f"Strict mode warning: {description}: {value}")
 
 
 def get_safe_yaml_config() -> dict[str, Any]:

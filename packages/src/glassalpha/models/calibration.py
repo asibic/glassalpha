@@ -54,7 +54,7 @@ def maybe_calibrate(
 
     cv = cv or 5  # Default to 5-fold CV
 
-    logger.info("Applying %s calibration with %d-fold cross-validation", method, cv)
+    logger.info(f"Applying {method} calibration with {cv}-fold cross-validation")
 
     try:
         calibrated_estimator = CalibratedClassifierCV(
@@ -68,7 +68,7 @@ def maybe_calibrate(
         return calibrated_estimator
 
     except Exception as e:
-        logger.error("Failed to create calibrated estimator: %s", e)
+        logger.error(f"Failed to create calibrated estimator: {e}")
         logger.warning("Falling back to uncalibrated estimator")
         return estimator
 
@@ -112,7 +112,7 @@ def validate_calibration_config(config: dict[str, Any]) -> dict[str, Any]:
         "ensemble": ensemble,
     }
 
-    logger.debug("Validated calibration config: %s", validated_config)
+    logger.debug(f"Validated calibration config: {validated_config}")
     return validated_config
 
 
@@ -142,7 +142,7 @@ def get_calibration_info(estimator: Any) -> dict[str, Any]:
                 "cv_folds": estimator.cv,
                 "ensemble": estimator.ensemble,
                 "base_estimator_type": type(estimator.estimator).__name__,
-            }
+            },
         )
 
     return info
@@ -216,7 +216,7 @@ def assess_calibration_quality(y_true, y_proba, n_bins: int = 10) -> dict[str, f
         }
 
     except Exception as e:
-        logger.error("Failed to assess calibration quality: %s", e)
+        logger.error(f"Failed to assess calibration quality: {e}")
         return {
             "brier_score": None,
             "expected_calibration_error": None,

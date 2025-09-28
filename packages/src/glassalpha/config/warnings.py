@@ -36,10 +36,7 @@ def warn_unknown_keys(raw_config: dict[str, Any], parsed_model: BaseModel, secti
 
     if unknown_keys:
         logger.warning(
-            "Ignoring unknown %s configuration keys: %s. Check for typos or deprecated options. Known keys: %s",
-            section,
-            sorted(unknown_keys),
-            sorted(known_keys),
+            f"Ignoring unknown {section} configuration keys: {sorted(unknown_keys)}. Check for typos or deprecated options. Known keys: {sorted(known_keys)}",
         )
 
 
@@ -101,8 +98,7 @@ def validate_config_completeness(config_dict: dict[str, Any]) -> None:
 
     if missing_sections:
         logger.warning(
-            "Configuration missing recommended sections: %s. This may limit audit functionality.",
-            missing_sections,
+            f"Configuration missing recommended sections: {missing_sections}. This may limit audit functionality.",
         )
 
     # Check for minimal required fields within sections
@@ -125,8 +121,7 @@ def validate_config_completeness(config_dict: dict[str, Any]) -> None:
 
     if incomplete_sections:
         logger.warning(
-            "Configuration sections incomplete: %s. Consider adding these fields for full functionality.",
-            "; ".join(incomplete_sections),
+            f"Configuration sections incomplete: {'; '.join(incomplete_sections)}. Consider adding these fields for full functionality.",
         )
 
 

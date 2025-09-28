@@ -68,7 +68,7 @@ def pick_threshold(
     if not np.all((y_proba >= 0) & (y_proba <= 1)):
         raise ValueError("y_proba must contain probabilities in [0, 1]")
 
-    logger.info("Selecting threshold using policy: %s", policy)
+    logger.info(f"Selecting threshold using policy: {policy}")
 
     # Dispatch to policy-specific implementation
     if policy == "youden":
@@ -110,11 +110,7 @@ def _youden_threshold(y_true: np.ndarray, y_proba: np.ndarray, **kwargs: Any) ->
     }
 
     logger.info(
-        "Youden threshold selected: %.3f (J=%.3f, Sens=%.3f, Spec=%.3f)",
-        optimal_threshold,
-        j_scores[optimal_idx],
-        sensitivity,
-        specificity,
+        f"Youden threshold selected: {optimal_threshold:.3f} (J={j_scores[optimal_idx]:.3f}, Sens={sensitivity:.3f}, Spec={specificity:.3f})",
     )
 
     return result
@@ -148,7 +144,7 @@ def _fixed_threshold(y_true: np.ndarray, y_proba: np.ndarray, threshold: float =
     }
 
     logger.info(
-        "Fixed threshold used: %.3f (Sens=%.3f, Spec=%.3f, Prec=%.3f)", threshold, sensitivity, specificity, precision
+        f"Fixed threshold used: {threshold:.3f} (Sens={sensitivity:.3f}, Spec={specificity:.3f}, Prec={precision:.3f})",
     )
 
     return result
@@ -189,10 +185,7 @@ def _prevalence_threshold(y_true: np.ndarray, y_proba: np.ndarray, **kwargs: Any
     }
 
     logger.info(
-        "Prevalence threshold selected: %.3f (target=%.3f, achieved=%.3f)",
-        optimal_threshold,
-        prevalence,
-        actual_prediction_rate,
+        f"Prevalence threshold selected: {optimal_threshold:.3f} (target={prevalence:.3f}, achieved={actual_prediction_rate:.3f})",
     )
 
     return result
@@ -254,11 +247,7 @@ def _cost_sensitive_threshold(
     }
 
     logger.info(
-        "Cost-sensitive threshold selected: %.3f (cost=%.1f, FP_cost=%.1f, FN_cost=%.1f)",
-        optimal_threshold,
-        min_cost,
-        cost_fp,
-        cost_fn,
+        f"Cost-sensitive threshold selected: {optimal_threshold:.3f} (cost={min_cost:.1f}, FP_cost={cost_fp:.1f}, FN_cost={cost_fn:.1f})",
     )
 
     return result
@@ -309,7 +298,7 @@ def validate_threshold_config(config: dict[str, Any]) -> dict[str, Any]:
         validated_config["cost_fp"] = float(cost_fp)
         validated_config["cost_fn"] = float(cost_fn)
 
-    logger.debug("Validated threshold config: %s", validated_config)
+    logger.debug(f"Validated threshold config: {validated_config}")
     return validated_config
 
 

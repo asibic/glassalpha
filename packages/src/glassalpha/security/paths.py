@@ -91,7 +91,7 @@ def validate_local_model(
         ... )
 
     """
-    logger.debug("Validating local model path: %s", path)
+    logger.debug(f"Validating local model path: {path}")
 
     # Set default allowed directories
     if allowed_dirs is None:
@@ -157,7 +157,7 @@ def validate_local_model(
 
     # Verify SHA-256 hash if provided
     if expected_sha256:
-        logger.debug("Verifying SHA-256 hash for %s", model_path)
+        logger.debug(f"Verifying SHA-256 hash for {model_path}")
         actual_hash = sha256_file(model_path)
         if actual_hash != expected_sha256:
             raise SecurityError(
@@ -165,7 +165,7 @@ def validate_local_model(
             )
         logger.debug("SHA-256 hash verification passed")
 
-    logger.info("Model path validation passed: %s (%.1fMB)", model_path, size_mb)
+    logger.info(f"Model path validation passed: {model_path} ({size_mb:.1f}MB)")
     return model_path
 
 
@@ -201,7 +201,7 @@ def validate_model_uri(
         ... )
 
     """
-    logger.debug("Validating model URI: %s", uri)
+    logger.debug(f"Validating model URI: {uri}")
 
     # Set default allowed schemes
     if allowed_schemes is None:
@@ -255,7 +255,7 @@ def validate_model_uri(
         # Basic hostname validation (prevent localhost, private IPs by default)
         hostname = parsed.hostname
         if hostname in ("localhost", "127.0.0.1", "::1"):
-            logger.warning("URI points to localhost: %s", uri)
+            logger.warning(f"URI points to localhost: {uri}")
 
         validation_result["hostname"] = hostname
         validation_result["port"] = parsed.port
@@ -268,7 +268,7 @@ def validate_model_uri(
         validation_result["bucket"] = parsed.netloc
         validation_result["key"] = parsed.path.lstrip("/")
 
-    logger.info("Model URI validation passed: %s", uri)
+    logger.info(f"Model URI validation passed: {uri}")
     return validation_result
 
 

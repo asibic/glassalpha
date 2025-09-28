@@ -49,7 +49,7 @@ def train_from_config(cfg: Any, X: pd.DataFrame, y: Any) -> Any:
         msg = f"Unknown model type: {model_type}"
         raise ValueError(msg)
 
-    logger.info("Training %s model from configuration", model_type)
+    logger.info(f"Training {model_type} model from configuration")
 
     # Create model instance
     model = model_class()
@@ -66,8 +66,8 @@ def train_from_config(cfg: Any, X: pd.DataFrame, y: Any) -> Any:
         msg = f"Model type {model_type} does not support fit method"
         raise RuntimeError(msg)
 
-    logger.info("Fitting model with parameters: %s", list(params.keys()))
-    logger.info("Parameter values: %s", params)
+    logger.info(f"Fitting model with parameters: {list(params.keys())}")
+    logger.info(f"Parameter values: {params}")
 
     # Check if we need probability predictions for calibration
     calibration_config = getattr(cfg.model, "calibration", None)
@@ -75,7 +75,7 @@ def train_from_config(cfg: Any, X: pd.DataFrame, y: Any) -> Any:
 
     model.fit(X, y, require_proba=require_proba, **params)
 
-    logger.info("Model training completed for %s", model_type)
+    logger.info(f"Model training completed for {model_type}")
 
     # Apply calibration if requested
     if calibration_config and calibration_config.method:

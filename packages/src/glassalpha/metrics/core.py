@@ -90,7 +90,7 @@ def compute_classification_metrics(
     problem_type = infer_problem_type(y_true)
     avg_strategy = choose_averaging(problem_type, average)
 
-    logger.info("Computing %s classification metrics with averaging=%s", problem_type, avg_strategy)
+    logger.info(f"Computing {problem_type} classification metrics with averaging={avg_strategy}")
 
     # Initialize results
     results: dict[str, Any] = {
@@ -163,7 +163,7 @@ def compute_classification_metrics(
 
     except Exception as e:
         results["errors"].append(f"Unexpected error in metrics computation: {e}")
-        logger.error("Metrics computation failed: %s", e)
+        logger.error(f"Metrics computation failed: {e}")
 
     # Log summary
     computed_metrics = [
@@ -172,10 +172,10 @@ def compute_classification_metrics(
         if k not in ["problem_type", "n_classes", "averaging_strategy", "errors", "warnings"] and v is not None
     ]
 
-    logger.info("Successfully computed %d metrics: %s", len(computed_metrics), computed_metrics)
+    logger.info(f"Successfully computed {len(computed_metrics)} metrics: {computed_metrics}")
 
     if results["errors"]:
-        logger.warning("Metrics computation had %d errors: %s", len(results["errors"]), results["errors"])
+        logger.warning(f"Metrics computation had {len(results['errors'])} errors: {results['errors']}")
 
     return results
 

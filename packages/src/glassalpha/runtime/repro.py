@@ -49,7 +49,7 @@ def set_repro(
         >>> status = set_repro(seed=42, strict=False, thread_control=False)
 
     """
-    logger.info("Setting deterministic reproduction mode (seed=%d, strict=%s)", seed, strict)
+    logger.info(f"Setting deterministic reproduction mode (seed={seed}, strict={strict})")
 
     status = {
         "seed": seed,
@@ -93,11 +93,11 @@ def set_repro(
     successful = sum(1 for control in status["controls"].values() if control.get("success", False))
     total = len(status["controls"])
 
-    logger.info("Deterministic reproduction configured: %d/%d controls successful", successful, total)
+    logger.info(f"Deterministic reproduction configured: {successful}/{total} controls successful")
 
     if strict and successful < total:
         failed_controls = [name for name, control in status["controls"].items() if not control.get("success", False)]
-        logger.warning("Strict mode enabled but some controls failed: %s", failed_controls)
+        logger.warning(f"Strict mode enabled but some controls failed: {failed_controls}")
 
     return status
 
@@ -120,7 +120,7 @@ def _set_python_random(seed: int, warn_on_failure: bool) -> dict[str, Any]:
         }
     except Exception as e:
         if warn_on_failure:
-            logger.warning("Failed to set Python random seed: %s", e)
+            logger.warning(f"Failed to set Python random seed: {e}")
         return {"success": False, "error": str(e)}
 
 
@@ -147,7 +147,7 @@ def _set_numpy_random(seed: int, warn_on_failure: bool) -> dict[str, Any]:
         }
     except Exception as e:
         if warn_on_failure:
-            logger.warning("Failed to set NumPy random seed: %s", e)
+            logger.warning(f"Failed to set NumPy random seed: {e}")
         return {"success": False, "error": str(e)}
 
 
@@ -163,7 +163,7 @@ def _set_environment_determinism(strict: bool, warn_on_failure: bool) -> dict[st
             {
                 "TF_DETERMINISTIC_OPS": "1",  # TensorFlow determinism
                 "TF_CUDNN_DETERMINISTIC": "1",  # cuDNN determinism
-            }
+            },
         )
 
     set_vars = {}
@@ -177,7 +177,7 @@ def _set_environment_determinism(strict: bool, warn_on_failure: bool) -> dict[st
         except Exception as e:
             failed_vars[var] = str(e)
             if warn_on_failure:
-                logger.warning("Failed to set environment variable %s: %s", var, e)
+                logger.warning(f"Failed to set environment variable {var}: {e}")
 
     return {
         "success": len(failed_vars) == 0,
@@ -208,7 +208,7 @@ def _set_thread_control(warn_on_failure: bool) -> dict[str, Any]:
         except Exception as e:
             failed_vars[var] = str(e)
             if warn_on_failure:
-                logger.warning("Failed to set thread control variable %s: %s", var, e)
+                logger.warning(f"Failed to set thread control variable {var}: {e}")
 
     return {
         "success": len(failed_vars) == 0,
@@ -235,7 +235,7 @@ def _set_xgboost_determinism(seed: int, strict: bool, warn_on_failure: bool) -> 
                 {
                     "deterministic_histogram": True,
                     "force_row_wise": True,  # Deterministic tree construction
-                }
+                },
             )
 
         return {
@@ -249,7 +249,7 @@ def _set_xgboost_determinism(seed: int, strict: bool, warn_on_failure: bool) -> 
         return {"success": True, "note": "XGBoost not available"}
     except Exception as e:
         if warn_on_failure:
-            logger.warning("Failed to configure XGBoost determinism: %s", e)
+            logger.warning(f"Failed to configure XGBoost determinism: {e}")
         return {"success": False, "error": str(e)}
 
 
@@ -271,7 +271,7 @@ def _set_lightgbm_determinism(seed: int, strict: bool, warn_on_failure: bool) ->
                 {
                     "force_row_wise": True,
                     "histogram_pool_size": -1,  # Disable histogram pool for determinism
-                }
+                },
             )
 
         return {
@@ -285,7 +285,7 @@ def _set_lightgbm_determinism(seed: int, strict: bool, warn_on_failure: bool) ->
         return {"success": True, "note": "LightGBM not available"}
     except Exception as e:
         if warn_on_failure:
-            logger.warning("Failed to configure LightGBM determinism: %s", e)
+            logger.warning(f"Failed to configure LightGBM determinism: {e}")
         return {"success": False, "error": str(e)}
 
 
@@ -306,7 +306,7 @@ def _set_sklearn_determinism(warn_on_failure: bool) -> dict[str, Any]:
         return {"success": True, "note": "Scikit-learn not available"}
     except Exception as e:
         if warn_on_failure:
-            logger.warning("Failed to configure scikit-learn determinism: %s", e)
+            logger.warning(f"Failed to configure scikit-learn determinism: {e}")
         return {"success": False, "error": str(e)}
 
 
@@ -328,7 +328,7 @@ def _set_shap_determinism(seed: int, warn_on_failure: bool) -> dict[str, Any]:
         return {"success": True, "note": "SHAP not available"}
     except Exception as e:
         if warn_on_failure:
-            logger.warning("Failed to configure SHAP determinism: %s", e)
+            logger.warning(f"Failed to configure SHAP determinism: {e}")
         return {"success": False, "error": str(e)}
 
 
@@ -349,7 +349,7 @@ def _set_pandas_determinism(warn_on_failure: bool) -> dict[str, Any]:
         return {"success": True, "note": "Pandas not available"}
     except Exception as e:
         if warn_on_failure:
-            logger.warning("Failed to configure pandas determinism: %s", e)
+            logger.warning(f"Failed to configure pandas determinism: {e}")
         return {"success": False, "error": str(e)}
 
 
@@ -365,7 +365,7 @@ def _set_system_determinism(strict: bool, warn_on_failure: bool) -> dict[str, An
         except Exception as e:
             controls["warnings_disabled"] = False
             if warn_on_failure:
-                logger.warning("Failed to disable warnings: %s", e)
+                logger.warning(f"Failed to disable warnings: {e}")
 
     # Set locale for consistent string operations
     try:
@@ -376,7 +376,7 @@ def _set_system_determinism(strict: bool, warn_on_failure: bool) -> dict[str, An
     except Exception as e:
         controls["locale_set"] = False
         if warn_on_failure:
-            logger.warning("Failed to set C locale: %s", e)
+            logger.warning(f"Failed to set C locale: {e}")
 
     success = all(controls.values()) if controls else True
 
@@ -508,7 +508,7 @@ def validate_repro(expected_seed: int = 42) -> dict[str, Any]:
         logger.info("Reproducibility validation passed")
     else:
         failed_tests = [name for name, test in validation["tests"].items() if not test.get("success", False)]
-        logger.warning("Reproducibility validation failed for: %s", failed_tests)
+        logger.warning(f"Reproducibility validation failed for: {failed_tests}")
 
     return validation
 
