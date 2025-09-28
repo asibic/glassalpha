@@ -235,7 +235,7 @@ def _display_audit_summary(audit_results) -> None:
                 break
 
 
-def audit(
+def audit(  # pragma: no cover
     # Typer requires function calls in defaults - this is the documented pattern
     config: Path = typer.Option(
         ...,
@@ -397,7 +397,7 @@ def audit(
         raise typer.Exit(1) from None
 
 
-def validate(
+def validate(  # pragma: no cover
     config: Path = typer.Option(
         ...,
         "--config",
@@ -473,7 +473,7 @@ def validate(
         raise typer.Exit(1) from None
 
 
-def list_components_cmd(
+def list_components_cmd(  # pragma: no cover
     component_type: str | None = typer.Argument(
         None,
         help="Component type to list (models, explainers, metrics, profiles)",

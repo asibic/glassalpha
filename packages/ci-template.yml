@@ -81,7 +81,14 @@ jobs:
         pytest -q tests/test_pipeline_basic.py::test_pipeline_logs_initialization tests/test_end_to_end.py::test_multiple_model_types tests/test_model_integration.py::test_model_saving_and_loading
       working-directory: packages
 
-    # Full test suite (with coverage if desired)
-    - name: Full test suite
-      run: pytest -q --cov=glassalpha --cov-fail-under=49
+    # Gate 1: Critical-path modules (90%+ coverage)
+    - name: Gate 1 - Critical modules (90%+)
+      run: |
+        pytest -q --cov=glassalpha --cov-config=.coveragerc_gate1 --cov-fail-under=90
+      working-directory: packages
+
+    # Gate 2: Full repo coverage (trend-based)
+    - name: Gate 2 - Full repo coverage (70%+)
+      run: |
+        pytest -q --cov=glassalpha --cov-fail-under=70
       working-directory: packages

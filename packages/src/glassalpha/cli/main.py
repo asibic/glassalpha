@@ -97,7 +97,7 @@ app.command("list", help="List available components")(list_components_cmd)
 
 
 # Dashboard commands (enterprise stubs)
-@dashboard_app.command("serve")
+@dashboard_app.command("serve")  # pragma: no cover
 def dashboard_serve(
     port: int = typer.Option(8080, "--port", "-p", help="Port to serve on"),
     host: str = typer.Option("localhost", "--host", "-h", help="Host to bind to"),
@@ -119,7 +119,7 @@ def dashboard_serve(
         raise typer.Exit(1) from None
 
 
-@monitor_app.command("drift")
+@monitor_app.command("drift")  # pragma: no cover
 def monitor_drift(
     config: Path = typer.Option(..., "--config", "-c", help="Configuration file"),
     baseline: Path = typer.Option(..., "--baseline", "-b", help="Baseline manifest"),
@@ -141,5 +141,5 @@ def monitor_drift(
         raise typer.Exit(1) from None
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     app()
