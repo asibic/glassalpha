@@ -42,12 +42,12 @@ def sha256_file(path: Path) -> str:
         raise SecurityError(f"Failed to compute hash for {path}: {e}") from e
 
 
-def validate_local_model_path(path: Path, allow_symlink: bool = False) -> Path:
+def validate_local_model_path(path: Path, allow_symlinks: bool = False) -> Path:
     """Validate local model path with symlink control.
 
     Args:
         path: Path to validate
-        allow_symlink: Whether to allow symbolic links
+        allow_symlinks: Whether to allow symbolic links
 
     Returns:
         Resolved path if valid
@@ -57,7 +57,7 @@ def validate_local_model_path(path: Path, allow_symlink: bool = False) -> Path:
 
     """
     p = Path(path)
-    if p.is_symlink() and not allow_symlink:
+    if p.is_symlink() and not allow_symlinks:
         raise SecurityError("Symbolic links are not allowed")
     # (keep your other checks)
     return p.resolve(strict=False)
@@ -120,7 +120,16 @@ def validate_local_model(
 
     # Resolve and normalize paths
     try:
-        model_path = Path(path).expanduser().resolve()
+        original_path = Path(path).expanduser()
+    except Exception as e:
+        raise SecurityError(f"Invalid path format: {path}") from e
+
+    # Check for symlinks BEFORE resolving the path
+    validate_local_model_path(original_path, allow_symlinks)
+
+    # Now resolve the path after symlink validation
+    try:
+        model_path = original_path.resolve()
     except Exception as e:
         raise SecurityError(f"Invalid path format: {path}") from e
 
@@ -136,9 +145,6 @@ def validate_local_model(
 
     if not model_path.is_file():
         raise SecurityError(f"Path is not a regular file: {model_path}")
-
-    # Check for symlinks using the new helper
-    model_path = validate_local_model_path(model_path, allow_symlinks)
 
     # Check if path is within allowed directories
     path_allowed = False
