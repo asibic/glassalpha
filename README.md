@@ -84,6 +84,65 @@ See [CONTRIBUTING](site/docs/contributing.md) for development guidelines.
 - **Enterprise Extensions**: Commercial license for advanced features
 - **Brand**: "GlassAlpha" trademark - see [TRADEMARK.md](TRADEMARK.md)
 
+## License & Dependencies
+
+GlassAlpha provides **enterprise-grade licensing compatibility** with a carefully curated technology stack. All dependencies are chosen for regulatory compliance, commercial viability, and compatibility with the Apache 2.0 license.
+
+### Core License Structure
+
+- **GlassAlpha Framework**: Apache License 2.0 ([LICENSE](LICENSE))
+- **Enterprise Extensions**: Commercial license for advanced features
+- **Brand**: "GlassAlpha" trademark - see [TRADEMARK.md](TRADEMARK.md)
+
+### Technology Stack & Licenses
+
+GlassAlpha uses industry-standard, enterprise-compatible dependencies with proven licensing compatibility:
+
+| Component | License | Purpose | Why Chosen |
+|-----------|---------|---------|------------|
+| **Python SHAP** | MIT License | TreeSHAP explanations | ✅ Enterprise-compatible, no GPL contamination |
+| **XGBoost** | Apache 2.0 | Gradient boosting models | ✅ Same license family, proven in production |
+| **LightGBM** | MIT License | Alternative tree models | ✅ Microsoft-backed, widely adopted |
+| **scikit-learn** | BSD License | Baseline models & utilities | ✅ Academic standard, fully compatible |
+| **NumPy** | BSD License | Numerical computing | ✅ Core scientific Python library |
+| **Pandas** | BSD License | Data manipulation | ✅ Industry standard for data science |
+| **WeasyPrint** | BSD License | PDF generation | ✅ Pure Python, no system dependencies |
+| **Typer** | MIT License | CLI framework | ✅ Modern, type-safe command interface |
+| **Pydantic** | MIT License | Configuration validation | ✅ Runtime type checking and validation |
+
+### Licensing Confidence & Risk Mitigation
+
+**✅ No GPL Dependencies**: GlassAlpha deliberately avoids GPL-licensed components to ensure maximum compatibility with enterprise environments. We use the MIT-licensed Python [SHAP](https://github.com/shap/shap) library rather than the GPL-licensed R `treeshap` package.
+
+**✅ Apache 2.0 Compatible Stack**: All dependencies are compatible with Apache 2.0 licensing, allowing:
+- Commercial use without restrictions
+- Integration with proprietary systems
+- Distribution in closed-source applications
+- Patent protection for contributors
+
+**✅ Regulatory Compliance Ready**: The licensing structure supports:
+- Audit trail preservation
+- Reproducible builds with locked dependency versions
+- No vendor lock-in through open standards
+- Full source code transparency for regulatory review
+
+### Enterprise Integration
+
+The clean licensing structure enables:
+- **Container Integration**: Deploy in Docker/Kubernetes without license conflicts
+- **CI/CD Pipelines**: Automated builds with reproducible dependency resolution
+- **Cloud Deployment**: Compatible with AWS, Azure, GCP licensing requirements
+- **On-Premise Installation**: Full control over software stack and dependencies
+
+### Dependency Verification
+
+All dependencies are locked to specific versions in [`constraints.txt`](packages/constraints.txt) for reproducible builds:
+
+```bash
+# Reproducible installation
+pip install -c constraints.txt -e .
+```
+
 **Support**:
 - OSS: GitHub Issues
 - Enterprise: Priority support with SLA

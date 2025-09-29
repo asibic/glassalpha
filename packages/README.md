@@ -170,10 +170,33 @@ glassalpha audit --config configs/german_credit_simple.yaml --output test_audit.
 
 See [CONTRIBUTING.md](../site/docs/contributing.md) for development guidelines.
 
-## License
+## License & Dependencies
 
-- Core library: Apache 2.0 License
-- Enterprise extensions: Commercial License (contact for details)
+### Licensing Structure
+
+- **Core Library**: Apache 2.0 License - Full open source access to core functionality
+- **Enterprise Extensions**: Commercial license for advanced features (separate package)
+
+### Dependency Compatibility
+
+All dependencies are chosen for enterprise compatibility and regulatory compliance:
+
+| Component | License | Purpose | Enterprise Ready |
+|-----------|---------|---------|------------------|
+| **SHAP** | MIT | TreeSHAP explanations | ✅ No GPL contamination |
+| **XGBoost** | Apache 2.0 | Tree models | ✅ Compatible license family |
+| **LightGBM** | MIT | Alternative models | ✅ Microsoft-backed |
+| **scikit-learn** | BSD | Baseline models | ✅ Academic standard |
+| **NumPy/Pandas** | BSD | Data processing | ✅ Core scientific stack |
+
+**Key Licensing Note**: GlassAlpha uses the MIT-licensed Python [SHAP](https://github.com/shap/shap) library, not the GPL-licensed R `treeshap` package, ensuring maximum enterprise compatibility.
+
+### Reproducible Builds
+
+Dependencies are locked for deterministic builds:
+```bash
+pip install -c constraints.txt -e .
+```
 
 ## Support
 

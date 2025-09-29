@@ -17,3 +17,34 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
+
+---
+
+Third-Party Software Licenses
+
+This product incorporates the following third-party software:
+
+- **SHAP** (MIT License): https://github.com/shap/shap
+  Used for TreeSHAP explanations. MIT-licensed Python implementation.
+  Note: This is NOT the GPL-licensed R 'treeshap' package.
+
+- **XGBoost** (Apache 2.0): https://github.com/dmlc/xgboost
+  Used for gradient boosting models.
+
+- **LightGBM** (MIT License): https://github.com/microsoft/LightGBM
+  Used for alternative tree-based models.
+
+- **scikit-learn** (BSD License): https://scikit-learn.org
+  Used for baseline models and ML utilities.
+
+- **NumPy** (BSD License): https://numpy.org
+  Used for numerical computing.
+
+- **Pandas** (BSD License): https://pandas.pydata.org
+  Used for data manipulation.
+
+- **WeasyPrint** (BSD License): https://weasyprint.org
+  Used for PDF generation.
+
+All third-party licenses are compatible with Apache 2.0 and do not impose
+additional restrictions on commercial use or distribution.
