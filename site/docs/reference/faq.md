@@ -34,7 +34,7 @@ GlassAlpha maintains audit quality through:
 - **Professional reporting** with publication-quality visualizations
 - **Regulatory alignment** with established compliance frameworks
 
-For detailed information about system design and quality assurance, see the [Architecture Guide](architecture.md).
+For detailed information about system design and quality assurance, see the [Architecture Guide](../reference/architecture.md).
 
 ## Installation & Setup
 
@@ -78,7 +78,7 @@ glassalpha --version
 glassalpha list
 ```
 
-See the [Quick Start Guide](getting-started/quickstart.md) for detailed instructions.
+See the [Quick Start Guide](../getting-started/quickstart.md) for detailed instructions.
 
 ### What dependencies does GlassAlpha require?
 
@@ -99,7 +99,7 @@ All dependencies are automatically installed during setup.
 
 1. **Follow the Quick Start guide for a 5-minute introduction:**
 
-   - [Quick Start Audit](examples/quick-start-audit.md) - Fastest way to get started
+   - [Quick Start Audit](../examples/quick-start-audit.md) - Fastest way to get started
 
 2. **Use the German Credit example:**
 
@@ -206,7 +206,7 @@ class MyModel:
         pass
 ```
 
-See the [API Reference](reference/api.md) for complete examples.
+See the [API Reference](../reference/api.md) for complete examples.
 
 ### Can I use deep learning models?
 
@@ -241,7 +241,7 @@ GlassAlpha currently focuses on **tabular data** for classification tasks. Addit
 - **Fair Housing Act** (US) - Housing discrimination
 - **Employment Standards** (EEOC, various) - Hiring discrimination
 
-See the [Compliance Framework Guide](compliance/overview.md) for detailed mapping.
+See the [Compliance Framework Guide](../reference/compliance.md) for detailed mapping.
 
 ### Can GlassAlpha reports be submitted to regulators?
 
@@ -334,7 +334,7 @@ Yes, GlassAlpha is designed for production use:
 - **Configuration files** for different environments
 - **Enterprise deployment** with RBAC and monitoring
 
-For comprehensive production deployment guidance, see the [Production Deployment Guide](deployment.md).
+For comprehensive production deployment guidance, see the [Production Deployment Guide](../reference/deployment.md).
 
 ### Are there any limitations I should know about?
 
@@ -446,7 +446,7 @@ glassalpha audit \
 - **Documentation improvements** and examples
 - **Testing** on different platforms and use cases
 
-See the [Contributing Guide](contributing.md) for detailed instructions.
+See the [Contributing Guide](../reference/contributing.md) for detailed instructions.
 
 ### Can I build custom metrics?
 
@@ -513,7 +513,7 @@ pip uninstall xgboost && pip install xgboost
 - **Community Discussions**: User questions and sharing
 - **Troubleshooting Guide**: Common issues and solutions
 
-For immediate help, check the [Troubleshooting Guide](reference/troubleshooting.md) or search existing GitHub Issues.
+For immediate help, check the [Troubleshooting Guide](../reference/troubleshooting.md) or search existing GitHub Issues.
 
 ## Getting Started
 
@@ -526,10 +526,10 @@ For immediate help, check the [Troubleshooting Guide](reference/troubleshooting.
 
 **Essential Resources:**
 
-- [Quick Start Guide](getting-started/quickstart.md)
-- [Configuration Guide](getting-started/configuration.md)
-- [German Credit Tutorial](examples/german-credit-audit.md)
-- [CLI Reference](reference/cli.md)
+- [Quick Start Guide](../getting-started/quickstart.md)
+- [Configuration Guide](../getting-started/configuration.md)
+- [German Credit Tutorial](../examples/german-credit-audit.md)
+- [CLI Reference](../reference/cli.md)
 
 ### I'm new to ML auditing. Where should I start?
 
@@ -543,8 +543,8 @@ For immediate help, check the [Troubleshooting Guide](reference/troubleshooting.
 
 **Recommended Reading:**
 
-- [Compliance Framework Overview](compliance/overview.md)
-- [German Credit Tutorial](examples/german-credit-audit.md) (detailed interpretation)
+- [Compliance Framework Overview](../reference/compliance.md)
+- [German Credit Tutorial](../examples/german-credit-audit.md) (detailed interpretation)
 - Industry guides on algorithmic fairness and bias
 
 This FAQ covers the most common questions about GlassAlpha. If you don't find your answer here, please check our other documentation or reach out via GitHub Issues.

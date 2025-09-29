@@ -5,6 +5,7 @@ GlassAlpha is designed as an **extensible framework** for ML model auditing, bui
 ## Design Philosophy
 
 ### Audit-First Approach
+
 GlassAlpha prioritizes **regulatory compliance** and **audit quality** over cutting-edge features:
 
 - **Deterministic behavior** - Same input always produces identical output
@@ -13,6 +14,7 @@ GlassAlpha prioritizes **regulatory compliance** and **audit quality** over cutt
 - **Transparency** - Open source code that can be verified and trusted
 
 ### Plugin Architecture
+
 All major components use **dynamic registration** and **interface-based design**:
 
 - **Models**, **explainers**, and **metrics** are plugins that register themselves
@@ -47,6 +49,7 @@ User Configuration (YAML)
 ### Core Components
 
 #### 1. Configuration System
+
 **Purpose**: Declarative, reproducible audit specification
 
 **Key Files:**
@@ -63,6 +66,7 @@ User Configuration (YAML)
 - **Overrides** - Environment-specific configuration management
 
 **Example Flow:**
+
 ```yaml
 # User specifies high-level intent
 audit_profile: tabular_compliance
@@ -71,9 +75,11 @@ model:
 explainers:
   priority: [treeshap, kernelshap]
 ```
+
 → System validates, fills defaults, ensures determinism
 
 #### 2. Registry System
+
 **Purpose**: Dynamic component discovery and selection
 
 **Key Files:**
@@ -82,6 +88,7 @@ explainers:
 - `core/interfaces.py` - Protocol definitions
 
 **How It Works:**
+
 ```python
 # Components register themselves
 @ModelRegistry.register("xgboost")
@@ -100,6 +107,7 @@ explainer_cls = ExplainerRegistry.select_compatible(model, ["treeshap"])
 - **Extensibility** - Add new types without changing core
 
 #### 3. Data Pipeline
+
 **Purpose**: Load, validate, and prepare data for analysis
 
 **Key Files:**
@@ -117,6 +125,7 @@ explainer_cls = ExplainerRegistry.select_compatible(model, ["treeshap"])
 6. **Data Hashing** - Integrity verification for audit trail
 
 #### 4. Model Integration
+
 **Purpose**: Unified interface to different ML libraries
 
 **Key Files:**
@@ -126,6 +135,7 @@ explainer_cls = ExplainerRegistry.select_compatible(model, ["treeshap"])
 - `models/tabular/sklearn.py` - Scikit-learn wrapper
 
 **Interface Design:**
+
 ```python
 class ModelInterface(Protocol):
     capabilities: dict[str, Any]
@@ -143,6 +153,7 @@ class ModelInterface(Protocol):
 - **Error handling** - Graceful degradation when libraries unavailable
 
 #### 5. Explanation System
+
 **Purpose**: Generate interpretable explanations for model decisions
 
 **Key Files:**
@@ -151,6 +162,7 @@ class ModelInterface(Protocol):
 - `explain/shap/kernel.py` - KernelSHAP for any model type
 
 **Selection Logic:**
+
 ```python
 # Configuration specifies preferences
 explainers:
@@ -171,6 +183,7 @@ for explainer_name in priority:
 - **Reproducible results** - Fixed seeds for consistent outputs
 
 #### 6. Metrics System
+
 **Purpose**: Comprehensive model evaluation across multiple dimensions
 
 **Categories:**
@@ -187,6 +200,7 @@ for explainer_name in priority:
 - **Flexible requirements** - Some metrics need probabilities, others just predictions
 
 #### 7. Report Generation
+
 **Purpose**: Professional PDF reports with visualizations
 
 **Key Files:**
@@ -204,6 +218,7 @@ for explainer_name in priority:
 6. **Metadata Addition** - PDF properties and audit trail information
 
 ### Audit Profiles
+
 **Purpose**: Pre-configured component sets for different use cases
 
 **Current Profiles:**
@@ -212,6 +227,7 @@ for explainer_name in priority:
 - `german_credit_default` - Optimized for German Credit dataset
 
 **Profile Structure:**
+
 ```python
 class TabularComplianceProfile:
     compatible_models = ["xgboost", "lightgbm", "logistic_regression"]
@@ -230,6 +246,7 @@ class TabularComplianceProfile:
 ## Design Patterns
 
 ### 1. Protocol-Based Interfaces
+
 Instead of inheritance, GlassAlpha uses Python's `typing.Protocol`:
 
 ```python
@@ -248,6 +265,7 @@ class ModelInterface(Protocol):
 - **Type safety** - mypy can verify protocol compliance
 
 ### 2. Capability-Based Selection
+
 Components declare what they can do, system matches capabilities to needs:
 
 ```python
@@ -263,6 +281,7 @@ class TreeSHAPExplainer:
 ```
 
 ### 3. Registry Pattern
+
 Central registration system for dynamic component discovery:
 
 ```python
@@ -281,6 +300,7 @@ class ExplainerRegistry:
 ```
 
 ### 4. Deterministic Operations
+
 Every source of randomness is controlled and seeded:
 
 ```python
@@ -293,6 +313,7 @@ with with_component_seed("explainer"):
 ```
 
 ### 5. Audit Trail Generation
+
 Complete provenance tracking for regulatory compliance:
 
 ```python
@@ -313,9 +334,11 @@ class ManifestGenerator:
 For potential future enterprise features.
 
 ### Feature Separation
+
 GlassAlpha maintains clear boundaries between OSS and Enterprise features:
 
 **Current Approach (Feature Flags):**
+
 ```python
 @check_feature("advanced_explainers")
 def deep_shap_explain():
@@ -325,12 +348,14 @@ def deep_shap_explain():
 ```
 
 **Potential Future Approach (Package Separation):**
+
 ```python
 # glassalpha (OSS) - Core functionality only
 # glassalpha-enterprise - Advanced features in separate package
 ```
 
 ### Extension Points
+
 The architecture provides multiple extension points:
 
 1. **Custom Models** - Implement `ModelInterface`
@@ -342,12 +367,14 @@ The architecture provides multiple extension points:
 ## Performance Considerations
 
 ### Scalability Design
+
 - **Streaming-friendly** - Process data in chunks when needed
 - **Memory efficient** - Release resources between pipeline stages
 - **Parallel processing** - Use `n_jobs` parameter for CPU-bound operations
 - **Caching** - Reuse expensive computations within single audit
 
 ### Optimization Strategies
+
 - **TreeSHAP over KernelSHAP** - Use exact methods when available
 - **Sample size tuning** - Balance accuracy vs speed in explanations
 - **Vectorized operations** - Leverage pandas/numpy optimizations
@@ -356,12 +383,14 @@ The architecture provides multiple extension points:
 ## Security and Privacy
 
 ### Data Handling
+
 - **Local processing only** - No external API calls
 - **File-based storage** - No persistent databases required
 - **Memory cleanup** - Sensitive data cleared after use
 - **Audit logging** - Track data access without storing content
 
 ### Enterprise Security
+
 - **License validation** - Environment variable or server-based
 - **Feature gating** - Graceful degradation without enterprise features
 - **Access controls** - Role-based component access (enterprise)
@@ -370,12 +399,14 @@ The architecture provides multiple extension points:
 ## Quality Assurance
 
 ### Testing Strategy
+
 - **Unit tests** - Each component tested independently
 - **Integration tests** - Full pipeline validation
 - **Determinism tests** - Verify reproducible outputs
 - **Enterprise tests** - Feature gating and license validation
 
 ### Validation Approaches
+
 - **Schema validation** - Pydantic models catch configuration errors
 - **Component compatibility** - Registry validates model/explainer combinations
 - **Data integrity** - Hash verification detects changes
@@ -384,6 +415,7 @@ The architecture provides multiple extension points:
 ## Potential Future Architecture Considerations
 
 ### Extensibility Planning
+
 The current architecture supports potential future extensions:
 
 - **New Model Types** - LLMs, vision models through same interfaces
@@ -392,6 +424,7 @@ The current architecture supports potential future extensions:
 - **Cloud Integration** - Remote model serving, distributed processing
 
 ### Maintenance Strategy
+
 - **Interface stability** - Protocol changes are backwards compatible
 - **Migration support** - Clear upgrade paths between versions
 - **Documentation** - Architecture decisions documented for future maintainers
@@ -401,4 +434,4 @@ This architecture balances immediate needs (professional tabular ML auditing) wi
 
 ---
 
-*For implementation details, see the [API Reference](reference/api.md). For usage examples, see [Examples](examples/german-credit-audit.md).*
+_For implementation details, see the [API Reference](../reference/api.md). For usage examples, see [Examples](../examples/german-credit-audit.md)._

@@ -2,7 +2,7 @@
 
 Complete reference for GlassAlpha's public API, interfaces, and extension points.
 
-For system design and component interaction details, see the [Architecture Guide](../architecture.md). This document focuses on implementation specifics for developers extending GlassAlpha.
+For system design and component interaction details, see the [Architecture Guide](../reference/architecture.md). This document focuses on implementation specifics for developers extending GlassAlpha.
 
 ## Core Interfaces
 

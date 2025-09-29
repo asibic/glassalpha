@@ -540,10 +540,10 @@ docker run -v $(pwd):/data glassalpha \
 
 After successful installation:
 
-1. **Try the Quick Start** - [Generate your first audit in 10 minutes](quickstart.md)
+1. **Try the Quick Start** - [Generate your first audit in 10 minutes](../getting-started/quickstart.md)
 2. **Explore Examples** - [German Credit tutorial](../examples/german-credit-audit.md)
-3. **Read Configuration Guide** - [Understand all options](configuration.md)
-4. **Production Deployment** - [Enterprise deployment guide](../deployment.md) for regulated environments
+3. **Read Configuration Guide** - [Understand all options](../getting-started/configuration.md)
+4. **Production Deployment** - [Enterprise deployment guide](../reference/deployment.md) for regulated environments
 5. **Join the Community** - [GitHub Discussions](https://github.com/GlassAlpha/glassalpha/discussions)
 
 ## Getting Help
@@ -553,7 +553,7 @@ If you encounter installation issues not covered here:
 1. **Check the [Troubleshooting Guide](../reference/troubleshooting.md)**
 2. **Search [GitHub Issues](https://github.com/GlassAlpha/glassalpha/issues)**
 3. **Ask in [GitHub Discussions](https://github.com/GlassAlpha/glassalpha/discussions)**
-4. **Review the [FAQ](reference/faq.md)**
+4. **Review the [FAQ](../reference/faq.md)**
 
 For enterprise support and custom installation assistance, contact: enterprise@glassalpha.com
 
