@@ -52,27 +52,27 @@ glassalpha audit \
 
 Open `my_first_audit.pdf` to see:
 
-1. **Executive Summary**
+### 1. **Executive Summary**
    - Model performance overview
    - Key fairness findings
    - Regulatory compliance status
 
-2. **Model Performance**
+### 2. **Model Performance**
    - Accuracy: ~77% (typical for German Credit dataset)
    - Precision, recall, F1 scores
    - ROC curve and confusion matrix
 
-3. **SHAP Explanations**
+### 3. **SHAP Explanations**
    - Feature importance rankings
    - Sample individual explanations
    - Waterfall plots showing decision factors
 
-4. **Fairness Analysis**
+### 4. **Fairness Analysis**
    - Demographic parity across gender and age groups
    - Statistical significance testing
    - Bias detection results
 
-5. **Reproducibility**
+### 5. **Reproducibility**
    - Complete audit manifest
    - Configuration hash and random seeds
    - Data integrity verification
