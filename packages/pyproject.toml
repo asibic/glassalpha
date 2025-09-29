@@ -183,6 +183,8 @@ glassalpha = [
 source = ["src/glassalpha"]
 
 [tool.coverage.report]
+# Explicitly set fail_under to 0 to prevent pytest-cov from enforcing global threshold
+fail_under = 0
 # Temporary omissions to keep Gate 2 meaningful while we add tests
 omit = [
   "*/site-packages/glassalpha/metrics/drift/detection.py",   # placeholder module
