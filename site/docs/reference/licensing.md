@@ -13,31 +13,31 @@ GlassAlpha provides **enterprise-grade licensing compatibility** with a carefull
 ### Brand & Trademark
 
 - **Trademark**: "GlassAlpha" name and logo
-- **Policy**: See [TRADEMARK](TRADEMARK.md)
+- **Policy**: See [TRADEMARK](../TRADEMARK.md)
 - **Usage**: Requires explicit permission except as described in trademark policy
 
 ## Technology Stack & Licenses
 
 GlassAlpha uses industry-standard, enterprise-compatible dependencies with proven licensing compatibility:
 
-| Component | Version | License | Purpose | Why Chosen |
-|-----------|---------|---------|---------|------------|
-| **Python SHAP** | 0.44.1 | MIT License | TreeSHAP explanations | ✅ Enterprise-compatible, no GPL contamination |
-| **XGBoost** | 2.1.1 | Apache 2.0 | Gradient boosting models | ✅ Same license family, proven in production |
-| **LightGBM** | 4.1.0 | MIT License | Alternative tree models | ✅ Microsoft-backed, widely adopted |
-| **scikit-learn** | 1.3.2 | BSD License | Baseline models & utilities | ✅ Academic standard, fully compatible |
-| **NumPy** | 1.26.4 | BSD License | Numerical computing | ✅ Core scientific Python library |
-| **Pandas** | 2.2.2 | BSD License | Data manipulation | ✅ Industry standard for data science |
-| **SciPy** | 1.11.4 | BSD License | Scientific computing | ✅ Essential scientific Python library |
-| **WeasyPrint** | 61.2 | BSD License | PDF generation | ✅ Pure Python, no system dependencies |
-| **Matplotlib** | 3.7+ | Matplotlib License | Plotting for reports | ✅ Standard Python plotting library |
-| **Seaborn** | 0.12+ | BSD License | Statistical plotting | ✅ Built on matplotlib, enhanced stats |
-| **Typer** | 0.12.3 | MIT License | CLI framework | ✅ Modern, type-safe command interface |
-| **Pydantic** | 2.8.2 | MIT License | Configuration validation | ✅ Runtime type checking and validation |
-| **PyYAML** | 6.0.1 | MIT License | YAML config parsing | ✅ Standard YAML processing |
-| **orjson** | 3.9+ | Apache 2.0 / MIT | Fast JSON serialization | ✅ High-performance JSON handling |
+| Component        | Version | License            | Purpose                     | Why Chosen                                     |
+| ---------------- | ------- | ------------------ | --------------------------- | ---------------------------------------------- |
+| **Python SHAP**  | 0.44.1  | MIT License        | TreeSHAP explanations       | ✅ Enterprise-compatible, no GPL contamination |
+| **XGBoost**      | 2.1.1   | Apache 2.0         | Gradient boosting models    | ✅ Same license family, proven in production   |
+| **LightGBM**     | 4.1.0   | MIT License        | Alternative tree models     | ✅ Microsoft-backed, widely adopted            |
+| **scikit-learn** | 1.3.2   | BSD License        | Baseline models & utilities | ✅ Academic standard, fully compatible         |
+| **NumPy**        | 1.26.4  | BSD License        | Numerical computing         | ✅ Core scientific Python library              |
+| **Pandas**       | 2.2.2   | BSD License        | Data manipulation           | ✅ Industry standard for data science          |
+| **SciPy**        | 1.11.4  | BSD License        | Scientific computing        | ✅ Essential scientific Python library         |
+| **WeasyPrint**   | 61.2    | BSD License        | PDF generation              | ✅ Pure Python, no system dependencies         |
+| **Matplotlib**   | 3.7+    | Matplotlib License | Plotting for reports        | ✅ Standard Python plotting library            |
+| **Seaborn**      | 0.12+   | BSD License        | Statistical plotting        | ✅ Built on matplotlib, enhanced stats         |
+| **Typer**        | 0.12.3  | MIT License        | CLI framework               | ✅ Modern, type-safe command interface         |
+| **Pydantic**     | 2.8.2   | MIT License        | Configuration validation    | ✅ Runtime type checking and validation        |
+| **PyYAML**       | 6.0.1   | MIT License        | YAML config parsing         | ✅ Standard YAML processing                    |
+| **orjson**       | 3.9+    | Apache 2.0 / MIT   | Fast JSON serialization     | ✅ High-performance JSON handling              |
 
-*See [constraints.txt](constraints.txt) for exact locked versions used in CI.*
+_See [constraints.txt](../constraints.txt) for exact locked versions used in CI._
 
 ## Licensing Confidence & Risk Mitigation
 
