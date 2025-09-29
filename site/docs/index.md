@@ -82,6 +82,9 @@ Audit reports include:
 git clone https://github.com/GlassAlpha/glassalpha
 cd glassalpha/packages
 
+# Python 3.11 or 3.12 recommended
+python3 --version   # should show 3.11.x or 3.12.x
+
 # (Recommended) Create a virtual environment
 python3 -m venv .venv
 source .venv/bin/activate
@@ -92,10 +95,7 @@ pip install -e ".[dev]"
 
 # Verify installation
 glassalpha --help
-
-# Generate your first audit
-glassalpha audit --config configs/german_credit_simple.yaml --output audit.pdf
-````
+```
 
 ## Contributing
 

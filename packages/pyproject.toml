@@ -5,7 +5,7 @@ description = "AI Compliance Toolkit - transparent, auditable, regulator-ready M
 authors = [{ name = "GlassAlpha Team" }]
 readme = "README.md"
 license = { text = "Apache-2.0" }
-requires-python = ">=3.11"
+requires-python = ">=3.11,<3.13"
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",

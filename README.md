@@ -29,6 +29,9 @@ GlassAlpha provides **deterministic, regulator-ready audit reports** with comple
 git clone https://github.com/GlassAlpha/glassalpha
 cd glassalpha/packages
 
+# Python 3.11 or 3.12 recommended
+python3 --version   # should show 3.11.x or 3.12.x
+
 # (Recommended) Create a virtual environment
 python3 -m venv .venv
 source .venv/bin/activate

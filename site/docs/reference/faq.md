@@ -66,16 +66,23 @@ GlassAlpha is tested and supported on:
 **Standard Installation:**
 
 ```bash
+# Clone and setup
 git clone https://github.com/GlassAlpha/glassalpha
 cd glassalpha/packages
-pip install -e .
-```
 
-**Verify Installation:**
+# Python 3.11 or 3.12 recommended
+python3 --version   # should show 3.11.x or 3.12.x
 
-```bash
-glassalpha --version
-glassalpha list
+# (Recommended) Create a virtual environment
+python3 -m venv .venv
+source .venv/bin/activate
+
+# Upgrade pip and install in editable mode
+python -m pip install --upgrade pip
+pip install -e ".[dev]"
+
+# Verify installation
+glassalpha --help
 ```
 
 See the [Quick Start Guide](../getting-started/quickstart.md) for detailed instructions.

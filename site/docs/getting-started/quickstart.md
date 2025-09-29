@@ -14,18 +14,22 @@ Get up and running with GlassAlpha in less than 10 minutes. This guide will take
 ### Clone and Install
 
 ```bash
-# Clone the repository
+# Clone and setup
 git clone https://github.com/GlassAlpha/glassalpha
 cd glassalpha/packages
 
-# Install GlassAlpha
-pip install -e .
-```
+# Python 3.11 or 3.12 recommended
+python3 --version   # should show 3.11.x or 3.12.x
 
-### Verify Installation
+# (Recommended) Create a virtual environment
+python3 -m venv .venv
+source .venv/bin/activate
 
-```bash
-# Check that GlassAlpha is installed correctly
+# Upgrade pip and install in editable mode
+python -m pip install --upgrade pip
+pip install -e ".[dev]"
+
+# Verify installation
 glassalpha --help
 ```
 

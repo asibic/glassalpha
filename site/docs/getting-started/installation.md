@@ -35,6 +35,9 @@ GlassAlpha is currently distributed as source code via GitHub. PyPI distribution
 git clone https://github.com/GlassAlpha/glassalpha
 cd glassalpha/packages
 
+# Python 3.11 or 3.12 recommended
+python3 --version   # should show 3.11.x or 3.12.x
+
 # (Recommended) Create a virtual environment
 python3 -m venv .venv
 source .venv/bin/activate
@@ -52,16 +55,23 @@ glassalpha --help
 For contributors or those who need development tools:
 
 ```bash
-# Clone the repository
+# Clone and setup
 git clone https://github.com/GlassAlpha/glassalpha
 cd glassalpha/packages
 
-# Create virtual environment
-python -m venv dev-env
-source dev-env/bin/activate  # On Windows: dev-env\Scripts\activate
+# Python 3.11 or 3.12 recommended
+python3 --version   # should show 3.11.x or 3.12.x
 
-# Install with development dependencies
+# (Recommended) Create a virtual environment
+python3 -m venv .venv
+source .venv/bin/activate
+
+# Upgrade pip and install in editable mode
+python -m pip install --upgrade pip
 pip install -e ".[dev]"
+
+# Verify installation
+glassalpha --help
 ```
 
 Development dependencies include:
@@ -90,13 +100,23 @@ brew install libomp
 **Installation:**
 
 ```bash
+# Clone and setup
 git clone https://github.com/GlassAlpha/glassalpha
 cd glassalpha/packages
 
-python3.11 -m venv glassalpha-env
-source glassalpha-env/bin/activate
-pip install --upgrade pip
-pip install -e .
+# Python 3.11 or 3.12 recommended
+python3 --version   # should show 3.11.x or 3.12.x
+
+# (Recommended) Create a virtual environment
+python3 -m venv .venv
+source .venv/bin/activate
+
+# Upgrade pip and install in editable mode
+python -m pip install --upgrade pip
+pip install -e ".[dev]"
+
+# Verify installation
+glassalpha --help
 ```
 
 **Common macOS Issues:**
@@ -124,13 +144,23 @@ sudo apt install libpango1.0-dev libcairo2-dev libgtk-3-dev
 **Installation:**
 
 ```bash
+# Clone and setup
 git clone https://github.com/GlassAlpha/glassalpha
 cd glassalpha/packages
 
-python3.11 -m venv glassalpha-env
-source glassalpha-env/bin/activate
-pip install --upgrade pip
-pip install -e .
+# Python 3.11 or 3.12 recommended
+python3 --version   # should show 3.11.x or 3.12.x
+
+# (Recommended) Create a virtual environment
+python3 -m venv .venv
+source .venv/bin/activate
+
+# Upgrade pip and install in editable mode
+python -m pip install --upgrade pip
+pip install -e ".[dev]"
+
+# Verify installation
+glassalpha --help
 ```
 
 ### Linux installation (CentOS/RHEL)
