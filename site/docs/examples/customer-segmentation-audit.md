@@ -133,7 +133,7 @@ model:
 explainers:
   strategy: first_compatible
   priority:
-    - kernelshap  # Random Forest requires model-agnostic explanations
+    - kernelshap # Random Forest requires model-agnostic explanations
   config:
     kernelshap:
       n_samples: 1000
@@ -144,17 +144,17 @@ metrics:
   performance:
     metrics:
       - accuracy
-      - precision_macro    # Average precision across all segments
-      - recall_macro       # Average recall across all segments
-      - f1_macro          # Macro-averaged F1 score
+      - precision_macro # Average precision across all segments
+      - recall_macro # Average recall across all segments
+      - f1_macro # Macro-averaged F1 score
 
   fairness:
     metrics:
-      - demographic_parity    # Equal representation in each segment
-      - equal_opportunity     # Equal classification accuracy across groups
+      - demographic_parity # Equal representation in each segment
+      - equal_opportunity # Equal classification accuracy across groups
     config:
       demographic_parity:
-        threshold: 0.05  # Maximum 5% difference in segment distribution
+        threshold: 0.05 # Maximum 5% difference in segment distribution
       equal_opportunity:
         threshold: 0.05
 
@@ -477,7 +477,7 @@ This tutorial demonstrates how GlassAlpha enables thorough, regulatory-ready ML 
 
 - [Configuration Guide](../getting-started/configuration.md) - Detailed configuration options
 - [CLI Reference](../reference/cli.md) - Complete command documentation
-- [Compliance Overview](../compliance/overview.md) - Consumer privacy regulatory framework guidance
+- [Compliance Overview](../reference/compliance.md) - Consumer privacy regulatory framework guidance
 - [Troubleshooting Guide](../reference/troubleshooting.md) - Common issues and solutions
 
 For questions or support, please visit our [GitHub repository](https://github.com/GlassAlpha/glassalpha) or contact our team.

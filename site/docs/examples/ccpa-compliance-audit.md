@@ -140,28 +140,28 @@ model:
 explainers:
   strategy: first_compatible
   priority:
-    - treeshap    # XGBoost supports TreeSHAP for CCPA transparency
-    - kernelshap  # Fallback for any model type
+    - treeshap # XGBoost supports TreeSHAP for CCPA transparency
+    - kernelshap # Fallback for any model type
 
 # CCPA-specific metrics
 metrics:
   performance:
     metrics:
       - accuracy
-      - precision    # Important for consent accuracy
-      - recall       # Important for consumer rights
+      - precision # Important for consent accuracy
+      - recall # Important for consumer rights
       - f1
-      - auc_roc     # Overall discriminative ability
+      - auc_roc # Overall discriminative ability
 
   fairness:
     metrics:
-      - demographic_parity    # Equal consent rates across groups
-      - equal_opportunity     # Equal TPR for consent prediction
-      - predictive_parity      # Equal precision across demographic groups
+      - demographic_parity # Equal consent rates across groups
+      - equal_opportunity # Equal TPR for consent prediction
+      - predictive_parity # Equal precision across demographic groups
     config:
       # CCPA-compliant thresholds
       demographic_parity:
-        threshold: 0.05  # Maximum 5% difference
+        threshold: 0.05 # Maximum 5% difference
       equal_opportunity:
         threshold: 0.05
       predictive_parity:
@@ -252,29 +252,34 @@ Generating PDF report: ccpa_compliance_audit.pdf
 **Global Feature Importance (Top 5):**
 
 #### 1. `marketing_consent_given` (+0.298)
-   - Most important CCPA compliance factor
-   - Explicit marketing consent strongly predicts automated decision consent
-   - Demonstrates respect for consumer privacy preferences
+
+- Most important CCPA compliance factor
+- Explicit marketing consent strongly predicts automated decision consent
+- Demonstrates respect for consumer privacy preferences
 
 #### 2. `online_purchase_frequency` (+0.267)
-   - Purchase behavior strongly correlates with consent likelihood
-   - Engaged customers more willing to consent to automated decisions
-   - Indicates legitimate interest basis for processing
+
+- Purchase behavior strongly correlates with consent likelihood
+- Engaged customers more willing to consent to automated decisions
+- Indicates legitimate interest basis for processing
 
 #### 3. `subscription_services` (+0.234)
-   - Subscription engagement predicts consent willingness
-   - Ongoing service relationships increase consent probability
-   - Supports relationship-based consent justification
+
+- Subscription engagement predicts consent willingness
+- Ongoing service relationships increase consent probability
+- Supports relationship-based consent justification
 
 #### 4. `tracking_cookies_accepted` (+0.198)
-   - Cookie consent status influences automated decision consent
-   - Privacy-aware consumers show consistent behavior patterns
-   - Important for understanding consumer privacy preferences
+
+- Cookie consent status influences automated decision consent
+- Privacy-aware consumers show consistent behavior patterns
+- Important for understanding consumer privacy preferences
 
 #### 5. `california_region` (+0.156)
-   - Geographic location within California affects consent patterns
-   - May reflect regional privacy awareness differences
-   - Requires monitoring for geographic discrimination
+
+- Geographic location within California affects consent patterns
+- May reflect regional privacy awareness differences
+- Requires monitoring for geographic discrimination
 
 **Individual Consumer Example:**
 For a 32-year-old consumer in Los Angeles with high engagement:
@@ -323,24 +328,24 @@ For a 32-year-old consumer in Los Angeles with high engagement:
 
 **Age and Income-Based Disparities**
 
-   - 20.7% difference in consent rates across age groups
-   - 9.8% difference across income brackets
-   - May indicate discrimination in automated decision-making
-   - Could result in CCPA non-discrimination violations
+- 20.7% difference in consent rates across age groups
+- 9.8% difference across income brackets
+- May indicate discrimination in automated decision-making
+- Could result in CCPA non-discrimination violations
 
 **Consumer Rights Impact**
 
-   - 10% of consumers have exercised "Do Not Sell" rights
-   - Model must respect these privacy choices
-   - Requires enhanced transparency for automated decisions
+- 10% of consumers have exercised "Do Not Sell" rights
+- Model must respect these privacy choices
+- Requires enhanced transparency for automated decisions
 
 **Medium Risk Findings:**
 
 **Consent Prediction Accuracy**
 
-   - 19% false positive rate may lead to unwanted automated decisions
-   - 25% false negative rate misses consent opportunities
-   - Balance needed between automation efficiency and consumer rights
+- 19% false positive rate may lead to unwanted automated decisions
+- 25% false negative rate misses consent opportunities
+- Balance needed between automation efficiency and consumer rights
 
 **Compliance Assessment:**
 
@@ -389,9 +394,9 @@ For a 32-year-old consumer in Los Angeles with high engagement:
 
 **3. Regulatory Documentation**
 
-   - Maintain comprehensive consumer rights documentation
-   - Document non-discrimination measures
-   - Prepare regulatory examination materials
+- Maintain comprehensive consumer rights documentation
+- Document non-discrimination measures
+- Prepare regulatory examination materials
 
 ## Step 6: Business Impact Analysis
 
@@ -431,21 +436,21 @@ For a 32-year-old consumer in Los Angeles with high engagement:
 
 **1. Model Enhancement**
 
-   - Demographic-aware consent prediction modeling
-   - Integration with consumer rights management systems
-   - Enhanced transparency mechanisms for automated decisions
+- Demographic-aware consent prediction modeling
+- Integration with consumer rights management systems
+- Enhanced transparency mechanisms for automated decisions
 
 **2. CCPA Compliance Features**
 
-   - Automated consumer rights request processing
-   - Consent withdrawal tracking and implementation
-   - Data processing necessity and proportionality assessments
+- Automated consumer rights request processing
+- Consent withdrawal tracking and implementation
+- Data processing necessity and proportionality assessments
 
 **3. Advanced Analytics**
 
-   - Consumer rights exercise pattern analysis
-   - Automated decision impact assessment
-   - Privacy preference trend monitoring
+- Consumer rights exercise pattern analysis
+- Automated decision impact assessment
+- Privacy preference trend monitoring
 
 ### Operational Changes
 
@@ -497,7 +502,7 @@ This tutorial demonstrates how GlassAlpha enables thorough, regulatory-ready ML 
 
 - [Configuration Guide](../getting-started/configuration.md) - Detailed configuration options
 - [CLI Reference](../reference/cli.md) - Complete command documentation
-- [Compliance Overview](../compliance/overview.md) - CCPA regulatory framework guidance
+- [Compliance Overview](../reference/compliance.md) - CCPA regulatory framework guidance
 - [Troubleshooting Guide](../reference/troubleshooting.md) - Common issues and solutions
 
 For questions or support, please visit our [GitHub repository](https://github.com/GlassAlpha/glassalpha) or contact our team.

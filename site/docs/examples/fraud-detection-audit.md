@@ -106,35 +106,35 @@ model:
     learning_rate: 0.1
     subsample: 0.8
     colsample_bytree: 0.8
-    scale_pos_weight: 99  # Handle 1% fraud rate
+    scale_pos_weight: 99 # Handle 1% fraud rate
     random_state: 42
 
 # Explanation configuration
 explainers:
   strategy: first_compatible
   priority:
-    - treeshap    # XGBoost supports TreeSHAP
-    - kernelshap  # Universal fallback
+    - treeshap # XGBoost supports TreeSHAP
+    - kernelshap # Universal fallback
 
 # Fraud-specific metrics
 metrics:
   performance:
     metrics:
       - accuracy
-      - precision    # Minimize false positives
-      - recall       # Maximize fraud detection
-      - f1          # Balance precision and recall
-      - auc_roc     # Overall model quality
+      - precision # Minimize false positives
+      - recall # Maximize fraud detection
+      - f1 # Balance precision and recall
+      - auc_roc # Overall model quality
 
   fairness:
     metrics:
-      - demographic_parity    # Equal fraud detection rates
-      - equal_opportunity     # Equal TPR for fraud detection
-      - predictive_parity      # Equal precision across groups
+      - demographic_parity # Equal fraud detection rates
+      - equal_opportunity # Equal TPR for fraud detection
+      - predictive_parity # Equal precision across groups
     config:
       # Stricter thresholds for fraud detection
       demographic_parity:
-        threshold: 0.02  # Maximum 2% difference
+        threshold: 0.02 # Maximum 2% difference
       equal_opportunity:
         threshold: 0.02
       predictive_parity:
@@ -340,21 +340,21 @@ For a $2,500 international transaction at 3 AM from 500 miles away:
 
 **1. Ongoing Monitoring**
 
-   - Regular bias audits on new transaction patterns
-   - Performance monitoring across demographic groups
-   - Model drift detection for changing fraud patterns
+- Regular bias audits on new transaction patterns
+- Performance monitoring across demographic groups
+- Model drift detection for changing fraud patterns
 
 **2. Regulatory Reporting**
 
-   - Maintain fraud detection effectiveness metrics
-   - Document bias mitigation measures
-   - Prepare regulatory examination materials
+- Maintain fraud detection effectiveness metrics
+- Document bias mitigation measures
+- Prepare regulatory examination materials
 
 **3. Model Governance**
 
-   - Establish fraud detection accuracy standards
-   - Implement model validation procedures
-   - Create change management processes
+- Establish fraud detection accuracy standards
+- Implement model validation procedures
+- Create change management processes
 
 ## Step 6: Business Impact Analysis
 
@@ -459,7 +459,7 @@ This tutorial demonstrates how GlassAlpha enables thorough, regulatory-ready ML 
 
 - [Configuration Guide](../getting-started/configuration.md) - Detailed configuration options
 - [CLI Reference](../reference/cli.md) - Complete command documentation
-- [Compliance Overview](../compliance/overview.md) - Financial regulatory framework guidance
+- [Compliance Overview](../reference/compliance.md) - Financial regulatory framework guidance
 - [Troubleshooting Guide](../reference/troubleshooting.md) - Common issues and solutions
 
 For questions or support, please visit our [GitHub repository](https://github.com/GlassAlpha/glassalpha) or contact our team.

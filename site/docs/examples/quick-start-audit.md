@@ -150,7 +150,7 @@ A: Results should be identical with the same `random_seed`. Different results su
 
 **Q: Is this suitable for production?**
 
-A: This minimal example is for learning. Production usage requires additional validation, testing, and security considerations. See [Production Deployment Guide](../deployment.md).
+A: This minimal example is for learning. Production usage requires additional validation, testing, and security considerations. See [Production Deployment Guide](../reference/deployment.md).
 
 ## Next Steps
 
@@ -176,9 +176,9 @@ glassalpha audit \
 
 ### Explore Advanced Features
 
-1. **Custom Configuration** - [Configuration Guide](../getting-started/configuration.md)
-2. **Detailed Example** - [German Credit Deep Dive](german-credit-audit.md)
-3. **Production Setup** - [Deployment Guide](../deployment.md)
+1. **Custom Configuration** - [Configuration Guide](getting-started/configuration.md)
+2. **Detailed Example** - [German Credit Deep Dive](examples/german-credit-audit.md)
+3. **Production Setup** - [Deployment Guide](../reference/deployment.md)
 4. **API Usage** - [API Reference](../reference/api.md)
 
 ### Use Your Own Data
@@ -203,10 +203,10 @@ model:
 
 ## Troubleshooting
 
-- **Installation issues?** → [Installation Guide](../getting-started/installation.md)
-- **Configuration errors?** → [Configuration Guide](../getting-started/configuration.md)
-- **Command problems?** → [CLI Reference](../reference/cli.md)
-- **General questions?** → [FAQ](../faq.md)
+- **Installation issues?** → [Installation Guide](getting-started/installation.md)
+- **Configuration errors?** → [Configuration Guide](getting-started/configuration.md)
+- **Command problems?** → [CLI Reference](reference/cli.md)
+- **General questions?** → [FAQ](reference/faq.md)
 
 ## Summary
 

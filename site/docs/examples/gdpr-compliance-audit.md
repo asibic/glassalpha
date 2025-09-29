@@ -250,33 +250,33 @@ Generating PDF report: gdpr_compliance_audit.pdf
 
 1. **`data_processing_consent` (+0.312)**
 
-    - Most important GDPR compliance factor
-    - Explicit consent for data processing strongly predicts marketing consent
-    - Demonstrates importance of clear consent mechanisms
+   - Most important GDPR compliance factor
+   - Explicit consent for data processing strongly predicts marketing consent
+   - Demonstrates importance of clear consent mechanisms
 
 2. **`marketing_emails_opened` (+0.287)**
 
-    - Email engagement strongly correlates with marketing consent
-    - Indicates active interest in brand communications
-    - Important behavioral indicator of consent likelihood
+   - Email engagement strongly correlates with marketing consent
+   - Indicates active interest in brand communications
+   - Important behavioral indicator of consent likelihood
 
 3. **`purchase_frequency` (+0.234)**
 
-    - Frequent customers more likely to grant marketing consent
-    - Transactional relationship strength predicts consent willingness
-    - Demonstrates legitimate interest basis for processing
+   - Frequent customers more likely to grant marketing consent
+   - Transactional relationship strength predicts consent willingness
+   - Demonstrates legitimate interest basis for processing
 
 4. **`customer_since_years` (+0.198)**
 
-    - Longer customer relationships correlate with consent likelihood
-    - Trust and familiarity increase consent probability
-    - Important for relationship-based consent justification
+   - Longer customer relationships correlate with consent likelihood
+   - Trust and familiarity increase consent probability
+   - Important for relationship-based consent justification
 
 5. **`loyalty_program_tier` (+0.156)**
 
-    - Higher loyalty program participation predicts consent
-    - Engagement level indicates marketing communication preferences
-    - Supports legitimate interest legal basis
+   - Higher loyalty program participation predicts consent
+   - Engagement level indicates marketing communication preferences
+   - Supports legitimate interest legal basis
 
 **Individual Customer Example:**
 For a 35-year-old customer with high engagement and loyalty program membership:
@@ -323,22 +323,23 @@ For a 35-year-old customer with high engagement and loyalty program membership:
 
 1. **Age-Based Consent Disparities**
 
-    - 19.8% difference in predicted consent rates across age groups
-    - May indicate age discrimination in consent prediction
-    - Could result in GDPR Article 22 violations
-    - Requires immediate review and model adjustment
+   - 19.8% difference in predicted consent rates across age groups
+   - May indicate age discrimination in consent prediction
+   - Could result in GDPR Article 22 violations
+   - Requires immediate review and model adjustment
 
 2. **Automated Decision-Making Concerns**
-    - 30% of customers subject to automated consent decisions
-    - Requires enhanced transparency and human oversight
-    - Must ensure meaningful human intervention capabilities
+   - 30% of customers subject to automated consent decisions
+   - Requires enhanced transparency and human oversight
+   - Must ensure meaningful human intervention capabilities
 
 **Medium Risk Findings:**
 
 **Consent Prediction Accuracy**
- - 21% false positive rate may lead to unwanted marketing
- - 28% false negative rate misses consent opportunities
- - Balance needed between consent accuracy and customer experience
+
+- 21% false positive rate may lead to unwanted marketing
+- 28% false negative rate misses consent opportunities
+- Balance needed between consent accuracy and customer experience
 
 **Compliance Assessment:**
 
@@ -362,33 +363,33 @@ For a 35-year-old customer with high engagement and loyalty program membership:
 
 2. **Enhance Automated Decision Transparency**
 
-    - Implement clear explanations for automated consent decisions
-    - Provide meaningful human intervention mechanisms
-    - Document legitimate interest basis for processing
+   - Implement clear explanations for automated consent decisions
+   - Provide meaningful human intervention mechanisms
+   - Document legitimate interest basis for processing
 
 3. **Data Protection Impact Assessment**
-    - Conduct systematic assessment of processing risks
-    - Evaluate necessity and proportionality of data use
-    - Implement data minimization principles
+   - Conduct systematic assessment of processing risks
+   - Evaluate necessity and proportionality of data use
+   - Implement data minimization principles
 
 ### Long-term Compliance Strategy
 
 1. **Ongoing GDPR Monitoring**
 
-    - Regular bias audits on consent prediction models
-    - Performance monitoring across demographic groups
-    - Model drift detection for changing consent patterns
+   - Regular bias audits on consent prediction models
+   - Performance monitoring across demographic groups
+   - Model drift detection for changing consent patterns
 
 2. **Consent Management Enhancement**
 
-    - Implement granular consent management systems
-    - Regular consent renewal and verification processes
-    - Enhanced consumer control over data processing
+   - Implement granular consent management systems
+   - Regular consent renewal and verification processes
+   - Enhanced consumer control over data processing
 
 3. **Regulatory Documentation**
-    - Maintain comprehensive DPIA documentation
-    - Document legitimate interest assessments
-    - Prepare regulatory examination materials
+   - Maintain comprehensive DPIA documentation
+   - Document legitimate interest assessments
+   - Prepare regulatory examination materials
 
 ## Step 6: Business Impact Analysis
 
@@ -428,39 +429,39 @@ For a 35-year-old customer with high engagement and loyalty program membership:
 
 1. **Model Enhancement**
 
-    - Age-stratified consent prediction modeling
-    - Integration with consent management platforms
-    - Enhanced transparency mechanisms for automated decisions
+   - Age-stratified consent prediction modeling
+   - Integration with consent management platforms
+   - Enhanced transparency mechanisms for automated decisions
 
 2. **GDPR Compliance Features**
 
-    - Automated DPIA documentation generation
-    - Consent withdrawal tracking and processing
-    - Data processing necessity assessments
+   - Automated DPIA documentation generation
+   - Consent withdrawal tracking and processing
+   - Data processing necessity assessments
 
 3. **Advanced Analytics**
-    - Consent pattern analysis across demographics
-    - Automated decision impact assessment
-    - Consumer rights exercise tracking
+   - Consent pattern analysis across demographics
+   - Automated decision impact assessment
+   - Consumer rights exercise tracking
 
 ### Operational Changes
 
 1. **GDPR Program Integration**
 
-    - Real-time consent prediction dashboards
-    - Integration with customer relationship management
-    - Automated regulatory reporting
+   - Real-time consent prediction dashboards
+   - Integration with customer relationship management
+   - Automated regulatory reporting
 
 2. **Consumer Experience**
 
-    - Transparent consent prediction explanations
-    - Easy consent withdrawal mechanisms
-    - Personalized privacy control interfaces
+   - Transparent consent prediction explanations
+   - Easy consent withdrawal mechanisms
+   - Personalized privacy control interfaces
 
 3. **Regulatory Engagement**
-    - Data Protection Authority consultation
-    - GDPR compliance certification preparation
-    - Industry best practice adoption
+   - Data Protection Authority consultation
+   - GDPR compliance certification preparation
+   - Industry best practice adoption
 
 ## Conclusion
 
@@ -492,7 +493,7 @@ This tutorial demonstrates how GlassAlpha enables thorough, regulatory-ready ML 
 
 - [Configuration Guide](../getting-started/configuration.md) - Detailed configuration options
 - [CLI Reference](../reference/cli.md) - Complete command documentation
-- [Compliance Overview](../compliance/overview.md) - GDPR regulatory framework guidance
+- [Compliance Overview](../reference/compliance.md) - GDPR regulatory framework guidance
 - [Troubleshooting Guide](../reference/troubleshooting.md) - Common issues and solutions
 
 For questions or support, please visit our [GitHub repository](https://github.com/GlassAlpha/glassalpha) or contact our team.

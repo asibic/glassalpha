@@ -31,7 +31,7 @@ Compliance tools require trust. Open source code means regulators, auditors, and
 
 ## Technical Foundation
 
-GlassAlpha is built on a plugin architecture designed for extensibility and regulatory compliance. For detailed technical information, see the [Architecture Guide](architecture.md).
+GlassAlpha is built on a plugin architecture designed for extensibility and regulatory compliance. For detailed technical information, see the [Architecture Guide](reference/architecture.md).
 
 ## Getting Started
 

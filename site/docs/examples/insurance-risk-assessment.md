@@ -109,24 +109,24 @@ model:
 explainers:
   strategy: first_compatible
   priority:
-    - treeshap    # LightGBM supports TreeSHAP
-    - kernelshap  # Universal fallback
+    - treeshap # LightGBM supports TreeSHAP
+    - kernelshap # Universal fallback
 
 # Insurance-specific metrics
 metrics:
   performance:
     metrics:
       - accuracy
-      - precision    # Minimize false positives (unnecessary rate increases)
-      - recall       # Minimize false negatives (missed high-risk cases)
+      - precision # Minimize false positives (unnecessary rate increases)
+      - recall # Minimize false negatives (missed high-risk cases)
       - f1
       - auc_roc
 
   fairness:
     metrics:
-      - demographic_parity    # Equal approval rates across groups
-      - equal_opportunity     # Equal true positive rates
-      - equalized_odds        # Equal TPR and FPR
+      - demographic_parity # Equal approval rates across groups
+      - equal_opportunity # Equal true positive rates
+      - equalized_odds # Equal TPR and FPR
 
 # Professional audit report
 report:
@@ -213,29 +213,33 @@ Generating PDF report: insurance_risk_audit.pdf
 **Global Feature Importance (Top 5):**
 
 1. **`previous_claims` (+0.287)**
-    - Most predictive factor in risk assessment
-    - Each additional claim increases risk score significantly
-    - Aligns with actuarial principles and insurance industry standards
+
+   - Most predictive factor in risk assessment
+   - Each additional claim increases risk score significantly
+   - Aligns with actuarial principles and insurance industry standards
 
 2. **`age` (+0.234)**
-    - Younger drivers show higher risk patterns
-    - Statistical correlation with accident frequency
-    - Must be monitored for age discrimination concerns
+
+   - Younger drivers show higher risk patterns
+   - Statistical correlation with accident frequency
+   - Must be monitored for age discrimination concerns
 
 3. **`annual_mileage` (+0.198)**
-    - Higher mileage correlates with increased accident probability
-    - Direct relationship to exposure (time on road)
-    - Standard actuarial risk factor
+
+   - Higher mileage correlates with increased accident probability
+   - Direct relationship to exposure (time on road)
+   - Standard actuarial risk factor
 
 4. **`vehicle_value` (-0.156)**
-    - Higher value vehicles associated with lower risk
-    - May indicate socioeconomic factors or careful ownership
-    - Requires fairness analysis across income groups
+
+   - Higher value vehicles associated with lower risk
+   - May indicate socioeconomic factors or careful ownership
+   - Requires fairness analysis across income groups
 
 5. **`location_risk_score` (+0.142)**
-    - Geographic risk factors significantly impact predictions
-    - Must ensure not proxying for protected demographic characteristics
-    - Urban vs. rural differences in accident rates
+   - Geographic risk factors significantly impact predictions
+   - Must ensure not proxying for protected demographic characteristics
+   - Urban vs. rural differences in accident rates
 
 **Individual Policy Example:**
 For a 28-year-old male with 2 previous claims, driving 15,000 miles annually:
@@ -280,23 +284,24 @@ For a 28-year-old male with 2 previous claims, driving 15,000 miles annually:
 **High Risk Findings:**
 
 1. **Age-Based Discrimination Risk**
-    - 18.9% difference in predicted risk rates across age groups
-    - Exceeds typical insurance regulatory thresholds
-    - Could result in age discrimination claims
-    - Requires immediate model adjustment or feature engineering
+
+   - 18.9% difference in predicted risk rates across age groups
+   - Exceeds typical insurance regulatory thresholds
+   - Could result in age discrimination claims
+   - Requires immediate model adjustment or feature engineering
 
 2. **Socioeconomic Proxy Risk**
-    - Vehicle value and location factors may proxy for protected characteristics
-    - Geographic risk scores could reflect demographic patterns
-    - Requires careful feature analysis and validation
+   - Vehicle value and location factors may proxy for protected characteristics
+   - Geographic risk scores could reflect demographic patterns
+   - Requires careful feature analysis and validation
 
 **Medium Risk Findings:**
 
 **Model Interpretability**
 
-   - Complex interactions between age, mileage, and claims history
-   - Requires domain expertise to validate business logic
-   - Consider simpler models for higher interpretability
+- Complex interactions between age, mileage, and claims history
+- Requires domain expertise to validate business logic
+- Consider simpler models for higher interpretability
 
 **Compliance Assessment:**
 
@@ -310,6 +315,7 @@ For a 28-year-old male with 2 previous claims, driving 15,000 miles annually:
 ### Immediate Actions Required
 
 1. **Address Age Discrimination**
+
    ```python
    # Consider preprocessing approaches:
    # - Age binning to reduce granularity
@@ -318,31 +324,34 @@ For a 28-year-old male with 2 previous claims, driving 15,000 miles annually:
    ```
 
 2. **Feature Engineering Review**
-    - Audit features correlated with protected age characteristics
-    - Consider removing or transforming biased location factors
-    - Implement fairness-aware feature selection
+
+   - Audit features correlated with protected age characteristics
+   - Consider removing or transforming biased location factors
+   - Implement fairness-aware feature selection
 
 3. **Model Adjustment Options**
-    - Retrain with fairness constraints
-    - Consider ensemble methods with bias reduction
-    - Validate improvements with new audit
+   - Retrain with fairness constraints
+   - Consider ensemble methods with bias reduction
+   - Validate improvements with new audit
 
 ### Long-term Compliance Strategy
 
 1. **Ongoing Monitoring**
-    - Regular bias audits on new policy data
-    - Statistical tests for demographic parity
-    - Performance monitoring across protected groups
+
+   - Regular bias audits on new policy data
+   - Statistical tests for demographic parity
+   - Performance monitoring across protected groups
 
 2. **Documentation Requirements**
-    - Maintain complete actuarial justification
-    - Document bias mitigation efforts
-    - Prepare regulatory submission packages
+
+   - Maintain complete actuarial justification
+   - Document bias mitigation efforts
+   - Prepare regulatory submission packages
 
 3. **Process Improvements**
-    - Establish fairness review boards
-    - Implement bias testing in model development
-    - Create remediation procedures for biased decisions
+   - Establish fairness review boards
+   - Implement bias testing in model development
+   - Create remediation procedures for biased decisions
 
 ## Step 6: Business Impact Analysis
 
@@ -381,37 +390,41 @@ For a 28-year-old male with 2 previous claims, driving 15,000 miles annually:
 ### Technical Remediation
 
 1. **Implement Fairness Constraints**
+
    ```python
    # Example: Add fairness penalty to LightGBM training
    # Consider libraries like fairlearn or aif360 for insurance-specific fairness
    ```
 
 2. **Alternative Modeling Approaches**
-    - Pre-processing: Age group binning or feature removal
-    - In-processing: Fairness-constrained optimization
-    - Post-processing: Adjust predictions to achieve parity
+
+   - Pre-processing: Age group binning or feature removal
+   - In-processing: Fairness-constrained optimization
+   - Post-processing: Adjust predictions to achieve parity
 
 3. **Validation Strategy**
-    - Cross-validation with fairness metrics
-    - Holdout testing on diverse demographic groups
-    - A/B testing for production deployment
+   - Cross-validation with fairness metrics
+   - Holdout testing on diverse demographic groups
+   - A/B testing for production deployment
 
 ### Operational Changes
 
 1. **Model Governance**
-    - Establish bias testing requirements for all models
-    - Create fairness review processes
-    - Implement continuous monitoring systems
+
+   - Establish bias testing requirements for all models
+   - Create fairness review processes
+   - Implement continuous monitoring systems
 
 2. **Regulatory Compliance**
-    - Engage with state insurance departments
-    - Prepare actuarial memorandums for rate filings
-    - Document all model changes and validations
+
+   - Engage with state insurance departments
+   - Prepare actuarial memorandums for rate filings
+   - Document all model changes and validations
 
 3. **Stakeholder Engagement**
-    - Train underwriting staff on fair practices
-    - Engage with compliance and legal teams
-    - Communicate changes to policyholders
+   - Train underwriting staff on fair practices
+   - Engage with compliance and legal teams
+   - Communicate changes to policyholders
 
 ## Conclusion
 
@@ -442,7 +455,7 @@ This tutorial demonstrates how GlassAlpha enables thorough, regulatory-ready ML 
 
 - [Configuration Guide](../getting-started/configuration.md) - Detailed configuration options
 - [CLI Reference](../reference/cli.md) - Complete command documentation
-- [Compliance Overview](../compliance/overview.md) - Insurance regulatory framework guidance
+- [Compliance Overview](../reference/compliance.md) - Insurance regulatory framework guidance
 - [Troubleshooting Guide](../reference/troubleshooting.md) - Common issues and solutions
 
 For questions or support, please visit our [GitHub repository](https://github.com/GlassAlpha/glassalpha) or contact our team.

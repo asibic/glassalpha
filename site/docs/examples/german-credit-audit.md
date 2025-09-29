@@ -100,7 +100,7 @@ model:
 explainers:
   strategy: first_compatible
   priority:
-    - treeshap    # Exact SHAP values for XGBoost
+    - treeshap # Exact SHAP values for XGBoost
   config:
     treeshap:
       max_samples: 1000
@@ -126,7 +126,7 @@ metrics:
     config:
       # Stricter thresholds for financial services
       demographic_parity:
-        threshold: 0.05  # Maximum 5% difference between groups
+        threshold: 0.05 # Maximum 5% difference between groups
       equal_opportunity:
         threshold: 0.05
 
@@ -216,21 +216,25 @@ The audit report is ready for review and regulatory submission.
 **Global Feature Importance (Top 5):**
 
 1. **`checking_account_status` (+0.234)**
+
    - Most predictive feature
    - Higher account balances strongly indicate good credit risk
    - Aligns with traditional banking wisdom
 
 2. **`credit_history` (+0.187)**
+
    - Past credit performance is highly predictive
    - Good credit history significantly improves approval odds
    - Critical factor in credit underwriting
 
 3. **`duration_months` (-0.156)**
+
    - Longer loan terms increase risk
    - Model correctly identifies duration as risk factor
    - Consistent with increased default probability over time
 
 4. **`credit_amount` (-0.142)**
+
    - Larger loan amounts increase risk
    - Higher stakes loans have higher default rates
    - Model appropriately weights loan size
@@ -292,21 +296,24 @@ For a 35-year-old male requesting €2,000 for a car:
 **High Risk Findings:**
 
 #### Gender Discrimination Risk
-   - 6.2% approval rate difference violates ECOA guidelines
-   - Could result in regulatory action or lawsuits
-   - Requires immediate model adjustment or feature engineering
+
+- 6.2% approval rate difference violates ECOA guidelines
+- Could result in regulatory action or lawsuits
+- Requires immediate model adjustment or feature engineering
 
 #### Age-Based Disparities
-   - 10.5% difference across age groups may violate age discrimination laws
-   - Consider removing age-correlated features
-   - Evaluate business justification for age-related patterns
+
+- 10.5% difference across age groups may violate age discrimination laws
+- Consider removing age-correlated features
+- Evaluate business justification for age-related patterns
 
 **Medium Risk Findings:**
 
 #### Correlated Protected Attributes
-   - Several features correlate with protected characteristics
-   - May create indirect discrimination
-   - Consider fairness-aware modeling techniques
+
+- Several features correlate with protected characteristics
+- May create indirect discrimination
+- Consider fairness-aware modeling techniques
 
 **Compliance Assessment:**
 
@@ -319,39 +326,45 @@ For a 35-year-old male requesting €2,000 for a car:
 ### Immediate Actions Required
 
 #### Address Gender Bias
-   ```python
-   # Consider preprocessing approaches:
-   # - Remove gender-correlated features
-   # - Apply fairness constraints during training
-   # - Post-processing bias mitigation
-   ```
+
+```python
+# Consider preprocessing approaches:
+# - Remove gender-correlated features
+# - Apply fairness constraints during training
+# - Post-processing bias mitigation
+```
 
 #### Feature Engineering
-   - Audit features correlated with protected attributes
-   - Consider removing or transforming biased features
-   - Implement fairness-aware feature selection
+
+- Audit features correlated with protected attributes
+- Consider removing or transforming biased features
+- Implement fairness-aware feature selection
 
 #### Model Adjustment
-   - Retrain with fairness constraints
-   - Consider ensemble methods with bias reduction
-   - Validate improvements with new audit
+
+- Retrain with fairness constraints
+- Consider ensemble methods with bias reduction
+- Validate improvements with new audit
 
 ### Long-term Compliance Strategy
 
 #### Ongoing Monitoring
-   - Regular bias audits on new data
-   - Statistical tests for demographic parity
-   - Performance monitoring across protected groups
+
+- Regular bias audits on new data
+- Statistical tests for demographic parity
+- Performance monitoring across protected groups
 
 #### Documentation Requirements
-   - Maintain complete audit trails
-   - Document bias mitigation efforts
-   - Prepare regulatory submission packages
+
+- Maintain complete audit trails
+- Document bias mitigation efforts
+- Prepare regulatory submission packages
 
 #### Process Improvements
-   - Establish fairness review boards
-   - Implement bias testing in model development
-   - Create remediation procedures for biased decisions
+
+- Establish fairness review boards
+- Implement bias testing in model development
+- Create remediation procedures for biased decisions
 
 ## Step 6: Business Impact Analysis
 
@@ -388,37 +401,43 @@ For a 35-year-old male requesting €2,000 for a car:
 ### Technical Remediation
 
 #### Implement Fairness Constraints
-   ```python
-   # Example: Add fairness penalty to XGBoost training
-   # Consider libraries like fairlearn or aif360
-   ```
+
+```python
+# Example: Add fairness penalty to XGBoost training
+# Consider libraries like fairlearn or aif360
+```
 
 #### Alternative Modeling Approaches
-   - Pre-processing: Remove biased features or transform data
-   - In-processing: Fairness-constrained optimization
-   - Post-processing: Adjust predictions to achieve parity
+
+- Pre-processing: Remove biased features or transform data
+- In-processing: Fairness-constrained optimization
+- Post-processing: Adjust predictions to achieve parity
 
 #### Validation Strategy
-   - Cross-validation with fairness metrics
-   - Holdout testing on diverse populations
-   - A/B testing for production deployment
+
+- Cross-validation with fairness metrics
+- Holdout testing on diverse populations
+- A/B testing for production deployment
 
 ### Operational Changes
 
 #### Model Governance
-   - Establish bias testing requirements
-   - Create fairness review processes
-   - Implement continuous monitoring
+
+- Establish bias testing requirements
+- Create fairness review processes
+- Implement continuous monitoring
 
 #### Human Oversight
-   - Manual review for borderline cases
-   - Appeals process for declined applicants
-   - Regular expert review of model decisions
+
+- Manual review for borderline cases
+- Appeals process for declined applicants
+- Regular expert review of model decisions
 
 #### Stakeholder Engagement
-   - Train staff on fair lending requirements
-   - Engage with compliance and legal teams
-   - Communicate changes to management
+
+- Train staff on fair lending requirements
+- Engage with compliance and legal teams
+- Communicate changes to management
 
 ## Conclusion
 
@@ -437,6 +456,7 @@ This German Credit audit revealed a technically sound but biased model that requ
 - Non-compliance with fair lending regulations
 
 **Action Plan:**
+
 1. Implement bias mitigation techniques
 2. Retrain model with fairness constraints
 3. Re-audit improved model
@@ -448,7 +468,7 @@ This tutorial demonstrates how GlassAlpha enables thorough, regulatory-ready ML 
 
 - [Configuration Guide](../getting-started/configuration.md) - Detailed configuration options
 - [CLI Reference](../reference/cli.md) - Complete command documentation
-- [Compliance Overview](../compliance/overview.md) - Regulatory framework guidance
+- [Compliance Overview](../reference/compliance.md) - Regulatory framework guidance
 - [Troubleshooting Guide](../reference/troubleshooting.md) - Common issues and solutions
 
 For questions or support, please visit our [GitHub repository](https://github.com/GlassAlpha/glassalpha) or contact our team.

@@ -135,28 +135,28 @@ model:
 explainers:
   strategy: first_compatible
   priority:
-    - treeshap    # XGBoost supports TreeSHAP for clinical interpretability
-    - kernelshap  # Fallback for any model type
+    - treeshap # XGBoost supports TreeSHAP for clinical interpretability
+    - kernelshap # Fallback for any model type
 
 # Clinical and fairness metrics
 metrics:
   performance:
     metrics:
       - accuracy
-      - precision    # Critical for clinical decisions
-      - recall       # Critical for clinical decisions
-      - f1          # Balance between precision and recall
-      - auc_roc     # Overall discriminative ability
+      - precision # Critical for clinical decisions
+      - recall # Critical for clinical decisions
+      - f1 # Balance between precision and recall
+      - auc_roc # Overall discriminative ability
 
   fairness:
     metrics:
-      - demographic_parity    # Equal treatment outcomes across groups
-      - equal_opportunity     # Equal true positive rates
-      - equalized_odds        # Equal TPR and FPR
+      - demographic_parity # Equal treatment outcomes across groups
+      - equal_opportunity # Equal true positive rates
+      - equalized_odds # Equal TPR and FPR
     config:
       # Stricter thresholds for healthcare
       demographic_parity:
-        threshold: 0.03  # Maximum 3% difference
+        threshold: 0.03 # Maximum 3% difference
       equal_opportunity:
         threshold: 0.03
       equalized_odds:
@@ -247,29 +247,33 @@ Generating PDF report: healthcare_outcomes_audit.pdf
 **Global Feature Importance (Top 5):**
 
 1. **`glucose_level` (+0.287)**
-    - Most important clinical factor
-    - Blood glucose strongly predicts treatment success
-    - Critical metabolic indicator for many treatments
+
+   - Most important clinical factor
+   - Blood glucose strongly predicts treatment success
+   - Critical metabolic indicator for many treatments
 
 2. **`cholesterol_ldl` (+0.234)**
-    - LDL cholesterol levels significantly impact outcomes
-    - Cardiovascular health marker
-    - Important for cardiac and metabolic treatments
+
+   - LDL cholesterol levels significantly impact outcomes
+   - Cardiovascular health marker
+   - Important for cardiac and metabolic treatments
 
 3. **`blood_pressure_systolic` (+0.198)**
-    - Systolic blood pressure strongly influences treatment success
-    - Critical vital sign for cardiovascular treatments
-    - Requires careful monitoring and management
+
+   - Systolic blood pressure strongly influences treatment success
+   - Critical vital sign for cardiovascular treatments
+   - Requires careful monitoring and management
 
 4. **`hemoglobin` (+0.156)**
-    - Hemoglobin levels indicate oxygen-carrying capacity
-    - Important for surgical and anemia treatments
-    - Correlates with overall health status
+
+   - Hemoglobin levels indicate oxygen-carrying capacity
+   - Important for surgical and anemia treatments
+   - Correlates with overall health status
 
 5. **`creatinine` (+0.142)**
-    - Kidney function marker
-    - Critical for medication dosing and treatment planning
-    - Important safety indicator for nephrotoxic treatments
+   - Kidney function marker
+   - Critical for medication dosing and treatment planning
+   - Important safety indicator for nephrotoxic treatments
 
 **Individual Patient Example:**
 For a 65-year-old patient with diabetes and hypertension:
@@ -318,22 +322,24 @@ For a 65-year-old patient with diabetes and hypertension:
 **High Risk Findings:**
 
 1. **Age-Based Treatment Disparities**
-    - 14.5% difference in predicted success rates across age groups
-    - May indicate age discrimination in treatment recommendations
-    - Could result in suboptimal care for younger patients
-    - Requires immediate clinical review and model adjustment
+
+   - 14.5% difference in predicted success rates across age groups
+   - May indicate age discrimination in treatment recommendations
+   - Could result in suboptimal care for younger patients
+   - Requires immediate clinical review and model adjustment
 
 2. **Clinical Decision Safety**
-    - 21% false positive rate may lead to overconfidence in treatment success
-    - Could result in delayed alternative treatments
-    - Requires validation against clinical trial data
+   - 21% false positive rate may lead to overconfidence in treatment success
+   - Could result in delayed alternative treatments
+   - Requires validation against clinical trial data
 
 **Medium Risk Findings:**
 
 **Feature Correlation Concerns**
- - Age strongly correlates with treatment success predictions
-   - May mask underlying health status differences
-   - Consider age stratification in model development
+
+- Age strongly correlates with treatment success predictions
+  - May mask underlying health status differences
+  - Consider age stratification in model development
 
 **Compliance Assessment:**
 
@@ -347,6 +353,7 @@ For a 65-year-old patient with diabetes and hypertension:
 ### Immediate Actions Required
 
 1. **Address Age Discrimination**
+
    ```python
    # Consider clinical approaches:
    # - Age-stratified model validation
@@ -355,31 +362,34 @@ For a 65-year-old patient with diabetes and hypertension:
    ```
 
 2. **Clinical Validation**
-    - Compare model predictions against clinical trial data
-    - Validate against diverse patient populations
-    - Assess model calibration across risk strata
+
+   - Compare model predictions against clinical trial data
+   - Validate against diverse patient populations
+   - Assess model calibration across risk strata
 
 3. **Safety Monitoring**
-    - Implement false positive rate monitoring
-    - Establish clinical override protocols
-    - Monitor for treatment delays due to model predictions
+   - Implement false positive rate monitoring
+   - Establish clinical override protocols
+   - Monitor for treatment delays due to model predictions
 
 ### Long-term Compliance Strategy
 
 1. **Ongoing Clinical Monitoring**
-    - Regular outcome audits against model predictions
-    - Demographic outcome tracking and analysis
-    - Model performance monitoring across clinical settings
+
+   - Regular outcome audits against model predictions
+   - Demographic outcome tracking and analysis
+   - Model performance monitoring across clinical settings
 
 2. **FDA Compliance Program**
-    - Establish software validation procedures
-    - Clinical evaluation protocol development
-    - Post-market surveillance planning
+
+   - Establish software validation procedures
+   - Clinical evaluation protocol development
+   - Post-market surveillance planning
 
 3. **Quality Management**
-    - Clinical decision support oversight committee
-    - Regular bias and safety audits
-    - Continuous model improvement processes
+   - Clinical decision support oversight committee
+   - Regular bias and safety audits
+   - Continuous model improvement processes
 
 ## Step 6: Business Impact Analysis
 
@@ -417,36 +427,40 @@ For a 65-year-old patient with diabetes and hypertension:
 ### Technical Improvements
 
 1. **Model Enhancement**
-    - Age-stratified model development
-    - Clinical outcome validation studies
-    - Integration with electronic health records
+
+   - Age-stratified model development
+   - Clinical outcome validation studies
+   - Integration with electronic health records
 
 2. **Safety Features**
-    - Confidence interval reporting for predictions
-    - Clinical override mechanisms
-    - Risk stratification for different patient groups
+
+   - Confidence interval reporting for predictions
+   - Clinical override mechanisms
+   - Risk stratification for different patient groups
 
 3. **Advanced Analytics**
-    - Treatment response prediction
-    - Adverse event probability modeling
-    - Personalized treatment recommendations
+   - Treatment response prediction
+   - Adverse event probability modeling
+   - Personalized treatment recommendations
 
 ### Operational Changes
 
 1. **Clinical Integration**
-    - Real-time decision support dashboards
-    - Integration with hospital information systems
-    - Clinician training on model interpretation
+
+   - Real-time decision support dashboards
+   - Integration with hospital information systems
+   - Clinician training on model interpretation
 
 2. **Regulatory Compliance**
-    - FDA pre-market notification preparation
-    - Clinical evaluation protocol development
-    - Post-market surveillance implementation
+
+   - FDA pre-market notification preparation
+   - Clinical evaluation protocol development
+   - Post-market surveillance implementation
 
 3. **Quality Assurance**
-    - Clinical decision support governance
-    - Regular model validation and updates
-    - Bias monitoring and mitigation programs
+   - Clinical decision support governance
+   - Regular model validation and updates
+   - Bias monitoring and mitigation programs
 
 ## Conclusion
 
@@ -477,7 +491,7 @@ This tutorial demonstrates how GlassAlpha enables thorough, regulatory-ready ML 
 
 - [Configuration Guide](../getting-started/configuration.md) - Detailed configuration options
 - [CLI Reference](../reference/cli.md) - Complete command documentation
-- [Compliance Overview](../compliance/overview.md) - Healthcare regulatory framework guidance
+- [Compliance Overview](../reference/compliance.md) - Healthcare regulatory framework guidance
 - [Troubleshooting Guide](../reference/troubleshooting.md) - Common issues and solutions
 
 For questions or support, please visit our [GitHub repository](https://github.com/GlassAlpha/glassalpha) or contact our team.

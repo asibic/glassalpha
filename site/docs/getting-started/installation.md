@@ -5,18 +5,21 @@ Complete installation instructions for GlassAlpha on different platforms and env
 ## System Requirements
 
 ### Minimum Requirements
+
 - **Python**: 3.11 or higher
 - **Memory**: 2GB RAM available
 - **Storage**: 1GB disk space for installation and temporary files
 - **OS**: macOS 10.15+, Linux (Ubuntu 20.04+), Windows 10+ (WSL2 recommended)
 
 ### Recommended Environment
+
 - **Python**: 3.11+
 - **Memory**: 8GB+ RAM for large datasets
 - **Storage**: SSD for better performance
 - **CPU**: Multi-core processor for parallel processing
 
 ### Supported Platforms
+
 - **macOS**: Intel and Apple Silicon (M1/M2/M3)
 - **Linux**: Ubuntu 20.04+, CentOS 8+, RHEL 8+, and most modern distributions
 - **Windows**: 10/11 (native support, WSL2 recommended for best experience)
@@ -68,6 +71,7 @@ Development dependencies include:
 ### macOS installation
 
 **Prerequisites:**
+
 ```bash
 # Install Homebrew (if not already installed)
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
@@ -80,6 +84,7 @@ brew install libomp
 ```
 
 **Installation:**
+
 ```bash
 git clone https://github.com/GlassAlpha/glassalpha
 cd glassalpha/packages
@@ -99,6 +104,7 @@ pip install -e .
 ### Linux installation (Ubuntu/Debian)
 
 **Prerequisites:**
+
 ```bash
 # Update package list
 sudo apt update
@@ -112,6 +118,7 @@ sudo apt install libpango1.0-dev libcairo2-dev libgtk-3-dev
 ```
 
 **Installation:**
+
 ```bash
 git clone https://github.com/GlassAlpha/glassalpha
 cd glassalpha/packages
@@ -125,6 +132,7 @@ pip install -e .
 ### Linux installation (CentOS/RHEL)
 
 **Prerequisites:**
+
 ```bash
 # Install EPEL repository
 sudo yum install epel-release
@@ -138,6 +146,7 @@ sudo yum install pango-devel cairo-devel gtk3-devel
 ```
 
 **Installation:**
+
 ```bash
 git clone https://github.com/GlassAlpha/glassalpha
 cd glassalpha/packages
@@ -151,6 +160,7 @@ pip install -e .
 ### Windows installation
 
 **Option 1: Windows Subsystem for Linux (Recommended)**
+
 ```bash
 # Install WSL2 and Ubuntu
 wsl --install Ubuntu
@@ -164,6 +174,7 @@ pip install -e .
 ```
 
 **Option 2: Native Windows**
+
 ```powershell
 # Install Python 3.11+ from python.org
 # Install Git from git-scm.com
@@ -202,6 +213,7 @@ glassalpha list
 ```
 
 Expected output:
+
 ```
 GlassAlpha version 0.1.0
 
@@ -360,6 +372,7 @@ poetry shell
 - `GLASSALPHA_LOG_LEVEL` - Logging level (DEBUG, INFO, WARNING, ERROR)
 
 **Example:**
+
 ```bash
 export GLASSALPHA_LOG_LEVEL=DEBUG
 export GLASSALPHA_CONFIG_DIR=~/.config/glassalpha
@@ -371,6 +384,7 @@ glassalpha audit --config my_config.yaml --output audit.pdf
 ### Common Installation Issues
 
 **Python Version Issues:**
+
 ```bash
 # Check Python version
 python --version
@@ -381,6 +395,7 @@ python3.11 -m venv glassalpha-env
 ```
 
 **Permission Errors:**
+
 ```bash
 # Use virtual environment instead of system-wide installation
 python -m venv glassalpha-env
@@ -392,6 +407,7 @@ pip install --user -e .
 ```
 
 **Dependency Conflicts:**
+
 ```bash
 # Create clean environment
 rm -rf glassalpha-env
@@ -402,6 +418,7 @@ pip install -e .
 ```
 
 **XGBoost Issues (macOS):**
+
 ```bash
 # Install OpenMP library
 brew install libomp
@@ -415,6 +432,7 @@ python -c "import xgboost; print('XGBoost version:', xgboost.__version__)"
 ```
 
 **PDF Generation Issues (Linux):**
+
 ```bash
 # Install system libraries
 sudo apt install libpango1.0-dev libcairo2-dev libgtk-3-dev  # Ubuntu/Debian
@@ -428,6 +446,7 @@ pip install weasyprint
 ### Memory and Performance Issues
 
 **Insufficient Memory:**
+
 ```bash
 # Monitor memory usage during installation
 pip install -e . --verbose
@@ -441,6 +460,7 @@ sudo swapon /swapfile
 ```
 
 **Slow Installation:**
+
 ```bash
 # Use faster package index
 pip install -e . --index-url https://pypi.org/simple/
@@ -452,6 +472,7 @@ pip install -e . --only-binary=all --prefer-binary
 ### Verification Failures
 
 **CLI Command Not Found:**
+
 ```bash
 # Verify installation
 pip list | grep glassalpha
@@ -465,6 +486,7 @@ pip install --force-reinstall -e .
 ```
 
 **Import Errors:**
+
 ```bash
 # Check Python path
 python -c "import sys; print(sys.path)"
@@ -504,6 +526,7 @@ ENTRYPOINT ["glassalpha"]
 ```
 
 **Usage:**
+
 ```bash
 # Build image
 docker build -t glassalpha .
@@ -530,7 +553,7 @@ If you encounter installation issues not covered here:
 1. **Check the [Troubleshooting Guide](../reference/troubleshooting.md)**
 2. **Search [GitHub Issues](https://github.com/GlassAlpha/glassalpha/issues)**
 3. **Ask in [GitHub Discussions](https://github.com/GlassAlpha/glassalpha/discussions)**
-4. **Review the [FAQ](../faq.md)**
+4. **Review the [FAQ](reference/faq.md)**
 
 For enterprise support and custom installation assistance, contact: enterprise@glassalpha.com
 

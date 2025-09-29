@@ -158,8 +158,8 @@ This configuration format supports deterministic, reproducible audits.
 
 - [Quick Start Guide](getting-started/quickstart.md) - Installation and first audit
 - [Configuration Guide](getting-started/configuration.md) - YAML configuration reference
-- [Regulatory Compliance](compliance/overview.md) - Compliance frameworks
-- [Contributing Guidelines](contributing.md) - Enhancement opportunities
+- [Regulatory Compliance](reference/compliance.md) - Compliance frameworks
+- [Contributing Guidelines](reference/contributing.md) - Enhancement opportunities
 
 ## License & Support
 
