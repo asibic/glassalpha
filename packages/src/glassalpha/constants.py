@@ -1,4 +1,4 @@
-"""Centralized constants and contract strings for Glass Alpha.
+"""Centralized constants and contract strings for GlassAlpha.
 
 This module contains all exact strings used in error messages, logging,
 and contract assertions to prevent drift and ensure consistency.

@@ -1,4 +1,4 @@
-"""Process utilities for Glass Alpha.
+"""Process utilities for GlassAlpha.
 
 This module provides safe subprocess wrappers that enforce text mode
 and prevent decode/encode issues that have caused CI failures.

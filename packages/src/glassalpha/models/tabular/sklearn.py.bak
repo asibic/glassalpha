@@ -1,7 +1,7 @@
-"""Scikit-learn model wrappers for Glass Alpha audit pipeline.
+"""Scikit-learn model wrappers for GlassAlpha audit pipeline.
 
 This module provides wrappers for scikit-learn models, making them compatible
-with the Glass Alpha audit interface. It includes LogisticRegression and
+with the GlassAlpha audit interface. It includes LogisticRegression and
 generic scikit-learn model wrappers.
 """
 
@@ -156,7 +156,7 @@ if SKLEARN_AVAILABLE:
 
     @ModelRegistry.register("logistic_regression", priority=80)
     class LogisticRegressionWrapper(BaseEstimator, ClassifierMixin):
-        """Wrapper for scikit-learn LogisticRegression with Glass Alpha compatibility."""
+        """Wrapper for scikit-learn LogisticRegression with GlassAlpha compatibility."""
 
         # Required class attributes for ModelInterface
         capabilities = {
@@ -261,13 +261,13 @@ if SKLEARN_AVAILABLE:
                 # Check for missing/extra features with clean error message (tests expect this format)
                 provided_features = list(map(str, X.columns.tolist()))
                 expected_features = list(map(str, self.feature_names))
-                
+
                 provided_set = set(provided_features)
                 expected_set = set(expected_features)
-                
+
                 missing = sorted(expected_set - provided_set)
                 extra = sorted(provided_set - expected_set)
-                
+
                 if missing or extra:
                     # Clean error message format that tests expect (not raw sklearn message)
                     raise ValueError(
@@ -368,11 +368,11 @@ if SKLEARN_AVAILABLE:
             wrapper.feature_names = model_data.get("feature_names")
             wrapper.n_classes = model_data.get("n_classes")
             wrapper._is_fitted = model_data.get("_is_fitted", False)
-            
+
             # Restore classes_ attribute if model has it (needed for some tests)
             if wrapper.model is not None and hasattr(wrapper.model, "classes_"):
                 wrapper.classes_ = wrapper.model.classes_
-                
+
             return wrapper
 
     def __repr__(self) -> str:

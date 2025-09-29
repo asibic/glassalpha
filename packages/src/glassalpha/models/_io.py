@@ -1,4 +1,4 @@
-"""Serialization utilities for Glass Alpha model wrappers.
+"""Serialization utilities for GlassAlpha model wrappers.
 
 This module provides consistent save/load helpers to prevent
 serialization regressions across different wrapper implementations.

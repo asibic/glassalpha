@@ -1,1 +1,1 @@
-"""Template package for Glass Alpha audit reports."""
+"""Template package for GlassAlpha audit reports."""

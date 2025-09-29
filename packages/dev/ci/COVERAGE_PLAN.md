@@ -1,4 +1,4 @@
-# Glass Alpha Coverage Plan - Incremental Path to 50%
+# GlassAlpha Coverage Plan - Incremental Path to 50%
 
 ## 📊 Current Status
 - **Current Coverage:** 13.83% (411 tested lines / 2,972 total)

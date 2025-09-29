@@ -1,7 +1,7 @@
-"""Scikit-learn model wrappers for Glass Alpha audit pipeline.
+"""Scikit-learn model wrappers for GlassAlpha audit pipeline.
 
 This module provides wrappers for scikit-learn models, making them compatible
-with the Glass Alpha audit interface. It includes LogisticRegression and
+with the GlassAlpha audit interface. It includes LogisticRegression and
 generic scikit-learn model wrappers.
 """
 
@@ -207,7 +207,7 @@ if SKLEARN_AVAILABLE:
 
     @ModelRegistry.register("logistic_regression", priority=80)
     class LogisticRegressionWrapper(BaseTabularWrapper):
-        """Wrapper for scikit-learn LogisticRegression with Glass Alpha compatibility."""
+        """Wrapper for scikit-learn LogisticRegression with GlassAlpha compatibility."""
 
         # Required class attributes for ModelInterface
         capabilities: ClassVar[dict[str, Any]] = {

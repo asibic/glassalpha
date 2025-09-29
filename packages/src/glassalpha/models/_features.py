@@ -1,4 +1,4 @@
-"""Feature alignment utilities for Glass Alpha wrappers.
+"""Feature alignment utilities for GlassAlpha wrappers.
 
 This module provides centralized feature handling to prevent
 column drift errors and ensure consistent behavior across all

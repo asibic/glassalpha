@@ -1,4 +1,4 @@
-"""Model state guard decorators for Glass Alpha.
+"""Model state guard decorators for GlassAlpha.
 
 This module provides decorators to enforce model state contracts
 and prevent silent misuse of wrapper methods.
