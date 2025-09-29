@@ -50,11 +50,13 @@ User Configuration (YAML)
 **Purpose**: Declarative, reproducible audit specification
 
 **Key Files:**
+
 - `config/schema.py` - Pydantic models for validation
 - `config/loader.py` - YAML loading and environment handling
 - `config/strict.py` - Regulatory compliance validation
 
 **Design Features:**
+
 - **YAML-based** - Human-readable and version-controllable
 - **Strict mode** - Enforces regulatory requirements (explicit seeds, no defaults)
 - **Validation** - Comprehensive error checking before execution
@@ -75,6 +77,7 @@ explainers:
 **Purpose**: Dynamic component discovery and selection
 
 **Key Files:**
+
 - `core/registry.py` - Registration and selection logic
 - `core/interfaces.py` - Protocol definitions
 
@@ -91,6 +94,7 @@ explainer_cls = ExplainerRegistry.select_compatible(model, ["treeshap"])
 ```
 
 **Benefits:**
+
 - **Deterministic selection** - Same config = same components
 - **Capability matching** - Explainers only run on compatible models
 - **Extensibility** - Add new types without changing core
@@ -99,10 +103,12 @@ explainer_cls = ExplainerRegistry.select_compatible(model, ["treeshap"])
 **Purpose**: Load, validate, and prepare data for analysis
 
 **Key Files:**
+
 - `data/tabular.py` - CSV/Parquet loading with pandas
 - `data/german_credit.py` - Example dataset with preprocessing
 
 **Processing Steps:**
+
 1. **Format Detection** - Auto-detect CSV, Parquet, Feather
 2. **Schema Validation** - Ensure required columns exist
 3. **Type Conversion** - Handle categorical/numeric features
@@ -114,6 +120,7 @@ explainer_cls = ExplainerRegistry.select_compatible(model, ["treeshap"])
 **Purpose**: Unified interface to different ML libraries
 
 **Key Files:**
+
 - `models/tabular/xgboost.py` - XGBoost wrapper
 - `models/tabular/lightgbm.py` - LightGBM wrapper
 - `models/tabular/sklearn.py` - Scikit-learn wrapper
@@ -129,6 +136,7 @@ class ModelInterface(Protocol):
 ```
 
 **Key Features:**
+
 - **Capability declaration** - Models specify what explainers they support
 - **Consistent interface** - Same API regardless of underlying library
 - **Flexible loading** - Support pre-trained models or train from scratch
@@ -138,6 +146,7 @@ class ModelInterface(Protocol):
 **Purpose**: Generate interpretable explanations for model decisions
 
 **Key Files:**
+
 - `explain/shap/tree.py` - TreeSHAP for tree-based models
 - `explain/shap/kernel.py` - KernelSHAP for any model type
 
@@ -155,6 +164,7 @@ for explainer_name in priority:
 ```
 
 **Design Features:**
+
 - **Priority-based selection** - Deterministic fallback chain
 - **Capability checking** - Only run explainers that work with the model
 - **Configurable sampling** - Balance accuracy vs speed
@@ -164,11 +174,13 @@ for explainer_name in priority:
 **Purpose**: Comprehensive model evaluation across multiple dimensions
 
 **Categories:**
+
 - **Performance** (6 metrics): Accuracy, Precision, Recall, F1, AUC-ROC, Classification Report
 - **Fairness** (4 metrics): Demographic Parity, Equal Opportunity, Equalized Odds, Predictive Parity
 - **Drift** (5 metrics): PSI, KL Divergence, KS Test, JS Divergence, Prediction Drift
 
 **Design Features:**
+
 - **Category-based organization** - Group related metrics
 - **Conditional computation** - Only run relevant metrics (e.g., fairness needs protected attributes)
 - **Statistical rigor** - Confidence intervals and significance tests
@@ -178,10 +190,12 @@ for explainer_name in priority:
 **Purpose**: Professional PDF reports with visualizations
 
 **Key Files:**
+
 - `report/renderer.py` - HTML to PDF conversion
 - `report/plots.py` - Matplotlib/Seaborn visualizations
 
 **Pipeline:**
+
 1. **Template Selection** - Choose HTML template based on audit profile
 2. **Data Preparation** - Organize results for template rendering
 3. **Plot Generation** - Create deterministic visualizations with fixed seeds
@@ -193,6 +207,7 @@ for explainer_name in priority:
 **Purpose**: Pre-configured component sets for different use cases
 
 **Current Profiles:**
+
 - `tabular_compliance` - Standard audit for tabular models
 - `german_credit_default` - Optimized for German Credit dataset
 
@@ -206,6 +221,7 @@ class TabularComplianceProfile:
 ```
 
 **Benefits:**
+
 - **Validated combinations** - Ensures compatible components
 - **Simplified configuration** - Users specify profile, not individual components
 - **Regulatory alignment** - Profiles match compliance requirements
@@ -225,6 +241,7 @@ class ModelInterface(Protocol):
 ```
 
 **Advantages:**
+
 - **Duck typing** - Focus on behavior, not inheritance
 - **Flexibility** - Easy to wrap existing libraries
 - **Testing** - Can create mock implementations easily

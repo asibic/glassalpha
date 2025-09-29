@@ -132,6 +132,7 @@ Reproduction mode is essential for regulatory audits that require identical outp
 #### Output
 
 The audit command produces:
+
 - **PDF Report**: Professional audit document with visualizations
 - **Manifest File**: Complete audit trail (same directory as PDF, `.manifest.json` extension)
 - **Console Output**: Progress updates and detailed audit summary
@@ -220,6 +221,7 @@ glassalpha validate \
 #### Output
 
 Validation provides:
+
 - Configuration parsing results
 - Schema compliance verification
 - Profile and model type identification
@@ -295,6 +297,7 @@ glassalpha list models --include-enterprise --verbose
 #### Output
 
 The list command shows:
+
 - Registered component names by type
 - Component counts and status
 - License requirements for enterprise features (when `--include-enterprise` used)

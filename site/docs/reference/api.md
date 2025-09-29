@@ -35,10 +35,12 @@ class ModelInterface(Protocol):
 ```
 
 **Required Attributes:**
+
 - `capabilities`: Dict describing model capabilities (e.g., `{"supports_shap": True}`)
 - `version`: String identifying implementation version
 
 **Methods:**
+
 - `predict()`: Generate class predictions
 - `predict_proba()`: Generate probability predictions
 - `get_model_type()`: Return type identifier (e.g., "xgboost")
@@ -66,11 +68,13 @@ class ExplainerInterface(Protocol):
 ```
 
 **Required Attributes:**
+
 - `capabilities`: Dict describing explainer capabilities
 - `version`: Implementation version
 - `priority`: Selection priority (higher = preferred)
 
 **Methods:**
+
 - `explain()`: Generate explanations for model predictions
 - `supports_model()`: Check compatibility with specific model
 - `get_explanation_type()`: Return type (e.g., "shap", "lime")
@@ -97,11 +101,13 @@ class MetricInterface(Protocol):
 ```
 
 **Required Attributes:**
+
 - `capabilities`: Dict describing metric capabilities
 - `version`: Implementation version
 - `metric_type`: Category ("performance", "fairness", "drift")
 
 **Methods:**
+
 - `compute()`: Calculate metric value
 - `requires_probabilities()`: Whether metric needs probability predictions
 - `requires_sensitive_features()`: Whether metric needs demographic data
@@ -135,6 +141,7 @@ model_cls = ModelRegistry.get("xgboost")
 ```
 
 **Methods:**
+
 - `register(name)`: Decorator to register model implementations
 - `get(name)`: Retrieve model class by name
 - `get_all()`: Get all registered models
@@ -162,6 +169,7 @@ explainer_cls = ExplainerRegistry.select_best(model, priority_list=["shap", "lim
 ```
 
 **Methods:**
+
 - `register(name, priority=50)`: Register explainer with priority
 - `select_best(model, priority_list)`: Select best compatible explainer
 - `get_compatible(model)`: Get all explainers compatible with model
@@ -189,6 +197,7 @@ fairness_metrics = MetricRegistry.get_by_type("fairness")
 ```
 
 **Methods:**
+
 - `register(name)`: Register metric implementation
 - `get_by_type(metric_type)`: Get metrics of specific type
 - `get_all_types()`: Get available metric types
@@ -218,9 +227,11 @@ print(f"Fairness: {results.fairness_analysis}")
 ```
 
 **Constructor:**
+
 - `AuditPipeline(config: AuditConfig)`: Initialize with configuration
 
 **Methods:**
+
 - `run(progress_callback=None)`: Execute complete audit pipeline
 - Returns `AuditResults` object with comprehensive results
 
@@ -257,6 +268,7 @@ class AuditResults:
 ```
 
 **Attributes:**
+
 - `model_performance`: Performance metrics and evaluations
 - `fairness_analysis`: Bias detection and fairness metrics
 - `explanations`: SHAP values and feature importance
@@ -287,10 +299,12 @@ config.validate_strict_mode()
 ```
 
 **Class Methods:**
+
 - `from_yaml(path)`: Load configuration from YAML file
 - `from_dict(data)`: Create from dictionary
 
 **Properties:**
+
 - `audit_profile`: Selected audit profile
 - `model`: Model configuration
 - `data`: Data configuration
@@ -314,6 +328,7 @@ data_config = DataConfig(
 ```
 
 **Attributes:**
+
 - `path`: Path to dataset file
 - `target_column`: Name of target/label column
 - `feature_columns`: List of feature column names (optional)
@@ -337,6 +352,7 @@ model_config = ModelConfig(
 ```
 
 **Attributes:**
+
 - `type`: Model type identifier (must be registered)
 - `path`: Optional path to pre-trained model
 - `params`: Model hyperparameters
@@ -372,6 +388,7 @@ X, y, sensitive = loader.extract_features_target(data, schema)
 ```
 
 **Methods:**
+
 - `load(path, schema=None)`: Load data from file
 - `validate_schema(data, schema)`: Validate data structure
 - `extract_features_target(data, schema)`: Split into X, y, sensitive features
@@ -395,6 +412,7 @@ schema = TabularDataSchema(
 ```
 
 **Attributes:**
+
 - `target`: Target column name
 - `features`: Feature column names
 - `sensitive_features`: Protected attributes
@@ -425,6 +443,7 @@ with with_component_seed("model"):
 ```
 
 **Functions:**
+
 - `set_global_seed(seed)`: Set master random seed
 - `get_component_seed(component_name)`: Get deterministic seed for component
 - `with_component_seed(component_name)`: Context manager for seeded execution
@@ -448,6 +467,7 @@ object_hash = hash_object({"key": "value"})
 ```
 
 **Functions:**
+
 - `hash_config(config_dict)`: Hash configuration dictionary
 - `hash_dataframe(df)`: Hash pandas DataFrame
 - `hash_object(obj)`: Hash arbitrary Python object
@@ -474,10 +494,12 @@ generator.save(manifest_path)
 ```
 
 **Classes:**
+
 - `ManifestGenerator`: Builder for audit manifests
 - `AuditManifest`: Pydantic model for manifest data
 
 **Methods:**
+
 - `add_config()`: Add configuration information
 - `add_data_info()`: Add dataset information
 - `add_model_info()`: Add model information

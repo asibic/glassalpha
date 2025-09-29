@@ -49,6 +49,7 @@ The fraud detection dataset contains:
 ### Key Features
 
 **Transaction Information:**
+
 - `amount` - Transaction amount ($1 - $10,000)
 - `merchant_category` - Merchant type (0-15 categories)
 - `transaction_hour` - Hour of transaction (0-23)
@@ -56,6 +57,7 @@ The fraud detection dataset contains:
 - `transaction_type` - Online, in-store, or ATM transaction
 
 **Customer Behavior:**
+
 - `cardholder_age` - Customer age (18-85)
 - `account_age_months` - Account tenure (0-120 months)
 - `transaction_count_24h` - Transactions in last 24 hours (0-50)
@@ -63,6 +65,7 @@ The fraud detection dataset contains:
 - `time_since_last_txn` - Minutes since last transaction (0-1440)
 
 **Risk Indicators:**
+
 - `location_distance` - Distance from customer's home location (0-1000 miles)
 - `device_fingerprint_risk` - Device identification risk score (0-100)
 - `ip_geolocation_risk` - IP address risk assessment (0-100)
@@ -204,12 +207,14 @@ Generating PDF report: fraud_detection_audit.pdf
 ### Model Performance Analysis
 
 **Overall Performance:**
+
 - **Accuracy: 98.7%** - Model correctly classifies 99% of transactions
 - **AUC-ROC: 0.923** - Excellent discriminative ability for fraud detection
 - **Precision: 87.4%** - Of flagged transactions, 87% are actually fraudulent
 - **Recall: 79.2%** - Model catches 79% of all fraudulent transactions
 
 **Fraud Detection Business Interpretation:**
+
 - **False Positive Rate**: 13% of legitimate transactions incorrectly flagged
 - **False Negative Rate**: 21% of fraudulent transactions missed
 - **Business Impact**: Balance between fraud losses and customer friction
@@ -219,30 +224,35 @@ Generating PDF report: fraud_detection_audit.pdf
 
 **Global Feature Importance (Top 5):**
 
-1. **`amount_deviation_score` (+0.342)**
-   - Most important fraud indicator
-   - Measures how unusual the transaction amount is for this customer
-   - Critical for detecting anomalous spending patterns
+**1. `amount_deviation_score` (+0.342)**
 
-2. **`velocity_check_failed` (+0.287)**
-   - Transaction velocity violations (too many transactions too quickly)
-   - Strong indicator of card testing or account takeover
-   - Real-time fraud prevention mechanism
+- Most important fraud indicator
+- Measures how unusual the transaction amount is for this customer
+- Critical for detecting anomalous spending patterns
 
-3. **`location_distance` (+0.234)**
-   - Distance from customer's normal geographic area
-   - Indicates potential card-not-present fraud
-   - Must be monitored for legitimate travel patterns
+**2. `velocity_check_failed` (+0.287)**
 
-4. **`merchant_country_risk` (+0.198)**
-   - Risk assessment of merchant location
-   - Higher risk for international or high-risk countries
-   - Balances security with legitimate international commerce
+- Transaction velocity violations (too many transactions too quickly)
+- Strong indicator of card testing or account takeover
+- Real-time fraud prevention mechanism
 
-5. **`transaction_hour` (-0.156)**
-   - Time of day patterns (negative = unusual timing)
-   - Fraud often occurs during off-hours
-   - Must account for legitimate late-night transactions
+**3. `location_distance` (+0.234)**
+
+- Distance from customer's normal geographic area
+- Indicates potential card-not-present fraud
+- Must be monitored for legitimate travel patterns
+
+**4. `merchant_country_risk` (+0.198)**
+
+- Risk assessment of merchant location
+- Higher risk for international or high-risk countries
+- Balances security with legitimate international commerce
+
+**5. `transaction_hour` (-0.156)**
+
+- Time of day patterns (negative = unusual timing)
+- Fraud often occurs during off-hours
+- Must account for legitimate late-night transactions
 
 **Individual Transaction Example:**
 For a $2,500 international transaction at 3 AM from 500 miles away:
@@ -260,6 +270,7 @@ For a $2,500 international transaction at 3 AM from 500 miles away:
 **Demographic Parity Analysis:**
 
 **Age Group Analysis:**
+
 - **Young (18-24):** 1.2% fraud detection rate
 - **Young Adult (25-34):** 1.1% fraud detection rate
 - **Middle Age (35-49):** 0.9% fraud detection rate
@@ -269,12 +280,14 @@ For a $2,500 international transaction at 3 AM from 500 miles away:
 - **Conclusion:** ✅ Within 2% threshold, no significant age bias
 
 **Gender Analysis:**
+
 - **Male:** 1.0% fraud detection rate
 - **Female:** 0.9% fraud detection rate
 - **Difference:** 0.1% (well within acceptable range)
 - **Conclusion:** ✅ No gender bias detected
 
 **Predictive Parity Analysis:**
+
 - **Young:** 86.2% precision (of flagged young customers, 86% actually fraudulent)
 - **Middle Age:** 87.8% precision
 - **Difference:** 1.6% (within acceptable range)
@@ -283,16 +296,19 @@ For a $2,500 international transaction at 3 AM from 500 miles away:
 ### Risk Assessment
 
 **Low Risk Findings:**
+
 1. **Model Performance**: Excellent overall accuracy with appropriate precision/recall balance
 2. **Fairness Compliance**: All demographic groups within acceptable thresholds
 3. **Feature Interpretability**: Clear business logic in top risk factors
 
 **Medium Risk Findings:**
+
 1. **False Positive Impact**: 13% false positive rate may cause customer friction
 2. **Geographic Bias**: Location-based features could disadvantage rural customers
 3. **International Transactions**: Higher scrutiny may impact legitimate global commerce
 
 **Compliance Assessment:**
+
 - **PCI DSS Compliance:** ✅ PASS - Appropriate fraud monitoring implemented
 - **BSA/AML Compliance:** ✅ PASS - Suspicious activity detection in place
 - **FCRA Accuracy:** ✅ PASS - 99% accuracy meets standards
@@ -302,34 +318,40 @@ For a $2,500 international transaction at 3 AM from 500 miles away:
 
 ### Immediate Actions Required
 
-1. **Monitor False Positive Rates**
-   - Track customer complaints about blocked legitimate transactions
-   - Consider customer communication about fraud prevention measures
-   - Implement appeals process for declined transactions
+**1. Monitor False Positive Rates**
 
-2. **Geographic Feature Review**
-   - Analyze location risk factors for potential rural/urban bias
-   - Consider normalizing by local economic factors
-   - Validate with diverse geographic test sets
+- Track customer complaints about blocked legitimate transactions
+- Consider customer communication about fraud prevention measures
+- Implement appeals process for declined transactions
 
-3. **International Transaction Handling**
-   - Ensure legitimate international commerce isn't overly burdened
-   - Consider customer travel pattern analysis
-   - Implement graduated response based on risk level
+**2. Geographic Feature Review**
+
+- Analyze location risk factors for potential rural/urban bias
+- Consider normalizing by local economic factors
+- Validate with diverse geographic test sets
+
+**3. International Transaction Handling**
+
+- Ensure legitimate international commerce isn't overly burdened
+- Consider customer travel pattern analysis
+- Implement graduated response based on risk level
 
 ### Long-term Compliance Strategy
 
-1. **Ongoing Monitoring**
+**1. Ongoing Monitoring**
+
    - Regular bias audits on new transaction patterns
    - Performance monitoring across demographic groups
    - Model drift detection for changing fraud patterns
 
-2. **Regulatory Reporting**
+**2. Regulatory Reporting**
+
    - Maintain fraud detection effectiveness metrics
    - Document bias mitigation measures
    - Prepare regulatory examination materials
 
-3. **Model Governance**
+**3. Model Governance**
+
    - Establish fraud detection accuracy standards
    - Implement model validation procedures
    - Create change management processes
@@ -339,12 +361,14 @@ For a $2,500 international transaction at 3 AM from 500 miles away:
 ### Financial Impact
 
 **Current Model:**
+
 - **Fraud detection rate:** 79% (catches 79% of fraud)
 - **False positive rate:** 13% (13% of legitimate transactions flagged)
 - **Estimated fraud losses prevented:** $2.3M annually
 - **Estimated customer friction costs:** $180K annually
 
 **Optimization Opportunities:**
+
 - **Precision improvement**: Could reduce false positives by 20%
 - **Recall improvement**: Could catch additional 5% of fraud
 - **Net benefit**: $300K+ annual improvement potential
@@ -352,11 +376,13 @@ For a $2,500 international transaction at 3 AM from 500 miles away:
 ### Regulatory Risk Mitigation
 
 **Before Audit:**
+
 - Potential compliance violations if bias undetected
 - Regulatory scrutiny without proper documentation
 - Customer complaints without clear appeals process
 
 **After Audit:**
+
 - Documented compliance with PCI DSS requirements
 - Demonstrated fairness across demographic groups
 - Clear audit trail for regulatory examinations
@@ -365,54 +391,63 @@ For a $2,500 international transaction at 3 AM from 500 miles away:
 
 ### Technical Improvements
 
-1. **Model Optimization**
-   - Feature engineering for better fraud signal extraction
-   - Ensemble methods combining multiple detection approaches
-   - Real-time model updating based on new fraud patterns
+**1. Model Optimization**
 
-2. **Customer Experience Enhancement**
-   - Personalized fraud thresholds based on customer history
-   - Clear communication about why transactions were flagged
-   - Streamlined appeals process for legitimate transactions
+- Feature engineering for better fraud signal extraction
+- Ensemble methods combining multiple detection approaches
+- Real-time model updating based on new fraud patterns
 
-3. **Advanced Analytics**
-   - Customer segmentation for risk-based approaches
-   - Network analysis for organized fraud rings
-   - Temporal pattern analysis for seasonal fraud trends
+**2. Customer Experience Enhancement**
+
+- Personalized fraud thresholds based on customer history
+- Clear communication about why transactions were flagged
+- Streamlined appeals process for legitimate transactions
+
+**3. Advanced Analytics**
+
+- Customer segmentation for risk-based approaches
+- Network analysis for organized fraud rings
+- Temporal pattern analysis for seasonal fraud trends
 
 ### Operational Changes
 
-1. **Fraud Team Integration**
-   - Real-time model performance dashboards
-   - Analyst feedback loop for model improvement
-   - Investigation workflow integration
+**1. Fraud Team Integration**
 
-2. **Customer Communication**
-   - Transparent fraud prevention messaging
-   - Educational materials about fraud indicators
-   - Clear policies for transaction disputes
+- Real-time model performance dashboards
+- Analyst feedback loop for model improvement
+- Investigation workflow integration
 
-3. **Regulatory Engagement**
-   - Regular reporting to payment card networks
-   - Participation in industry fraud prevention initiatives
-   - Collaboration with law enforcement on fraud trends
+**2. Customer Communication**
+
+- Transparent fraud prevention messaging
+- Educational materials about fraud indicators
+- Clear policies for transaction disputes
+
+**3. Regulatory Engagement**
+
+- Regular reporting to payment card networks
+- Participation in industry fraud prevention initiatives
+- Collaboration with law enforcement on fraud trends
 
 ## Conclusion
 
 This fraud detection audit revealed a highly effective model that successfully balances fraud prevention with customer experience while maintaining regulatory compliance. The audit demonstrated:
 
 **Strengths:**
+
 - Excellent overall performance (99% accuracy, 92% AUC)
 - Appropriate precision/recall balance for fraud detection
 - No demographic bias detected across protected groups
 - Clear interpretability of fraud risk factors
 
 **Areas for Enhancement:**
+
 - Optimization of false positive rates
 - Enhanced geographic risk factor analysis
 - Improved international transaction handling
 
 **Compliance Status:**
+
 - ✅ PCI DSS compliance requirements met
 - ✅ BSA/AML suspicious activity monitoring in place
 - ✅ FCRA accuracy standards satisfied

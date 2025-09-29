@@ -47,26 +47,30 @@ Our target is simple, powerful audit generation:
 
 Audit reports include:
 
-1. **Model Performance Metrics**
-   - Accuracy, precision, recall, F1, AUC-ROC
-   - Confusion matrices and performance curves
-   - Cross-validation results
+### 1. Model performance metrics
 
-2. **TreeSHAP Explanations**
-   - Feature importance rankings
-   - Individual prediction explanations
-   - Waterfall plots for key decisions
+- Accuracy, precision, recall, F1, AUC-ROC
+- Confusion matrices and performance curves
+- Cross-validation results
 
-3. **Basic Fairness Analysis**
-   - Protected attribute analysis
-   - Disparate impact calculations
-   - Group parity metrics
+### 2. TreeSHAP explanations
 
-4. **Reproducibility Manifest**
-   - Complete configuration hash
-   - Dataset fingerprint
-   - Git commit SHA and timestamp
-   - All random seeds used
+- Feature importance rankings
+- Individual prediction explanations
+- Waterfall plots for key decisions
+
+### 3. Basic Fairness Analysis
+
+- Protected attribute analysis
+- Disparate impact calculations
+- Group parity metrics
+
+### 4. Reproducibility Manifest
+
+- Complete configuration hash
+- Dataset fingerprint
+- Git commit SHA and timestamp
+- All random seeds used
 
 ## Installation
 

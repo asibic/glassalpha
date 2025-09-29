@@ -22,24 +22,28 @@ GlassAlpha follows an **audit-first** approach, prioritizing regulatory complian
 ### Quick Setup
 
 1. **Fork and clone the repository:**
+
 ```bash
 git clone https://github.com/YOUR_USERNAME/glassalpha.git
 cd glassalpha/packages
 ```
 
 2. **Create and activate virtual environment:**
+
 ```bash
 python -m venv glassalpha-dev
 source glassalpha-dev/bin/activate  # Windows: glassalpha-dev\Scripts\activate
 ```
 
 3. **Install in development mode:**
+
 ```bash
 pip install --upgrade pip
 pip install -e ".[dev]"
 ```
 
 4. **Set up development tools:**
+
 ```bash
 # Install pre-commit hooks
 pre-commit install
@@ -50,6 +54,7 @@ glassalpha list
 ```
 
 5. **Run tests to verify setup:**
+
 ```bash
 pytest
 ```
@@ -88,6 +93,7 @@ glassalpha/packages/
 ```
 
 **Key Extension Points:**
+
 - Add new models by implementing `ModelInterface`
 - Add new explainers by implementing `ExplainerInterface`
 - Add new metrics by implementing `MetricInterface`
@@ -96,6 +102,7 @@ glassalpha/packages/
 ## Code Quality Standards
 
 ### Type Safety
+
 All code must include type hints and pass `mypy --strict`:
 
 ```python
@@ -136,12 +143,14 @@ mypy src/
 **Coverage Target**: 50%+ for core modules
 
 **Test Categories:**
+
 - **Unit tests** - Individual component testing
 - **Integration tests** - Component interaction testing
 - **Determinism tests** - Reproducibility verification
 - **End-to-end tests** - Full audit pipeline
 
 **Example Test:**
+
 ```python
 def test_xgboost_wrapper_deterministic():
     """Test that XGBoost produces identical results with same seed."""
@@ -165,6 +174,7 @@ def test_xgboost_wrapper_deterministic():
 ### 1. Choose Contribution Type
 
 **High-Value Contributions:**
+
 - **Bug fixes** - Especially for determinism or audit quality issues
 - **Performance improvements** - Faster audit generation
 - **New model support** - Additional ML library wrappers
@@ -173,6 +183,7 @@ def test_xgboost_wrapper_deterministic():
 - **Documentation** - Examples, guides, API documentation
 
 **Lower Priority:**
+
 - Complex features without clear audit benefit
 - Breaking API changes
 - Features requiring significant maintenance overhead
@@ -188,17 +199,20 @@ git checkout -b fix/issue-description
 ### 3. Development Process
 
 **Before coding:**
+
 1. Check existing issues and discussions
 2. Create an issue for significant changes
 3. Discuss architecture for major features
 
 **While coding:**
+
 1. Write tests first (TDD approach recommended)
 2. Follow existing patterns and interfaces
 3. Maintain deterministic behavior
 4. Add comprehensive docstrings
 
 **Code example pattern:**
+
 ```python
 @ModelRegistry.register("new_model")
 class NewModelWrapper:
@@ -267,6 +281,7 @@ Closes #123"
 ```
 
 **Commit Types:**
+
 - `feat:` New features
 - `fix:` Bug fixes
 - `docs:` Documentation updates
@@ -288,21 +303,25 @@ Closes #123"
 
 ```markdown
 ## Description
+
 Brief description of changes and motivation.
 
 ## Type of Change
+
 - [ ] Bug fix (non-breaking change fixing an issue)
 - [ ] New feature (non-breaking change adding functionality)
 - [ ] Breaking change (would cause existing functionality to not work as expected)
 - [ ] Documentation update
 
 ## Testing
+
 - [ ] Unit tests pass
 - [ ] Integration tests pass
 - [ ] Manual testing completed
 - [ ] Determinism verified (if applicable)
 
 ## Checklist
+
 - [ ] Code follows style guidelines
 - [ ] Self-review completed
 - [ ] Documentation updated
@@ -325,6 +344,7 @@ Brief description of changes and motivation.
 GlassAlpha uses a registry-based plugin architecture. Follow these patterns:
 
 **Adding New Components:**
+
 ```python
 # 1. Implement the interface
 class MyExplainer:
@@ -404,6 +424,7 @@ tests/
 ### Writing Effective Tests
 
 **Test Structure (Arrange-Act-Assert):**
+
 ```python
 def test_specific_behavior():
     """Test description explaining what behavior is verified."""
@@ -423,6 +444,7 @@ def test_specific_behavior():
 **Testing Patterns:**
 
 1. **Determinism Tests:**
+
 ```python
 def test_audit_determinism():
     """Verify identical configs produce identical results."""
@@ -437,6 +459,7 @@ def test_audit_determinism():
 ```
 
 2. **Error Handling Tests:**
+
 ```python
 def test_graceful_error_handling():
     """Verify clear error messages for common failures."""
@@ -562,6 +585,7 @@ def process_audit_data(data: pd.DataFrame):
 ### How to Ask Effective Questions
 
 **Good Question Format:**
+
 ```
 **What I'm trying to do:** Add support for CatBoost models
 
@@ -594,12 +618,14 @@ Contributors are recognized in several ways:
 Understanding our direction helps target valuable contributions:
 
 **Current Focus Areas:**
+
 - Enhanced model support (additional ML libraries)
 - Improved explanation quality and performance
 - Better error handling and user experience
 - Comprehensive documentation and examples
 
 **Potential Future Considerations** (community-driven):
+
 - Additional data modalities based on demand
 - Extended compliance framework support
 - Enhanced integration capabilities
@@ -610,6 +636,7 @@ Understanding our direction helps target valuable contributions:
 ## Quick Reference
 
 **Essential Commands:**
+
 ```bash
 # Setup
 pip install -e ".[dev]" && pre-commit install
@@ -627,6 +654,7 @@ pytest --cov=src/glassalpha   # Coverage
 ```
 
 **Getting Unstuck:**
+
 1. Check [Architecture Guide](architecture.md) for system design
 2. Look at existing implementations for patterns
 3. Search [GitHub Issues](https://github.com/GlassAlpha/glassalpha/issues)

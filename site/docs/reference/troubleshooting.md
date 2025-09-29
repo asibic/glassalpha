@@ -35,6 +35,7 @@ This indicates GlassAlpha isn't properly installed or the CLI entry point isn't 
 **Solutions:**
 
 1. **Install the package** (recommended for users):
+
    ```bash
    cd glassalpha/packages
    pip install -e .
@@ -44,6 +45,7 @@ This indicates GlassAlpha isn't properly installed or the CLI entry point isn't 
    ```
 
 2. **Use module invocation** (development/troubleshooting):
+
    ```bash
    cd glassalpha/packages
    PYTHONPATH=src python3 -m glassalpha --version
@@ -51,6 +53,7 @@ This indicates GlassAlpha isn't properly installed or the CLI entry point isn't 
    ```
 
 3. **Check your environment**:
+
    ```bash
    # Check if package is installed
    pip list | grep glassalpha
@@ -64,11 +67,13 @@ This indicates GlassAlpha isn't properly installed or the CLI entry point isn't 
 ### Python Version Compatibility
 
 **Error:**
+
 ```
 ERROR: Package 'glassalpha' requires a different Python: 3.10.0 not in '>=3.11'
 ```
 
 **Solution:**
+
 ```bash
 # Check Python version
 python --version
@@ -89,11 +94,13 @@ pip install -e .
 ### XGBoost Installation Issues (macOS)
 
 **Error:**
+
 ```
 RuntimeError: libomp not found. Install with: brew install libomp
 ```
 
 **Solution:**
+
 ```bash
 # Install OpenMP library
 brew install libomp
@@ -109,11 +116,13 @@ python -c "import xgboost; print('XGBoost version:', xgboost.__version__)"
 ### Dependency Conflicts
 
 **Error:**
+
 ```
 ERROR: pip's dependency resolver does not currently take into account all the packages that are installed
 ```
 
 **Solution:**
+
 ```bash
 # Create clean virtual environment
 python -m venv clean_env
@@ -135,17 +144,20 @@ pip install -e . --no-deps
 ### Missing System Dependencies
 
 **Error (Linux):**
+
 ```
 ImportError: libgomp.so.1: cannot open shared object file
 ```
 
 **Solution (Ubuntu/Debian):**
+
 ```bash
 sudo apt update
 sudo apt install libgomp1 build-essential
 ```
 
 **Solution (CentOS/RHEL):**
+
 ```bash
 sudo yum install libgomp gcc gcc-c++
 ```
@@ -155,6 +167,7 @@ sudo yum install libgomp gcc gcc-c++
 ### Missing Required Fields
 
 **Error:**
+
 ```
 ValidationError: 1 validation error for AuditConfig
 data.target_column
@@ -162,24 +175,27 @@ data.target_column
 ```
 
 **Solution:**
+
 ```yaml
 # Add missing required fields
 data:
   path: data/dataset.csv
-  target_column: outcome  # This was missing
+  target_column: outcome # This was missing
 
 model:
-  type: xgboost  # Ensure model type is specified
+  type: xgboost # Ensure model type is specified
 ```
 
 ### Invalid File Paths
 
 **Error:**
+
 ```
 FileNotFoundError: Configuration file 'nonexistent.yaml' not found
 ```
 
 **Solutions:**
+
 ```bash
 # Use absolute paths
 glassalpha audit --config /full/path/to/config.yaml --output report.pdf
@@ -196,11 +212,13 @@ glassalpha audit --config configs/german_credit_simple.yaml --output audit.pdf
 ### Model Type Not Found
 
 **Error:**
+
 ```
 Warning: Model type 'unknown_model' not found in registry
 ```
 
 **Solution:**
+
 ```bash
 # Check available models
 glassalpha list models
@@ -211,12 +229,13 @@ glassalpha list models
 
 ```yaml
 model:
-  type: xgboost  # Use registered model type
+  type: xgboost # Use registered model type
 ```
 
 ### Schema Validation Errors
 
 **Error:**
+
 ```
 ValidationError: 2 validation errors for TabularDataSchema
 features
@@ -226,11 +245,12 @@ target
 ```
 
 **Solution:**
+
 ```yaml
 data:
   path: data/dataset.csv
-  target_column: target  # Must specify target
-  feature_columns:       # Either specify features explicitly
+  target_column: target # Must specify target
+  feature_columns: # Either specify features explicitly
     - feature1
     - feature2
   # OR let GlassAlpha auto-detect (remove feature_columns)
@@ -241,11 +261,13 @@ data:
 ### Dataset Not Found
 
 **Error:**
+
 ```
 FileNotFoundError: Dataset file 'data/missing.csv' not found
 ```
 
 **Solutions:**
+
 ```bash
 # Check file existence
 ls -la data/missing.csv
@@ -256,17 +278,19 @@ ls -la data/missing.csv
 
 ```yaml
 data:
-  path: ~/.glassalpha/data/german_credit_processed.csv  # Auto-downloaded
+  path: ~/.glassalpha/data/german_credit_processed.csv # Auto-downloaded
 ```
 
 ### Column Not Found
 
 **Error:**
+
 ```
 KeyError: Column 'target' not found in dataset
 ```
 
 **Solutions:**
+
 ```bash
 # Check column names in your data
 python -c "import pandas as pd; print(pd.read_csv('data/dataset.csv').columns.tolist())"
@@ -276,17 +300,19 @@ python -c "import pandas as pd; print(pd.read_csv('data/dataset.csv').columns.to
 
 ```yaml
 data:
-  target_column: correct_column_name  # Use actual column name
+  target_column: correct_column_name # Use actual column name
 ```
 
 ### Data Type Issues
 
 **Error:**
+
 ```
 TypeError: Object of type 'datetime64' is not JSON serializable
 ```
 
 **Solution:**
+
 ```python
 # Preprocess data to handle datetime columns
 import pandas as pd
@@ -300,16 +326,18 @@ df.to_csv('data/processed_dataset.csv', index=False)
 ### Missing Values
 
 **Error:**
+
 ```
 ValueError: Input contains NaN, infinity or a value too large
 ```
 
 **Solution:**
+
 ```yaml
 # Add preprocessing configuration
 preprocessing:
   handle_missing: true
-  missing_strategy: median  # or 'mode' for categorical
+  missing_strategy: median # or 'mode' for categorical
 ```
 
 ## Runtime Errors
@@ -317,24 +345,26 @@ preprocessing:
 ### Memory Issues
 
 **Error:**
+
 ```
 MemoryError: Unable to allocate array with shape (10000, 10000)
 ```
 
 **Solutions:**
+
 ```yaml
 # Reduce sample sizes for explainers
 explainers:
   config:
     treeshap:
-      max_samples: 100     # Reduce from default 1000
+      max_samples: 100 # Reduce from default 1000
     kernelshap:
-      n_samples: 50        # Reduce from default 500
+      n_samples: 50 # Reduce from default 500
 
 # Enable low memory mode
 performance:
   low_memory_mode: true
-  n_jobs: 1              # Reduce parallelism
+  n_jobs: 1 # Reduce parallelism
 ```
 
 ```bash
@@ -345,11 +375,13 @@ head -n 1000 large_dataset.csv > small_dataset.csv
 ### Model Training Failures
 
 **Error:**
+
 ```
 XGBoostError: Check failed: labels.Size() == num_row
 ```
 
 **Solution:**
+
 ```python
 # Check data consistency
 import pandas as pd
@@ -366,16 +398,18 @@ df.to_csv('data/cleaned_dataset.csv', index=False)
 ### SHAP Computation Errors
 
 **Error:**
+
 ```
 Exception: TreeExplainer only supports the following model types: xgboost.Booster
 ```
 
 **Solution:**
+
 ```yaml
 # Use compatible explainer
 explainers:
   priority:
-    - kernelshap  # Model-agnostic alternative
+    - kernelshap # Model-agnostic alternative
   config:
     kernelshap:
       n_samples: 100
@@ -384,23 +418,27 @@ explainers:
 ### PDF Generation Issues
 
 **Error:**
+
 ```
 OSError: cannot load library 'pango-1.0-0'
 ```
 
 **Solution (Linux):**
+
 ```bash
 # Install required system libraries
 sudo apt install libpango1.0-dev libcairo2-dev libgtk-3-dev
 ```
 
 **Solution (macOS):**
+
 ```bash
 # Install with Homebrew
 brew install pango cairo gtk+3
 ```
 
 **Solution (Alternative):**
+
 ```bash
 # Use HTML output instead
 # Modify report configuration:
@@ -408,7 +446,7 @@ brew install pango cairo gtk+3
 
 ```yaml
 report:
-  output_format: html  # Generate HTML instead of PDF
+  output_format: html # Generate HTML instead of PDF
 ```
 
 ## Performance Issues
@@ -420,31 +458,35 @@ report:
 **Solutions:**
 
 1. **Reduce Sample Sizes:**
+
 ```yaml
 explainers:
   config:
     treeshap:
-      max_samples: 100      # Default: 1000
+      max_samples: 100 # Default: 1000
     kernelshap:
-      n_samples: 50         # Default: 500
-      background_size: 50   # Default: 100
+      n_samples: 50 # Default: 500
+      background_size: 50 # Default: 100
 ```
 
 2. **Enable Parallel Processing:**
+
 ```yaml
 performance:
-  n_jobs: -1               # Use all CPU cores
+  n_jobs: -1 # Use all CPU cores
 ```
 
 3. **Use Simpler Models:**
+
 ```yaml
 model:
   params:
-    n_estimators: 50       # Reduce from 100
-    max_depth: 3           # Reduce from 6
+    n_estimators: 50 # Reduce from 100
+    max_depth: 3 # Reduce from 6
 ```
 
 4. **Skip Expensive Operations:**
+
 ```bash
 # Use dry run for config validation
 glassalpha audit --config config.yaml --output test.pdf --dry-run
@@ -460,13 +502,15 @@ head -n 500 large_dataset.csv > test_dataset.csv
 **Solutions:**
 
 1. **Enable Memory Optimization:**
+
 ```yaml
 performance:
   low_memory_mode: true
-  n_jobs: 1  # Reduce parallelism
+  n_jobs: 1 # Reduce parallelism
 ```
 
 2. **Process Data in Chunks:**
+
 ```python
 # Pre-process large datasets
 import pandas as pd
@@ -476,11 +520,12 @@ sample.to_csv('sample_dataset.csv', index=False)
 ```
 
 3. **Optimize Explainer Settings:**
+
 ```yaml
 explainers:
   config:
     treeshap:
-      max_samples: 50       # Very small for memory constraints
+      max_samples: 50 # Very small for memory constraints
     kernelshap:
       n_samples: 20
       background_size: 20
@@ -493,6 +538,7 @@ explainers:
 **Solutions:**
 
 1. **Optimize Report Configuration:**
+
 ```yaml
 report:
   styling:
@@ -501,14 +547,16 @@ report:
 ```
 
 2. **Reduce Plot Resolution:**
+
 ```yaml
 explainers:
   config:
     treeshap:
-      plot_dpi: 150         # Default: 300
+      plot_dpi: 150 # Default: 300
 ```
 
 3. **Exclude Optional Sections:**
+
 ```yaml
 report:
   include_sections:
@@ -617,7 +665,6 @@ pip install --upgrade glassalpha
 # Always specify explicit seeds for reproducibility
 reproducibility:
   random_seed: 42
-
 # Use version control for configurations
 # Git commit: "Update audit configuration for production"
 

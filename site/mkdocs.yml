@@ -13,8 +13,8 @@ theme:
   favicon: assets/images/favicon.ico
   palette:
     - scheme: default
-      primary: slate   # deep navy/gray
-      accent: cyan     # subtle tech/AI vibe
+      primary: slate # deep navy/gray
+      accent: cyan # subtle tech/AI vibe
       toggle:
         icon: material/weather-night
         name: Switch to dark mode
@@ -91,43 +91,38 @@ markdown_extensions:
 nav:
   - Home: index.md
   - Getting Started:
-    - Installation: getting-started/installation.md
-    - Hello Audit Tutorial: getting-started/quickstart.md
-    - Configuration Reference: getting-started/configuration.md
+      - Installation: getting-started/installation.md
+      - Hello Audit Tutorial: getting-started/quickstart.md
+      - Configuration Reference: getting-started/configuration.md
   - Examples:
-    - Quick Start Audit: examples/quick-start-audit.md
-    - German Credit Deep Dive: examples/german-credit-audit.md
-    - Healthcare Bias Detection: examples/healthcare-bias-detection.md
-    - Configuration Comparison: examples/configuration-comparison.md
-  # Additional examples available in Reference section below
-  - Core Concepts:
-    - Architecture: architecture.md
-    - Scope & Limitations: limitations.md
-  - Production Deployment: deployment.md
-  - Enterprise:
-    - Licensing: licensing.md
-    - Regulatory Compliance: compliance/overview.md
-    - Security Policy: security.md
+      - Quick Start Audit: examples/quick-start-audit.md
+      - German Credit Deep Dive: examples/german-credit-audit.md
+      - Healthcare Bias Detection: examples/healthcare-bias-detection.md
+      - Configuration Comparison: examples/configuration-comparison.md
+      - Additional Examples:
+          - CCPA Compliance Audit: examples/ccpa-compliance-audit.md
+          - Customer Segmentation Audit: examples/customer-segmentation-audit.md
+          - Fraud Detection Audit: examples/fraud-detection-audit.md
+          - GDPR Compliance Audit: examples/gdpr-compliance-audit.md
+          - Healthcare Compliance Mapping: examples/healthcare-compliance-mapping.md
+          - Healthcare Treatment Outcomes: examples/healthcare-treatment-outcomes.md
+          - Insurance Compliance Mapping: examples/insurance-compliance-mapping.md
+          - Insurance Risk Assessment: examples/insurance-risk-assessment.md
   - Reference:
-    - CLI Reference: reference/cli.md
-    - API Reference: reference/api.md
-    - Troubleshooting: reference/troubleshooting.md
-    - FAQ: faq.md
-    - Additional Examples:
-      - CCPA Compliance Audit: examples/ccpa-compliance-audit.md
-      - Customer Segmentation Audit: examples/customer-segmentation-audit.md
-      - Fraud Detection Audit: examples/fraud-detection-audit.md
-      - GDPR Compliance Audit: examples/gdpr-compliance-audit.md
-      - Healthcare Compliance Mapping: examples/healthcare-compliance-mapping.md
-      - Healthcare Treatment Outcomes: examples/healthcare-treatment-outcomes.md
-      - Insurance Compliance Mapping: examples/insurance-compliance-mapping.md
-      - Insurance Risk Assessment: examples/insurance-risk-assessment.md
-  - Community:
-    - Contributing: contributing.md
-    - Changelog: changelog.md
-    - About: about.md
+      - Licensing: reference/licensing.md
+      - Regulatory Compliance: reference/compliance.md
+      - Security Policy: reference/security.md
+      - Architecture: reference/architecture.md
+      - Scope & Limitations: reference/limitations.md
+      - Production Deployment: reference/deployment.md
+      - CLI Reference: reference/cli.md
+      - API Reference: reference/api.md
+      - Troubleshooting: reference/troubleshooting.md
+      - FAQ: reference/faq.md
+      - Contributing: reference/contributing.md
+  - About: about.md
   - Blog:
-    - blog/index.md
+      - blog/index.md
 
 extra:
   social:

@@ -68,12 +68,14 @@ glassalpha audit --config configs/german_credit_simple.yaml --output minimal_aud
 ```
 
 **Results**:
+
 - **Execution**: ~10 seconds
 - **Report size**: 8 pages
 - **Key findings**: Basic performance (77% accuracy) and simple bias check
 - **Use case**: Quick validation, learning, proof-of-concept
 
 **Trade-offs**:
+
 - ✅ **Fast execution** for rapid iteration
 - ✅ **Simple results** easy to understand
 - ❌ **Limited compliance** value for regulations
@@ -141,12 +143,14 @@ glassalpha audit --config configs/example_audit.yaml --output standard_audit.pdf
 ```
 
 **Results**:
+
 - **Execution**: ~30 seconds
 - **Report size**: 18 pages
 - **Key findings**: Comprehensive analysis with 77% accuracy, gender bias detected
 - **Use case**: Production deployments, general compliance
 
 **Analysis**:
+
 - ✅ **Balanced approach** between speed and depth
 - ✅ **Good compliance** coverage for most use cases
 - ✅ **Comprehensive metrics** without overwhelming detail
@@ -248,12 +252,14 @@ glassalpha audit --config configs/gdpr_compliance.yaml --output regulatory_audit
 ```
 
 **Results**:
+
 - **Execution**: ~60 seconds
 - **Report size**: 28 pages
 - **Key findings**: Comprehensive regulatory analysis, detailed bias assessment, complete audit trail
 - **Use case**: Regulatory submissions, legal compliance, auditor review
 
 **Regulatory Features**:
+
 - ✅ **Complete audit trail** with all hashes and environment info
 - ✅ **Strict validation** catching configuration errors
 - ✅ **Comprehensive bias testing** across multiple protected attributes
@@ -319,12 +325,14 @@ glassalpha audit --config configs/fraud_detection.yaml --output performance_audi
 ```
 
 **Results**:
+
 - **Execution**: ~15 seconds
 - **Report size**: 10 pages
 - **Key findings**: Core performance metrics, basic bias check
 - **Use case**: High-volume processing, monitoring pipelines, quick checks
 
 **Optimization Features**:
+
 - ✅ **Fast execution** suitable for automated pipelines
 - ✅ **Resource efficient** for large-scale operations
 - ✅ **Core insights** without overwhelming detail

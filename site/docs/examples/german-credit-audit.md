@@ -291,19 +291,19 @@ For a 35-year-old male requesting €2,000 for a car:
 
 **High Risk Findings:**
 
-1. **Gender Discrimination Risk**
+#### Gender Discrimination Risk
    - 6.2% approval rate difference violates ECOA guidelines
    - Could result in regulatory action or lawsuits
    - Requires immediate model adjustment or feature engineering
 
-2. **Age-Based Disparities**
+#### Age-Based Disparities
    - 10.5% difference across age groups may violate age discrimination laws
    - Consider removing age-correlated features
    - Evaluate business justification for age-related patterns
 
 **Medium Risk Findings:**
 
-1. **Correlated Protected Attributes**
+#### Correlated Protected Attributes
    - Several features correlate with protected characteristics
    - May create indirect discrimination
    - Consider fairness-aware modeling techniques
@@ -318,7 +318,7 @@ For a 35-year-old male requesting €2,000 for a car:
 
 ### Immediate Actions Required
 
-1. **Address Gender Bias**
+#### Address Gender Bias
    ```python
    # Consider preprocessing approaches:
    # - Remove gender-correlated features
@@ -326,29 +326,29 @@ For a 35-year-old male requesting €2,000 for a car:
    # - Post-processing bias mitigation
    ```
 
-2. **Feature Engineering**
+#### Feature Engineering
    - Audit features correlated with protected attributes
    - Consider removing or transforming biased features
    - Implement fairness-aware feature selection
 
-3. **Model Adjustment**
+#### Model Adjustment
    - Retrain with fairness constraints
    - Consider ensemble methods with bias reduction
    - Validate improvements with new audit
 
 ### Long-term Compliance Strategy
 
-1. **Ongoing Monitoring**
+#### Ongoing Monitoring
    - Regular bias audits on new data
    - Statistical tests for demographic parity
    - Performance monitoring across protected groups
 
-2. **Documentation Requirements**
+#### Documentation Requirements
    - Maintain complete audit trails
    - Document bias mitigation efforts
    - Prepare regulatory submission packages
 
-3. **Process Improvements**
+#### Process Improvements
    - Establish fairness review boards
    - Implement bias testing in model development
    - Create remediation procedures for biased decisions
@@ -387,35 +387,35 @@ For a 35-year-old male requesting €2,000 for a car:
 
 ### Technical Remediation
 
-1. **Implement Fairness Constraints**
+#### Implement Fairness Constraints
    ```python
    # Example: Add fairness penalty to XGBoost training
    # Consider libraries like fairlearn or aif360
    ```
 
-2. **Alternative Modeling Approaches**
+#### Alternative Modeling Approaches
    - Pre-processing: Remove biased features or transform data
    - In-processing: Fairness-constrained optimization
    - Post-processing: Adjust predictions to achieve parity
 
-3. **Validation Strategy**
+#### Validation Strategy
    - Cross-validation with fairness metrics
    - Holdout testing on diverse populations
    - A/B testing for production deployment
 
 ### Operational Changes
 
-1. **Model Governance**
+#### Model Governance
    - Establish bias testing requirements
    - Create fairness review processes
    - Implement continuous monitoring
 
-2. **Human Oversight**
+#### Human Oversight
    - Manual review for borderline cases
    - Appeals process for declined applicants
    - Regular expert review of model decisions
 
-3. **Stakeholder Engagement**
+#### Stakeholder Engagement
    - Train staff on fair lending requirements
    - Engage with compliance and legal teams
    - Communicate changes to management

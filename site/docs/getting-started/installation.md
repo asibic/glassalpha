@@ -58,13 +58,14 @@ pip install -e ".[dev]"
 ```
 
 Development dependencies include:
+
 - **Testing**: pytest, pytest-cov
 - **Code Quality**: ruff, mypy, black, pre-commit
 - **Documentation**: mkdocs, mkdocs-material
 
-## Platform-Specific Installation
+## Platform-specific installation
 
-### macOS Installation
+### macOS installation
 
 **Prerequisites:**
 ```bash
@@ -90,11 +91,12 @@ pip install -e .
 ```
 
 **Common macOS Issues:**
+
 - **XGBoost libomp error**: Install with `brew install libomp`
 - **Python version conflicts**: Use `python3.11` explicitly
 - **Permission issues**: Avoid `sudo pip install`, use virtual environments
 
-### Linux Installation (Ubuntu/Debian)
+### Linux installation (Ubuntu/Debian)
 
 **Prerequisites:**
 ```bash
@@ -120,7 +122,7 @@ pip install --upgrade pip
 pip install -e .
 ```
 
-### Linux Installation (CentOS/RHEL)
+### Linux installation (CentOS/RHEL)
 
 **Prerequisites:**
 ```bash
@@ -146,7 +148,7 @@ pip install --upgrade pip
 pip install -e .
 ```
 
-### Windows Installation
+### Windows installation
 
 **Option 1: Windows Subsystem for Linux (Recommended)**
 ```bash
@@ -176,7 +178,8 @@ pip install --upgrade pip
 pip install -e .
 ```
 
-**Windows Notes:**
+**Windows notes:**
+
 - WSL2 provides better compatibility and performance
 - Native Windows may have PDF generation limitations
 - Use PowerShell or Command Prompt for native installation
@@ -263,6 +266,7 @@ glassalpha audit \
 ```
 
 Successful execution should:
+
 - Complete in under 30 seconds
 - Generate a PDF report (~500KB+)
 - Show no error messages
@@ -275,21 +279,25 @@ Successful execution should:
 GlassAlpha automatically installs these required dependencies:
 
 **Data Processing:**
+
 - `pandas>=2.0.0` - Data manipulation and analysis
 - `numpy>=1.24.0` - Numerical computing
 - `scikit-learn>=1.3.0` - Machine learning utilities
 
 **Machine Learning:**
+
 - `xgboost>=1.7.0` - Gradient boosting framework
 - `lightgbm>=3.3.0` - Microsoft's gradient boosting
 - `shap>=0.42.0` - Model explanations
 
 **Visualization & Reporting:**
+
 - `matplotlib>=3.7.0` - Plotting and visualization
 - `seaborn>=0.12.0` - Statistical visualization
 - `weasyprint>=59.0` - PDF generation
 
 **Configuration & CLI:**
+
 - `pydantic>=2.0.0` - Configuration validation
 - `typer>=0.9.0` - Command-line interface
 - `pyyaml>=6.0` - YAML configuration files
@@ -297,6 +305,7 @@ GlassAlpha automatically installs these required dependencies:
 ### Optional Dependencies
 
 **Development Tools** (with `[dev]` install):
+
 - `pytest>=7.4.0` - Testing framework
 - `pytest-cov>=4.1.0` - Test coverage
 - `ruff>=0.0.280` - Code linting and formatting
@@ -306,6 +315,7 @@ GlassAlpha automatically installs these required dependencies:
 ### Version Compatibility
 
 GlassAlpha is tested with:
+
 - **Python**: 3.11, 3.12
 - **scikit-learn**: 1.3.x, 1.4.x
 - **XGBoost**: 1.7.x, 2.0.x
@@ -317,6 +327,7 @@ GlassAlpha is tested with:
 ### Using Virtual Environments
 
 **Why Virtual Environments?**
+
 - Isolate dependencies from system Python
 - Avoid version conflicts
 - Enable project-specific configurations
@@ -343,6 +354,7 @@ poetry shell
 ### Environment Variables
 
 **Configuration:**
+
 - `GLASSALPHA_CONFIG_DIR` - Default configuration directory
 - `GLASSALPHA_DATA_DIR` - Default data directory
 - `GLASSALPHA_LOG_LEVEL` - Logging level (DEBUG, INFO, WARNING, ERROR)

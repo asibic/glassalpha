@@ -13,7 +13,7 @@ GlassAlpha provides **enterprise-grade licensing compatibility** with a carefull
 ### Brand & Trademark
 
 - **Trademark**: "GlassAlpha" name and logo
-- **Policy**: See [TRADEMARK.md](../TRADEMARK.md)
+- **Policy**: See [TRADEMARK](TRADEMARK.md)
 - **Usage**: Requires explicit permission except as described in trademark policy
 
 ## Technology Stack & Licenses
@@ -37,7 +37,7 @@ GlassAlpha uses industry-standard, enterprise-compatible dependencies with prove
 | **PyYAML** | 6.0.1 | MIT License | YAML config parsing | ✅ Standard YAML processing |
 | **orjson** | 3.9+ | Apache 2.0 / MIT | Fast JSON serialization | ✅ High-performance JSON handling |
 
-*See [constraints.txt](../packages/constraints.txt) for exact locked versions used in CI.*
+*See [constraints.txt](constraints.txt) for exact locked versions used in CI.*
 
 ## Licensing Confidence & Risk Mitigation
 

@@ -49,6 +49,7 @@ The CCPA compliance dataset contains:
 ### Consumer Demographics
 
 **Age Distribution:**
+
 - Young (18-24): 12% of consumers
 - Young Adult (25-34): 25% of consumers
 - Middle Age (35-49): 35% of consumers
@@ -56,6 +57,7 @@ The CCPA compliance dataset contains:
 - Elderly (65+): 8% of consumers
 
 **California Regions:**
+
 - Los Angeles: 35%
 - San Francisco: 25%
 - San Diego: 15%
@@ -63,6 +65,7 @@ The CCPA compliance dataset contains:
 - Other California: 15%
 
 **Consumer Rights Exercised:**
+
 - Do Not Sell Requests: 10%
 - Data Deletion Requests: 2%
 - Data Portability Requests: 5%
@@ -70,6 +73,7 @@ The CCPA compliance dataset contains:
 ### Key Features
 
 **Demographic Information:**
+
 - `age` - Consumer age (18-85)
 - `gender` - Consumer gender (protected attribute)
 - `age_group` - Age categorization (protected attribute)
@@ -77,18 +81,21 @@ The CCPA compliance dataset contains:
 - `california_region` - Geographic region within California
 
 **Privacy Preferences:**
+
 - `marketing_consent_given` - Explicit marketing consent status
 - `data_sharing_opt_out` - Data sharing opt-out status
 - `tracking_cookies_accepted` - Cookie consent status
 - `location_services_enabled` - Location data consent
 
 **Behavioral Indicators:**
+
 - `online_purchase_frequency` - Online shopping frequency (0-60 purchases/year)
 - `subscription_services` - Subscription count (0-12 services)
 - `social_media_activity` - Social media engagement (0-100)
 - `mobile_app_usage` - App interaction frequency (0-200 sessions)
 
 **CCPA Compliance Fields:**
+
 - `automated_decision_consent` - Consent for automated decision-making
 - `data_portability_requested` - Data export requests
 - `data_deletion_requested` - Data deletion requests
@@ -227,12 +234,14 @@ Generating PDF report: ccpa_compliance_audit.pdf
 ### Model Performance Analysis
 
 **Overall Performance:**
+
 - **Accuracy: 81.2%** - Model correctly predicts 81% of automated decision consent
 - **AUC-ROC: 0.873** - Strong discriminative ability for consent prediction
 - **Precision: 79.4%** - Of predicted consents, 79% are actually granted
 - **Recall: 74.8%** - Model identifies 75% of all actual consent grants
 
 **CCPA Compliance Interpretation:**
+
 - **Consumer Rights Accuracy**: 81% accuracy supports consumer choice respect
 - **False Positive Rate**: 21% of predicted consents are actually opt-outs
 - **False Negative Rate**: 25% of actual consents are missed
@@ -242,27 +251,27 @@ Generating PDF report: ccpa_compliance_audit.pdf
 
 **Global Feature Importance (Top 5):**
 
-1. **`marketing_consent_given` (+0.298)**
+#### 1. `marketing_consent_given` (+0.298)
    - Most important CCPA compliance factor
    - Explicit marketing consent strongly predicts automated decision consent
    - Demonstrates respect for consumer privacy preferences
 
-2. **`online_purchase_frequency` (+0.267)**
+#### 2. `online_purchase_frequency` (+0.267)
    - Purchase behavior strongly correlates with consent likelihood
    - Engaged customers more willing to consent to automated decisions
    - Indicates legitimate interest basis for processing
 
-3. **`subscription_services` (+0.234)**
+#### 3. `subscription_services` (+0.234)
    - Subscription engagement predicts consent willingness
    - Ongoing service relationships increase consent probability
    - Supports relationship-based consent justification
 
-4. **`tracking_cookies_accepted` (+0.198)**
+#### 4. `tracking_cookies_accepted` (+0.198)
    - Cookie consent status influences automated decision consent
    - Privacy-aware consumers show consistent behavior patterns
    - Important for understanding consumer privacy preferences
 
-5. **`california_region` (+0.156)**
+#### 5. `california_region` (+0.156)
    - Geographic location within California affects consent patterns
    - May reflect regional privacy awareness differences
    - Requires monitoring for geographic discrimination
@@ -283,6 +292,7 @@ For a 32-year-old consumer in Los Angeles with high engagement:
 **Demographic Parity Analysis:**
 
 **Age Group Consent Rates:**
+
 - **Young (18-24):** 64.5% predicted consent rate
 - **Young Adult (25-34):** 72.1% predicted consent rate
 - **Middle Age (35-49):** 78.3% predicted consent rate
@@ -292,6 +302,7 @@ For a 32-year-old consumer in Los Angeles with high engagement:
 - **Conclusion:** ⚠️ Significant age-based disparities detected
 
 **Income Bracket Analysis:**
+
 - **Low Income:** 71.8% predicted consent rate
 - **Middle Income:** 76.4% predicted consent rate
 - **Upper Middle:** 79.2% predicted consent rate
@@ -300,6 +311,7 @@ For a 32-year-old consumer in Los Angeles with high engagement:
 - **Conclusion:** ⚠️ Income-based disparities detected
 
 **Predictive Parity Analysis:**
+
 - **Young:** 71.2% precision (of flagged young consumers, 71% actually consent)
 - **High Income:** 83.4% precision
 - **Difference:** 12.2% (exceeds 5% threshold)
@@ -309,20 +321,23 @@ For a 32-year-old consumer in Los Angeles with high engagement:
 
 **High Risk Findings:**
 
-1. **Age and Income-Based Disparities**
+**Age and Income-Based Disparities**
+
    - 20.7% difference in consent rates across age groups
    - 9.8% difference across income brackets
    - May indicate discrimination in automated decision-making
    - Could result in CCPA non-discrimination violations
 
-2. **Consumer Rights Impact**
+**Consumer Rights Impact**
+
    - 10% of consumers have exercised "Do Not Sell" rights
    - Model must respect these privacy choices
    - Requires enhanced transparency for automated decisions
 
 **Medium Risk Findings:**
 
-1. **Consent Prediction Accuracy**
+**Consent Prediction Accuracy**
+
    - 19% false positive rate may lead to unwanted automated decisions
    - 25% false negative rate misses consent opportunities
    - Balance needed between automation efficiency and consumer rights
@@ -346,29 +361,34 @@ For a 32-year-old consumer in Los Angeles with high engagement:
    # - Human oversight for high-risk automated decisions
    ```
 
-2. **Enhance Consumer Rights Mechanisms**
-   - Implement clear opt-out mechanisms for automated decisions
-   - Provide meaningful explanations for algorithmic decisions
-   - Ensure non-discrimination regardless of privacy choices
+**2. Enhance Consumer Rights Mechanisms**
 
-3. **Transparency Enhancement**
-   - Develop consumer-friendly automated decision explanations
-   - Implement right to human intervention processes
-   - Document legitimate interest basis for processing
+- Implement clear opt-out mechanisms for automated decisions
+- Provide meaningful explanations for algorithmic decisions
+- Ensure non-discrimination regardless of privacy choices
+
+**3. Transparency Enhancement**
+
+- Develop consumer-friendly automated decision explanations
+- Implement right to human intervention processes
+- Document legitimate interest basis for processing
 
 ### Long-term Compliance Strategy
 
-1. **Ongoing CCPA Monitoring**
-   - Regular bias audits on automated decision-making models
-   - Consumer rights exercise tracking and analysis
-   - Model performance monitoring across demographic groups
+**1. Ongoing CCPA Monitoring**
 
-2. **Consumer Rights Management**
-   - Automated consumer rights request processing
-   - Regular privacy preference verification
-   - Enhanced transparency for data processing activities
+- Regular bias audits on automated decision-making models
+- Consumer rights exercise tracking and analysis
+- Model performance monitoring across demographic groups
 
-3. **Regulatory Documentation**
+**2. Consumer Rights Management**
+
+- Automated consumer rights request processing
+- Regular privacy preference verification
+- Enhanced transparency for data processing activities
+
+**3. Regulatory Documentation**
+
    - Maintain comprehensive consumer rights documentation
    - Document non-discrimination measures
    - Prepare regulatory examination materials
@@ -378,12 +398,14 @@ For a 32-year-old consumer in Los Angeles with high engagement:
 ### CCPA Compliance Impact
 
 **Current Model:**
+
 - **Automated decision consent prediction:** 81% accuracy
 - **Consumer rights support:** Enables privacy choice respect
 - **Business efficiency:** Automated consent management at scale
 - **Regulatory compliance:** Supports CCPA requirements
 
 **Consumer Rights Benefits:**
+
 - **Privacy protection:** Respects consumer data choices
 - **Transparency:** Clear automated decision-making explanations
 - **Non-discrimination:** Equal treatment regardless of privacy preferences
@@ -392,11 +414,13 @@ For a 32-year-old consumer in Los Angeles with high engagement:
 ### Regulatory Risk Mitigation
 
 **Before Audit:**
+
 - Potential CCPA violations if bias undetected
 - Consumer rights non-compliance without transparency
 - Regulatory scrutiny without proper consumer protections
 
 **After Audit:**
+
 - Documented compliance with CCPA consumer rights requirements
 - Demonstrated fairness across demographic groups
 - Clear audit trail for California Attorney General review
@@ -405,54 +429,63 @@ For a 32-year-old consumer in Los Angeles with high engagement:
 
 ### Technical Improvements
 
-1. **Model Enhancement**
+**1. Model Enhancement**
+
    - Demographic-aware consent prediction modeling
    - Integration with consumer rights management systems
    - Enhanced transparency mechanisms for automated decisions
 
-2. **CCPA Compliance Features**
+**2. CCPA Compliance Features**
+
    - Automated consumer rights request processing
    - Consent withdrawal tracking and implementation
    - Data processing necessity and proportionality assessments
 
-3. **Advanced Analytics**
+**3. Advanced Analytics**
+
    - Consumer rights exercise pattern analysis
    - Automated decision impact assessment
    - Privacy preference trend monitoring
 
 ### Operational Changes
 
-1. **Consumer Rights Integration**
-   - Real-time consumer rights dashboard
-   - Automated privacy preference processing
-   - Consumer education on automated decision rights
+**1. Consumer Rights Integration**
 
-2. **CCPA Program Management**
-   - California Attorney General reporting
-   - Consumer rights exercise tracking
-   - Privacy impact assessment maintenance
+- Real-time consumer rights dashboard
+- Automated privacy preference processing
+- Consumer education on automated decision rights
 
-3. **Transparency Enhancement**
-   - Consumer-friendly automated decision explanations
-   - Right to human intervention implementation
-   - Clear privacy policy communications
+**2. CCPA Program Management**
+
+- California Attorney General reporting
+- Consumer rights exercise tracking
+- Privacy impact assessment maintenance
+
+**3. Transparency Enhancement**
+
+- Consumer-friendly automated decision explanations
+- Right to human intervention implementation
+- Clear privacy policy communications
 
 ## Conclusion
 
 This CCPA compliance audit revealed an effective automated decision consent model with important demographic disparities that require immediate attention for full California consumer privacy compliance. The audit demonstrated:
 
 **Strengths:**
+
 - Good overall performance (81% accuracy) for consent management
 - Strong correlation between privacy preferences and consent behavior
 - Comprehensive bias detection across multiple demographic dimensions
 - CCPA-compliant transparency through SHAP explanations
 
 **Critical Issues:**
+
 - Age and income discrimination exceeding regulatory thresholds
 - Need for enhanced consumer rights mechanisms
 - Consumer non-discrimination requirements
 
 **Action Plan:**
+
 1. Address demographic disparities through model refinement
 2. Implement enhanced consumer rights transparency
 3. Conduct comprehensive CCPA compliance review

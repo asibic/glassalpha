@@ -3,7 +3,7 @@ date: 2025-09-21
 authors:
   - Gabriel Mays
 categories:
-  - Announcements
+  - Updates
 ---
 
 # Working on alpha release

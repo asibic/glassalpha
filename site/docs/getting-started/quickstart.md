@@ -90,28 +90,33 @@ The audit report is ready for review and regulatory submission.
 Open `my_first_audit.pdf` to see your comprehensive audit report containing:
 
 ### Executive Summary
+
 - Key findings and compliance status
 - Model performance overview
 - Bias detection results
 - Regulatory assessment
 
 ### Model Performance Analysis
+
 - Accuracy, precision, recall, F1 score, AUC-ROC
 - Confusion matrix
 - Performance visualizations
 
 ### SHAP Explanations
+
 - Global feature importance rankings
 - Individual prediction explanations
 - Waterfall plots showing decision factors
 
 ### Fairness Analysis
+
 - Demographic parity assessment
 - Equal opportunity analysis
 - Bias detection across protected attributes
 - Statistical significance testing
 
 ### Reproducibility Manifest
+
 - Complete audit trail with timestamps
 - Dataset fingerprints and model parameters
 - Random seeds and component versions
@@ -150,8 +155,8 @@ model:
 explainers:
   strategy: first_compatible
   priority:
-    - treeshap      # Primary choice for tree models
-    - kernelshap    # Fallback for any model type
+    - treeshap # Primary choice for tree models
+    - kernelshap # Fallback for any model type
 
 # Metrics to compute
 metrics:
@@ -203,18 +208,21 @@ See the [Configuration Guide](configuration.md) for detailed customization optio
 ## Common Use Cases
 
 ### Financial Services Compliance
+
 - Credit scoring model validation
 - Fair lending assessments
 - Regulatory reporting (ECOA, FCRA)
 - Model risk management
 
 ### HR and Employment
+
 - Hiring algorithm audits
 - Promotion decision analysis
 - Salary equity assessments
 - EEO compliance verification
 
 ### Healthcare and Insurance
+
 - Risk assessment model validation
 - Treatment recommendation audits
 - Coverage decision analysis

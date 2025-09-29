@@ -8,12 +8,14 @@ This document maps the healthcare treatment outcomes example to specific regulat
 **Primary Authority**: U.S. Food and Drug Administration (FDA)
 
 **Key Requirements:**
+
 - **Software as Medical Device (SaMD)**: Clinical decision support software classification
 - **Clinical Evaluation**: Analytical and clinical validation requirements
 - **Quality Management**: Software development lifecycle and risk management
 - **Post-Market Surveillance**: Ongoing monitoring and reporting requirements
 
 **GlassAlpha Mapping:**
+
 - **Performance Metrics**: Accuracy, precision, recall validate clinical efficacy
 - **Clinical Validation**: Comparison against established medical standards
 - **Risk Assessment**: False positive/negative rate analysis for patient safety
@@ -23,12 +25,14 @@ This document maps the healthcare treatment outcomes example to specific regulat
 **Primary Authority**: Centers for Medicare & Medicaid Services (CMS)
 
 **Key Requirements:**
+
 - **Laboratory Testing Standards**: Accuracy and reliability requirements
 - **Quality Control**: Analytical measurement range and performance validation
 - **Personnel Qualifications**: Competency assessment for test interpretation
 - **Patient Test Management**: Result reporting and clinical consultation
 
 **GlassAlpha Mapping:**
+
 - **Laboratory Value Analysis**: Validation of clinical parameter interpretation
 - **Clinical Correlation**: Association between model predictions and patient outcomes
 - **Quality Metrics**: Precision, accuracy, and reliability assessment
@@ -38,12 +42,14 @@ This document maps the healthcare treatment outcomes example to specific regulat
 **Primary Authority**: U.S. Department of Health and Human Services (HHS)
 
 **Key Requirements:**
+
 - **Privacy Rule**: Protected health information (PHI) handling requirements
 - **Security Rule**: Administrative, physical, and technical safeguards
 - **Breach Notification**: Timely reporting of security incidents
 - **Business Associate Agreements**: Third-party data handling requirements
 
 **GlassAlpha Mapping:**
+
 - **Protected Attributes**: Explicit handling of demographic and health data
 - **Data Processing Documentation**: Complete audit trail of PHI usage
 - **Privacy-Aware Analysis**: Fairness metrics respecting HIPAA constraints
@@ -53,12 +59,14 @@ This document maps the healthcare treatment outcomes example to specific regulat
 **Federal Authority**: Civil Rights Act, Americans with Disabilities Act, Age Discrimination Act
 
 **Key Requirements:**
+
 - **Equal Protection**: Non-discrimination in healthcare delivery
 - **Accessibility**: Reasonable accommodations for disabled patients
 - **Language Access**: Effective communication for limited English proficiency
 - **Cultural Competency**: Respect for diverse cultural health beliefs
 
 **GlassAlpha Mapping:**
+
 - **Demographic Fairness**: Analysis across age, gender, race/ethnicity
 - **Accessibility Assessment**: Model performance across diverse populations
 - **Language Consideration**: Potential impact on non-English speaking patients

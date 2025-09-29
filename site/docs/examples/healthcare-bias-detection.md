@@ -265,6 +265,7 @@ Age bias: Middle-aged patients receive more accurate predictions
 ### 3. Feature Impact Analysis
 
 **Most Influential Features (SHAP):**
+
 1. **Previous admissions** (0.23) - Clinical relevance: Strong predictor
 2. **Comorbidity count** (0.19) - Clinical relevance: Multiple conditions increase risk
 3. **Length of stay** (0.16) - Clinical relevance: Longer stays indicate complexity
@@ -275,6 +276,7 @@ Age bias: Middle-aged patients receive more accurate predictions
 8. **ZIP code income** (0.06) - **Bias concern**: Socioeconomic proxy
 
 **Bias Source Analysis:**
+
 - **Direct bias**: Age, gender, race/ethnicity features
 - **Proxy bias**: Insurance type, ZIP code income, primary language
 - **Clinical correlation**: Some bias may reflect actual health disparities
@@ -326,6 +328,7 @@ Bias Assessment: Gender bias led to underestimation of risk
 ### FDA AI/ML Guidance Compliance
 
 **Algorithm Transparency:**
+
 - ✅ Complete model documentation provided
 - ✅ Training data characteristics described
 - ✅ Performance metrics across demographic groups
@@ -333,6 +336,7 @@ Bias Assessment: Gender bias led to underestimation of risk
 - ⚠️ Requires ongoing monitoring plan implementation
 
 **Risk Assessment:**
+
 - **Risk Level**: High (impacts patient care decisions)
 - **Bias Impact**: Moderate (disparities detected but not extreme)
 - **Clinical Impact**: Significant (affects care allocation)
@@ -341,6 +345,7 @@ Bias Assessment: Gender bias led to underestimation of risk
 ### HIPAA Compliance
 
 **Data Protection:**
+
 - ✅ No PHI in model outputs or logs
 - ✅ Data encryption at rest and in transit
 - ✅ Access controls and audit logging
@@ -349,6 +354,7 @@ Bias Assessment: Gender bias led to underestimation of risk
 ### CMS Innovation Requirements
 
 **Health Equity:**
+
 - ⚠️ **Disparities detected**: Requires intervention
 - ✅ **Bias measurement**: Comprehensive analysis completed
 - ⚠️ **Correction plan needed**: Bias mitigation strategy required
@@ -359,16 +365,19 @@ Bias Assessment: Gender bias led to underestimation of risk
 ### 1. Immediate Actions
 
 **Data Enhancement:**
+
 - Collect more diverse training data, especially from underrepresented groups
 - Review feature selection to remove unnecessary socioeconomic proxies
 - Implement data quality checks for demographic balance
 
 **Model Adjustments:**
+
 - Apply demographic parity constraints during training
 - Use threshold optimization by demographic group
 - Implement fairness-aware ensemble methods
 
 **Clinical Workflow:**
+
 - Add human review for high-risk predictions in protected groups
 - Implement second opinion protocols for demographic edge cases
 - Train clinical staff on bias awareness and mitigation
@@ -376,16 +385,19 @@ Bias Assessment: Gender bias led to underestimation of risk
 ### 2. Long-term Improvements
 
 **Algorithmic Fairness:**
+
 - Develop group-specific models or adjustments
 - Implement causal inference methods to separate clinical from social factors
 - Use adversarial debiasing techniques during training
 
 **Clinical Integration:**
+
 - Embed fairness metrics into clinical dashboards
 - Implement real-time bias monitoring alerts
 - Regular bias audits (quarterly recommended)
 
 **Regulatory Alignment:**
+
 - Develop standard operating procedures for bias detection
 - Create incident response plan for bias violations
 - Establish governance committee for AI fairness oversight
@@ -434,34 +446,34 @@ monitoring_config = {
 
 ### Clinical Integration
 
-1. **Human-AI Collaboration**
+#### 1. Human-AI Collaboration
    - AI predictions as decision support, not replacement
    - Clear indication of AI involvement in care decisions
    - Easy override mechanisms for clinical judgment
 
-2. **Transparency**
+#### 2. Transparency
    - Explain AI predictions in clinical terms
    - Document AI usage in patient records
    - Train staff on AI capabilities and limitations
 
-3. **Continuous Improvement**
+#### 3. Continuous Improvement
    - Regular retraining with new data
    - Bias monitoring and correction
    - Clinical outcome feedback integration
 
 ### Regulatory Preparedness
 
-1. **Documentation**
+#### 1. Documentation
    - Maintain complete audit trails
    - Document all model changes and rationale
    - Keep regulatory submission materials current
 
-2. **Risk Management**
+#### 2. Risk Management
    - Regular risk assessments
    - Incident reporting and response
    - Continuous safety monitoring
 
-3. **Quality Assurance**
+#### 3. Quality Assurance
    - Peer review of AI decisions
    - Clinical validation studies
    - External audit readiness
@@ -478,6 +490,7 @@ Healthcare AI requires heightened attention to bias detection and mitigation due
 GlassAlpha provides the comprehensive bias detection and audit capabilities needed for responsible healthcare AI deployment, ensuring models serve all patients fairly while maintaining clinical effectiveness.
 
 **Next Steps:**
+
 1. Implement bias mitigation strategies
 2. Establish continuous monitoring processes
 3. Engage clinical stakeholders in AI governance

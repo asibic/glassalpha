@@ -41,11 +41,13 @@ For detailed information about system design and quality assurance, see the [Arc
 ### What are the system requirements?
 
 **Minimum Requirements:**
+
 - Python 3.11 or higher
 - 2GB available RAM
 - 1GB disk space for installation and temporary files
 
 **Recommended:**
+
 - Python 3.11+
 - 8GB+ RAM for large datasets
 - SSD storage for better performance
@@ -62,6 +64,7 @@ GlassAlpha is tested and supported on:
 ### How do I install GlassAlpha?
 
 **Standard Installation:**
+
 ```bash
 git clone https://github.com/GlassAlpha/glassalpha
 cd glassalpha/packages
@@ -69,6 +72,7 @@ pip install -e .
 ```
 
 **Verify Installation:**
+
 ```bash
 glassalpha --version
 glassalpha list
@@ -79,6 +83,7 @@ See the [Quick Start Guide](getting-started/quickstart.md) for detailed instruct
 ### What dependencies does GlassAlpha require?
 
 **Core Dependencies:**
+
 - pandas, numpy (data processing)
 - scikit-learn (machine learning utilities)
 - XGBoost, LightGBM (gradient boosting models)
@@ -93,9 +98,11 @@ All dependencies are automatically installed during setup.
 ### How do I generate my first audit?
 
 1. **Follow the Quick Start guide for a 5-minute introduction:**
+
    - [Quick Start Audit](examples/quick-start-audit.md) - Fastest way to get started
 
 2. **Use the German Credit example:**
+
 ```bash
 glassalpha audit \
   --config configs/german_credit_simple.yaml \
@@ -103,6 +110,7 @@ glassalpha audit \
 ```
 
 3. **For your own data, create a configuration:**
+
 ```yaml
 audit_profile: tabular_compliance
 reproducibility:
@@ -115,6 +123,7 @@ model:
 ```
 
 4. **Run the audit:**
+
 ```bash
 glassalpha audit --config your_config.yaml --output audit.pdf
 ```
@@ -137,8 +146,9 @@ Configure preprocessing in your audit configuration:
 ```yaml
 preprocessing:
   handle_missing: true
-  missing_strategy: median    # For numeric: median, mean, mode
-                             # For categorical: mode, drop
+  missing_strategy:
+    median # For numeric: median, mean, mode
+    # For categorical: mode, drop
 ```
 
 GlassAlpha automatically handles most missing value scenarios.
@@ -164,12 +174,14 @@ GlassAlpha supports models saved with:
 ### Which machine learning models are supported?
 
 **Currently Supported:**
+
 - **XGBoost** - Gradient boosting with TreeSHAP explanations
 - **LightGBM** - Microsoft's gradient boosting framework
 - **Logistic Regression** - Linear classification models
 - **Generic Scikit-learn** - Most scikit-learn classifiers
 
 **Explanation Support:**
+
 - **TreeSHAP** - Exact SHAP values for tree-based models (XGBoost, LightGBM)
 - **KernelSHAP** - Model-agnostic explanations for any model type
 
@@ -218,12 +230,14 @@ GlassAlpha currently focuses on **tabular data** for classification tasks. Addit
 ### Which regulations does GlassAlpha address?
 
 **Directly Supported:**
+
 - **GDPR** (EU) - Right to explanation, automated decision-making
 - **ECOA** (US) - Fair lending, non-discrimination in credit
 - **FCRA** (US) - Accuracy and fairness in credit reporting
 - **EU AI Act** - High-risk AI system requirements
 
 **Partially Supported:**
+
 - **Fair Housing Act** (US) - Housing discrimination
 - **Employment Standards** (EEOC, various) - Hiring discrimination
 
@@ -252,6 +266,7 @@ Protected attributes (race, gender, age) are used for:
 ### What audit evidence does GlassAlpha provide?
 
 **Generated Evidence:**
+
 - **PDF Audit Reports** - Comprehensive analysis with visualizations
 - **Audit Manifests** - Complete execution metadata in JSON format
 - **Configuration Records** - All settings and parameters used
@@ -264,11 +279,13 @@ Protected attributes (race, gender, age) are used for:
 ### How fast is GlassAlpha?
 
 **Typical Performance:**
+
 - **Small datasets** (< 1,000 rows): 1-3 seconds
 - **Medium datasets** (1,000-10,000 rows): 3-15 seconds
 - **Large datasets** (10,000-100,000 rows): 15-60 seconds
 
 **Performance Factors:**
+
 - **Model complexity** (tree depth, number of estimators)
 - **Explanation method** (TreeSHAP is faster than KernelSHAP)
 - **Number of features** affects SHAP computation time
@@ -277,23 +294,25 @@ Protected attributes (race, gender, age) are used for:
 ### What are the dataset size limits?
 
 **Practical Limits:**
+
 - **Rows**: No hard limit, tested up to 1M+ rows
 - **Features**: Up to ~1,000 features (SHAP computation becomes slow beyond this)
 - **Memory**: Depends on available RAM (8GB recommended for 100K+ rows)
 
 **Optimization Options:**
+
 ```yaml
 # For large datasets
 explainers:
   config:
     treeshap:
-      max_samples: 100    # Reduce from default 1000
+      max_samples: 100 # Reduce from default 1000
     kernelshap:
-      n_samples: 50       # Reduce from default 500
+      n_samples: 50 # Reduce from default 500
 
 performance:
   low_memory_mode: true
-  n_jobs: -1             # Use all CPU cores
+  n_jobs: -1 # Use all CPU cores
 ```
 
 ### Can I run GlassAlpha in production environments?
@@ -301,6 +320,7 @@ performance:
 Yes, GlassAlpha is designed for production use:
 
 **Production Features:**
+
 - **Deterministic execution** for consistent results
 - **Configuration management** with version control
 - **Audit trails** for compliance and debugging
@@ -308,6 +328,7 @@ Yes, GlassAlpha is designed for production use:
 - **Security considerations** (no external network calls)
 
 **Integration Options:**
+
 - **CLI automation** for scheduled audits
 - **Python API** for programmatic integration
 - **Configuration files** for different environments
@@ -318,12 +339,14 @@ For comprehensive production deployment guidance, see the [Production Deployment
 ### Are there any limitations I should know about?
 
 **Current Limitations:**
+
 - **Tabular data only** - No text, image, or time series support yet
 - **Classification focus** - Limited regression support
 - **English documentation** - Additional languages may be supported based on demand
 - **Single machine** - No distributed computing support
 
 **Model Limitations:**
+
 - **TreeSHAP** only works with tree-based models (XGBoost, LightGBM)
 - **KernelSHAP** can be slow for complex models or large datasets
 - **Fairness metrics** require protected attribute data
@@ -339,6 +362,7 @@ GlassAlpha is organized to support potential future features for enterprise need
 ### How do I integrate GlassAlpha with my existing ML pipeline?
 
 **Python API Integration:**
+
 ```python
 from glassalpha.pipeline import AuditPipeline
 from glassalpha.config import AuditConfig
@@ -358,6 +382,7 @@ else:
 ```
 
 **CLI Integration:**
+
 ```bash
 # In CI/CD pipeline
 glassalpha validate --config production_config.yaml --strict
@@ -367,12 +392,14 @@ glassalpha audit --config production_config.yaml --output audit_report.pdf
 ### Can I customize the audit reports?
 
 **Current Customization:**
+
 - **Report sections** can be included/excluded
 - **Color schemes** and styling options
 - **Company branding** (logo, contact information)
 - **Compliance statements** for specific regulations
 
 **Configuration Example:**
+
 ```yaml
 report:
   template: standard_audit
@@ -389,6 +416,7 @@ report:
 ### How do I handle multiple models or environments?
 
 **Multiple Configurations:**
+
 ```bash
 # Development environment
 glassalpha audit --config configs/german_credit_simple.yaml --output dev_audit.pdf
@@ -398,6 +426,7 @@ glassalpha audit --config configs/gdpr_compliance.yaml --output prod_audit.pdf -
 ```
 
 **Configuration Overrides:**
+
 ```bash
 # Base configuration with environment-specific overrides
 glassalpha audit \
@@ -411,6 +440,7 @@ glassalpha audit \
 ### How do I contribute to GlassAlpha?
 
 **Ways to Contribute:**
+
 - **Bug reports** and feature requests via GitHub Issues
 - **Code contributions** following our development guidelines
 - **Documentation improvements** and examples
@@ -456,10 +486,12 @@ class MyExplainer:
 ### Common installation issues?
 
 **Python Version:**
+
 - Ensure Python 3.11+ (check with `python --version`)
 - Use virtual environments to avoid conflicts
 
 **XGBoost on macOS:**
+
 ```bash
 # If you see libomp errors
 brew install libomp
@@ -467,6 +499,7 @@ pip uninstall xgboost && pip install xgboost
 ```
 
 **Memory Issues:**
+
 - Reduce `max_samples` in explainer configuration
 - Enable `low_memory_mode` in performance settings
 - Use smaller datasets for initial testing
@@ -474,6 +507,7 @@ pip uninstall xgboost && pip install xgboost
 ### Where can I get help?
 
 **Support Channels:**
+
 - **Documentation**: Comprehensive guides and examples
 - **GitHub Issues**: Bug reports and feature requests
 - **Community Discussions**: User questions and sharing
@@ -491,6 +525,7 @@ For immediate help, check the [Troubleshooting Guide](reference/troubleshooting.
 4. **Read the documentation** - Understand advanced features
 
 **Essential Resources:**
+
 - [Quick Start Guide](getting-started/quickstart.md)
 - [Configuration Guide](getting-started/configuration.md)
 - [German Credit Tutorial](examples/german-credit-audit.md)
@@ -499,6 +534,7 @@ For immediate help, check the [Troubleshooting Guide](reference/troubleshooting.
 ### I'm new to ML auditing. Where should I start?
 
 **Learning Path:**
+
 1. **Understand the basics** - What is algorithmic bias and fairness?
 2. **Review regulations** - What compliance frameworks apply to your use case?
 3. **Try GlassAlpha** - Generate an audit report with sample data
@@ -506,6 +542,7 @@ For immediate help, check the [Troubleshooting Guide](reference/troubleshooting.
 5. **Plan implementation** - Design your audit workflow and processes
 
 **Recommended Reading:**
+
 - [Compliance Framework Overview](compliance/overview.md)
 - [German Credit Tutorial](examples/german-credit-audit.md) (detailed interpretation)
 - Industry guides on algorithmic fairness and bias

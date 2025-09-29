@@ -48,6 +48,7 @@ The healthcare treatment outcomes dataset contains:
 ### Patient Demographics
 
 **Age Distribution:**
+
 - Young Adult (18-29): 18% of patients
 - Middle Age (30-49): 32% of patients
 - Senior (50-64): 28% of patients
@@ -55,6 +56,7 @@ The healthcare treatment outcomes dataset contains:
 - Very Elderly (80+): 5% of patients
 
 **Race/Ethnicity Distribution:**
+
 - White: 60%
 - Black: 13%
 - Hispanic: 18%
@@ -64,6 +66,7 @@ The healthcare treatment outcomes dataset contains:
 ### Key Clinical Features
 
 **Vital Signs:**
+
 - `blood_pressure_systolic` - Systolic blood pressure (90-200 mmHg)
 - `blood_pressure_diastolic` - Diastolic blood pressure (60-120 mmHg)
 - `heart_rate` - Heart rate (50-120 bpm)
@@ -72,6 +75,7 @@ The healthcare treatment outcomes dataset contains:
 - `temperature` - Body temperature (95-102°F)
 
 **Laboratory Values:**
+
 - `cholesterol_total` - Total cholesterol (120-350 mg/dL)
 - `cholesterol_ldl` - LDL cholesterol (50-250 mg/dL)
 - `cholesterol_hdl` - HDL cholesterol (20-100 mg/dL)
@@ -83,10 +87,12 @@ The healthcare treatment outcomes dataset contains:
 - `platelet_count` - Platelet count (100,000-500,000/μL)
 
 **Kidney Function:**
+
 - `creatinine` - Creatinine level (0.5-4.0 mg/dL)
 - `bun` - Blood urea nitrogen (5-30 mg/dL)
 
 **Electrolytes:**
+
 - `sodium` - Sodium level (125-150 mEq/L)
 - `potassium` - Potassium level (2.5-5.5 mEq/L)
 - `chloride` - Chloride level (85-115 mEq/L)
@@ -223,12 +229,14 @@ Generating PDF report: healthcare_outcomes_audit.pdf
 ### Model Performance Analysis
 
 **Overall Performance:**
+
 - **Accuracy: 82.3%** - Model correctly predicts 82% of treatment outcomes
 - **AUC-ROC: 0.891** - Strong discriminative ability for clinical decisions
 - **Precision: 78.9%** - Of predicted successful treatments, 79% actually succeed
 - **Recall: 76.4%** - Model identifies 76% of all successful treatments
 
 **Clinical Decision Interpretation:**
+
 - **False Positive Rate**: 21% of unsuccessful treatments predicted as successful
 - **False Negative Rate**: 24% of successful treatments missed
 - **Clinical Impact**: Balance between treatment optimism and caution
@@ -239,29 +247,29 @@ Generating PDF report: healthcare_outcomes_audit.pdf
 **Global Feature Importance (Top 5):**
 
 1. **`glucose_level` (+0.287)**
-   - Most important clinical factor
-   - Blood glucose strongly predicts treatment success
-   - Critical metabolic indicator for many treatments
+    - Most important clinical factor
+    - Blood glucose strongly predicts treatment success
+    - Critical metabolic indicator for many treatments
 
 2. **`cholesterol_ldl` (+0.234)**
-   - LDL cholesterol levels significantly impact outcomes
-   - Cardiovascular health marker
-   - Important for cardiac and metabolic treatments
+    - LDL cholesterol levels significantly impact outcomes
+    - Cardiovascular health marker
+    - Important for cardiac and metabolic treatments
 
 3. **`blood_pressure_systolic` (+0.198)**
-   - Systolic blood pressure strongly influences treatment success
-   - Critical vital sign for cardiovascular treatments
-   - Requires careful monitoring and management
+    - Systolic blood pressure strongly influences treatment success
+    - Critical vital sign for cardiovascular treatments
+    - Requires careful monitoring and management
 
 4. **`hemoglobin` (+0.156)**
-   - Hemoglobin levels indicate oxygen-carrying capacity
-   - Important for surgical and anemia treatments
-   - Correlates with overall health status
+    - Hemoglobin levels indicate oxygen-carrying capacity
+    - Important for surgical and anemia treatments
+    - Correlates with overall health status
 
 5. **`creatinine` (+0.142)**
-   - Kidney function marker
-   - Critical for medication dosing and treatment planning
-   - Important safety indicator for nephrotoxic treatments
+    - Kidney function marker
+    - Critical for medication dosing and treatment planning
+    - Important safety indicator for nephrotoxic treatments
 
 **Individual Patient Example:**
 For a 65-year-old patient with diabetes and hypertension:
@@ -279,6 +287,7 @@ For a 65-year-old patient with diabetes and hypertension:
 **Demographic Parity Analysis:**
 
 **Age Group Treatment Success Rates:**
+
 - **Young Adult (18-29):** 74.2% predicted success rate
 - **Middle Age (30-49):** 78.7% predicted success rate
 - **Senior (50-64):** 82.1% predicted success rate
@@ -288,6 +297,7 @@ For a 65-year-old patient with diabetes and hypertension:
 - **Conclusion:** ⚠️ Significant age-based disparities detected
 
 **Race/Ethnicity Analysis:**
+
 - **White:** 81.2% predicted success rate
 - **Black:** 79.8% predicted success rate
 - **Hispanic:** 78.4% predicted success rate
@@ -297,6 +307,7 @@ For a 65-year-old patient with diabetes and hypertension:
 - **Conclusion:** ✅ No significant racial/ethnic bias detected
 
 **Equal Opportunity Analysis:**
+
 - **Young Adult:** 71.4% of actual successful treatments correctly identified
 - **Elderly:** 86.2% of actual successful treatments correctly identified
 - **Difference:** 14.8% (exceeds 3% threshold)
@@ -307,20 +318,20 @@ For a 65-year-old patient with diabetes and hypertension:
 **High Risk Findings:**
 
 1. **Age-Based Treatment Disparities**
-   - 14.5% difference in predicted success rates across age groups
-   - May indicate age discrimination in treatment recommendations
-   - Could result in suboptimal care for younger patients
-   - Requires immediate clinical review and model adjustment
+    - 14.5% difference in predicted success rates across age groups
+    - May indicate age discrimination in treatment recommendations
+    - Could result in suboptimal care for younger patients
+    - Requires immediate clinical review and model adjustment
 
 2. **Clinical Decision Safety**
-   - 21% false positive rate may lead to overconfidence in treatment success
-   - Could result in delayed alternative treatments
-   - Requires validation against clinical trial data
+    - 21% false positive rate may lead to overconfidence in treatment success
+    - Could result in delayed alternative treatments
+    - Requires validation against clinical trial data
 
 **Medium Risk Findings:**
 
-1. **Feature Correlation Concerns**
-   - Age strongly correlates with treatment success predictions
+**Feature Correlation Concerns**
+ - Age strongly correlates with treatment success predictions
    - May mask underlying health status differences
    - Consider age stratification in model development
 
@@ -344,43 +355,45 @@ For a 65-year-old patient with diabetes and hypertension:
    ```
 
 2. **Clinical Validation**
-   - Compare model predictions against clinical trial data
-   - Validate against diverse patient populations
-   - Assess model calibration across risk strata
+    - Compare model predictions against clinical trial data
+    - Validate against diverse patient populations
+    - Assess model calibration across risk strata
 
 3. **Safety Monitoring**
-   - Implement false positive rate monitoring
-   - Establish clinical override protocols
-   - Monitor for treatment delays due to model predictions
+    - Implement false positive rate monitoring
+    - Establish clinical override protocols
+    - Monitor for treatment delays due to model predictions
 
 ### Long-term Compliance Strategy
 
 1. **Ongoing Clinical Monitoring**
-   - Regular outcome audits against model predictions
-   - Demographic outcome tracking and analysis
-   - Model performance monitoring across clinical settings
+    - Regular outcome audits against model predictions
+    - Demographic outcome tracking and analysis
+    - Model performance monitoring across clinical settings
 
 2. **FDA Compliance Program**
-   - Establish software validation procedures
-   - Clinical evaluation protocol development
-   - Post-market surveillance planning
+    - Establish software validation procedures
+    - Clinical evaluation protocol development
+    - Post-market surveillance planning
 
 3. **Quality Management**
-   - Clinical decision support oversight committee
-   - Regular bias and safety audits
-   - Continuous model improvement processes
+    - Clinical decision support oversight committee
+    - Regular bias and safety audits
+    - Continuous model improvement processes
 
 ## Step 6: Business Impact Analysis
 
 ### Clinical Impact
 
 **Current Model:**
+
 - **Treatment success prediction:** 82% accuracy
 - **Clinical decision support:** Improved treatment planning
 - **Resource allocation:** Better matching of treatments to patients
 - **Outcome optimization:** Data-driven clinical improvements
 
 **Safety Considerations:**
+
 - **False positive risk:** Potential for overconfidence in treatment success
 - **False negative risk:** Potential for missing treatment failures
 - **Clinical override:** Need for physician judgment integration
@@ -388,11 +401,13 @@ For a 65-year-old patient with diabetes and hypertension:
 ### Regulatory Risk Mitigation
 
 **Before Audit:**
+
 - Potential FDA violations if bias undetected
 - Clinical safety concerns without proper validation
 - Discrimination liability without fairness analysis
 
 **After Audit:**
+
 - Documented compliance with FDA SaMD requirements
 - Demonstrated fairness across demographic groups
 - Clear clinical validation and safety protocols
@@ -402,52 +417,55 @@ For a 65-year-old patient with diabetes and hypertension:
 ### Technical Improvements
 
 1. **Model Enhancement**
-   - Age-stratified model development
-   - Clinical outcome validation studies
-   - Integration with electronic health records
+    - Age-stratified model development
+    - Clinical outcome validation studies
+    - Integration with electronic health records
 
 2. **Safety Features**
-   - Confidence interval reporting for predictions
-   - Clinical override mechanisms
-   - Risk stratification for different patient groups
+    - Confidence interval reporting for predictions
+    - Clinical override mechanisms
+    - Risk stratification for different patient groups
 
 3. **Advanced Analytics**
-   - Treatment response prediction
-   - Adverse event probability modeling
-   - Personalized treatment recommendations
+    - Treatment response prediction
+    - Adverse event probability modeling
+    - Personalized treatment recommendations
 
 ### Operational Changes
 
 1. **Clinical Integration**
-   - Real-time decision support dashboards
-   - Integration with hospital information systems
-   - Clinician training on model interpretation
+    - Real-time decision support dashboards
+    - Integration with hospital information systems
+    - Clinician training on model interpretation
 
 2. **Regulatory Compliance**
-   - FDA pre-market notification preparation
-   - Clinical evaluation protocol development
-   - Post-market surveillance implementation
+    - FDA pre-market notification preparation
+    - Clinical evaluation protocol development
+    - Post-market surveillance implementation
 
 3. **Quality Assurance**
-   - Clinical decision support governance
-   - Regular model validation and updates
-   - Bias monitoring and mitigation programs
+    - Clinical decision support governance
+    - Regular model validation and updates
+    - Bias monitoring and mitigation programs
 
 ## Conclusion
 
 This healthcare treatment outcomes audit revealed a clinically useful model with important age-based disparities that require immediate attention for safe and equitable clinical deployment. The audit demonstrated:
 
 **Strengths:**
+
 - Strong predictive performance (82% accuracy, 89% AUC)
 - Clinically meaningful feature importance aligned with medical knowledge
 - Comprehensive bias detection across multiple demographic dimensions
 
 **Critical Issues:**
+
 - Age discrimination exceeding clinical safety thresholds
 - Need for enhanced clinical validation against diverse populations
 - Safety considerations for false positive/negative rates
 
 **Action Plan:**
+
 1. Address age-based disparities through clinical validation
 2. Implement enhanced safety monitoring protocols
 3. Conduct comprehensive FDA compliance review

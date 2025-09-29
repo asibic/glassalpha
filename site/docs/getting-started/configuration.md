@@ -26,9 +26,9 @@ model:
   type: xgboost
 
 # Optional: Additional sections
-explainers: {...}
-metrics: {...}
-report: {...}
+explainers: { ... }
+metrics: { ... }
+report: { ... }
 ```
 
 ## Core Configuration Sections
@@ -39,10 +39,11 @@ The audit profile determines which components are available and what validations
 
 ```yaml
 # Determines the audit context and available components
-audit_profile: tabular_compliance  # Currently supported profile
+audit_profile: tabular_compliance # Currently supported profile
 ```
 
 **Available Profiles:**
+
 - `tabular_compliance` - Standard tabular ML compliance audit
 - `german_credit_default` - German Credit dataset specific profile
 
@@ -56,12 +57,13 @@ reproducibility:
   random_seed: 42
 
   # Optional: Advanced reproducibility settings
-  deterministic: true              # Enforce deterministic behavior
-  capture_environment: true        # Capture system information
-  validate_determinism: true       # Verify reproducibility
+  deterministic: true # Enforce deterministic behavior
+  capture_environment: true # Capture system information
+  validate_determinism: true # Verify reproducibility
 ```
 
 **Best Practices:**
+
 - Always set `random_seed` for reproducible results
 - Use the same seed for comparative audits
 - Document seed values in audit reports
@@ -92,12 +94,14 @@ data:
 ```
 
 **Supported Data Formats:**
+
 - CSV (`.csv`)
 - Parquet (`.parquet`)
 - Feather (`.feather`)
 - Pickle (`.pkl`)
 
 **Feature Selection:**
+
 - If `feature_columns` not specified, uses all columns except target
 - Protected attributes should be included in features for bias analysis
 - Features are automatically preprocessed based on data type
@@ -123,12 +127,14 @@ model:
 ```
 
 **Supported Model Types:**
+
 - `xgboost` - XGBoost gradient boosting
 - `lightgbm` - LightGBM gradient boosting
 - `logistic_regression` - Scikit-learn LogisticRegression
 - `sklearn_generic` - Generic scikit-learn models
 
 **Model Loading vs Training:**
+
 - If `path` exists: loads pre-trained model
 - If `path` missing: trains new model with `params`
 - Parameters are passed to the underlying library
@@ -144,26 +150,28 @@ explainers:
 
   # Required: Priority order (deterministic selection)
   priority:
-    - treeshap      # First choice for tree models
-    - kernelshap    # Fallback for any model
+    - treeshap # First choice for tree models
+    - kernelshap # Fallback for any model
 
   # Optional: Explainer-specific configuration
   config:
     treeshap:
-      max_samples: 1000          # Samples for SHAP computation
-      check_additivity: true     # Verify SHAP properties
+      max_samples: 1000 # Samples for SHAP computation
+      check_additivity: true # Verify SHAP properties
 
     kernelshap:
-      n_samples: 500            # Model evaluations
-      background_size: 100      # Background dataset size
+      n_samples: 500 # Model evaluations
+      background_size: 100 # Background dataset size
 ```
 
 **Available Explainers:**
+
 - `treeshap` - Exact SHAP values for tree models (XGBoost, LightGBM)
 - `kernelshap` - Model-agnostic SHAP approximation
 - `noop` - No-op placeholder (for testing)
 
 **Selection Strategies:**
+
 - `first_compatible` - Use first explainer compatible with model
 - `best_available` - Select highest-priority compatible explainer
 
@@ -194,7 +202,7 @@ metrics:
     # Optional: Bias tolerance thresholds
     config:
       demographic_parity:
-        threshold: 0.05         # 5% maximum group difference
+        threshold: 0.05 # 5% maximum group difference
 
   # Optional: Data drift detection metrics
   drift:
@@ -205,6 +213,7 @@ metrics:
 ```
 
 **Performance Metrics:**
+
 - `accuracy` - Overall classification accuracy
 - `precision` - Positive predictive value
 - `recall` - True positive rate (sensitivity)
@@ -213,6 +222,7 @@ metrics:
 - `classification_report` - Comprehensive per-class metrics
 
 **Fairness Metrics:**
+
 - `demographic_parity` - Equal positive prediction rates across groups
 - `equal_opportunity` - Equal true positive rates across groups
 - `equalized_odds` - Equal TPR and FPR across groups
@@ -250,9 +260,11 @@ report:
 ```
 
 **Available Templates:**
+
 - `standard_audit` - Comprehensive audit report with all sections
 
 **Styling Options:**
+
 - `color_scheme`: professional, minimal, colorful
 - `page_size`: A4, Letter, Legal
 - `margins`: standard, narrow, wide
@@ -270,6 +282,7 @@ strict_mode: true
 ```
 
 **Strict Mode Requirements:**
+
 - Explicit random seeds (no defaults)
 - Complete data schema specification
 - Full manifest generation
@@ -282,12 +295,12 @@ Controls audit trail generation and completeness.
 
 ```yaml
 manifest:
-  enabled: true                    # Generate audit manifest
-  include_git_sha: true           # Include Git commit information
-  include_config_hash: true       # Include configuration integrity hash
-  include_data_hash: true         # Include dataset integrity hash
+  enabled: true # Generate audit manifest
+  include_git_sha: true # Include Git commit information
+  include_config_hash: true # Include configuration integrity hash
+  include_data_hash: true # Include dataset integrity hash
   track_component_selection: true # Track selected components
-  include_execution_info: true    # Include timing and environment
+  include_execution_info: true # Include timing and environment
 ```
 
 ### Preprocessing Options
@@ -296,14 +309,14 @@ Controls data preprocessing before model training/evaluation.
 
 ```yaml
 preprocessing:
-  handle_missing: true            # Handle missing values
-  missing_strategy: median        # median, mode, drop
-  scale_features: false           # Feature scaling (not needed for trees)
-  scaling_method: standard        # standard, minmax, robust
-  categorical_encoding: label     # label, onehot, target
-  feature_selection: false        # Enable feature selection
-  selection_method: mutual_info   # mutual_info, correlation
-  max_features: 20               # Maximum features to select
+  handle_missing: true # Handle missing values
+  missing_strategy: median # median, mode, drop
+  scale_features: false # Feature scaling (not needed for trees)
+  scaling_method: standard # standard, minmax, robust
+  categorical_encoding: label # label, onehot, target
+  feature_selection: false # Enable feature selection
+  selection_method: mutual_info # mutual_info, correlation
+  max_features: 20 # Maximum features to select
 ```
 
 ### Validation Configuration
@@ -312,12 +325,12 @@ Controls model evaluation and statistical testing.
 
 ```yaml
 validation:
-  cv_folds: 5                    # Cross-validation folds
-  cv_scoring: roc_auc            # Scoring metric for CV
-  test_size: 0.2                 # Train/test split ratio
-  stratify_split: true           # Stratify split by target
-  bootstrap_samples: 1000        # Bootstrap samples for confidence intervals
-  confidence_level: 0.95         # Statistical confidence level
+  cv_folds: 5 # Cross-validation folds
+  cv_scoring: roc_auc # Scoring metric for CV
+  test_size: 0.2 # Train/test split ratio
+  stratify_split: true # Stratify split by target
+  bootstrap_samples: 1000 # Bootstrap samples for confidence intervals
+  confidence_level: 0.95 # Statistical confidence level
 ```
 
 ### Performance Optimization
@@ -326,10 +339,10 @@ Controls computational performance and resource usage.
 
 ```yaml
 performance:
-  n_jobs: -1                     # Parallel processing (-1 = all cores)
-  low_memory_mode: false         # Optimize for memory usage
-  verbose: true                  # Enable progress reporting
-  progress_bar: true             # Show progress bars
+  n_jobs: -1 # Parallel processing (-1 = all cores)
+  low_memory_mode: false # Optimize for memory usage
+  verbose: true # Enable progress reporting
+  progress_bar: true # Show progress bars
 ```
 
 ## Configuration Examples
@@ -412,10 +425,11 @@ metrics:
   performance:
     metrics: [accuracy, precision, recall, f1, auc_roc, classification_report]
   fairness:
-    metrics: [demographic_parity, equal_opportunity, equalized_odds, predictive_parity]
+    metrics:
+      [demographic_parity, equal_opportunity, equalized_odds, predictive_parity]
     config:
       demographic_parity:
-        threshold: 0.02  # Stricter threshold for production
+        threshold: 0.02 # Stricter threshold for production
       equal_opportunity:
         threshold: 0.02
 
@@ -469,7 +483,7 @@ model:
 
 explainers:
   strategy: first_compatible
-  priority: [kernelshap]  # Use KernelSHAP for linear models
+  priority: [kernelshap] # Use KernelSHAP for linear models
   config:
     kernelshap:
       n_samples: 1000
@@ -484,7 +498,7 @@ metrics:
 preprocessing:
   handle_missing: true
   missing_strategy: median
-  scale_features: true      # Important for linear models
+  scale_features: true # Important for linear models
   scaling_method: standard
   categorical_encoding: onehot
 
@@ -497,24 +511,28 @@ validation:
 ## Configuration Best Practices
 
 ### Reproducibility
+
 1. **Always set random seeds** for deterministic results
 2. **Use version control** for configuration files
 3. **Document configuration changes** in commit messages
 4. **Enable manifest generation** for complete audit trails
 
 ### Performance
+
 1. **Use appropriate model types** for your data size and complexity
 2. **Adjust sample sizes** for explainers based on dataset size
 3. **Enable parallel processing** (`n_jobs: -1`) for faster computation
 4. **Use appropriate metrics** - don't compute unnecessary evaluations
 
 ### Compliance
+
 1. **Enable strict mode** for regulatory submissions
 2. **Set appropriate bias thresholds** for your use case and jurisdiction
 3. **Include all relevant protected attributes** in fairness analysis
 4. **Document configuration rationale** for audit review
 
 ### Security
+
 1. **Use relative paths** or environment variables for file locations
 2. **Don't embed sensitive data** in configuration files
 3. **Review configurations** before committing to version control
@@ -525,6 +543,7 @@ validation:
 ### Common Configuration Errors
 
 **Missing Required Fields:**
+
 ```yaml
 # Error: Missing required field 'data.target_column'
 data:
@@ -533,19 +552,21 @@ data:
 ```
 
 **Invalid Model Type:**
+
 ```yaml
 # Error: Model type 'invalid_model' not found in registry
 model:
-  type: invalid_model  # Should be: xgboost, lightgbm, etc.
+  type: invalid_model # Should be: xgboost, lightgbm, etc.
 ```
 
 **Incompatible Components:**
+
 ```yaml
 # Warning: No compatible explainers for model type
 explainers:
-  priority: [treeshap]  # TreeSHAP only works with tree models
+  priority: [treeshap] # TreeSHAP only works with tree models
 model:
-  type: logistic_regression  # Linear model - use kernelshap instead
+  type: logistic_regression # Linear model - use kernelshap instead
 ```
 
 ### Validation Commands

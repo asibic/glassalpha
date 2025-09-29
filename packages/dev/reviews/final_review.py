@@ -290,7 +290,7 @@ def main():
     print("\n" + "=" * 70)
     print("GlassAlpha - FINAL ARCHITECTURE REVIEW")
     print("=" * 70)
-    print("Date: September 2024")
+    print("Date: September 2025")
     print("Phase: 0 & 1 Complete")
 
     # Check files

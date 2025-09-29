@@ -16,7 +16,7 @@ GlassAlpha is designed for **secure, on-premise deployment** in regulated indust
 
 ### Environment Requirements
 
-**Production Server Specifications:**
+#### Production Server Specifications:
 - **CPU**: 4+ cores (8+ recommended for large datasets)
 - **Memory**: 16GB+ RAM (32GB+ for datasets >100K rows)
 - **Storage**: 100GB+ SSD (audit reports, manifests, logs)
@@ -24,7 +24,7 @@ GlassAlpha is designed for **secure, on-premise deployment** in regulated indust
 - **Python**: 3.11+ with virtual environment support
 - **Network**: Air-gapped capability (no internet required for core operations)
 
-**Security Requirements:**
+#### Security Requirements:
 - Hardened operating system with latest security updates
 - Restricted user accounts with minimal privileges
 - Encrypted file systems for data at rest
@@ -33,14 +33,14 @@ GlassAlpha is designed for **secure, on-premise deployment** in regulated indust
 
 ### Regulatory Considerations
 
-**Compliance Framework Alignment:**
+#### Compliance Framework Alignment:
 - **SOC 2 Type II** - Access controls, availability, confidentiality
 - **ISO 27001** - Information security management
 - **GDPR** - Data protection and privacy requirements
 - **HIPAA** - Healthcare data protection (if applicable)
 - **SOX** - Financial reporting controls (if applicable)
 
-**Audit Requirements:**
+#### Audit Requirements:
 - Complete audit trails of all system activities
 - Data lineage and transformation tracking
 - User access and activity logging
@@ -927,9 +927,4 @@ tail -f /opt/glassalpha/logs/glassalpha.log
 tail -f /opt/glassalpha/logs/audit.log
 ```
 
-**Emergency Contacts:**
-- System Administrator: admin@company.com
-- Compliance Officer: compliance@company.com
-- Enterprise Support: enterprise-support@glassalpha.com (if applicable)
-
-This production deployment guide ensures GlassAlpha operates securely and reliably in regulated industry environments while maintaining complete audit trails and compliance requirements.
+This production deployment guide is meant to help GlassAlpha operate securely and reliably in regulated industry environments while maintaining complete audit trails and compliance requirements.

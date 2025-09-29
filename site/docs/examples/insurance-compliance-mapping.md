@@ -8,11 +8,13 @@ This document maps the insurance risk assessment example to specific regulatory 
 **Primary Authority**: State Insurance Departments (varies by state)
 
 **Key Requirements:**
+
 - **Actuarial Justification**: Premiums must be based on sound actuarial principles
 - **Rate Discrimination**: Prohibited discrimination based on protected characteristics
 - **Transparency**: Clear explanation of rating factors and methodology
 
 **GlassAlpha Mapping:**
+
 - **Performance Metrics**: Accuracy, precision, recall validate actuarial soundness
 - **Fairness Analysis**: Demographic parity ensures non-discriminatory rates
 - **SHAP Explanations**: Provide transparent rating factor explanations
@@ -22,11 +24,13 @@ This document maps the insurance risk assessment example to specific regulatory 
 **Primary Authority**: State Insurance Codes, NAIC Model Laws
 
 **Key Requirements:**
+
 - **Protected Classes**: Cannot discriminate based on race, color, religion, national origin, sex, marital status, age, or disability
 - **Rate Equity**: Similar risk profiles must have similar rates
 - **Justification**: Any rate differences must be actuarially justified
 
 **GlassAlpha Mapping:**
+
 - **Protected Attributes**: Gender, age group analysis for discrimination detection
 - **Equal Opportunity**: Ensures equal treatment of qualified applicants
 - **Equalized Odds**: Equal false positive/negative rates across groups
@@ -37,12 +41,14 @@ This document maps the insurance risk assessment example to specific regulatory 
 **State Authority**: Unfair and Deceptive Acts and Practices (UDAP) laws
 
 **Key Requirements:**
+
 - **Transparency**: Clear disclosure of automated decision-making
 - **Right to Explanation**: Consumers entitled to understand decisions
 - **Accuracy**: Reasonable procedures to ensure data accuracy
 - **Dispute Resolution**: Process for challenging adverse decisions
 
 **GlassAlpha Mapping:**
+
 - **SHAP Explanations**: Individual prediction explanations for consumers
 - **Data Validation**: Schema validation ensures data quality
 - **Audit Reports**: Comprehensive documentation for dispute resolution
@@ -53,12 +59,14 @@ This document maps the insurance risk assessment example to specific regulatory 
 **State Authority**: California Consumer Privacy Act (CCPA), Virginia Consumer Data Protection Act
 
 **Key Requirements:**
+
 - **Data Minimization**: Only collect necessary personal information
 - **Purpose Limitation**: Use data only for stated insurance purposes
 - **Consumer Rights**: Access, deletion, portability, opt-out rights
 - **Security**: Reasonable safeguards for personal information
 
 **GlassAlpha Mapping:**
+
 - **Protected Attributes**: Explicit handling of sensitive demographic data
 - **Data Processing Documentation**: Audit trail of data usage
 - **Privacy-Aware Analysis**: Fairness metrics respecting privacy constraints

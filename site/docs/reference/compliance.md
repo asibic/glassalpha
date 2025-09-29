@@ -5,39 +5,40 @@ GlassAlpha addresses key regulatory frameworks governing AI and algorithmic deci
 ## Supported Regulatory Frameworks
 
 ### EU General Data Protection Regulation (GDPR)
-**Jurisdiction:** European Union
-**Effective:** May 25, 2018
-**Key Requirements:** Data protection, consent, right to explanation
+- **Jurisdiction:** European Union
+- **Effective:** May 25, 2018
+- **Key Requirements:** Data protection, consent, right to explanation
 
 ### Equal Credit Opportunity Act (ECOA)
-**Jurisdiction:** United States
-**Effective:** 1974 (amended multiple times)
-**Key Requirements:** Fair lending, non-discrimination in credit decisions
+- **Jurisdiction:** United States
+- **Effective:** 1974 (amended multiple times)
+- **Key Requirements:** Fair lending, non-discrimination in credit decisions
 
 ### Fair Credit Reporting Act (FCRA)
-**Jurisdiction:** United States
-**Effective:** 1970 (amended multiple times)
-**Key Requirements:** Accuracy, fairness, privacy in credit reporting
+- **Jurisdiction:** United States
+- **Effective:** 1970 (amended multiple times)
+- **Key Requirements:** Accuracy, fairness, privacy in credit reporting
 
 ### EU AI Act
-**Jurisdiction:** European Union
-**Status:** Adopted April 2024, phased implementation through 2027
-**Key Requirements:** Risk classification, transparency, human oversight, quality management
+- **Jurisdiction:** European Union
+- **Status:** Adopted April 2024, phased implementation through 2027
+- **Key Requirements:** Risk classification, transparency, human oversight, quality management
 
 **Implementation Timeline:**
+
 - **August 2024**: Prohibited practices banned
 - **February 2025**: General purpose AI model obligations
 - **August 2026**: High-risk AI system requirements
 - **August 2027**: Full implementation for all provisions
 
 ### Fair Housing Act (FHA)
-**Jurisdiction:** United States
-**Effective:** 1968
-**Key Requirements:** Non-discrimination in housing decisions
+- **Jurisdiction:** United States
+- **Effective:** 1968
+- **Key Requirements:** Non-discrimination in housing decisions
 
 ### Employment Standards
-**Jurisdiction:** Various (EEOC, state laws)
-**Key Requirements:** Non-discrimination in hiring and promotion
+- **Jurisdiction:** Various (EEOC, state laws)
+- **Key Requirements:** Non-discrimination in hiring and promotion
 
 ## GDPR Compliance
 
@@ -72,6 +73,7 @@ report:
 ```
 
 **Key Features:**
+
 - **Individual Explanations**: SHAP waterfall plots show how each feature contributed to specific decisions
 - **Transparent Logic**: Reports document the decision-making process in human-readable language
 - **Data Provenance**: Complete audit trail of data sources and transformations
@@ -82,6 +84,7 @@ report:
 **Requirement:** Provide meaningful information about automated decision-making logic.
 
 **GlassAlpha Implementation:**
+
 - **Model Documentation**: Comprehensive model cards with algorithm details
 - **Feature Documentation**: Clear explanations of input variables and their business meaning
 - **Decision Boundaries**: Visualizations of how decisions are made
@@ -94,7 +97,9 @@ report:
 The Equal Credit Opportunity Act prohibits credit discrimination and establishes specific requirements for credit decision-making. Regulation B (12 CFR 1002) implements ECOA with detailed compliance obligations.
 
 **Prohibited Bases (15 USC 1691(a)):**
+
 Creditors may not discriminate on the basis of:
+
 - Race or color
 - Religion
 - National origin
@@ -105,6 +110,7 @@ Creditors may not discriminate on the basis of:
 - Good faith exercise of Consumer Credit Protection Act rights
 
 **Disparate Impact Standard:**
+
 Under ECOA, practices that have a disparate impact on protected classes may be unlawful even without discriminatory intent, unless the practice serves legitimate business needs that cannot reasonably be achieved by less discriminatory means.
 
 ### Prohibition of Discrimination
@@ -150,25 +156,26 @@ compliance:
 **Key Compliance Features:**
 
 1. **Disparate Impact Analysis**
-   - Automated calculation of approval rate ratios by protected class
-   - Statistical significance testing with confidence intervals
-   - Visual representations of disparities across demographic groups
+    - Automated calculation of approval rate ratios by protected class
+    - Statistical significance testing with confidence intervals
+    - Visual representations of disparities across demographic groups
 
 2. **Adverse Action Reasons**
-   - SHAP explanations provide specific reasons for denials
-   - Feature importance rankings identify key decision factors
-   - Individual prediction explanations support adverse action notices
+    - SHAP explanations provide specific reasons for denials
+    - Feature importance rankings identify key decision factors
+    - Individual prediction explanations support adverse action notices
 
 3. **Model Monitoring**
-   - Ongoing bias detection across protected characteristics
-   - Statistical tests for demographic parity and equal opportunity
-   - Drift detection to identify changing discriminatory patterns
+    - Ongoing bias detection across protected characteristics
+    - Statistical tests for demographic parity and equal opportunity
+    - Drift detection to identify changing discriminatory patterns
 
 ### Documentation Requirements
 
 **ECOA Section 1002.13:** Maintain records demonstrating compliance.
 
 **GlassAlpha Evidence:**
+
 - **Audit Reports**: Comprehensive bias analysis with statistical testing
 - **Model Documentation**: Detailed methodology and validation procedures
 - **Decision Records**: Individual prediction explanations and confidence scores
@@ -263,25 +270,25 @@ compliance:
 ### Development Phase
 
 1. **Early Compliance Integration**
-   - Define regulatory requirements before model development
-   - Build fairness constraints into model training
-   - Establish bias testing procedures from day one
+    - Define regulatory requirements before model development
+    - Build fairness constraints into model training
+    - Establish bias testing procedures from day one
 
 2. **Documentation Standards**
-   - Maintain comprehensive model development records
-   - Document all design decisions and trade-offs
-   - Create audit trails for all data and model changes
+    - Maintain comprehensive model development records
+    - Document all design decisions and trade-offs
+    - Create audit trails for all data and model changes
 
 ### Production Deployment
 
 1. **Ongoing Monitoring**
-   - Implement continuous bias detection
-   - Monitor model performance across demographic groups
-   - Track individual decision outcomes for patterns
+    - Implement continuous bias detection
+    - Monitor model performance across demographic groups
+    - Track individual decision outcomes for patterns
 
 2. **Incident Response**
-   - Establish procedures for bias detection alerts
-   - Maintain capability to explain any historical decision
-   - Document remediation actions and their effectiveness
+    - Establish procedures for bias detection alerts
+    - Maintain capability to explain any historical decision
+    - Document remediation actions and their effectiveness
 
 This compliance framework overview provides the foundation for using GlassAlpha in regulated environments. For specific regulatory guidance, consult with legal counsel and compliance experts familiar with your jurisdiction and use case.
