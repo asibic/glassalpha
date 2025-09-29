@@ -13,6 +13,7 @@ GlassAlpha provides **deterministic, regulator-ready audit reports** with comple
 ## Status & Scope
 
 **Production Features**:
+
 - ✅ One-command PDF audit generation
 - ✅ XGBoost, LightGBM, LogisticRegression support
 - ✅ TreeSHAP explainability + fairness metrics
@@ -28,14 +29,20 @@ GlassAlpha provides **deterministic, regulator-ready audit reports** with comple
 git clone https://github.com/GlassAlpha/glassalpha
 cd glassalpha/packages
 
-# Install
-pip install -e .
+# (Recommended) Create a virtual environment
+python3 -m venv .venv
+source .venv/bin/activate
+
+# Upgrade pip and install in editable mode
+python -m pip install --upgrade pip
+pip install -e ".[dev]"
 
 # Verify installation
 glassalpha --help
 ```
 
 ### Generate Your First Audit
+
 ```bash
 # Generate audit PDF
 glassalpha audit --config configs/german_credit_simple.yaml --output audit.pdf
@@ -53,6 +60,7 @@ glassalpha audit --config configs/german_credit_simple.yaml --output audit.pdf
 ## Architecture Highlights
 
 GlassAlpha is built as an **extensible framework**:
+
 - **Plugin Architecture**: Models, explainers, and metrics use dynamic registration
 - **OSS/Enterprise Split**: Core functionality open-source, advanced features commercial
 - **Deterministic Design**: Configuration-driven with reproducible results
@@ -65,6 +73,7 @@ For detailed architecture information, see the [Architecture Guide](site/docs/ar
 ## Contributing
 
 We welcome contributions! Areas for enhancement:
+
 - Additional model support
 - Advanced explainability methods
 - Extended compliance frameworks
@@ -98,29 +107,31 @@ GlassAlpha provides **enterprise-grade licensing compatibility** with a carefull
 
 GlassAlpha uses industry-standard, enterprise-compatible dependencies with proven licensing compatibility:
 
-| Component | License | Purpose | Why Chosen |
-|-----------|---------|---------|------------|
-| **Python SHAP** | MIT License | TreeSHAP explanations | ✅ Enterprise-compatible, no GPL contamination |
-| **XGBoost** | Apache 2.0 | Gradient boosting models | ✅ Same license family, proven in production |
-| **LightGBM** | MIT License | Alternative tree models | ✅ Microsoft-backed, widely adopted |
-| **scikit-learn** | BSD License | Baseline models & utilities | ✅ Academic standard, fully compatible |
-| **NumPy** | BSD License | Numerical computing | ✅ Core scientific Python library |
-| **Pandas** | BSD License | Data manipulation | ✅ Industry standard for data science |
-| **WeasyPrint** | BSD License | PDF generation | ✅ Pure Python, no system dependencies |
-| **Typer** | MIT License | CLI framework | ✅ Modern, type-safe command interface |
-| **Pydantic** | MIT License | Configuration validation | ✅ Runtime type checking and validation |
+| Component        | License     | Purpose                     | Why Chosen                                     |
+| ---------------- | ----------- | --------------------------- | ---------------------------------------------- |
+| **Python SHAP**  | MIT License | TreeSHAP explanations       | ✅ Enterprise-compatible, no GPL contamination |
+| **XGBoost**      | Apache 2.0  | Gradient boosting models    | ✅ Same license family, proven in production   |
+| **LightGBM**     | MIT License | Alternative tree models     | ✅ Microsoft-backed, widely adopted            |
+| **scikit-learn** | BSD License | Baseline models & utilities | ✅ Academic standard, fully compatible         |
+| **NumPy**        | BSD License | Numerical computing         | ✅ Core scientific Python library              |
+| **Pandas**       | BSD License | Data manipulation           | ✅ Industry standard for data science          |
+| **WeasyPrint**   | BSD License | PDF generation              | ✅ Pure Python, no system dependencies         |
+| **Typer**        | MIT License | CLI framework               | ✅ Modern, type-safe command interface         |
+| **Pydantic**     | MIT License | Configuration validation    | ✅ Runtime type checking and validation        |
 
 ### Licensing Confidence & Risk Mitigation
 
 **✅ No GPL Dependencies**: GlassAlpha deliberately avoids GPL-licensed components to ensure maximum compatibility with enterprise environments. We use the MIT-licensed Python [SHAP](https://github.com/shap/shap) library rather than the GPL-licensed R `treeshap` package.
 
 **✅ Apache 2.0 Compatible Stack**: All dependencies are compatible with Apache 2.0 licensing, allowing:
+
 - Commercial use without restrictions
 - Integration with proprietary systems
 - Distribution in closed-source applications
 - Patent protection for contributors
 
 **✅ Regulatory Compliance Ready**: The licensing structure supports:
+
 - Audit trail preservation
 - Reproducible builds with locked dependency versions
 - No vendor lock-in through open standards
@@ -129,6 +140,7 @@ GlassAlpha uses industry-standard, enterprise-compatible dependencies with prove
 ### Enterprise Integration
 
 The clean licensing structure enables:
+
 - **Container Integration**: Deploy in Docker/Kubernetes without license conflicts
 - **CI/CD Pipelines**: Automated builds with reproducible dependency resolution
 - **Cloud Deployment**: Compatible with AWS, Azure, GCP licensing requirements
@@ -144,8 +156,9 @@ pip install -c constraints.txt -e .
 ```
 
 **Support**:
+
 - OSS: GitHub Issues
 
 ---
 
-*Building trust through transparency in AI compliance.*
+_Building trust through transparency in AI compliance._
