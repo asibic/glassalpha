@@ -65,23 +65,36 @@ GlassAlpha is tested and supported on:
 
 **Standard Installation:**
 
+Clone and setup:
+
 ```bash
-# Clone and setup
 git clone https://github.com/GlassAlpha/glassalpha
 cd glassalpha/packages
+```
 
-# Python 3.11 or 3.12 recommended
+Python 3.11 or 3.12 recommended:
+
+```bash
 python3 --version   # should show 3.11.x or 3.12.x
+```
 
-# (Recommended) Create a virtual environment
+Create a virtual environment (recommended):
+
+```bash
 python3 -m venv .venv
 source .venv/bin/activate
+```
 
-# Upgrade pip and install in editable mode
+Upgrade pip and install in editable mode:
+
+```bash
 python -m pip install --upgrade pip
 pip install -e ".[dev]"
+```
 
-# Verify installation
+Verify installation:
+
+```bash
 glassalpha --help
 ```
 
@@ -370,18 +383,25 @@ GlassAlpha is organized to support potential future features for enterprise need
 
 **Python API Integration:**
 
+Load configuration:
+
 ```python
 from glassalpha.pipeline import AuditPipeline
 from glassalpha.config import AuditConfig
 
-# Load configuration
 config = AuditConfig.from_yaml("audit_config.yaml")
+```
 
-# Run audit
+Run audit:
+
+```python
 pipeline = AuditPipeline(config)
 results = pipeline.run()
+```
 
-# Check results
+Check results:
+
+```python
 if results.success:
     print(f"Audit completed: {results.model_performance}")
 else:
@@ -390,8 +410,9 @@ else:
 
 **CLI Integration:**
 
+In CI/CD pipeline:
+
 ```bash
-# In CI/CD pipeline
 glassalpha validate --config production_config.yaml --strict
 glassalpha audit --config production_config.yaml --output audit_report.pdf
 ```

@@ -46,8 +46,9 @@ glassalpha --help
 
 ### Generate Your First Audit
 
+Generate audit PDF:
+
 ```bash
-# Generate audit PDF
 glassalpha audit --config configs/german_credit_simple.yaml --output audit.pdf
 ```
 

@@ -13,23 +13,36 @@ Get up and running with GlassAlpha in less than 10 minutes. This guide will take
 
 ### Clone and Install
 
+Clone and setup:
+
 ```bash
-# Clone and setup
 git clone https://github.com/GlassAlpha/glassalpha
 cd glassalpha/packages
+```
 
-# Python 3.11 or 3.12 recommended
+Python 3.11 or 3.12 recommended:
+
+```bash
 python3 --version   # should show 3.11.x or 3.12.x
+```
 
-# (Recommended) Create a virtual environment
+Create a virtual environment (recommended):
+
+```bash
 python3 -m venv .venv
 source .venv/bin/activate
+```
 
-# Upgrade pip and install in editable mode
+Upgrade pip and install in editable mode:
+
+```bash
 python -m pip install --upgrade pip
 pip install -e ".[dev]"
+```
 
-# Verify installation
+Verify installation:
+
+```bash
 glassalpha --help
 ```
 
@@ -41,8 +54,9 @@ GlassAlpha comes with a ready-to-use German Credit dataset example that demonstr
 
 ### Run the Audit Command
 
+Generate audit PDF (takes ~3 seconds):
+
 ```bash
-# Generate audit PDF (takes ~3 seconds)
 glassalpha audit \
   --config configs/german_credit_simple.yaml \
   --output my_first_audit.pdf
@@ -130,15 +144,22 @@ Open `my_first_audit.pdf` to see your comprehensive audit report containing:
 
 The `configs/german_credit_simple.yaml` file contains all audit settings:
 
-```yaml
-# Audit profile determines component selection
-audit_profile: german_credit_default
+Audit profile determines component selection:
 
-# Reproducibility settings
+```yaml
+audit_profile: german_credit_default
+```
+
+Reproducibility settings:
+
+```yaml
 reproducibility:
   random_seed: 42
+```
 
-# Data configuration
+Data configuration:
+
+```yaml
 data:
   path: /Users/user/.glassalpha/data/german_credit_processed.csv
   target_column: credit_risk
@@ -146,23 +167,32 @@ data:
     - gender
     - age_group
     - foreign_worker
+```
 
-# Model configuration
+Model configuration:
+
+```yaml
 model:
   type: xgboost
   params:
     objective: binary:logistic
     n_estimators: 100
     max_depth: 5
+```
 
-# Explainer selection
+Explainer selection:
+
+```yaml
 explainers:
   strategy: first_compatible
   priority:
     - treeshap # Primary choice for tree models
     - kernelshap # Fallback for any model type
+```
 
-# Metrics to compute
+Metrics to compute:
+
+```yaml
 metrics:
   performance:
     metrics: [accuracy, precision, recall, f1, auc_roc]
@@ -174,15 +204,18 @@ metrics:
 
 ### Try Advanced Features
 
+Enable strict mode for regulatory compliance:
+
 ```bash
-# Enable strict mode for regulatory compliance
 glassalpha audit \
   --config configs/german_credit_simple.yaml \
   --output regulatory_audit.pdf \
   --strict
+```
 
-# Use a different model
-# Edit config file: model.type: lightgbm
+Use a different model (edit config file: model.type: lightgbm):
+
+```bash
 glassalpha audit \
   --config configs/german_credit_simple.yaml \
   --output lightgbm_audit.pdf
@@ -190,14 +223,21 @@ glassalpha audit \
 
 ### Explore More Options
 
+See all available CLI options:
+
 ```bash
-# See all available CLI options
 glassalpha audit --help
+```
 
-# List available components
+List available components:
+
+```bash
 glassalpha list
+```
 
-# Validate configuration without running audit
+Validate configuration without running audit:
+
+```bash
 glassalpha validate --config configs/german_credit_simple.yaml
 ```
 

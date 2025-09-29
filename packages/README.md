@@ -14,6 +14,7 @@ For detailed architecture information, see the [Architecture Guide](../site/docs
 ## Key Features
 
 ### Current Features
+
 - ✅ XGBoost, LightGBM, LogisticRegression support
 - ✅ TreeSHAP explainability
 - ✅ Fairness metrics (demographic parity, equal opportunity)
@@ -22,6 +23,7 @@ For detailed architecture information, see the [Architecture Guide](../site/docs
 - ✅ Full reproducibility (seeds, hashes, manifests)
 
 ### Planned Extensions
+
 - LLM support with gradient-based explainability
 - Vision model support
 - Continuous monitoring dashboards
@@ -51,11 +53,13 @@ packages/
 ## Installation
 
 ### Basic Installation (OSS)
+
 ```bash
 pip install glassalpha
 ```
 
 ### Development Installation
+
 ```bash
 cd packages
 pip install -e ".[dev]"
@@ -64,15 +68,21 @@ pip install -e ".[dev]"
 ## Quick Start
 
 ### Generate Audit PDF
-```bash
-# Basic audit
-glassalpha audit --config configs/german_credit_simple.yaml --output audit.pdf
 
-# Strict mode for regulatory compliance
+Basic audit:
+
+```bash
+glassalpha audit --config configs/german_credit_simple.yaml --output audit.pdf
+```
+
+Strict mode for regulatory compliance:
+
+```bash
 glassalpha audit --config configs/german_credit_simple.yaml --output audit.pdf --strict
 ```
 
 ### Configuration Example
+
 ```yaml
 audit_profile: german_credit_default
 
@@ -103,7 +113,9 @@ reproducibility:
 ## Architecture Highlights
 
 ### 1. Protocol-Based Interfaces
+
 All components implement protocols for maximum flexibility:
+
 ```python
 from typing import Protocol
 
@@ -113,7 +125,9 @@ class ModelInterface(Protocol):
 ```
 
 ### 2. Registry Pattern
+
 Components self-register for dynamic loading:
+
 ```python
 @ModelRegistry.register("xgboost")
 class XGBoostWrapper(ModelInterface):
@@ -121,7 +135,9 @@ class XGBoostWrapper(ModelInterface):
 ```
 
 ### 3. Deterministic Plugin Selection
+
 Configuration drives component selection with deterministic priority:
+
 ```yaml
 explainers:
   strategy: "first_compatible"
@@ -129,7 +145,9 @@ explainers:
 ```
 
 ### 4. Audit Profiles
+
 Different audit types use different component sets:
+
 ```python
 class TabularComplianceProfile(AuditProfile):
     compatible_models = ["xgboost", "lightgbm", "logistic_regression"]
@@ -139,13 +157,16 @@ class TabularComplianceProfile(AuditProfile):
 ## Testing
 
 Run the test suite with coverage:
+
 ```bash
 pytest  # Comprehensive test coverage
 ```
 
 Test audit generation:
+
+Generate test audit to verify functionality:
+
 ```bash
-# Generate test audit to verify functionality
 glassalpha audit --config configs/german_credit_simple.yaml --output test_audit.pdf
 ```
 
@@ -163,19 +184,20 @@ See [CONTRIBUTING.md](../site/docs/contributing.md) for development guidelines.
 
 All dependencies are chosen for enterprise compatibility and regulatory compliance:
 
-| Component | License | Purpose | Enterprise Ready |
-|-----------|---------|---------|------------------|
-| **SHAP** | MIT | TreeSHAP explanations | ✅ No GPL contamination |
-| **XGBoost** | Apache 2.0 | Tree models | ✅ Compatible license family |
-| **LightGBM** | MIT | Alternative models | ✅ Microsoft-backed |
-| **scikit-learn** | BSD | Baseline models | ✅ Academic standard |
-| **NumPy/Pandas** | BSD | Data processing | ✅ Core scientific stack |
+| Component        | License    | Purpose               | Enterprise Ready             |
+| ---------------- | ---------- | --------------------- | ---------------------------- |
+| **SHAP**         | MIT        | TreeSHAP explanations | ✅ No GPL contamination      |
+| **XGBoost**      | Apache 2.0 | Tree models           | ✅ Compatible license family |
+| **LightGBM**     | MIT        | Alternative models    | ✅ Microsoft-backed          |
+| **scikit-learn** | BSD        | Baseline models       | ✅ Academic standard         |
+| **NumPy/Pandas** | BSD        | Data processing       | ✅ Core scientific stack     |
 
 **Key Licensing Note**: GlassAlpha uses the MIT-licensed Python [SHAP](https://github.com/shap/shap) library, not the GPL-licensed R `treeshap` package, ensuring maximum enterprise compatibility.
 
 ### Reproducible Builds
 
 Dependencies are locked for deterministic builds:
+
 ```bash
 pip install -c constraints.txt -e .
 ```
