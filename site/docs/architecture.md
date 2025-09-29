@@ -93,7 +93,6 @@ explainer_cls = ExplainerRegistry.select_compatible(model, ["treeshap"])
 **Benefits:**
 - **Deterministic selection** - Same config = same components
 - **Capability matching** - Explainers only run on compatible models
-- **Enterprise gating** - Features locked behind license checks
 - **Extensibility** - Add new types without changing core
 
 #### 3. Data Pipeline
@@ -293,6 +292,8 @@ class ManifestGenerator:
 ```
 
 ## Enterprise Architecture
+
+For potential future enterprise features.
 
 ### Feature Separation
 GlassAlpha maintains clear boundaries between OSS and Enterprise features:

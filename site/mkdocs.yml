@@ -99,20 +99,33 @@ nav:
     - German Credit Deep Dive: examples/german-credit-audit.md
     - Healthcare Bias Detection: examples/healthcare-bias-detection.md
     - Configuration Comparison: examples/configuration-comparison.md
-  - Architecture: architecture.md
+  # Additional examples available in Reference section below
+  - Core Concepts:
+    - Architecture: architecture.md
+    - Scope & Limitations: limitations.md
   - Production Deployment: deployment.md
+  - Enterprise:
+    - Licensing: licensing.md
+    - Regulatory Compliance: compliance/overview.md
+    - Security Policy: security.md
   - Reference:
     - CLI Reference: reference/cli.md
     - API Reference: reference/api.md
     - Troubleshooting: reference/troubleshooting.md
-    - Scope & Limitations: limitations.md
-    - Regulatory Compliance: compliance/overview.md
-    - Security Policy: security.md
-    - Enterprise Features: enterprise-features.md
     - FAQ: faq.md
-    - Changelog: changelog.md
+    - Additional Examples:
+      - CCPA Compliance Audit: examples/ccpa-compliance-audit.md
+      - Customer Segmentation Audit: examples/customer-segmentation-audit.md
+      - Fraud Detection Audit: examples/fraud-detection-audit.md
+      - GDPR Compliance Audit: examples/gdpr-compliance-audit.md
+      - Healthcare Compliance Mapping: examples/healthcare-compliance-mapping.md
+      - Healthcare Treatment Outcomes: examples/healthcare-treatment-outcomes.md
+      - Insurance Compliance Mapping: examples/insurance-compliance-mapping.md
+      - Insurance Risk Assessment: examples/insurance-risk-assessment.md
+  - Community:
     - Contributing: contributing.md
-  - About: about.md
+    - Changelog: changelog.md
+    - About: about.md
   - Blog:
     - blog/index.md
 

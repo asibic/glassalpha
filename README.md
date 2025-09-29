@@ -91,7 +91,7 @@ GlassAlpha provides **enterprise-grade licensing compatibility** with a carefull
 ### Core License Structure
 
 - **GlassAlpha Framework**: Apache License 2.0 ([LICENSE](LICENSE))
-- **Enterprise Extensions**: Commercial license for advanced features
+- **Enterprise Extensions**: Commercial license for potential future advanced features
 - **Brand**: "GlassAlpha" trademark - see [TRADEMARK.md](TRADEMARK.md)
 
 ### Technology Stack & Licenses
@@ -145,7 +145,6 @@ pip install -c constraints.txt -e .
 
 **Support**:
 - OSS: GitHub Issues
-- Enterprise: Priority support with SLA
 
 ---
 

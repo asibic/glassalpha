@@ -517,45 +517,6 @@ report:
     # Remove: local_explanations, detailed_plots
 ```
 
-## Enterprise Features
-
-### License Key Issues
-
-**Error:**
-```
-Enterprise feature 'dashboard' requires valid license key
-Set GLASSALPHA_LICENSE_KEY environment variable
-```
-
-**Solutions:**
-```bash
-# Set license key environment variable
-export GLASSALPHA_LICENSE_KEY="your-license-key-here"
-
-# Verify license key is set
-echo $GLASSALPHA_LICENSE_KEY
-
-# Use enterprise features
-glassalpha dashboard serve --port 8080
-```
-
-### Feature Not Available
-
-**Error:**
-```
-FeatureNotAvailableError: Advanced explainers require enterprise license
-```
-
-**Solution:**
-```yaml
-# Use OSS alternatives
-explainers:
-  priority:
-    - treeshap        # OSS TreeSHAP
-    - kernelshap      # OSS KernelSHAP
-    # Remove: deep_shap, gradient_shap (enterprise only)
-```
-
 ## Debugging and Diagnostics
 
 ### Enable Verbose Logging
@@ -635,16 +596,6 @@ glassalpha --verbose audit --config config.yaml --output audit.pdf 2>&1
 - **GitHub Issues:** [https://github.com/GlassAlpha/glassalpha/issues](https://github.com/GlassAlpha/glassalpha/issues)
 - **Documentation:** [Complete guides](../index.md)
 - **Community:** [GitHub Discussions](https://github.com/GlassAlpha/glassalpha/discussions)
-
-### Enterprise Support
-
-Enterprise customers have access to:
-- Priority support with guaranteed response times
-- Direct access to development team
-- Custom configuration assistance
-- Advanced debugging and optimization
-
-Contact: enterprise-support@glassalpha.com
 
 ## Prevention Best Practices
 

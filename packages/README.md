@@ -48,16 +48,6 @@ packages/
 └── pyproject.toml          # Package configuration
 ```
 
-Future enterprise package (separate repository):
-```
-glassalpha-enterprise/       # Commercial license
-├── advanced_explain/        # Deep SHAP, gradient methods
-├── monitoring/              # Dashboards & drift tracking
-├── templates/               # Regulator-specific templates
-├── integrations/            # SageMaker, Databricks, etc.
-└── policy_packs/           # Compliance policy bundles
-```
-
 ## Installation
 
 ### Basic Installation (OSS)
@@ -69,13 +59,6 @@ pip install glassalpha
 ```bash
 cd packages
 pip install -e ".[dev]"
-```
-
-### Enterprise Installation
-```bash
-# Requires license key (contact for availability)
-pip install glassalpha-enterprise
-export GLASSALPHA_LICENSE_KEY="your-key-here"
 ```
 
 ## Quick Start
@@ -175,7 +158,6 @@ See [CONTRIBUTING.md](../site/docs/contributing.md) for development guidelines.
 ### Licensing Structure
 
 - **Core Library**: Apache 2.0 License - Full open source access to core functionality
-- **Enterprise Extensions**: Commercial license for advanced features (separate package)
 
 ### Dependency Compatibility
 
@@ -201,4 +183,3 @@ pip install -c constraints.txt -e .
 ## Support
 
 - OSS: GitHub Issues
-- Enterprise: Priority support with SLA

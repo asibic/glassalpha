@@ -332,29 +332,7 @@ For comprehensive production deployment guidance, see the [Production Deployment
 
 ### What enterprise features are available?
 
-**Enterprise-only features** (separate license):
-- **Advanced explainability** methods (gradient-based, counterfactuals)
-- **Continuous monitoring** dashboards and drift detection
-- **Custom report templates** for specific regulatory frameworks
-- **Priority support** with guaranteed response times
-- **Advanced integrations** (SageMaker, Databricks, MLflow)
-
-### How do I get enterprise features?
-
-Contact our enterprise team for:
-- **License evaluation** and pricing
-- **Proof-of-concept** implementations
-- **Custom feature development**
-- **Training and support** services
-
-Email: enterprise@glassalpha.com
-
-### Can I try enterprise features?
-
-Enterprise evaluation licenses are available for:
-- **30-day trials** for qualified organizations
-- **Academic licenses** for educational institutions
-- **Non-profit discounts** for qualifying organizations
+GlassAlpha is organized to support potential future features for enterprise needs. If interested contact: enterprise@glassalpha.com
 
 ## Integration & Workflow
 
@@ -500,11 +478,6 @@ pip uninstall xgboost && pip install xgboost
 - **GitHub Issues**: Bug reports and feature requests
 - **Community Discussions**: User questions and sharing
 - **Troubleshooting Guide**: Common issues and solutions
-
-**Enterprise Support:**
-- **Priority support** with guaranteed response times
-- **Direct access** to development team
-- **Custom consultation** for complex use cases
 
 For immediate help, check the [Troubleshooting Guide](reference/troubleshooting.md) or search existing GitHub Issues.
 

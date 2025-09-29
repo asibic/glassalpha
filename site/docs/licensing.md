@@ -7,14 +7,8 @@ GlassAlpha provides **enterprise-grade licensing compatibility** with a carefull
 ### GlassAlpha Framework License
 
 - **License**: Apache License 2.0
-- **File**: [LICENSE](../LICENSE)
+- **File**: [LICENSE](https://www.apache.org/licenses/LICENSE-2.0.txt)
 - **Scope**: Core framework, CLI tools, and OSS features
-
-### Enterprise Extensions
-
-- **License**: Commercial license (separate from OSS)
-- **Scope**: Advanced explainers, monitoring dashboards, policy packs
-- **Activation**: Requires `GLASSALPHA_LICENSE_KEY` environment variable
 
 ### Brand & Trademark
 
@@ -110,20 +104,13 @@ glassalpha --version
 - **Security Updates**: Regular updates for security patches while maintaining compatibility
 - **Testing**: All version combinations tested in CI before release
 
-## Support & Enterprise Licensing
+## Support
 
 ### Open Source Support
 
 - **Community Support**: GitHub Issues for bug reports and feature requests
 - **Documentation**: Comprehensive documentation and examples
 - **Contributing**: Community contributions welcome under Apache 2.0
-
-### Enterprise Support
-
-- **Priority Support**: SLA-backed support for enterprise customers
-- **Advanced Features**: Access to enterprise-only features and integrations
-- **Custom Development**: Tailored solutions for specific compliance needs
-- **Training**: Enterprise training and onboarding programs
 
 ## Compliance Considerations
 
@@ -145,4 +132,4 @@ GlassAlpha's licensing approach aligns with major regulatory frameworks:
 
 ---
 
-For questions about licensing, enterprise deployments, or custom compliance solutions, please contact the GlassAlpha team.
+For questions about enterprise deployments, or custom compliance solutions, please contact the GlassAlpha team.

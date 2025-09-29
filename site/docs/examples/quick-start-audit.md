@@ -132,15 +132,19 @@ In 5 minutes, you've:
 ## Common First-Time Questions
 
 **Q: Why did it use XGBoost?**
+
 A: The configuration specifies `model.type: xgboost`. GlassAlpha supports XGBoost, LightGBM, and Logistic Regression.
 
 **Q: Can I use my own data?**
+
 A: Yes! Change `data.path` to your CSV file and update `target_column` and `feature_columns`. See [Configuration Guide](../getting-started/configuration.md).
 
 **Q: What if I get different results?**
+
 A: Results should be identical with the same `random_seed`. Different results suggest configuration or data changes.
 
 **Q: Is this suitable for production?**
+
 A: This minimal example is for learning. Production usage requires additional validation, testing, and security considerations. See [Production Deployment Guide](../deployment.md).
 
 ## Next Steps
@@ -195,10 +199,10 @@ model:
 
 ## Troubleshooting
 
-**Installation issues?** → [Installation Guide](../getting-started/installation.md)
-**Configuration errors?** → [Configuration Guide](../getting-started/configuration.md)
-**Command problems?** → [CLI Reference](../reference/cli.md)
-**General questions?** → [FAQ](../faq.md)
+- **Installation issues?** → [Installation Guide](../getting-started/installation.md)
+- **Configuration errors?** → [Configuration Guide](../getting-started/configuration.md)
+- **Command problems?** → [CLI Reference](../reference/cli.md)
+- **General questions?** → [FAQ](../faq.md)
 
 ## Summary
 

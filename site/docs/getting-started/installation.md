@@ -347,9 +347,6 @@ poetry shell
 - `GLASSALPHA_DATA_DIR` - Default data directory
 - `GLASSALPHA_LOG_LEVEL` - Logging level (DEBUG, INFO, WARNING, ERROR)
 
-**Enterprise Features:**
-- `GLASSALPHA_LICENSE_KEY` - Enterprise license key
-
 **Example:**
 ```bash
 export GLASSALPHA_LOG_LEVEL=DEBUG
