@@ -31,16 +31,20 @@ Complete installation instructions for GlassAlpha on different platforms and env
 GlassAlpha is currently distributed as source code via GitHub. PyPI distribution may be available in potential future releases.
 
 ```bash
-# Clone the repository
+# Clone and setup
 git clone https://github.com/GlassAlpha/glassalpha
 cd glassalpha/packages
 
-# Create and activate virtual environment (recommended)
-python -m venv glassalpha-env
-source glassalpha-env/bin/activate  # On Windows: glassalpha-env\Scripts\activate
+# (Recommended) Create a virtual environment
+python3 -m venv .venv
+source .venv/bin/activate
 
-# Install GlassAlpha and dependencies
-pip install -e .
+# Upgrade pip and install in editable mode
+python -m pip install --upgrade pip
+pip install -e ".[dev]"
+
+# Verify installation
+glassalpha --help
 ```
 
 ### Development Installation

@@ -1,16 +1,16 @@
 # GlassAlpha
 
 !!! info "What is GlassAlpha?"
-    GlassAlpha delivers **deterministic, regulator-ready PDF audit reports** for tabular ML models. An open-source toolkit for teams who need reproducible, audit-ready model documentation.
+GlassAlpha delivers **deterministic, regulator-ready PDF audit reports** for tabular ML models. An open-source toolkit for teams who need reproducible, audit-ready model documentation.
 
 ## The Goal: One Command Audit Generation
 
 Our target is simple, powerful audit generation:
 
 !!! example "CLI Interface"
-    ```bash
-    # Generate audit PDF
-    glassalpha audit --config configs/german_credit_simple.yaml --output my_audit.pdf
+
+````bash # Generate audit PDF
+glassalpha audit --config configs/german_credit_simple.yaml --output my_audit.pdf
 
     # Produces byte-identical PDF audits with complete lineage tracking
     ```
@@ -19,29 +19,32 @@ Our target is simple, powerful audit generation:
 ## Why We're Building GlassAlpha
 
 ### Designed for Regulatory Compliance
+
 - **Deterministic outputs** - Identical PDFs on same seed/data/model
 - **Complete lineage** - Git SHA, config hash, data hash, seeds recorded
 - **Professional formatting** - Publication-quality reports with visualizations
 
 ### On-Premise First Design
+
 - **No external dependencies** - Runs completely offline
 - **File-based approach** - No databases or complex infrastructure needed
 - **Full reproducibility** - Immutable run manifests for audit trails
 
 ### Simplicity as a Core Principle
+
 - **Single command** - `glassalpha audit` handles everything
 - **YAML configuration** - Policy-as-code for compliance requirements
 - **Fast execution** - Under 3 seconds from model to PDF
 
 ## Supported Models
 
-| Model Type | Status | Notes |
-|-----------|--------|-------|
-| XGBoost | Production | TreeSHAP integration optimized |
-| LightGBM | Production | Native integration available |
+| Model Type          | Status     | Notes                           |
+| ------------------- | ---------- | ------------------------------- |
+| XGBoost             | Production | TreeSHAP integration optimized  |
+| LightGBM            | Production | Native integration available    |
 | Logistic Regression | Production | Full scikit-learn compatibility |
 
-*Additional model types available through extension framework*
+_Additional model types available through extension framework_
 
 ## Audit Report Contents
 
@@ -75,25 +78,31 @@ Audit reports include:
 ## Installation
 
 ```bash
-# Clone the repository
+# Clone and setup
 git clone https://github.com/GlassAlpha/glassalpha
 cd glassalpha/packages
 
-# Install
-pip install -e .
+# (Recommended) Create a virtual environment
+python3 -m venv .venv
+source .venv/bin/activate
+
+# Upgrade pip and install in editable mode
+python -m pip install --upgrade pip
+pip install -e ".[dev]"
 
 # Verify installation
 glassalpha --help
 
 # Generate your first audit
 glassalpha audit --config configs/german_credit_simple.yaml --output audit.pdf
-```
+````
 
 ## Contributing
 
 We welcome contributions to enhance GlassAlpha's capabilities:
 
 ### Enhancement Areas
+
 1. **Additional Models** - Neural networks, time series, custom integrations
 2. **Advanced Explanations** - Counterfactuals, gradient methods, interactive visuals
 3. **Extended Compliance** - Additional frameworks, custom templates, industry metrics
@@ -152,7 +161,7 @@ This configuration format supports deterministic, reproducible audits.
 - [Healthcare Bias Detection](examples/healthcare-bias-detection.md) - Medical AI compliance example
 - [Configuration Comparison](examples/configuration-comparison.md) - Choosing the right audit approach
 
-*Comprehensive examples with real datasets and regulatory interpretations*
+_Comprehensive examples with real datasets and regulatory interpretations_
 
 ## Documentation
 
@@ -169,4 +178,4 @@ This configuration format supports deterministic, reproducible audits.
 
 ---
 
-*Built for teams who need reproducible, regulator-ready ML audit reports.*
+_Built for teams who need reproducible, regulator-ready ML audit reports._

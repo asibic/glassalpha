@@ -62,4 +62,4 @@ check: smoke
 	@echo "✅ Smoke test passed"
 	@echo ""
 	@echo "Optional: Run full test suite with dependencies installed:"
-	@echo "  pip install -e .[dev] && make test"
+	@echo "  pip install -e ".[dev]" && make test"
