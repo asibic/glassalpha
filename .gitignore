@@ -10,6 +10,17 @@ dist/
 build/
 wheels/
 pip-wheel-metadata/
+packages/build
+packages/dist
+packages/venv/
+packages/htmlcov/
+packages/htmlcov_critical/
+packages/src/glassalpha.egg-info/
+
+# Misc.
+.mypy_cache/
+*.bak
+
 
 # Test & tooling caches
 .pytest_cache/
@@ -65,9 +76,6 @@ configs/local/
 *.manifest.json
 *.log
 logs/
-
-# macOS
-.DS_Store
 
 # Vim
 *.swp
