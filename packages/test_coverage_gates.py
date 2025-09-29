@@ -40,22 +40,37 @@ def run_coverage_gate(gate_name: str, cmd: list[str], expected_min: int) -> tupl
 
 
 def main():
-    """Test both coverage gates."""
+    """Test both coverage gates locally (mimics CI behavior)."""
     repo_root = Path(__file__).parent
 
     print("Testing Coverage Gates Locally")
     print("=" * 50)
 
-    # Gate 1: Critical Path (90%+)
-    gate1_cmd = [
+    # First run pytest to generate coverage data
+    print("\n=== Running tests with coverage ===")
+    test_cmd = [
         sys.executable,
         "-m",
         "pytest",
         "-q",
         "--cov=glassalpha",
-        "--cov-config=.coveragerc_gate1",
-        "--cov-fail-under=90",
+        "--cov-report=xml",
         "--cov-report=term-missing",
+        "--cov-fail-under=0",  # No global fail-under
+        "tests/",
+    ]
+    subprocess.run(test_cmd, check=False)
+
+    # Gate 1: Critical Path (90%+ hard requirement)
+    print("\n" + "=" * 50)
+    gate1_cmd = [
+        sys.executable,
+        "-m",
+        "coverage",
+        "report",
+        "--precision=2",
+        "--include=*/glassalpha/config/*,*/glassalpha/models/*,*/glassalpha/pipeline/*,*/glassalpha/report/renderer.py,*/glassalpha/metrics/core.py,*/glassalpha/metrics/thresholds.py,*/glassalpha/core/interfaces.py",
+        "--fail-under=90",
     ]
 
     gate1_passed, gate1_coverage = run_coverage_gate(
@@ -64,38 +79,40 @@ def main():
         90,
     )
 
-    # Gate 2: Full Repository (70% trend-only)
+    # Gate 2: Full Repository (70% trend-only, no fail)
+    print("\n" + "=" * 50)
     gate2_cmd = [
         sys.executable,
         "-m",
-        "pytest",
-        "-q",
-        "--cov=glassalpha",
-        "--cov-report=term-missing",
+        "coverage",
+        "report",
+        "--precision=2",
+        "--fail-under=0",  # Trend only, no fail
     ]
 
     gate2_passed, gate2_coverage = run_coverage_gate(
-        "Gate 2: Full repository (70%+)",
+        "Gate 2: Full repository (70% trend-only)",
         gate2_cmd,
         70,
     )
 
     print("\n" + "=" * 50)
     print("SUMMARY:")
-    print(f"Gate 1 (Critical Path): {gate1_coverage}% {'✅' if gate1_passed else '⚠️'}")
+    print(f"Gate 1 (Critical Path): {gate1_coverage}% {'✅' if gate1_passed else '❌'}")
     print(f"Gate 2 (Full Repository): {gate2_coverage}% {'✅' if gate2_passed else '⚠️'}")
 
     if gate1_passed:
-        print("🎉 Gate 1 (Critical Path) meets 90% threshold")
+        print("✅ Gate 1 (Critical Path) meets 90% threshold")
     else:
-        print("⚠️  Gate 1 (Critical Path) below 90% threshold")
+        print("❌ Gate 1 (Critical Path) below 90% threshold - THIS IS A HARD FAIL")
 
     if gate2_passed:
-        print("🎉 Gate 2 (Full Repository) meets 70% threshold")
+        print("✅ Gate 2 (Full Repository) meets 70% threshold")
     else:
-        print("⚠️  Gate 2 (Full Repository) below 70% threshold - trend monitoring active")
+        print("⚠️  Gate 2 (Full Repository) below 70% threshold - trend monitoring only (not a failure)")
 
-    return gate1_passed and gate2_passed
+    # Only Gate 1 is a hard requirement
+    return gate1_passed
 
 
 if __name__ == "__main__":

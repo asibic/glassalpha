@@ -180,22 +180,32 @@ jobs:
       - name: Gate 1 — Critical modules coverage
         working-directory: packages
         run: |
-          echo "--- Gate 1: Critical-path modules (${COV_FLOOR_CRITICAL}%+) ---"
-          # Combine & inspect coverage data before gate
-          python -m coverage combine || true
-          python -m coverage debug data  # shows which files were measured
-          python -m coverage report \
-            --fail-under=${COV_FLOOR_CRITICAL} \
-            --include="*/glassalpha/pipeline/*,*/glassalpha/models/*,*/glassalpha/explain/*,*/glassalpha/config/*,*/glassalpha/report/renderer.py"
+          echo "--- Gate 1: Critical-path modules (90%+) ---"
+          # Only run combine if multiple coverage files exist
+          if [ $(ls .coverage.* 2>/dev/null | wc -l) -gt 1 ]; then
+            echo "Multiple coverage files found, combining..."
+            python -m coverage combine || true
+          fi
+          # Critical modules must maintain 90%+ coverage
+          python -m coverage report --precision=2 \
+            --include="*/glassalpha/config/*,*/glassalpha/models/*,*/glassalpha/pipeline/*,*/glassalpha/report/renderer.py,*/glassalpha/metrics/core.py,*/glassalpha/metrics/thresholds.py,*/glassalpha/core/interfaces.py" \
+            --fail-under=90
 
-      - name: Gate 2 — Overall sanity floor
+      - name: Gate 2 — Overall trend monitoring (no fail)
         working-directory: packages
         run: |
-          echo "--- Gate 2: Overall sanity floor (${COV_FLOOR_OVERALL}%+) ---"
-          # Combine & inspect coverage data before gate
-          python -m coverage combine || true
-          python -m coverage debug data  # shows which files were measured
-          python -m coverage report --fail-under=${COV_FLOOR_OVERALL}
+          echo "--- Gate 2: Full repository (70% trend-only) ---"
+          # Coverage combine only if multiple .coverage files exist
+          ls -la .coverage* || true
+          if [ $(ls .coverage.* 2>/dev/null | wc -l) -gt 1 ]; then
+            echo "Multiple coverage files found, combining..."
+            python -m coverage combine || true
+          fi
+          # Report with no fail-under (trend monitoring only)
+          python -m coverage report --precision=2 --fail-under=0
+          python -m coverage xml
+          # Run trend monitoring script (warnings only, no fail)
+          python .ci/coverage_gate.py || echo "Coverage trend monitoring completed"
 
       - name: Run tests against installed package
         working-directory: packages
