@@ -1,20 +1,32 @@
 # GlassAlpha
 
-## What is GlassAlpha?
+GlassAlpha makes **deterministic, regulator-ready PDF audit reports** for tabular ML models. It's an open-source ([Apache 2.0](reference/trust-deployment/#licensing-dependencies)) toolkit for reproducible, audit-ready model documentation.
 
-GlassAlpha delivers **deterministic, regulator-ready PDF audit reports** for tabular ML models. An open-source toolkit for teams who need reproducible, audit-ready model documentation.
+## Quick Links
 
-## The goal: Simple audit generation
+- [**Quick start guide**](getting-started/quickstart.md): Run an audit in 60 seconds.
+- [**Examples**](examples/german-credit-audit.md): Walkthrough ML audits on credit, healthcare bias and fraud detection.
+- [**Trust & deployment**](examples/german-credit-audit.md): Misc. info on architecture, licensing, security, compliance, and deployment.
 
-Our target is simple, powerful audit generation.
+### Run first audit in 60 seconds
 
-Generate audit PDF:
+#### Clone and install
 
 ```bash
-glassalpha audit --config configs/german_credit_simple.yaml --output my_audit.pdf
+git clone https://github.com/GlassAlpha/glassalpha
+cd glassalpha/packages
+pip install -e .
 ```
 
-Get deterministic byte-identical audit PDFs with complete lineage tracking for XGBoost, LightGBM, and Logistic Regression models (more in the future).
+#### Generate an audit PDF (uses included German Credit example)
+
+```bash
+glassalpha audit --config configs/german_credit_simple.yaml --output audit.pdf
+```
+
+That's it. You now have a complete audit report with model performance, SHAP explanations, and fairness metrics.
+
+See [**more setup documentation here**](getting-started/quickstart.md).
 
 ## Why GlassAlpha?
 

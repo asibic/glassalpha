@@ -1,5 +1,25 @@
 # Quick start guide
 
+## The 60-second version
+
+### Clone and install
+
+```bash
+git clone https://github.com/GlassAlpha/glassalpha
+cd glassalpha/packages
+pip install -e .
+```
+
+### Generate an audit PDF (uses included German Credit example)
+
+```bash
+glassalpha audit --config configs/german_credit_simple.yaml --output audit.pdf
+```
+
+That's it! You now have a complete audit report with model performance, SHAP explanations, and fairness metrics.
+
+## The 10-minute version
+
 Get up and running with GlassAlpha in less than 10 minutes. This guide will take you from installation to generating your first professional audit PDF.
 
 ## Prerequisites
