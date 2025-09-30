@@ -6,6 +6,7 @@ comprehensive audit results with full reproducibility tracking.
 """
 
 import logging
+import os
 import traceback
 from collections.abc import Callable
 from dataclasses import dataclass, field
@@ -209,11 +210,9 @@ class AuditPipeline:
         """
         logger.info("Loading and validating dataset")
 
-        # Get data path from config
-        data_path = Path(self.config.data.path)
-        if not data_path.exists():
-            msg = f"Data file not found: {data_path}"
-            raise FileNotFoundError(msg)
+        # Resolve and ensure dataset availability
+        data_path = self._resolve_requested_path()
+        data_path = self._ensure_dataset_availability(data_path)
 
         # Load schema if specified
         schema = None
@@ -1178,6 +1177,147 @@ class AuditPipeline:
             logger.debug("All component modules imported and registered")
         except ImportError as e:
             logger.warning(f"Some components could not be imported: {e}")
+
+    def _resolve_requested_path(self) -> Path:
+        """Resolve the requested data path from configuration.
+
+        Returns:
+            Path to the requested data file
+
+        Raises:
+            ValueError: If dataset is unknown or configuration is invalid
+
+        """
+        from ..datasets.registry import REGISTRY
+        from ..utils.cache_dirs import resolve_data_root
+
+        cfg = self.config.data
+
+        # Custom dataset: user provides explicit path
+        if cfg.dataset == "custom":
+            return Path(cfg.path).expanduser().resolve()
+
+        # Built-in dataset: resolve to canonical cache file
+        spec = REGISTRY.get(cfg.dataset)
+        if not spec:
+            raise ValueError(f"Unknown dataset key: {cfg.dataset}")
+
+        cache_root = resolve_data_root()
+        return (cache_root / spec.default_relpath).resolve()
+
+    def _ensure_dataset_availability(self, requested_path: Path) -> Path:
+        """Ensure dataset is available, fetching if necessary.
+
+        Args:
+            requested_path: The path where the dataset should be located
+
+        Returns:
+            Path to the available dataset file
+
+        Raises:
+            FileNotFoundError: If dataset cannot be fetched or is not available
+
+        """
+        import shutil
+        import time
+
+        from ..datasets.registry import REGISTRY
+        from ..utils.cache_dirs import ensure_dir_writable, resolve_data_root
+        from ..utils.locks import file_lock, get_lock_path
+
+        def _retry_io(fn, attempts=5, base_sleep=0.05):
+            """Retry I/O operations with exponential backoff."""
+            last_error = None
+            sleep_time = base_sleep
+            for attempt in range(attempts):
+                try:
+                    return fn()
+                except OSError as e:
+                    last_error = e
+                    if attempt == attempts - 1:
+                        raise
+                    time.sleep(sleep_time)
+                    sleep_time *= 2
+            raise last_error  # Should never reach here, but for type checker
+
+        cfg = self.config.data
+        ds_key = cfg.dataset
+
+        # Custom dataset: user path, just ensure parent exists if needed
+        if ds_key == "custom":
+            if not requested_path.exists():
+                if cfg.offline:
+                    raise FileNotFoundError(
+                        f"Data file not found and offline is true.\n"
+                        f"Path: {requested_path}\n"
+                        f"Provide the file or set offline: false",
+                    )
+                # For custom paths, we don't fetch - user must provide
+                raise FileNotFoundError(
+                    f"Custom data file not found: {requested_path}\nPlease provide the file at this location.",
+                )
+            return requested_path
+
+        # Built-in dataset: ensure cache exists, then mirror to requested if different
+        spec = REGISTRY[ds_key]  # Should be validated in _resolve_requested_path
+        cache_root = ensure_dir_writable(resolve_data_root())
+        final_cache_path = (cache_root / spec.default_relpath).resolve()
+        final_cache_path.parent.mkdir(parents=True, exist_ok=True)
+
+        # Check if file already exists and fetch policy allows it
+        if final_cache_path.exists() and cfg.fetch != "always":
+            return requested_path if requested_path == final_cache_path else final_cache_path
+
+        # Check offline mode
+        if cfg.offline:
+            if not final_cache_path.exists():
+                raise FileNotFoundError(
+                    f"Data file not found and offline is true.\n"
+                    f"Cache: {final_cache_path}\n"
+                    f"Run with offline: false to download, or provide the file.",
+                )
+            return final_cache_path
+
+        lock_path = get_lock_path(final_cache_path)
+        with file_lock(lock_path):
+            # Respect fetch policy inside lock so only one thread refreshes
+            if cfg.fetch == "always":
+                try:
+                    final_cache_path.unlink()
+                except FileNotFoundError:
+                    pass
+
+            # Fetch if needed
+            if not final_cache_path.exists():
+                logger.info(f"Fetching dataset {spec.key} into cache")
+                produced = Path(spec.fetch_fn()).resolve()
+                tmp = final_cache_path.with_suffix(final_cache_path.suffix + ".tmp")
+
+                if produced != final_cache_path:
+                    # Move atomically into cache location via temp + replace
+                    _retry_io(lambda: shutil.move(str(produced), str(tmp)))
+                    _retry_io(lambda: os.replace(str(tmp), str(final_cache_path)))
+                else:
+                    # Fetcher wrote directly to final location
+                    final_cache_path.touch(exist_ok=True)
+
+            # Mirror to requested path if different (inside lock to avoid races)
+            if requested_path != final_cache_path:
+                requested_path.parent.mkdir(parents=True, exist_ok=True)
+
+                def _mirror():
+                    if requested_path.exists():
+                        return  # Already mirrored
+                    try:
+                        # Try hard link first (fastest, zero copy)
+                        os.link(str(final_cache_path), str(requested_path))
+                    except OSError:
+                        # Fall back to copy (cross-device or unsupported filesystem)
+                        shutil.copy2(str(final_cache_path), str(requested_path))
+
+                _retry_io(_mirror)
+
+        return requested_path
 
 
 def run_audit_pipeline(config: AuditConfig, progress_callback: Callable | None = None) -> AuditResults:

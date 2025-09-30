@@ -126,7 +126,7 @@ class TestArchitecturalGuards:
                 [0.1, 0.1, 0.8],
                 [0.7, 0.2, 0.1],
                 [0.2, 0.6, 0.2],
-            ]
+            ],
         )
 
         # This should NOT raise an exception about binary averaging
@@ -216,7 +216,7 @@ class TestArchitecturalGuards:
         config_dict = {
             "audit_profile": "test",
             "model": {"type": "xgboost"},
-            "data": {"path": "test.csv"},
+            "data": {"dataset": "custom", "path": "test.csv"},
         }
         config = AuditConfig(**config_dict)
 
@@ -276,7 +276,7 @@ class TestFeatureRegressionGuards:
             n_redundant=0,
             n_classes=3,
             n_clusters_per_class=2,
-            random_state=42
+            random_state=42,
         )
         rf_multi = RandomForestClassifier(n_estimators=10, random_state=42)
         rf_multi.fit(X_multi, y_multi)
@@ -374,7 +374,7 @@ class TestFeatureRegressionGuards:
             # Should contain the expected redaction marker
             if expected_marker not in sanitized:
                 pytest.fail(
-                    f"REGRESSION: Log sanitization failed for: {message} -> {sanitized} (expected: {expected_marker})"
+                    f"REGRESSION: Log sanitization failed for: {message} -> {sanitized} (expected: {expected_marker})",
                 )
 
 

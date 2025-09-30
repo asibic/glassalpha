@@ -19,7 +19,7 @@ def test_generate_run_manifest_basic():
     config = {
         "audit_profile": "test_profile",
         "model": {"type": "xgboost", "params": {"max_depth": 6}},
-        "data": {"path": "test.csv"},
+        "data": {"dataset": "custom", "path": "test.csv"},
     }
 
     manifest = generate_run_manifest(config)
@@ -277,7 +277,7 @@ def test_manifest_sections_complete():
     config = {
         "audit_profile": "test_profile",
         "model": {"type": "xgboost"},
-        "data": {"path": "test.csv"},
+        "data": {"dataset": "custom", "path": "test.csv"},
     }
 
     df = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
@@ -318,7 +318,7 @@ def test_config_sanitization():
     """Test that sensitive information is removed from config before hashing."""
     config_with_sensitive = {
         "audit_profile": "test_profile",
-        "data": {"path": "/Users/sensitive/path/data.csv"},
+        "data": {"dataset": "custom", "path": "/Users/sensitive/path/data.csv"},
         "license_key": "secret123",
         "api_token": "token456",
     }

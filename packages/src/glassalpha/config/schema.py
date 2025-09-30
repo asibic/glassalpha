@@ -57,13 +57,37 @@ class ModelConfig(BaseModel):
 
 
 class DataConfig(BaseModel):
-    """Data configuration."""
+    """Data configuration.
+
+    Clean policy:
+    1. data.dataset is required for any real run
+    2. Use data.dataset="custom" with data.path for external files
+    3. data_schema alone is allowed for schema-only utilities/tests
+    """
 
     model_config = ConfigDict(extra="forbid")
 
-    path: Path | None = Field(None, description="Path to data file")
+    # Dataset specification (required for runs; "custom" enables path)
+    dataset: str | None = Field(None, description="Dataset key from registry or 'custom' for external files")
+
+    # Path specification (only valid when dataset == "custom")
+    path: str | None = Field(None, description="Path to data file (only when dataset='custom')")
+
+    # Fetch policy for automatic dataset downloading
+    fetch: str = Field(
+        "if_missing",
+        description="Fetch policy: 'never', 'if_missing', or 'always'",
+        pattern="^(never|if_missing|always)$",
+    )
+
+    # Offline mode (disables network operations)
+    offline: bool = Field(False, description="Disable network operations for offline environments")
+
+    # Schema specification (for validation utilities and tests)
     schema_path: Path | None = Field(None, description="Path to data schema file")
     data_schema: dict[str, Any] | None = Field(None, description="Inline data schema")
+
+    # Feature configuration
     protected_attributes: list[str] = Field(
         default_factory=list,
         description="List of protected/sensitive attributes for fairness analysis",
@@ -76,6 +100,54 @@ class DataConfig(BaseModel):
     def lowercase_attributes(cls, v: list[str]) -> list[str]:
         """Ensure attribute names are lowercase."""
         return [attr.lower() for attr in v]
+
+    @field_validator("fetch")
+    @classmethod
+    def validate_fetch_policy(cls, v: str) -> str:
+        """Validate fetch policy values."""
+        if v not in {"never", "if_missing", "always"}:
+            raise ValueError(f"Fetch policy must be 'never', 'if_missing', or 'always', got: {v}")
+        return v
+
+    @field_validator("path")
+    @classmethod
+    def expand_user_path(cls, v: str | None) -> str | None:
+        """Expand user home directory in paths."""
+        if v is None:
+            return None
+        return str(Path(v).expanduser())
+
+    @model_validator(mode="after")
+    def enforce_dataset_policy(self) -> "DataConfig":
+        """Enforce clean dataset policy.
+
+        Rules:
+        1. Schema-only configs are allowed (no dataset/path needed)
+        2. For actual data use, dataset is required
+        3. dataset="custom" requires path; other datasets forbid path
+        """
+        # Schema-only configs are allowed (no dataset/path needed)
+        if self.data_schema is not None and not (self.dataset or self.path):
+            return self
+
+        # For any actual data use, dataset is required
+        if not self.dataset:
+            raise ValueError(
+                "data.dataset is required. Use data.dataset='custom' with data.path for external files.",
+            )
+
+        # Custom dataset requires path
+        if self.dataset == "custom":
+            if not self.path:
+                raise ValueError("data.path is required when data.dataset='custom'.")
+        # Registry datasets forbid path
+        elif self.path:
+            raise ValueError(
+                f"data.path must be omitted for registry dataset '{self.dataset}'. "
+                "Use data.dataset='custom' to provide a custom path.",
+            )
+
+        return self
 
 
 class ExplainerConfig(BaseModel):

@@ -64,7 +64,7 @@ glassalpha audit \
 
 ### What Happens
 
-1. **Data Loading**: Downloads and preprocesses German Credit dataset
+1. **Automatic Dataset Resolution**: Uses built-in German Credit dataset from registry
 2. **Model Training**: Trains XGBoost classifier with optimal parameters
 3. **Explanations**: Generates TreeSHAP feature importance analysis
 4. **Fairness Analysis**: Computes bias metrics for protected attributes (gender, age)
@@ -161,7 +161,8 @@ Data configuration:
 
 ```yaml
 data:
-  path: /Users/user/.glassalpha/data/german_credit_processed.csv
+  dataset: german_credit # Uses built-in German Credit dataset
+  fetch: if_missing # Automatically download if needed
   target_column: credit_risk
   protected_attributes:
     - gender
@@ -239,6 +240,14 @@ Validate configuration without running audit:
 
 ```bash
 glassalpha validate --config configs/german_credit_simple.yaml
+```
+
+Manage datasets:
+
+```bash
+glassalpha datasets list        # See available datasets
+glassalpha datasets info german_credit  # Show dataset details
+glassalpha datasets cache-dir   # Show where datasets are cached
 ```
 
 ### Work with Your Own Data

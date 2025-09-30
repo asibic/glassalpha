@@ -5,7 +5,6 @@ component loading, and basic execution flow. These tests focus
 on covering the main pipeline logic without requiring real data/models.
 """
 
-from pathlib import Path
 from unittest.mock import Mock, patch
 
 import numpy as np
@@ -29,7 +28,7 @@ def minimal_config():
     return AuditConfig(
         audit_profile="tabular_compliance",
         model=ModelConfig(type="xgboost"),
-        data=DataConfig(path=Path("test_data.csv")),
+        data=DataConfig(dataset="custom", path="test_data.csv"),
         explainers=ExplainerConfig(strategy="first_compatible", priority=["treeshap", "kernelshap"]),
         metrics=MetricsConfig(performance=["accuracy"]),
         reproducibility=ReproducibilityConfig(random_seed=42),
@@ -146,7 +145,7 @@ class TestAuditPipelineDataLoading:
         pipeline = AuditPipeline(minimal_config)
 
         # Should check if file exists and fail appropriately
-        with pytest.raises(FileNotFoundError, match="Data file not found"):
+        with pytest.raises(FileNotFoundError, match="Custom data file not found"):
             pipeline._load_data()
 
 

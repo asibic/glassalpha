@@ -4,7 +4,9 @@ reproducibility:
   random_seed: 42
 
 data:
-  path: ~/.glassalpha/data/german_credit_processed.csv
+  dataset: german_credit
+  fetch: if_missing
+  offline: false
   target_column: credit_risk
   feature_columns:
     - checking_account_status

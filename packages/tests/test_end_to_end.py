@@ -60,8 +60,7 @@ class TestEndToEndWorkflow:
         return {
             "audit_profile": "tabular_compliance",
             "reproducibility": {"random_seed": 42},
-            "data": {
-                "path": str(data_path),
+            "data": {"dataset": "custom", "path": str(data_path),
                 "target_column": "credit_risk",
                 "feature_columns": [
                     "checking_account_status",
@@ -236,8 +235,7 @@ class TestEndToEndWorkflow:
             config_dict = {
                 "audit_profile": "tabular_compliance",
                 "reproducibility": {"random_seed": 42},
-                "data": {
-                    "path": str(data_path),
+                "data": {"dataset": "custom", "path": str(data_path),
                     "target_column": "credit_risk",
                     "feature_columns": ["checking_account_status", "duration_months", "credit_amount"],
                     "protected_attributes": (
@@ -296,8 +294,7 @@ class TestEndToEndWorkflow:
         minimal_config = {
             "audit_profile": "tabular_compliance",
             "reproducibility": {"random_seed": 42},
-            "data": {
-                "path": str(data_path),
+            "data": {"dataset": "custom", "path": str(data_path),
                 "target_column": "credit_risk",
                 "feature_columns": ["checking_account_status", "duration_months"],
             },
@@ -312,8 +309,7 @@ class TestEndToEndWorkflow:
         comprehensive_config = {
             "audit_profile": "tabular_compliance",
             "reproducibility": {"random_seed": 123},
-            "data": {
-                "path": str(data_path),
+            "data": {"dataset": "custom", "path": str(data_path),
                 "target_column": "credit_risk",
                 "feature_columns": [
                     "checking_account_status",
@@ -356,7 +352,7 @@ class TestEndToEndWorkflow:
         invalid_data_config = {
             "audit_profile": "tabular_compliance",
             "reproducibility": {"random_seed": 42},
-            "data": {"path": "/nonexistent/path.csv", "target_column": "target", "feature_columns": ["feature1"]},
+            "data": {"dataset": "custom", "path": "/nonexistent/path.csv", "target_column": "target", "feature_columns": ["feature1"]},
             "model": {"type": "logistic_regression"},
         }
 
@@ -373,8 +369,7 @@ class TestEndToEndWorkflow:
         missing_target_config = {
             "audit_profile": "tabular_compliance",
             "reproducibility": {"random_seed": 42},
-            "data": {
-                "path": str(temp_data_path),
+            "data": {"dataset": "custom", "path": str(temp_data_path),
                 "target_column": "credit_risk",  # Column doesn't exist
                 "feature_columns": ["duration_months"],
             },
@@ -389,8 +384,7 @@ class TestEndToEndWorkflow:
         invalid_model_config = {
             "audit_profile": "tabular_compliance",
             "reproducibility": {"random_seed": 42},
-            "data": {
-                "path": str(temp_data_path),
+            "data": {"dataset": "custom", "path": str(temp_data_path),
                 "target_column": "credit_risk",
                 "feature_columns": ["duration_months"],
             },
@@ -480,8 +474,7 @@ class TestCLIEndToEnd:
         config_dict = {
             "audit_profile": "tabular_compliance",
             "reproducibility": {"random_seed": 42},
-            "data": {
-                "path": str(data_path),
+            "data": {"dataset": "custom", "path": str(data_path),
                 "target_column": "credit_risk",
                 "feature_columns": ["checking_account_status", "duration_months", "credit_amount"],
                 "protected_attributes": [],  # Simplified for CLI testing
@@ -610,8 +603,7 @@ class TestScalabilityAndLimits:
         config_dict = {
             "audit_profile": "tabular_compliance",
             "reproducibility": {"random_seed": 42},
-            "data": {
-                "path": str(small_data_path),
+            "data": {"dataset": "custom", "path": str(small_data_path),
                 "target_column": "credit_risk",
                 "feature_columns": ["checking_account_status", "duration_months"],
             },
@@ -674,7 +666,7 @@ class TestScalabilityAndLimits:
         return {
             "audit_profile": "tabular_compliance",
             "reproducibility": {"random_seed": 42},
-            "data": {"path": str(data_path), "target_column": "credit_risk", "feature_columns": features},
+            "data": {"dataset": "custom", "path": str(data_path), "target_column": "credit_risk", "feature_columns": features},
             "model": {"type": "xgboost", "params": {"n_estimators": 10}},
             "explainers": {"priority": ["treeshap"]},
             "metrics": {"performance": {"metrics": ["accuracy"]}},

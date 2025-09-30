@@ -5,7 +5,7 @@ description = "AI Compliance Toolkit - transparent, auditable, regulator-ready M
 authors = [{ name = "GlassAlpha Team" }]
 readme = "README.md"
 license = { text = "Apache-2.0" }
-requires-python = ">=3.11,<3.13"
+requires-python = ">=3.11,<3.14"
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
@@ -46,6 +46,7 @@ dependencies = [
 
     # Utilities
     "orjson>=3.9.0",         # Fast JSON serialization
+    "platformdirs>=4.0.0",   # Cross-platform user data directories (optional, fallback included)
 ]
 
 [project.scripts]

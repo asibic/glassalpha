@@ -18,8 +18,7 @@ def test_unknown_keys_in_report_section_logged():
     """Test that unknown keys in report section are logged but not fatal."""
     config_dict = {
         "audit_profile": "test_profile",
-        "data": {
-            "path": "test.csv",
+        "data": {"dataset": "custom", "path": "test.csv",
             "target_column": "target",
             "protected_attributes": ["age"],
         },
@@ -58,8 +57,7 @@ def test_deprecated_options_warning():
         "audit_profile": "test_profile",
         "random_seed": 42,  # Deprecated: should be reproducibility.random_seed
         "target": "target_col",  # Deprecated: should be data.target_column
-        "data": {
-            "path": "test.csv",
+        "data": {"dataset": "custom", "path": "test.csv",
             "target_column": "target",
             "protected_attributes": ["age"],
         },
@@ -84,8 +82,7 @@ def test_deprecated_options_warning():
 def test_security_warnings_for_user_paths():
     """Test that user-specific paths generate security warnings."""
     config_dict = {
-        "data": {
-            "path": "/Users/john/data/sensitive.csv",  # User-specific path
+        "data": {"dataset": "custom", "path": "/Users/john/data/sensitive.csv",  # User-specific path
             "target_column": "target",
         },
         "model": {
@@ -108,7 +105,7 @@ def test_config_completeness_validation():
     """Test validation of configuration completeness."""
     # Minimal config missing recommended sections
     minimal_config = {
-        "data": {"path": "test.csv", "target_column": "target"},
+        "data": {"dataset": "custom", "path": "test.csv", "target_column": "target"},
         # Missing: model, explainers, metrics, report
     }
 
@@ -127,8 +124,7 @@ def test_config_completeness_validation():
 def test_config_improvement_suggestions():
     """Test configuration improvement suggestions."""
     basic_config = {
-        "data": {
-            "path": "test.csv",
+        "data": {"dataset": "custom", "path": "test.csv",
             "target_column": "target",
             # Missing: protected_attributes
         },
@@ -162,8 +158,7 @@ def test_strict_mode_suppresses_suggestions():
     config_dict = {
         "audit_profile": "test_profile",
         "strict_mode": True,
-        "data": {
-            "path": "test.csv",
+        "data": {"dataset": "custom", "path": "test.csv",
             "target_column": "target",
             "protected_attributes": ["age"],
             "data_schema": {"feature1": "numeric", "feature2": "categorical"},  # Add schema for strict mode
@@ -191,8 +186,7 @@ def test_non_strict_mode_shows_suggestions():
     """Test that non-strict mode shows improvement suggestions."""
     config_dict = {
         "audit_profile": "test_profile",
-        "data": {
-            "path": "test.csv",
+        "data": {"dataset": "custom", "path": "test.csv",
             "target_column": "target",
             "protected_attributes": ["age"],
         },
@@ -243,8 +237,7 @@ def test_no_warnings_for_valid_config():
     """Test that valid configuration generates no warnings."""
     valid_config = {
         "audit_profile": "test_profile",
-        "data": {
-            "path": "test.csv",
+        "data": {"dataset": "custom", "path": "test.csv",
             "target_column": "target",
             "protected_attributes": ["age"],
         },
@@ -279,8 +272,7 @@ def test_config_flexibility_integration():
     flexible_config = {
         "audit_profile": "test_profile",
         "random_seed": 42,  # Deprecated
-        "data": {
-            "path": "/Users/testuser/data.csv",  # Security warning
+        "data": {"dataset": "custom", "path": "/Users/testuser/data.csv",  # Security warning
             "target_column": "target",
             "protected_attributes": ["age"],
         },

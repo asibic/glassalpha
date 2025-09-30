@@ -154,8 +154,7 @@ def validate_config(config: dict[str, Any] | AuditConfig) -> AuditConfig:
         if notes:
             logger.warning("Deprecated configuration options found:\n  " + "\n  ".join(notes))
 
-        # Apply profile defaults first
-        config = apply_profile_defaults(config, config.get("audit_profile"))
+        # Profile defaults are applied in load_config, not here
 
         # Create and validate config object
         audit_config = AuditConfig(**config)

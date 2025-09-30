@@ -24,8 +24,8 @@ def test_no_schema_field_exists():
 
 
 def test_data_schema_field_none_by_default():
-    """Test that data_schema is None by default."""
-    config = DataConfig()
+    """Test that data_schema is None by default when other fields are provided."""
+    config = DataConfig(dataset="test_dataset")
 
     assert config.data_schema is None
 
@@ -139,7 +139,7 @@ def test_strict_mode_validation_works():
     config_dict = {
         "audit_profile": "test",
         "data": {
-            "path": "/path/to/data.csv",
+            "dataset": "german_credit",
             "data_schema": {"type": "object"},  # Using new field
             "protected_attributes": ["age"],
             "target_column": "outcome",

@@ -213,7 +213,7 @@ class TestYAMLSecurity:
         yaml_file = tmp_path / "config.yaml"
         yaml_content = {
             "model": {"type": "xgboost"},
-            "data": {"path": "data.csv"},
+            "data": {"dataset": "custom", "path": "data.csv"},
         }
 
         with yaml_file.open("w") as f:
@@ -529,7 +529,7 @@ class TestSecurityIntegration:
         config_dict = {
             "audit_profile": "test",
             "model": {"type": "xgboost"},
-            "data": {"path": "data.csv"},
+            "data": {"dataset": "custom", "path": "data.csv"},
             "security": {
                 "strict": True,
                 "model_paths": {"allowed_dirs": ["/secure"]},

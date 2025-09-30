@@ -136,12 +136,14 @@ class TestGoldenReportSnapshots:
         except ImportError as e:
             pytest.skip(f"Report components not available: {e}")
 
-        # Create minimal test data
+        # Create minimal test data with explicit config contract
         config = AuditConfig(
-            data_path="dummy.csv",
-            model_config={"type": "logistic_regression"},
+            data={
+                "dataset": "custom",  # Explicit: custom dataset
+                "path": "dummy.csv",  # Dummy path (no actual file read in this smoke test)
+            },
+            model={"type": "logistic_regression"},
             audit_profile="tabular_compliance",
-            output={"path": "dummy.pdf"},
         )
 
         # Create minimal audit results with proper manifest structure

@@ -43,7 +43,7 @@ def sample_config():
     return {
         "audit_profile": "tabular_compliance",
         "model": {"type": "xgboost", "params": {"n_estimators": 100}},
-        "data": {"path": "test.csv", "target": "y"},
+        "data": {"dataset": "custom", "path": "test.csv", "target": "y"},
         "explainers": {"strategy": "first_compatible", "priority": ["treeshap"]},
         "metrics": {"performance": ["accuracy", "f1"]},
         "reproducibility": {"random_seed": 42},

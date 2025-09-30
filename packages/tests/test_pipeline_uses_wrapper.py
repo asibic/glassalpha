@@ -20,6 +20,7 @@ def test_pipeline_uses_train_from_config_only():
         "audit_profile": "test_profile",
         "reproducibility": {"random_seed": 42},
         "data": {
+            "dataset": "custom",
             "path": "dummy.csv",
             "target_column": "target",
             "protected_attributes": ["age"],
@@ -132,6 +133,7 @@ def test_wrapper_training_enforced():
         "audit_profile": "test_profile",
         "reproducibility": {"random_seed": 42},
         "data": {
+            "dataset": "custom",
             "path": "dummy.csv",
             "target_column": "target",
             "protected_attributes": ["age"],

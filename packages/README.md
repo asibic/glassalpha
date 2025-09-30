@@ -84,14 +84,15 @@ glassalpha audit --config configs/german_credit_simple.yaml --output audit.pdf -
 ### Configuration Example
 
 ```yaml
-audit_profile: german_credit_default
+audit_profile: tabular_compliance
 
 data:
-  path: data/german_credit_processed.csv
+  dataset: german_credit # Use built-in dataset
+  fetch: if_missing # Auto-fetch if not cached
+  offline: false # Allow network operations
   target_column: credit_risk
   protected_attributes:
     - gender
-    - age_group
 
 model:
   type: xgboost
@@ -109,6 +110,69 @@ explainers:
 reproducibility:
   random_seed: 42
 ```
+
+### Data Sources
+
+GlassAlpha supports three ways to specify data:
+
+**1. Built-in Datasets (Recommended)**
+
+Use registered datasets that are automatically fetched and cached:
+
+```yaml
+data:
+  dataset: german_credit
+  fetch: if_missing # Options: never, if_missing, always
+  offline: false # Set true for air-gapped environments
+```
+
+**2. Custom Data Files**
+
+Use your own data files:
+
+```yaml
+data:
+  dataset: custom
+  path: /absolute/path/to/your/data.csv
+  target_column: outcome
+  feature_columns: [feature1, feature2, ...]
+```
+
+**3. Schema-Only (Testing/Validation)**
+
+For schema validation utilities:
+
+```yaml
+data:
+  data_schema:
+    type: object
+    properties:
+      feature1: { type: number }
+      feature2: { type: string }
+```
+
+### Dataset Management CLI
+
+```bash
+# List available built-in datasets
+glassalpha datasets list
+
+# Show dataset info
+glassalpha datasets info german_credit
+
+# Show cache directory
+glassalpha datasets cache-dir
+
+# Pre-fetch a dataset
+glassalpha datasets fetch german_credit
+```
+
+**Cache Directory Resolution:**
+
+- Default: OS-specific user data directory (e.g., `~/Library/Application Support/glassalpha/data` on macOS)
+- Override: Set `GLASSALPHA_DATA_DIR` environment variable
+- All paths are canonicalized (symlinks resolved) for consistency
+- The system logs both requested and effective paths for transparency
 
 ## Architecture Highlights
 

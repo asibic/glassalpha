@@ -50,8 +50,8 @@ def test_model_config_validation():
 
 def test_data_config_validation():
     """Test DataConfig validation."""
-    config = DataConfig(path=Path("test.csv"))
-    assert config.path == Path("test.csv")
+    config = DataConfig(dataset="custom", path="test.csv")
+    assert config.path == "test.csv"
     assert config.protected_attributes == []  # default
 
 
@@ -67,7 +67,7 @@ def test_audit_config_full():
     config_data = {
         "audit_profile": "tabular_compliance",
         "model": {"type": "xgboost", "path": "model.pkl"},
-        "data": {"path": "data.csv"},
+        "data": {"dataset": "custom", "path": "data.csv"},
         "explainers": {"strategy": "first_compatible", "priority": ["treeshap"]},
         "metrics": {"performance": ["accuracy"]},
         "reproducibility": {"random_seed": 42},
@@ -76,7 +76,7 @@ def test_audit_config_full():
     config = AuditConfig(**config_data)
     assert config.audit_profile == "tabular_compliance"
     assert config.model.type == "xgboost"
-    assert config.data.path == Path("data.csv")
+    assert config.data.path == "data.csv"
 
 
 def test_load_config_from_file():
@@ -84,7 +84,7 @@ def test_load_config_from_file():
     config_data = {
         "audit_profile": "tabular_compliance",
         "model": {"type": "xgboost"},
-        "data": {"path": "test.csv"},
+        "data": {"dataset": "custom", "path": "test.csv"},
         "explainers": {"strategy": "first_compatible", "priority": ["treeshap"]},
         "metrics": {"performance": ["accuracy"]},
         "reproducibility": {"random_seed": 42},
@@ -110,7 +110,7 @@ def test_config_validation_basic():
     config_data = {
         "audit_profile": "tabular_compliance",
         "model": {"type": "xgboost"},
-        "data": {"path": "test.csv"},
+        "data": {"dataset": "custom", "path": "test.csv"},
         "explainers": {"strategy": "first_compatible", "priority": ["treeshap"]},
         "metrics": {"performance": ["accuracy"]},
         "reproducibility": {"random_seed": 42},
@@ -132,7 +132,7 @@ def test_config_extra_fields_forbidden():
     config_data = {
         "audit_profile": "tabular_compliance",
         "model": {"type": "xgboost"},
-        "data": {"path": "test.csv"},
+        "data": {"dataset": "custom", "path": "test.csv"},
         "explainers": {"strategy": "first_compatible", "priority": ["treeshap"]},
         "metrics": {"performance": ["accuracy"]},
         "reproducibility": {"random_seed": 42},
