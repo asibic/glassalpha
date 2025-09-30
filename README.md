@@ -1,6 +1,6 @@
 # GlassAlpha
 
-An open source ([toolkit](https://glassalpha.com/reference/trust-deployment/#licensing-dependencies)) to generate deterministic, regulator-ready PDF audit reports for tabular ML models. More [about GlassAlpha](https://glassalpha.com/about/).
+An ([open source](https://glassalpha.com/reference/trust-deployment/#licensing-dependencies)) toolkit to generate deterministic, regulator-ready PDF audit reports for tabular ML models.
 
 ## Get started
 
@@ -22,15 +22,15 @@ glassalpha audit --config configs/german_credit_simple.yaml --output audit.pdf
 
 That's it. You now have a complete audit report with model performance, SHAP explanations, and fairness metrics.
 
-**Want more details?** Check the [full installation guide](packages/README.md#installation) or jump to the [German Credit tutorial](https://glassalpha.com/examples/german-credit-audit/) to see what's in the report.
+**More details:** See the [full installation guide](packages/README.md#installation) and [German Credit tutorial](https://glassalpha.com/examples/german-credit-audit/) to see what's in the report.
 
-## What's included
+## Structure
 
 - **`packages/`** - The actual Python package ([dev docs here](packages/README.md))
 - **`site/`** - User documentation and tutorials. The docs site is at [glassalpha.com](https://glassalpha.com/)
 - **`configs/`** - Example audit configs you can copy and modify
 
-## What you get
+## Capabilities
 
 Right now, GlassAlpha handles:
 
@@ -47,6 +47,7 @@ All Apache 2.0 licensed.
 - **[Documentation](https://glassalpha.com/)** - User guides, API reference, and tutorials
 - **[Developer guide](packages/README.md)** - Architecture deep-dive and contribution guide
 - **[German credit tutorial](https://glassalpha.com/examples/german-credit-audit/)** - Step-by-step walkthrough with a real dataset
+- **[About GlassAlpha](https://glassalpha.com/about/)** - Who, what & why.
 
 ## Contributing
 
@@ -63,7 +64,3 @@ The core library is Apache 2.0. See [LICENSE](LICENSE) for the legal stuff.
 Enterprise features/support may be added separately if there's demand for more advanced/custom functionality, but the core will always remain open and free. The name "GlassAlpha" is trademarked to keep things unambiguous. Details in [TRADEMARK.md](TRADEMARK.md).
 
 For dependency licenses and third-party components, check the [detailed licensing info](packages/README.md#license--dependencies).
-
----
-
-_Built because compliance tools shouldn't be black boxes._
