@@ -5,133 +5,133 @@ name: CI - Wheel First
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.11", "3.12"]
+        python-version: ["3.11", "3.12", "3.13"]
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ matrix.python-version }}
+      - uses: actions/checkout@v4
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
 
-    # Download coverage baseline for trend checking
-    - name: Download coverage baseline
-      uses: actions/download-artifact@v4
-      with:
-        name: coverage-baseline
-        path: packages/.ci/
-      continue-on-error: true
+      # Download coverage baseline for trend checking
+      - name: Download coverage baseline
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-baseline
+          path: packages/.ci/
+        continue-on-error: true
 
-    # CRITICAL: Install build tools first
-    - name: Install build dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install build pytest pytest-cov pytest-mock
+      # CRITICAL: Install build tools first
+      - name: Install build dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install build pytest pytest-cov pytest-mock
 
-    # CRITICAL: Always build wheel first (like local development)
-    - name: Build wheel
-      run: python -m build
-      working-directory: packages
+      # CRITICAL: Always build wheel first (like local development)
+      - name: Build wheel
+        run: python -m build
+        working-directory: packages
 
-    # CRITICAL: Install from wheel (NOT editable install)
-    - name: Install from wheel
-      run: |
-        pip install --force-reinstall dist/*.whl
-      working-directory: packages
+      # CRITICAL: Install from wheel (NOT editable install)
+      - name: Install from wheel
+        run: |
+          pip install --force-reinstall dist/*.whl
+        working-directory: packages
 
-    # Optional: Enable packaging assertion in CI
-    - name: Verify packaging
-      run: |
-        GLASSALPHA_ASSERT_PACKAGING=1 python -c "import glassalpha.report"
-      working-directory: packages
+      # Optional: Enable packaging assertion in CI
+      - name: Verify packaging
+        run: |
+          GLASSALPHA_ASSERT_PACKAGING=1 python -c "import glassalpha.report"
+        working-directory: packages
 
-    # Optional: Validate coverage gates locally (for development)
-    - name: Validate Coverage Gates (optional)
-      run: |
-        python test_coverage_gates.py
-      working-directory: packages
-      continue-on-error: true
+      # Optional: Validate coverage gates locally (for development)
+      - name: Validate Coverage Gates (optional)
+        run: |
+          python test_coverage_gates.py
+        working-directory: packages
+        continue-on-error: true
 
-    # Fast logging contract guard (before tests)
-    - name: Enforce single-arg logging
-      run: |
-        python - <<'PY'
-        import ast, sys, pathlib
-        bad = []
-        root = pathlib.Path("src/glassalpha")
-        for p in root.rglob("*.py"):
-            tree = ast.parse(p.read_text(encoding="utf-8"))
-            for node in ast.walk(tree):
-                if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute):
-                    if node.func.attr in {"debug","info","warning","error","critical","exception"}:
-                        # More than one positional arg means printf-style or extra args
-                        if len(node.args) > 1:
-                            bad.append(f"{p}:{node.lineno}")
-        if bad:
-            print("printf-style logging detected (multiple positional args):")
-            print("\n".join(bad))
-            sys.exit(1)
-        PY
-      working-directory: packages
+      # Fast logging contract guard (before tests)
+      - name: Enforce single-arg logging
+        run: |
+          python - <<'PY'
+          import ast, sys, pathlib
+          bad = []
+          root = pathlib.Path("src/glassalpha")
+          for p in root.rglob("*.py"):
+              tree = ast.parse(p.read_text(encoding="utf-8"))
+              for node in ast.walk(tree):
+                  if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute):
+                      if node.func.attr in {"debug","info","warning","error","critical","exception"}:
+                          # More than one positional arg means printf-style or extra args
+                          if len(node.args) > 1:
+                              bad.append(f"{p}:{node.lineno}")
+          if bad:
+              print("printf-style logging detected (multiple positional args):")
+              print("\n".join(bad))
+              sys.exit(1)
+          PY
+        working-directory: packages
 
-    # Run tests with coverage collection
-    - name: Run tests with coverage
-      run: |
-        # Install test dependencies
-        pip install numpy pandas scikit-learn pyyaml
+      # Run tests with coverage collection
+      - name: Run tests with coverage
+        run: |
+          # Install test dependencies
+          pip install numpy pandas scikit-learn pyyaml
 
-        # Run contract guard tests (fast feedback)
-        echo "Running contract guard tests..."
-        pytest -xvs tests/contracts/ --cov=src --cov-report=term-missing
+          # Run contract guard tests (fast feedback)
+          echo "Running contract guard tests..."
+          pytest -xvs tests/contracts/ --cov=src --cov-report=term-missing
 
-        # Run hot spot tests with coverage
-        echo "Running hot spot tests with coverage..."
-        pytest -q tests/test_pipeline_basic.py::test_pipeline_logs_initialization tests/test_end_to_end.py::test_multiple_model_types tests/test_model_integration.py::test_model_saving_and_loading --cov=src --cov-report=term-missing --cov-append
+          # Run hot spot tests with coverage
+          echo "Running hot spot tests with coverage..."
+          pytest -q tests/test_pipeline_basic.py::test_pipeline_logs_initialization tests/test_end_to_end.py::test_multiple_model_types tests/test_model_integration.py::test_model_saving_and_loading --cov=src --cov-report=term-missing --cov-append
 
-        # Run full test suite with coverage
-        echo "Running full test suite with coverage..."
-        pytest -q --cov=src --cov-report=term-missing
-      working-directory: packages
+          # Run full test suite with coverage
+          echo "Running full test suite with coverage..."
+          pytest -q --cov=src --cov-report=term-missing
+        working-directory: packages
 
-    # Coverage Gates
-    - name: Coverage Gates
-      run: |
-        # Combine coverage data from all test runs (handle single file case)
-        echo "Combining coverage data..."
-        if coverage combine 2>/dev/null; then
-          echo "Coverage data combined successfully"
-        else
-          echo "Single coverage file or no data to combine"
-        fi
+      # Coverage Gates
+      - name: Coverage Gates
+        run: |
+          # Combine coverage data from all test runs (handle single file case)
+          echo "Combining coverage data..."
+          if coverage combine 2>/dev/null; then
+            echo "Coverage data combined successfully"
+          else
+            echo "Single coverage file or no data to combine"
+          fi
 
-        echo '--- Gate 1: Critical-path modules (90%+) ---'
-        coverage report --precision=2 \
-          --include="src/glassalpha/config/*,src/glassalpha/models/*,src/glassalpha/pipeline/*,src/glassalpha/report/renderer.py,src/glassalpha/metrics/core.py,src/glassalpha/metrics/thresholds.py,src/glassalpha/core/interfaces.py,src/glassalpha/core/registry.py" \
-          --fail-under=90
+          echo '--- Gate 1: Critical-path modules (90%+) ---'
+          coverage report --precision=2 \
+            --include="src/glassalpha/config/*,src/glassalpha/models/*,src/glassalpha/pipeline/*,src/glassalpha/report/renderer.py,src/glassalpha/metrics/core.py,src/glassalpha/metrics/thresholds.py,src/glassalpha/core/interfaces.py,src/glassalpha/core/registry.py" \
+            --fail-under=90
 
-        echo -e '\n--- Gate 2: Full repository (70% trend-only) ---'
-        coverage report --precision=2 --fail-under=0
-        coverage xml
+          echo -e '\n--- Gate 2: Full repository (70% trend-only) ---'
+          coverage report --precision=2 --fail-under=0
+          coverage xml
 
-        # Run trend checking script
-        mkdir -p .ci
-        python .ci/coverage_gate.py
-      working-directory: packages
+          # Run trend checking script
+          mkdir -p .ci
+          python .ci/coverage_gate.py
+        working-directory: packages
 
-    # Upload coverage baseline for next run (only on success)
-    - name: Upload coverage baseline
-      if: success()
-      uses: actions/upload-artifact@v4
-      with:
-        name: coverage-baseline
-        path: packages/.ci/coverage-baseline.json
-        retention-days: 30
+      # Upload coverage baseline for next run (only on success)
+      - name: Upload coverage baseline
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-baseline
+          path: packages/.ci/coverage-baseline.json
+          retention-days: 30

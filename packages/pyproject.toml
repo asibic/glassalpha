@@ -5,7 +5,7 @@ description = "AI Compliance Toolkit - transparent, auditable, regulator-ready M
 authors = [{ name = "GlassAlpha Team" }]
 readme = "README.md"
 license = { text = "Apache-2.0" }
-requires-python = ">=3.11,<3.14"
+requires-python = ">=3.11"
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
@@ -20,39 +20,39 @@ classifiers = [
     "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
 ]
 dependencies = [
-    # Core dependencies - use constraints.txt for exact versions
+    # Core framework
     "typer>=0.9.0",          # CLI framework with command groups
     "pydantic>=2.5.0",       # Config validation and schemas
     "pyyaml>=6.0",           # YAML config parsing
 
-    # Data and ML stack - conservative ranges, exact versions in constraints.txt
-    "numpy>=1.24,<2.0",      # NumPy 1.x for stable compatibility
-    "pandas>=2.0.0",         # Data handling
-    "scipy>=1.10,<1.14",     # Scientific computing
-    "scikit-learn>=1.3,<1.5", # ML utilities
-
-    # ML Models - CPU-only for Phase 1
-    "xgboost>=2.0.0,<3.0.0", # XGBoost model support (CPU-only)
-    "lightgbm>=4.0.0",       # LightGBM model support
-    "shap>=0.43,<0.46",      # SHAP explainability
+    # Scientific stack - NumPy 2.x for Python 3.13+ support
+    # Use constraints.txt for exact reproducible versions
+    "numpy>=2.1",            # First version with Python 3.13 wheels
+    "pandas>=2.2.3",         # Python 3.13 support
+    "scipy>=1.15",           # First version with Python 3.13 wheels
+    "scikit-learn>=1.5",     # NumPy 2.x compatible
 
     # Report generation
     "jinja2>=3.1.0",         # Template engine for reports
     "weasyprint>=60.0",      # PDF generation
-    "matplotlib>=3.7,<3.9",  # Plotting for reports
-    "seaborn>=0.12.0",       # Statistical plotting
+    "matplotlib>=3.8",       # NumPy 2.x compatible
+    "seaborn>=0.13.0",       # NumPy 2.x compatible
 
     # Utilities
     "orjson>=3.9.0",         # Fast JSON serialization
-    "platformdirs>=4.0.0",   # Cross-platform user data directories (optional, fallback included)
+    "platformdirs>=4.0.0",   # Cross-platform user data directories
 ]
 
-[project.scripts]
-glassalpha = "glassalpha.cli:app"
-
 [project.optional-dependencies]
+tabular = [
+    # Heavy ML libraries - optional for power users
+    "xgboost>=2.1",          # XGBoost with NumPy 2.x support
+    "lightgbm>=4.5",         # LightGBM with NumPy 2.x support
+    "shap>=0.45",            # SHAP explainability with NumPy 2.x support
+]
 dev = [
     "pytest>=8.0",
     "pytest-cov>=4.1",
@@ -71,13 +71,16 @@ docs = [
 # These would be in glassalpha-enterprise package
 # enterprise = [...]
 
+[project.scripts]
+glassalpha = "glassalpha.cli:app"
+
 [build-system]
 requires = ["setuptools>=70.0.0", "wheel>=0.43.0", "build>=1.2.1"]
 build-backend = "setuptools.build_meta"
 
 [tool.cibuildwheel]
-# Build wheels for Python 3.11 and 3.12 on major platforms
-build = "cp311-* cp312-*"
+# Build wheels for Python 3.11, 3.12, and 3.13 on major platforms
+build = "cp311-* cp312-* cp313-*"
 skip = "*-win32 *-manylinux_i686 *-musllinux_*"  # Skip 32-bit and musl
 
 # Use constraints.txt for consistent builds

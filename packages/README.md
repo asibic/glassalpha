@@ -56,20 +56,27 @@ packages/
 
 ### Requirements
 
-- **Python**: 3.11 or higher (3.12 recommended)
+- **Python**: 3.11, 3.12, or 3.13 (all fully supported)
 - **Memory**: 2GB minimum (8GB recommended for large datasets)
 - **Storage**: 1GB free space for datasets and reports
 - **Network**: Required for initial dataset downloads (unless using `--offline` mode)
 
 ### Quick installation
 
+Clone the repository
+
 ```bash
-# Clone the repository
 git clone https://github.com/GlassAlpha/glassalpha
 cd glassalpha/packages
+```
 
-# Install GlassAlpha (includes all dependencies)
+Install base framework only (lightweight)
+
+```bash
 pip install -e .
+
+# Or install with ML libraries for tabular models
+pip install -e ".[tabular]"
 ```
 
 ### Development installation
@@ -81,13 +88,23 @@ For contributors and advanced users:
 python3 -m venv .venv
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
-# Upgrade pip and install in development mode
+# Upgrade pip and install in development mode with all extras
 python -m pip install --upgrade pip
-pip install -e ".[dev]"
+pip install -e ".[dev,tabular]"
 
 # Verify installation
 glassalpha --help
 ```
+
+### Reproducible installation
+
+For CI/CD or reproducible builds, use the constraints file:
+
+```bash
+pip install -c constraints.txt -e ".[dev,tabular]"
+```
+
+This locks all dependencies to tested versions.
 
 ### Offline installation
 
