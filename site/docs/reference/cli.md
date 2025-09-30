@@ -1,8 +1,8 @@
-# CLI Reference
+# CLI reference
 
 Complete reference for all GlassAlpha command-line interface commands and options.
 
-## Global Options
+## Global options
 
 Available with all commands:
 
@@ -10,14 +10,14 @@ Available with all commands:
 glassalpha [GLOBAL OPTIONS] COMMAND [COMMAND OPTIONS]
 ```
 
-### Global Flags
+### Global flags
 
-| Flag | Short | Description |
-|------|-------|-------------|
-| `--version` | `-V` | Show version and exit |
-| `--verbose` | `-v` | Enable verbose logging |
-| `--quiet` | `-q` | Suppress non-error output |
-| `--help` | `-h` | Show help message |
+| Flag        | Short | Description               |
+| ----------- | ----- | ------------------------- |
+| `--version` | `-V`  | Show version and exit     |
+| `--verbose` | `-v`  | Enable verbose logging    |
+| `--quiet`   | `-q`  | Suppress non-error output |
+| `--help`    | `-h`  | Show help message         |
 
 ### Examples
 
@@ -42,22 +42,22 @@ Generate comprehensive audit reports from ML models.
 glassalpha audit --config CONFIG --output OUTPUT [OPTIONS]
 ```
 
-#### Required Arguments
+#### Required arguments
 
-| Argument | Type | Description |
-|----------|------|-------------|
+| Argument         | Type | Description                           |
+| ---------------- | ---- | ------------------------------------- |
 | `--config`, `-c` | Path | Path to audit configuration YAML file |
-| `--output`, `-o` | Path | Path for output PDF report |
+| `--output`, `-o` | Path | Path for output PDF report            |
 
-#### Optional Arguments
+#### Optional arguments
 
-| Argument | Type | Default | Description |
-|----------|------|---------|-------------|
-| `--strict`, `-s` | Flag | False | Enable strict mode for regulatory compliance |
-| `--repro` | Flag | False | Enable deterministic reproduction mode for byte-identical results |
-| `--profile`, `-p` | String | None | Override audit profile from config |
-| `--override` | Path | None | Additional config file to override settings |
-| `--dry-run` | Flag | False | Validate configuration without generating report |
+| Argument          | Type   | Default | Description                                                       |
+| ----------------- | ------ | ------- | ----------------------------------------------------------------- |
+| `--strict`, `-s`  | Flag   | False   | Enable strict mode for regulatory compliance                      |
+| `--repro`         | Flag   | False   | Enable deterministic reproduction mode for byte-identical results |
+| `--profile`, `-p` | String | None    | Override audit profile from config                                |
+| `--override`      | Path   | None    | Additional config file to override settings                       |
+| `--dry-run`       | Flag   | False   | Validate configuration without generating report                  |
 
 #### Examples
 
@@ -105,7 +105,7 @@ glassalpha audit \
   --repro
 ```
 
-#### Strict Mode
+#### Strict mode
 
 Strict mode enforces additional regulatory compliance requirements:
 
@@ -118,7 +118,7 @@ Strict mode enforces additional regulatory compliance requirements:
 
 Use strict mode for regulatory submissions and compliance documentation.
 
-#### Reproduction Mode
+#### Reproduction mode
 
 Reproduction mode (`--repro`) enables deterministic execution for byte-identical results:
 
@@ -183,18 +183,18 @@ Validate configuration files without running audits.
 glassalpha validate --config CONFIG [OPTIONS]
 ```
 
-#### Required Arguments
+#### Required arguments
 
-| Argument | Type | Description |
-|----------|------|-------------|
+| Argument         | Type | Description                            |
+| ---------------- | ---- | -------------------------------------- |
 | `--config`, `-c` | Path | Path to configuration file to validate |
 
-#### Optional Arguments
+#### Optional arguments
 
-| Argument | Type | Default | Description |
-|----------|------|---------|-------------|
-| `--profile`, `-p` | String | None | Validate against specific profile |
-| `--strict` | Flag | False | Validate for strict mode compliance |
+| Argument          | Type   | Default | Description                         |
+| ----------------- | ------ | ------- | ----------------------------------- |
+| `--profile`, `-p` | String | None    | Validate against specific profile   |
+| `--strict`        | Flag   | False   | Validate for strict mode compliance |
 
 #### Examples
 
@@ -229,6 +229,7 @@ Validation provides:
 - Strict mode requirement validation
 
 **Example Output:**
+
 ```
 Validating configuration: audit.yaml
 Profile: tabular_compliance
@@ -249,13 +250,13 @@ List available components and system capabilities.
 glassalpha list [COMPONENT_TYPE] [OPTIONS]
 ```
 
-#### Optional Arguments
+#### Optional arguments
 
-| Argument | Type | Description |
-|----------|------|-------------|
-| `COMPONENT_TYPE` | String | Filter by type: models, explainers, metrics, profiles |
-| `--include-enterprise`, `-e` | Flag | Include enterprise components |
-| `--verbose`, `-v` | Flag | Show component details |
+| Argument                     | Type   | Description                                           |
+| ---------------------------- | ------ | ----------------------------------------------------- |
+| `COMPONENT_TYPE`             | String | Filter by type: models, explainers, metrics, profiles |
+| `--include-enterprise`, `-e` | Flag   | Include enterprise components                         |
+| `--verbose`, `-v`            | Flag   | Show component details                                |
 
 #### Examples
 
@@ -287,12 +288,12 @@ glassalpha list models --include-enterprise --verbose
 
 #### Available Component Types
 
-| Type | Description | Examples |
-|------|-------------|----------|
-| `models` | ML model wrappers | xgboost, lightgbm, logistic_regression, sklearn_generic, passthrough |
-| `explainers` | Explanation methods | treeshap, kernelshap, noop |
-| `metrics` | Evaluation metrics | accuracy, precision, recall, f1, auc_roc, demographic_parity, equal_opportunity |
-| `profiles` | Audit profiles | tabular_compliance, german_credit_default |
+| Type         | Description         | Examples                                                                        |
+| ------------ | ------------------- | ------------------------------------------------------------------------------- |
+| `models`     | ML model wrappers   | xgboost, lightgbm, logistic_regression, sklearn_generic, passthrough            |
+| `explainers` | Explanation methods | treeshap, kernelshap, noop                                                      |
+| `metrics`    | Evaluation metrics  | accuracy, precision, recall, f1, auc_roc, demographic_parity, equal_opportunity |
+| `profiles`   | Audit profiles      | tabular_compliance, german_credit_default                                       |
 
 #### Output
 
@@ -303,6 +304,7 @@ The list command shows:
 - License requirements for enterprise features (when `--include-enterprise` used)
 
 **Example Output:**
+
 ```
 Available Components
 ========================================
@@ -335,7 +337,7 @@ PROFILES:
   - tabular_compliance
 ```
 
-## Enterprise Commands
+## Enterprise commands
 
 ### dashboard serve
 
@@ -345,12 +347,12 @@ Start monitoring dashboard (Enterprise only).
 glassalpha dashboard serve [OPTIONS]
 ```
 
-#### Optional Arguments
+#### Optional arguments
 
-| Argument | Type | Default | Description |
-|----------|------|---------|-------------|
-| `--port`, `-p` | Integer | 8080 | Port to serve on |
-| `--host`, `-h` | String | localhost | Host to bind to |
+| Argument       | Type    | Default   | Description      |
+| -------------- | ------- | --------- | ---------------- |
+| `--port`, `-p` | Integer | 8080      | Port to serve on |
+| `--host`, `-h` | String  | localhost | Host to bind to  |
 
 #### Example
 
@@ -370,11 +372,11 @@ Monitor model drift over time (Enterprise only).
 glassalpha monitor drift --config CONFIG --baseline BASELINE
 ```
 
-#### Required Arguments
+#### Required arguments
 
-| Argument | Type | Description |
-|----------|------|-------------|
-| `--config`, `-c` | Path | Configuration file |
+| Argument           | Type | Description                      |
+| ------------------ | ---- | -------------------------------- |
+| `--config`, `-c`   | Path | Configuration file               |
 | `--baseline`, `-b` | Path | Baseline manifest for comparison |
 
 #### Example
@@ -386,81 +388,91 @@ glassalpha monitor drift \
   --baseline baseline_manifest.json
 ```
 
-## Error Handling
+## Error handling
 
 GlassAlpha provides clear error messages for common issues:
 
-### Configuration Errors
+### Configuration errors
+
 ```bash
 Configuration error: Missing required field 'data.path'
 Validation failed: Invalid audit profile 'nonexistent_profile'
 ```
 
-### File Not Found Errors
+### File not found errors
+
 ```bash
 File 'missing.yaml' does not exist.
 Override file 'overrides.yaml' does not exist.
 ```
 
-### Component Errors
+### Component errors
+
 ```bash
 Warning: Model type 'unknown_model' not found in registry
 ```
 
-### Audit Pipeline Errors
+### Audit pipeline errors
+
 ```bash
 ❌ Audit pipeline failed: Dataset file 'data/missing.csv' not found
 ❌ Audit failed: Input contains NaN, infinity or a value too large
 ```
 
-### Enterprise License Errors
+### Enterprise license errors
+
 ```bash
 Enterprise feature 'dashboard' requires valid license key
 Set GLASSALPHA_LICENSE_KEY environment variable
 ```
 
-### Reproduction Mode Warnings
+### Reproduction mode warnings
+
 ```bash
 ⚠️ Some determinism controls failed - results may not be fully reproducible
 ```
 
-## Exit Codes
+## Exit codes
 
-| Code | Meaning |
-|------|---------|
-| 0 | Success |
-| 1 | General error (configuration, file not found, etc.) |
-| 2 | Invalid command line arguments |
+| Code | Meaning                                             |
+| ---- | --------------------------------------------------- |
+| 0    | Success                                             |
+| 1    | General error (configuration, file not found, etc.) |
+| 2    | Invalid command line arguments                      |
 
-## Environment Variables
+## Environment variables
 
-| Variable | Description | Default | Usage |
-|----------|-------------|---------|-------|
-| `GLASSALPHA_LICENSE_KEY` | Enterprise license key | None | Required for enterprise features |
-| `GLASSALPHA_LOG_LEVEL` | Logging level (DEBUG, INFO, WARNING, ERROR) | INFO | Controls console output verbosity |
-| `GLASSALPHA_CONFIG_DIR` | Default config directory | ~/.glassalpha | Used for automatic config discovery |
-| `GLASSALPHA_DATA_DIR` | Default data directory | ~/.glassalpha/data | Used for built-in datasets (German Credit) |
+| Variable                 | Description                                 | Default            | Usage                                      |
+| ------------------------ | ------------------------------------------- | ------------------ | ------------------------------------------ |
+| `GLASSALPHA_LICENSE_KEY` | Enterprise license key                      | None               | Required for enterprise features           |
+| `GLASSALPHA_LOG_LEVEL`   | Logging level (DEBUG, INFO, WARNING, ERROR) | INFO               | Controls console output verbosity          |
+| `GLASSALPHA_CONFIG_DIR`  | Default config directory                    | ~/.glassalpha      | Used for automatic config discovery        |
+| `GLASSALPHA_DATA_DIR`    | Default data directory                      | ~/.glassalpha/data | Used for built-in datasets (German Credit) |
 
-## Performance Notes
+## Performance notes
 
-### Typical Execution Times
+### Typical execution times
+
 - **Small datasets** (< 1,000 rows): 1-3 seconds
 - **Medium datasets** (1,000-10,000 rows): 3-10 seconds
 - **Large datasets** (10,000+ rows): 10-60 seconds
 
-### Memory Requirements
+### Memory requirements
+
 - **Minimum**: 1GB RAM
 - **Recommended**: 4GB+ RAM for large datasets
 - **PDF Generation**: Additional 500MB temporary space
 
-### Optimization Tips
+### Optimization tips
+
 - Use `--dry-run` to validate configurations quickly
 - Enable `--quiet` for batch processing scripts
 - Use specific component types with `list` for faster startup
 
-## Integration Examples
+## Integration examples
 
-### Batch Processing Script
+### Batch processing script
+
 ```bash
 #!/bin/bash
 set -e
@@ -479,7 +491,8 @@ for config in configs/*.yaml; do
 done
 ```
 
-### CI/CD Pipeline
+### CI/CD pipeline
+
 ```yaml
 # Example GitHub Actions step
 - name: Generate Audit Reports
@@ -488,7 +501,8 @@ done
     glassalpha audit --config audit.yaml --output audit.pdf --strict
 ```
 
-### Docker Usage
+### Docker usage
+
 ```dockerfile
 FROM python:3.11-slim
 RUN pip install glassalpha

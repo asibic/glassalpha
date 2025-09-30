@@ -2,7 +2,7 @@
 
 Thank you for your interest in contributing to GlassAlpha! This guide will help you understand how to effectively contribute to our professional ML auditing toolkit.
 
-## Project Philosophy
+## Project philosophy
 
 GlassAlpha follows an **audit-first** approach, prioritizing regulatory compliance and professional quality:
 
@@ -11,7 +11,7 @@ GlassAlpha follows an **audit-first** approach, prioritizing regulatory complian
 - **User value focus** - Every change should improve audit quality or usability
 - **Professional standards** - Code quality suitable for regulated industries
 
-## Development Setup
+## Development setup
 
 ### Prerequisites
 
@@ -19,7 +19,7 @@ GlassAlpha follows an **audit-first** approach, prioritizing regulatory complian
 - **Git** for version control
 - **Virtual environment** tool (venv, conda, or poetry)
 
-### Quick Setup
+### Quick setup
 
 1. **Fork and clone the repository:**
 
@@ -59,7 +59,7 @@ glassalpha list
 pytest
 ```
 
-### Development Dependencies
+### Development dependencies
 
 The `[dev]` installation includes:
 
@@ -68,7 +68,7 @@ The `[dev]` installation includes:
 - **Pre-commit**: Automated quality checks
 - **Documentation**: Tools for docs development
 
-## Project Structure
+## Project structure
 
 Understanding the codebase structure helps target contributions effectively:
 
@@ -99,9 +99,9 @@ glassalpha/packages/
 - Add new metrics by implementing `MetricInterface`
 - Add new audit profiles for specific compliance needs
 
-## Code Quality Standards
+## Code quality standards
 
-### Type Safety
+### Type safety
 
 All code must include type hints and pass `mypy --strict`:
 
@@ -120,7 +120,7 @@ def compute_fairness_metrics(
     ...
 ```
 
-### Code Formatting and Linting
+### Code formatting and linting
 
 We use automated tools to ensure consistent code quality:
 
@@ -138,7 +138,7 @@ mypy src/
 ./lint-and-fix.sh
 ```
 
-### Testing Requirements
+### Testing requirements
 
 **Coverage Target**: 50%+ for core modules
 
@@ -169,9 +169,9 @@ def test_xgboost_wrapper_deterministic():
     np.testing.assert_array_equal(pred1, pred2)
 ```
 
-## Contribution Workflow
+## Contribution workflow
 
-### 1. Choose Contribution Type
+### 1. Choose contribution type
 
 **High-Value Contributions:**
 
@@ -188,7 +188,7 @@ def test_xgboost_wrapper_deterministic():
 - Breaking API changes
 - Features requiring significant maintenance overhead
 
-### 2. Create Feature Branch
+### 2. Create feature branch
 
 ```bash
 git checkout -b feature/descriptive-name
@@ -196,7 +196,7 @@ git checkout -b feature/descriptive-name
 git checkout -b fix/issue-description
 ```
 
-### 3. Development Process
+### 3. Development process
 
 **Before coding:**
 
@@ -234,7 +234,7 @@ class NewModelWrapper:
         ...
 ```
 
-### 4. Testing Your Changes
+### 4. Testing your changes
 
 ```bash
 # Run specific test categories
@@ -252,7 +252,7 @@ pytest -k deterministic
 glassalpha audit --config configs/german_credit_simple.yaml --output test.pdf
 ```
 
-### 5. Quality Checks
+### 5. Quality checks
 
 ```bash
 # Comprehensive quality check
@@ -264,7 +264,7 @@ ruff check --fix src/
 mypy src/
 ```
 
-### 6. Commit Your Changes
+### 6. Commit your changes
 
 Use conventional commit format:
 
@@ -289,9 +289,9 @@ Closes #123"
 - `refactor:` Code restructuring
 - `perf:` Performance improvements
 
-## Pull Request Process
+## Pull request process
 
-### Before Submitting
+### Before submitting
 
 1. **Rebase on main** to ensure clean history
 2. **Run full test suite** and ensure all pass
@@ -299,7 +299,7 @@ Closes #123"
 4. **Update documentation** for any user-visible changes
 5. **Add changelog entry** if user-facing
 
-### PR Description Template
+### PR description template
 
 ```markdown
 ## Description
@@ -329,7 +329,7 @@ Brief description of changes and motivation.
 - [ ] No breaking changes (or clearly documented)
 ```
 
-### Review Process
+### Review process
 
 1. **Automated checks** must pass (CI/CD pipeline)
 2. **Code review** by maintainer
@@ -337,9 +337,9 @@ Brief description of changes and motivation.
 4. **Documentation review** for user-facing changes
 5. **Merge** after approval
 
-## Architecture Guidelines
+## Architecture guidelines
 
-### Plugin System
+### Plugin system
 
 GlassAlpha uses a registry-based plugin architecture. Follow these patterns:
 
@@ -364,7 +364,7 @@ def test_my_explainer_registration():
     assert "my_explainer" in ExplainerRegistry.get_all()
 ```
 
-### Enterprise/OSS Separation
+### Enterprise/OSS separation
 
 Maintain clear boundaries between open source and enterprise features:
 
@@ -383,7 +383,7 @@ def create_advanced_model():
     ...
 ```
 
-### Deterministic Design
+### Deterministic design
 
 All operations must be reproducible:
 
@@ -405,9 +405,9 @@ def deterministic_operation(data, random_state=None):
     }
 ```
 
-## Testing Guidelines
+## Testing guidelines
 
-### Test Organization
+### Test organization
 
 ```
 tests/
@@ -421,7 +421,7 @@ tests/
 └── test_end_to_end/       # Full pipeline tests
 ```
 
-### Writing Effective Tests
+### Writing effective tests
 
 **Test Structure (Arrange-Act-Assert):**
 
@@ -472,9 +472,9 @@ def test_graceful_error_handling():
     assert "available models" in str(exc_info.value)
 ```
 
-## Documentation Standards
+## Documentation standards
 
-### Docstring Format
+### Docstring format
 
 Use Google-style docstrings:
 
@@ -529,7 +529,7 @@ def explain_model_decision(
     """
 ```
 
-### Example Updates
+### Example updates
 
 When adding new features, update relevant examples:
 
@@ -537,16 +537,16 @@ When adding new features, update relevant examples:
 2. **Tutorial updates** - Integrate new capabilities into user journey
 3. **API documentation** - Document new interfaces and parameters
 
-## Security and Privacy Guidelines
+## Security and privacy guidelines
 
-### Data Handling
+### Data handling
 
 - **No PII in logs** - Never log personally identifiable information
 - **Sanitize inputs** - Validate and clean all user inputs
 - **Hash sensitive data** - Use SHA-256 for any identifier hashing
 - **Local processing** - Core library must work completely offline
 
-### Example Safe Logging
+### Example safe logging
 
 ```python
 import logging
@@ -567,22 +567,22 @@ def process_audit_data(data: pd.DataFrame):
     return process_data(data)
 ```
 
-## Getting Help
+## Getting help
 
-### Communication Channels
+### Communication channels
 
 - **GitHub Issues** - Bug reports, feature requests
 - **GitHub Discussions** - General questions, usage help
 - **Code Review** - Feedback on pull requests
 
-### Before Asking Questions
+### Before asking questions
 
 1. **Search existing issues** and discussions
 2. **Check documentation** including FAQ and troubleshooting
 3. **Try the quickstart tutorial** to understand basic usage
 4. **Look at existing code examples** for implementation patterns
 
-### How to Ask Effective Questions
+### How to ask effective questions
 
 **Good Question Format:**
 
@@ -604,7 +604,7 @@ def process_audit_data(data: pd.DataFrame):
 **Code snippet:** [minimal reproducing example]
 ```
 
-## Recognition and Credits
+## Recognition and credits
 
 Contributors are recognized in several ways:
 
@@ -613,7 +613,7 @@ Contributors are recognized in several ways:
 - **Documentation credits** for major documentation contributions
 - **Release notes** highlighting key contributions
 
-## Development Roadmap
+## Development roadmap
 
 Understanding our direction helps target valuable contributions:
 
@@ -633,7 +633,7 @@ Understanding our direction helps target valuable contributions:
 
 ---
 
-## Quick Reference
+## Quick reference
 
 **Essential Commands:**
 

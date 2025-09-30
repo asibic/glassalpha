@@ -1,8 +1,8 @@
-# Frequently Asked Questions
+# Frequently asked questions
 
 Common questions about GlassAlpha capabilities, usage, and integration.
 
-## General Questions
+## General questions
 
 ### What is GlassAlpha?
 
@@ -36,7 +36,7 @@ GlassAlpha maintains audit quality through:
 
 For detailed information about system design and quality assurance, see the [Trust & Deployment Guide](../reference/trust-deployment.md).
 
-## Installation & Setup
+## Installation & setup
 
 ### What are the system requirements?
 
@@ -113,7 +113,7 @@ See the [Quick Start Guide](../getting-started/quickstart.md) for detailed instr
 
 All dependencies are automatically installed during setup.
 
-## Usage & Configuration
+## Usage & configuration
 
 ### How do I generate my first audit?
 
@@ -189,7 +189,7 @@ GlassAlpha supports models saved with:
 - **Joblib** (scikit-learn and XGBoost)
 - **Native formats** (XGBoost `.model`, LightGBM `.txt`)
 
-## Model Support
+## Model support
 
 ### Which machine learning models are supported?
 
@@ -245,7 +245,7 @@ GlassAlpha currently focuses on **tabular data** for classification tasks. Addit
 - **Text/NLP**: Under consideration for potential future releases
 - **Computer Vision**: Under consideration for potential future releases
 
-## Compliance & Regulatory
+## Compliance & regulatory
 
 ### Which regulations does GlassAlpha address?
 
@@ -294,7 +294,7 @@ Protected attributes (race, gender, age) are used for:
 - **Statistical Analysis** - Bias testing with confidence intervals
 - **Reproducibility Data** - Seeds, hashes, and version information
 
-## Performance & Limitations
+## Performance & limitations
 
 ### How fast is GlassAlpha?
 
@@ -371,13 +371,13 @@ For comprehensive production deployment guidance, see the [Trust & Deployment Gu
 - **KernelSHAP** can be slow for complex models or large datasets
 - **Fairness metrics** require protected attribute data
 
-## Enterprise Features
+## Enterprise features
 
 ### What enterprise features are available?
 
 GlassAlpha is organized to support potential future features for enterprise needs. If interested contact: enterprise@glassalpha.com
 
-## Integration & Workflow
+## Integration & workflow
 
 ### How do I integrate GlassAlpha with my existing ML pipeline?
 
@@ -463,7 +463,7 @@ glassalpha audit \
   --output prod_audit.pdf
 ```
 
-## Development & Extension
+## Development & extension
 
 ### How do I contribute to GlassAlpha?
 
@@ -543,7 +543,7 @@ pip uninstall xgboost && pip install xgboost
 
 For immediate help, check the [Troubleshooting Guide](../reference/troubleshooting.md) or search existing GitHub Issues.
 
-## Getting Started
+## Getting started
 
 ### What's the fastest way to start using GlassAlpha?
 

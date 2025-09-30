@@ -1,42 +1,42 @@
 # GlassAlpha
 
-!!! info "What is GlassAlpha?"
+## What is GlassAlpha?
+
 GlassAlpha delivers **deterministic, regulator-ready PDF audit reports** for tabular ML models. An open-source toolkit for teams who need reproducible, audit-ready model documentation.
 
-## The Goal: One Command Audit Generation
+## The goal: Simple audit generation
 
-Our target is simple, powerful audit generation:
+Our target is simple, powerful audit generation.
 
-!!! example "CLI Interface"
+Generate audit PDF:
 
-````bash # Generate audit PDF
+```bash
 glassalpha audit --config configs/german_credit_simple.yaml --output my_audit.pdf
+```
 
-    # Produces byte-identical PDF audits with complete lineage tracking
-    ```
-    **Capability:** Generate deterministic audit PDFs for XGBoost, LightGBM, and Logistic Regression models.
+Get deterministic byte-identical audit PDFs with complete lineage tracking for XGBoost, LightGBM, and Logistic Regression models (more in the future).
 
-## Why We're Building GlassAlpha
+## Why GlassAlpha?
 
-### Designed for Regulatory Compliance
+### Designed for regulatory compliance
 
 - **Deterministic outputs** - Identical PDFs on same seed/data/model
 - **Complete lineage** - Git SHA, config hash, data hash, seeds recorded
 - **Professional formatting** - Publication-quality reports with visualizations
 
-### On-Premise First Design
+### On-premise first design
 
 - **No external dependencies** - Runs completely offline
 - **File-based approach** - No databases or complex infrastructure needed
 - **Full reproducibility** - Immutable run manifests for audit trails
 
-### Simplicity as a Core Principle
+### Simplicity as a core principle
 
 - **Single command** - `glassalpha audit` handles everything
 - **YAML configuration** - Policy-as-code for compliance requirements
 - **Fast execution** - Under 3 seconds from model to PDF
 
-## Supported Models
+## Supported models
 
 | Model Type          | Status     | Notes                           |
 | ------------------- | ---------- | ------------------------------- |
@@ -44,9 +44,9 @@ glassalpha audit --config configs/german_credit_simple.yaml --output my_audit.pd
 | LightGBM            | Production | Native integration available    |
 | Logistic Regression | Production | Full scikit-learn compatibility |
 
-_Additional model types available through extension framework_
+_Additional model types available through extension framework._
 
-## Audit Report Contents
+## Audit report contents
 
 Audit reports include:
 
@@ -62,13 +62,13 @@ Audit reports include:
 - Individual prediction explanations
 - Waterfall plots for key decisions
 
-### 3. Basic Fairness Analysis
+### 3. Basic fairness analysis
 
 - Protected attribute analysis
 - Disparate impact calculations
 - Group parity metrics
 
-### 4. Reproducibility Manifest
+### 4. Reproducibility manifest
 
 - Complete configuration hash
 - Dataset fingerprint
@@ -101,15 +101,15 @@ glassalpha --help
 
 We welcome contributions to enhance GlassAlpha's capabilities:
 
-### Enhancement Areas
+### Enhancement areas
 
-1. **Additional Models** - Neural networks, time series, custom integrations
-2. **Advanced Explanations** - Counterfactuals, gradient methods, interactive visuals
-3. **Extended Compliance** - Additional frameworks, custom templates, industry metrics
+1. **Additional models** - Neural networks, time series, custom integrations
+2. **Advanced explanations** - Counterfactuals, gradient methods, interactive visuals
+3. **Extended compliance** - Additional frameworks, custom templates, industry metrics
 4. **Performance** - Large dataset optimization, parallel processing
 5. **Documentation** - Examples, tutorials, best practices
 
-### Example: Configuration Format
+### Example: configuration format
 
 ```yaml
 # Working configuration structure
@@ -155,27 +155,28 @@ reproducibility:
 
 This configuration format supports deterministic, reproducible audits.
 
-## Use Cases
+## Use cases
 
-- [German Credit Audit](examples/german-credit-audit.md) - Complete audit walkthrough with German Credit dataset
-- [Healthcare Bias Detection](examples/healthcare-bias-detection.md) - Medical AI compliance example
-- [Fraud Detection Audit](examples/fraud-detection-audit.md) - Financial services compliance example
+- [German credit audit](examples/german-credit-audit.md) - Complete audit walkthrough with German Credit dataset
+- [Healthcare bias detection](examples/healthcare-bias-detection.md) - Medical AI compliance example
+- [Fraud detection audit](examples/fraud-detection-audit.md) - Financial services compliance example
 
-_Comprehensive examples with real datasets and regulatory interpretations_
+_Comprehensive examples with real datasets and regulatory interpretations._
 
 ## Documentation
 
-- [Quick Start Guide](getting-started/quickstart.md) - Installation and first audit
-- [Configuration Guide](getting-started/configuration.md) - YAML configuration reference
-- [Trust & Deployment](reference/trust-deployment.md) - Architecture, licensing, security, and compliance
-- [Contributing Guidelines](reference/contributing.md) - Enhancement opportunities
+- [Quick start guide](getting-started/quickstart.md) - Installation and first audit
+- [Configuration guide](getting-started/configuration.md) - YAML configuration reference
+- [Trust & deployment](reference/trust-deployment.md) - Architecture, licensing, security, and compliance
+- [Contribution guidelines](reference/contributing.md) - Enhancement opportunities
 
-## License & Trademark
+## License & trademark
 
-- **License: Apache 2.0 - See [LICENSE](https://github.com/GlassAlpha/glassalpha/blob/main/LICENSE)
-- **Trademark:** While GlassAlpha’s code is open source, the brand is not. We respectfully request that our name and logo not be used in confusing or misleading ways. See [TRADEMARK](reference/TRADEMARK.md).
+- **License:** Apache 2.0 - See [LICENSE](https://github.com/GlassAlpha/glassalpha/blob/main/LICENSE)
+- **Trademark:** While GlassAlpha's code is open source, the brand is not. We respectfully request that our name and logo not be used in confusing or misleading ways. See [TRADEMARK](reference/TRADEMARK.md).
 
 ## Support
+
 - **Issues**: [GitHub Issues](https://github.com/GlassAlpha/glassalpha/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/GlassAlpha/glassalpha/discussions)
 

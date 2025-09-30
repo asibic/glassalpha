@@ -1,4 +1,4 @@
-# Configuration Guide
+# Configuration guide
 
 Complete guide to configuring GlassAlpha for different use cases, models, and compliance requirements.
 
@@ -6,7 +6,7 @@ Complete guide to configuring GlassAlpha for different use cases, models, and co
 
 GlassAlpha uses YAML configuration files to define every aspect of the audit process. Configuration files are policy-as-code, enabling version control, review processes, and reproducible audits.
 
-### Basic Structure
+### Basic structure
 
 ```yaml
 # Required: Audit profile determines component selection
@@ -31,9 +31,9 @@ metrics: { ... }
 report: { ... }
 ```
 
-## Core Configuration Sections
+## Core configuration sections
 
-### Audit Profile
+### Audit profile
 
 The audit profile determines which components are available and what validations are enforced.
 
@@ -47,7 +47,7 @@ audit_profile: tabular_compliance # Currently supported profile
 - `tabular_compliance` - Standard tabular ML compliance audit
 - `german_credit_default` - German Credit dataset specific profile
 
-### Reproducibility Settings
+### Reproducibility settings
 
 Ensures deterministic, reproducible audit results.
 
@@ -68,7 +68,7 @@ reproducibility:
 - Use the same seed for comparative audits
 - Document seed values in audit reports
 
-### Data Configuration
+### Data configuration
 
 Defines the dataset and feature structure for the audit.
 
@@ -106,7 +106,7 @@ data:
 - Protected attributes should be included in features for bias analysis
 - Features are automatically preprocessed based on data type
 
-### Model Configuration
+### Model configuration
 
 Specifies the ML model to audit and its parameters.
 
@@ -139,7 +139,7 @@ model:
 - If `path` missing: trains new model with `params`
 - Parameters are passed to the underlying library
 
-## Explainer Configuration
+## Explainer configuration
 
 Controls how model predictions are explained and interpreted.
 
@@ -175,7 +175,7 @@ explainers:
 - `first_compatible` - Use first explainer compatible with model
 - `best_available` - Select highest-priority compatible explainer
 
-## Metrics Configuration
+## Metrics configuration
 
 Defines which performance and fairness metrics to compute.
 
@@ -228,7 +228,7 @@ metrics:
 - `equalized_odds` - Equal TPR and FPR across groups
 - `predictive_parity` - Equal precision across groups
 
-## Report Configuration
+## Report configuration
 
 Controls the format and content of generated audit reports.
 
@@ -269,9 +269,9 @@ report:
 - `page_size`: A4, Letter, Legal
 - `margins`: standard, narrow, wide
 
-## Advanced Configuration
+## Advanced configuration
 
-### Strict Mode
+### Strict mode
 
 Enforces additional regulatory compliance requirements.
 
@@ -289,7 +289,7 @@ strict_mode: true
 - Deterministic component selection
 - All optional validations enabled
 
-### Manifest Configuration
+### Manifest configuration
 
 Controls audit trail generation and completeness.
 
@@ -303,7 +303,7 @@ manifest:
   include_execution_info: true # Include timing and environment
 ```
 
-### Preprocessing Options
+### Preprocessing options
 
 Controls data preprocessing before model training/evaluation.
 
@@ -319,7 +319,7 @@ preprocessing:
   max_features: 20 # Maximum features to select
 ```
 
-### Validation Configuration
+### Validation configuration
 
 Controls model evaluation and statistical testing.
 
@@ -333,7 +333,7 @@ validation:
   confidence_level: 0.95 # Statistical confidence level
 ```
 
-### Performance Optimization
+### Performance optimization
 
 Controls computational performance and resource usage.
 
@@ -345,9 +345,9 @@ performance:
   progress_bar: true # Show progress bars
 ```
 
-## Configuration Examples
+## Configuration examples
 
-### Basic German Credit Audit
+### Basic German Credit audit
 
 ```yaml
 audit_profile: german_credit_default
@@ -379,7 +379,7 @@ metrics:
     metrics: [demographic_parity, equal_opportunity]
 ```
 
-### Enterprise Compliance Configuration
+### Enterprise compliance configuration
 
 ```yaml
 audit_profile: tabular_compliance
@@ -454,7 +454,7 @@ compliance:
     equal_opportunity: 0.02
 ```
 
-### Custom Model Configuration
+### Custom model configuration
 
 ```yaml
 audit_profile: tabular_compliance
@@ -508,7 +508,7 @@ validation:
   stratify_split: true
 ```
 
-## Configuration Best Practices
+## Configuration best practices
 
 ### Reproducibility
 
@@ -538,9 +538,9 @@ validation:
 3. **Review configurations** before committing to version control
 4. **Use appropriate access controls** for configuration repositories
 
-## Troubleshooting Configuration Issues
+## Troubleshooting configuration issues
 
-### Common Configuration Errors
+### Common configuration errors
 
 **Missing Required Fields:**
 
@@ -569,7 +569,7 @@ model:
   type: logistic_regression # Linear model - use kernelshap instead
 ```
 
-### Validation Commands
+### Validation commands
 
 ```bash
 # Validate configuration before running audit
@@ -582,7 +582,7 @@ glassalpha validate --config my_config.yaml --strict
 glassalpha list
 ```
 
-### Configuration Schema Validation
+### Configuration schema validation
 
 GlassAlpha uses Pydantic for configuration validation with detailed error messages:
 
@@ -594,7 +594,7 @@ model.type
   ensure this value has at least 1 characters (type=value_error.any_str.min_length; limit_value=1)
 ```
 
-## Schema Reference
+## Schema reference
 
 For detailed technical information about GlassAlpha's architecture and interfaces, see the [Trust & Deployment Guide](../reference/trust-deployment.md).
 

@@ -1,4 +1,4 @@
-# Financial Fraud Detection Audit Tutorial
+# Financial fraud detection audit tutorial
 
 Complete walkthrough of performing a comprehensive ML audit on a credit card fraud detection model using GlassAlpha. This tutorial demonstrates how to audit automated fraud detection systems for compliance with payment card industry standards and anti-money laundering regulations.
 
@@ -11,7 +11,7 @@ Financial institutions use machine learning models to detect fraudulent credit c
 - **Regulatory Compliance**: Meet PCI DSS and AML requirements
 - **Fairness**: Avoid bias against protected demographic groups
 
-### What You'll Learn
+### What you'll learn
 
 - How to configure GlassAlpha for fraud detection models
 - Interpreting performance metrics for fraud detection systems
@@ -19,7 +19,7 @@ Financial institutions use machine learning models to detect fraudulent credit c
 - Identifying bias in fraud detection across demographic groups
 - Generating regulatory-ready audit reports for financial compliance
 
-### Regulatory Context
+### Regulatory context
 
 Fraud detection models must comply with:
 
@@ -34,9 +34,9 @@ Fraud detection models must comply with:
 - Basic understanding of fraud detection systems and payment processing
 - Familiarity with bias and fairness concepts in financial services
 
-## Step 1: Understanding the Fraud Detection Dataset
+## Step 1: Understanding the fraud detection dataset
 
-### Dataset Characteristics
+### Dataset characteristics
 
 The fraud detection dataset contains:
 
@@ -46,7 +46,7 @@ The fraud detection dataset contains:
 - **1% fraud rate** (realistic for credit card fraud)
 - **Protected attributes**: Gender, age groups for fairness analysis
 
-### Key Features
+### Key features
 
 **Transaction Information:**
 
@@ -75,7 +75,7 @@ The fraud detection dataset contains:
 - `weekend_transaction` - Weekend vs. weekday indicator
 - `international_transaction` - Domestic vs. international
 
-## Step 2: Configuration Setup
+## Step 2: Configuration setup
 
 Create a configuration file for the fraud detection audit:
 
@@ -148,7 +148,7 @@ report:
     compliance_statement: true
 ```
 
-## Step 3: Running the Audit
+## Step 3: Running the audit
 
 Execute the fraud detection audit:
 
@@ -160,7 +160,7 @@ glassalpha audit \
   --strict
 ```
 
-### Expected Execution
+### Expected execution
 
 ```
 GlassAlpha Audit Generation
@@ -202,9 +202,9 @@ Generating PDF report: fraud_detection_audit.pdf
 🛡️ Strict mode: Report meets regulatory compliance requirements
 ```
 
-## Step 4: Interpreting the Results
+## Step 4: Interpreting the results
 
-### Model Performance Analysis
+### Model performance analysis
 
 **Overall Performance:**
 
@@ -220,7 +220,7 @@ Generating PDF report: fraud_detection_audit.pdf
 - **Business Impact**: Balance between fraud losses and customer friction
 - **Regulatory Impact**: Must justify false positive rates to card networks
 
-### SHAP Explanations
+### SHAP explanations
 
 **Global Feature Importance (Top 5):**
 
@@ -265,7 +265,7 @@ For a $2,500 international transaction at 3 AM from 500 miles away:
 - **Transaction hour (unusual):** +0.04 probability increase
 - **Final fraud probability:** 0.452 (45.2% - flag for review)
 
-### Fairness Analysis Results
+### Fairness analysis results
 
 **Demographic Parity Analysis:**
 
@@ -293,7 +293,7 @@ For a $2,500 international transaction at 3 AM from 500 miles away:
 - **Difference:** 1.6% (within acceptable range)
 - **Conclusion:** ✅ Consistent fraud detection accuracy across age groups
 
-### Risk Assessment
+### Risk assessment
 
 **Low Risk Findings:**
 
@@ -314,9 +314,9 @@ For a $2,500 international transaction at 3 AM from 500 miles away:
 - **FCRA Accuracy:** ✅ PASS - 99% accuracy meets standards
 - **ECOA Compliance:** ✅ PASS - No demographic discrimination detected
 
-## Step 5: Regulatory Recommendations
+## Step 5: Regulatory recommendations
 
-### Immediate Actions Required
+### Immediate actions required
 
 **1. Monitor False Positive Rates**
 
@@ -336,7 +336,7 @@ For a $2,500 international transaction at 3 AM from 500 miles away:
 - Consider customer travel pattern analysis
 - Implement graduated response based on risk level
 
-### Long-term Compliance Strategy
+### Long-term compliance strategy
 
 **1. Ongoing Monitoring**
 
@@ -356,9 +356,9 @@ For a $2,500 international transaction at 3 AM from 500 miles away:
 - Implement model validation procedures
 - Create change management processes
 
-## Step 6: Business Impact Analysis
+## Step 6: Business impact analysis
 
-### Financial Impact
+### Financial impact
 
 **Current Model:**
 
@@ -373,7 +373,7 @@ For a $2,500 international transaction at 3 AM from 500 miles away:
 - **Recall improvement**: Could catch additional 5% of fraud
 - **Net benefit**: $300K+ annual improvement potential
 
-### Regulatory Risk Mitigation
+### Regulatory risk mitigation
 
 **Before Audit:**
 
@@ -387,9 +387,9 @@ For a $2,500 international transaction at 3 AM from 500 miles away:
 - Demonstrated fairness across demographic groups
 - Clear audit trail for regulatory examinations
 
-## Step 7: Next Steps and Recommendations
+## Step 7: Next steps and recommendations
 
-### Technical Improvements
+### Technical improvements
 
 **1. Model Optimization**
 
@@ -409,7 +409,7 @@ For a $2,500 international transaction at 3 AM from 500 miles away:
 - Network analysis for organized fraud rings
 - Temporal pattern analysis for seasonal fraud trends
 
-### Operational Changes
+### Operational changes
 
 **1. Fraud Team Integration**
 
@@ -455,7 +455,7 @@ This fraud detection audit revealed a highly effective model that successfully b
 
 This tutorial demonstrates how GlassAlpha enables thorough, regulatory-ready ML auditing that identifies both technical performance strengths and compliance risks, providing the detailed analysis necessary for responsible AI deployment in regulated financial fraud detection systems.
 
-## Additional Resources
+## Additional resources
 
 - [Configuration Guide](../getting-started/configuration.md) - Detailed configuration options
 - [CLI Reference](../reference/cli.md) - Complete command documentation

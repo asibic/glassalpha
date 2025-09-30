@@ -1,8 +1,8 @@
-# Troubleshooting Guide
+# Troubleshooting guide
 
 Common issues, error messages, and solutions for GlassAlpha. This guide helps diagnose and resolve problems quickly.
 
-## Quick Diagnostics
+## Quick diagnostics
 
 If you're experiencing issues, start with these diagnostic commands:
 
@@ -26,7 +26,7 @@ glassalpha audit --config configs/german_credit_simple.yaml --output test.pdf --
 # Alternative: PYTHONPATH=src python3 -m glassalpha audit --config configs/german_credit_simple.yaml --output test.pdf --dry-run
 ```
 
-## CLI Command Issues
+## CLI command issues
 
 ### `glassalpha: command not found`
 
@@ -62,9 +62,9 @@ This indicates GlassAlpha isn't properly installed or the CLI entry point isn't 
    python3 -c "import sys; print('\n'.join(sys.path))"
    ```
 
-## Installation Issues
+## Installation issues
 
-### Python Version Compatibility
+### Python version compatibility
 
 **Error:**
 
@@ -91,7 +91,7 @@ source venv/bin/activate
 pip install -e .
 ```
 
-### XGBoost Installation Issues (macOS)
+### XGBoost installation issues (macOS)
 
 **Error:**
 
@@ -113,7 +113,7 @@ pip install xgboost
 python -c "import xgboost; print('XGBoost version:', xgboost.__version__)"
 ```
 
-### Dependency Conflicts
+### Dependency conflicts
 
 **Error:**
 
@@ -141,7 +141,7 @@ pip install shap matplotlib seaborn
 pip install -e . --no-deps
 ```
 
-### Missing System Dependencies
+### Missing system dependencies
 
 **Error (Linux):**
 
@@ -162,9 +162,9 @@ sudo apt install libgomp1 build-essential
 sudo yum install libgomp gcc gcc-c++
 ```
 
-## Configuration Errors
+## Configuration errors
 
-### Missing Required Fields
+### Missing required fields
 
 **Error:**
 
@@ -186,7 +186,7 @@ model:
   type: xgboost # Ensure model type is specified
 ```
 
-### Invalid File Paths
+### Invalid file paths
 
 **Error:**
 
@@ -209,7 +209,7 @@ cd /Users/gabe/Sites/glassalpha/packages
 glassalpha audit --config configs/german_credit_simple.yaml --output audit.pdf
 ```
 
-### Model Type Not Found
+### Model type not found
 
 **Error:**
 
@@ -232,7 +232,7 @@ model:
   type: xgboost # Use registered model type
 ```
 
-### Schema Validation Errors
+### Schema validation errors
 
 **Error:**
 
@@ -256,9 +256,9 @@ data:
   # OR let GlassAlpha auto-detect (remove feature_columns)
 ```
 
-## Data Issues
+## Data issues
 
-### Dataset Not Found
+### Dataset not found
 
 **Error:**
 
@@ -281,7 +281,7 @@ data:
   path: ~/.glassalpha/data/german_credit_processed.csv # Auto-downloaded
 ```
 
-### Column Not Found
+### Column not found
 
 **Error:**
 
@@ -303,7 +303,7 @@ data:
   target_column: correct_column_name # Use actual column name
 ```
 
-### Data Type Issues
+### Data type issues
 
 **Error:**
 
@@ -323,7 +323,7 @@ df['date_column'] = pd.to_datetime(df['date_column']).astype('int64')
 df.to_csv('data/processed_dataset.csv', index=False)
 ```
 
-### Missing Values
+### Missing values
 
 **Error:**
 
@@ -340,9 +340,9 @@ preprocessing:
   missing_strategy: median # or 'mode' for categorical
 ```
 
-## Runtime Errors
+## Runtime errors
 
-### Memory Issues
+### Memory issues
 
 **Error:**
 
@@ -372,7 +372,7 @@ performance:
 head -n 1000 large_dataset.csv > small_dataset.csv
 ```
 
-### Model Training Failures
+### Model training failures
 
 **Error:**
 
@@ -395,7 +395,7 @@ df = df.dropna(subset=['target'])
 df.to_csv('data/cleaned_dataset.csv', index=False)
 ```
 
-### SHAP Computation Errors
+### SHAP computation errors
 
 **Error:**
 
@@ -415,7 +415,7 @@ explainers:
       n_samples: 100
 ```
 
-### PDF Generation Issues
+### PDF generation issues
 
 **Error:**
 
@@ -449,9 +449,9 @@ report:
   output_format: html # Generate HTML instead of PDF
 ```
 
-## Performance Issues
+## Performance issues
 
-### Slow Execution
+### Slow execution
 
 **Problem:** Audit takes longer than expected
 
@@ -495,7 +495,7 @@ glassalpha audit --config config.yaml --output test.pdf --dry-run
 head -n 500 large_dataset.csv > test_dataset.csv
 ```
 
-### High Memory Usage
+### High memory usage
 
 **Problem:** System runs out of memory during audit
 
@@ -531,7 +531,7 @@ explainers:
       background_size: 20
 ```
 
-### Large PDF Files
+### Large PDF files
 
 **Problem:** Generated PDFs are too large
 
@@ -565,9 +565,9 @@ report:
     # Remove: local_explanations, detailed_plots
 ```
 
-## Debugging and Diagnostics
+## Debugging and diagnostics
 
-### Enable Verbose Logging
+### Enable verbose logging
 
 ```bash
 # Enable detailed logging
@@ -578,7 +578,7 @@ export GLASSALPHA_LOG_LEVEL=DEBUG
 glassalpha audit --config config.yaml --output audit.pdf
 ```
 
-### Component Registry Debugging
+### Component registry debugging
 
 ```python
 # Debug component registration
@@ -589,7 +589,7 @@ pprint.pprint(list_components())
 "
 ```
 
-### Configuration Debugging
+### Configuration debugging
 
 ```python
 # Debug configuration loading
@@ -600,7 +600,7 @@ print('Loaded config:', config.model_dump())
 "
 ```
 
-### Data Loading Debugging
+### Data loading debugging
 
 ```python
 # Debug data issues
@@ -615,16 +615,16 @@ print('Missing:', data.isnull().sum().to_dict())
 "
 ```
 
-## Getting Help
+## Getting help
 
-### Before Requesting Support
+### Before requesting support
 
 1. **Check this troubleshooting guide**
 2. **Run diagnostic commands** shown above
 3. **Try with the German Credit example** (known working configuration)
 4. **Enable verbose logging** for detailed error information
 
-### Information to Include in Support Requests
+### Information to include in support requests
 
 ```bash
 # System information
@@ -639,15 +639,15 @@ cat your_config.yaml
 glassalpha --verbose audit --config config.yaml --output audit.pdf 2>&1
 ```
 
-### Support Channels
+### Support channels
 
 - **GitHub Issues:** [https://github.com/GlassAlpha/glassalpha/issues](https://github.com/GlassAlpha/glassalpha/issues)
 - **Documentation:** [Complete guides](../index.md)
 - **Community:** [GitHub Discussions](https://github.com/GlassAlpha/glassalpha/discussions)
 
-## Prevention Best Practices
+## Prevention best practices
 
-### Environment Setup
+### Environment setup
 
 ```bash
 # Always use virtual environments
@@ -659,7 +659,7 @@ pip install --upgrade pip
 pip install --upgrade glassalpha
 ```
 
-### Configuration Management
+### Configuration management
 
 ```yaml
 # Always specify explicit seeds for reproducibility
@@ -675,7 +675,7 @@ reproducibility:
 glassalpha validate --config production.yaml --strict
 ```
 
-### Testing Strategy
+### Testing strategy
 
 ```bash
 # Test with small datasets first
@@ -685,7 +685,7 @@ glassalpha audit --config config.yaml --output test.pdf --dry-run
 # Start with minimal config, add features gradually
 ```
 
-### Monitoring and Logging
+### Monitoring and logging
 
 ```bash
 # Enable logging for production

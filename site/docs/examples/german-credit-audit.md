@@ -1,4 +1,4 @@
-# German Credit Audit Tutorial
+# German Credit audit tutorial
 
 Complete walkthrough of performing a comprehensive ML audit on the German Credit dataset using GlassAlpha. This tutorial demonstrates credit risk model evaluation with fairness analysis for regulatory compliance.
 
@@ -6,7 +6,7 @@ Complete walkthrough of performing a comprehensive ML audit on the German Credit
 
 The German Credit dataset is a classic benchmark for credit risk assessment, containing 1,000 loan applications with demographic and financial attributes. This tutorial shows how to audit an XGBoost credit scoring model for bias and compliance violations.
 
-### What You'll Learn
+### What you'll learn
 
 - How to configure GlassAlpha for credit risk models
 - Interpreting model performance metrics
@@ -14,7 +14,7 @@ The German Credit dataset is a classic benchmark for credit risk assessment, con
 - Identifying bias in credit scoring
 - Generating regulatory-ready audit reports
 
-### Use Case Context
+### Use case context
 
 Credit scoring models must comply with fair lending laws including:
 
@@ -28,9 +28,9 @@ Credit scoring models must comply with fair lending laws including:
 - Basic understanding of credit risk modeling
 - Familiarity with bias and fairness concepts
 
-## Step 1: Understanding the Dataset
+## Step 1: Understanding the dataset
 
-### Dataset Characteristics
+### Dataset characteristics
 
 The German Credit dataset contains:
 
@@ -39,7 +39,7 @@ The German Credit dataset contains:
 - **Binary target**: Good credit risk (70%) vs Bad credit risk (30%)
 - **Protected attributes**: Gender, age, foreign worker status
 
-### Key Features
+### Key features
 
 **Financial Attributes:**
 
@@ -61,7 +61,7 @@ The German Credit dataset contains:
 - `purpose` - Loan purpose (car, furniture, etc.)
 - `existing_credits_count` - Number of existing credits
 
-## Step 2: Configuration Setup
+## Step 2: Configuration setup
 
 Create a configuration file for the German Credit audit:
 
@@ -138,7 +138,7 @@ report:
     compliance_statement: true
 ```
 
-## Step 3: Running the Audit
+## Step 3: Running the audit
 
 Execute the audit with regulatory compliance mode enabled:
 
@@ -150,7 +150,7 @@ glassalpha audit \
   --strict
 ```
 
-### Expected Execution
+### Expected execution
 
 ```
 GlassAlpha Audit Generation
@@ -194,9 +194,9 @@ Generating PDF report: german_credit_audit.pdf
 The audit report is ready for review and regulatory submission.
 ```
 
-## Step 4: Interpreting the Results
+## Step 4: Interpreting the results
 
-### Model Performance Analysis
+### Model performance analysis
 
 **Overall Performance:**
 
@@ -211,7 +211,7 @@ The audit report is ready for review and regulatory submission.
 - Conservative approach with higher precision than recall (safer lending)
 - False positive rate (approving bad risks) is 18% - acceptable for many lenders
 
-### SHAP Explanations
+### SHAP explanations
 
 **Global Feature Importance (Top 5):**
 
@@ -255,7 +255,7 @@ For a 35-year-old male requesting €2,000 for a car:
 - **Age (35):** +0.04
 - **Final probability:** 0.89 (strong approval recommendation)
 
-### Fairness Analysis Results
+### Fairness analysis results
 
 **Demographic Parity Analysis:**
 
@@ -282,7 +282,7 @@ For a 35-year-old male requesting €2,000 for a car:
 - **Difference:** 1.3% (within acceptable range)
 - **Conclusion:** No significant bias detected
 
-### Equal Opportunity Analysis
+### Equal opportunity analysis
 
 **True Positive Rate Parity:**
 
@@ -291,7 +291,7 @@ For a 35-year-old male requesting €2,000 for a car:
 - **Age:** Varies from 82.1% to 91.3% across age groups
 - **Foreign worker:** No significant difference
 
-### Risk Assessment
+### Risk assessment
 
 **High Risk Findings:**
 
@@ -321,9 +321,9 @@ For a 35-year-old male requesting €2,000 for a car:
 - **FCRA Accuracy:** ✅ PASS (75% accuracy meets standards)
 - **GDPR Article 22:** ⚠️ REVIEW (explanations available but bias concerns)
 
-## Step 5: Regulatory Recommendations
+## Step 5: Regulatory recommendations
 
-### Immediate Actions Required
+### Immediate actions required
 
 #### Address Gender Bias
 
@@ -346,7 +346,7 @@ For a 35-year-old male requesting €2,000 for a car:
 - Consider ensemble methods with bias reduction
 - Validate improvements with new audit
 
-### Long-term Compliance Strategy
+### Long-term compliance strategy
 
 #### Ongoing Monitoring
 
@@ -366,9 +366,9 @@ For a 35-year-old male requesting €2,000 for a car:
 - Implement bias testing in model development
 - Create remediation procedures for biased decisions
 
-## Step 6: Business Impact Analysis
+## Step 6: Business impact analysis
 
-### Financial Impact
+### Financial impact
 
 **Current Model:**
 
@@ -382,7 +382,7 @@ For a 35-year-old male requesting €2,000 for a car:
 - **Could slightly increase default risk if not carefully implemented**
 - **Compliance benefits outweigh small performance trade-offs**
 
-### Legal Risk Mitigation
+### Legal risk mitigation
 
 **Before Correction:**
 
@@ -396,9 +396,9 @@ For a 35-year-old male requesting €2,000 for a car:
 - Reduced legal exposure
 - Improved reputation and stakeholder trust
 
-## Step 7: Next Steps and Recommendations
+## Step 7: Next steps and recommendations
 
-### Technical Remediation
+### Technical remediation
 
 #### Implement Fairness Constraints
 
@@ -419,7 +419,7 @@ For a 35-year-old male requesting €2,000 for a car:
 - Holdout testing on diverse populations
 - A/B testing for production deployment
 
-### Operational Changes
+### Operational changes
 
 #### Model Governance
 
@@ -464,7 +464,7 @@ This German Credit audit revealed a technically sound but biased model that requ
 
 This tutorial demonstrates how GlassAlpha enables thorough, regulatory-ready ML auditing that identifies both performance strengths and compliance risks, providing the detailed analysis necessary for responsible AI deployment in regulated industries.
 
-## Additional Resources
+## Additional resources
 
 - [Configuration Guide](../getting-started/configuration.md) - Detailed configuration options
 - [CLI Reference](../reference/cli.md) - Complete command documentation

@@ -1,8 +1,8 @@
-# Healthcare Bias Detection: Medical Risk Assessment
+# Healthcare bias detection: medical risk assessment
 
 This example demonstrates using GlassAlpha to detect bias in healthcare AI systems, focusing on medical risk assessment models and regulatory compliance for healthcare applications.
 
-## Use Case Overview
+## Use case overview
 
 **Scenario**: Hospital system uses ML to predict patient readmission risk
 
@@ -20,7 +20,7 @@ This example demonstrates using GlassAlpha to detect bias in healthcare AI syste
 - Age-related discrimination in care decisions
 - Socioeconomic factors affecting medical AI
 
-## Healthcare-Specific Configuration
+## Healthcare-specific configuration
 
 ```yaml
 # healthcare_audit.yaml
@@ -74,16 +74,16 @@ model:
   params:
     # Conservative parameters for healthcare
     n_estimators: 100
-    max_depth: 4  # Limit complexity for interpretability
-    learning_rate: 0.05  # Slower learning
+    max_depth: 4 # Limit complexity for interpretability
+    learning_rate: 0.05 # Slower learning
     subsample: 0.8
     colsample_bytree: 0.8
-    min_child_weight: 3  # Prevent overfitting
+    min_child_weight: 3 # Prevent overfitting
 
   # Healthcare-specific validation
   validation:
     cross_validation: true
-    stratified: true  # Preserve class distribution
+    stratified: true # Preserve class distribution
     folds: 10
     metrics: [auc_roc, precision, recall]
 
@@ -118,9 +118,9 @@ metrics:
 
   # Healthcare bias thresholds (stricter than general ML)
   fairness_thresholds:
-    demographic_parity: 0.02  # 2% maximum disparity
-    equal_opportunity: 0.02   # Equal access to care
-    statistical_significance: 0.01  # 99% confidence
+    demographic_parity: 0.02 # 2% maximum disparity
+    equal_opportunity: 0.02 # Equal access to care
+    statistical_significance: 0.01 # 99% confidence
 
 # Healthcare compliance settings
 compliance:
@@ -182,7 +182,7 @@ monitoring:
     prediction_drift: 0.1
 ```
 
-## Running the Healthcare Audit
+## Running the healthcare audit
 
 ```bash
 # Standard healthcare audit
@@ -211,9 +211,9 @@ glassalpha audit \
   --strict
 ```
 
-## Healthcare-Specific Report Sections
+## Healthcare-specific report sections
 
-### 1. Clinical Performance Assessment
+### 1. Clinical performance assessment
 
 **Key Metrics:**
 
@@ -229,9 +229,10 @@ glassalpha audit \
 - High NPV means low-risk predictions are highly reliable
 - PPV indicates some false positives (additional interventions to low-risk patients)
 
-### 2. Healthcare Bias Assessment
+### 2. Healthcare bias assessment
 
 **Racial/Ethnic Disparities:**
+
 ```
 Demographic Parity by Race/Ethnicity:
 - White patients: 12.3% predicted high-risk
@@ -243,6 +244,7 @@ Statistical significance: p < 0.001 (highly significant)
 ```
 
 **Gender Disparities:**
+
 ```
 Equal Opportunity by Gender:
 - Male patients (actual readmissions): 89% correctly identified
@@ -253,6 +255,7 @@ Clinical impact: Female patients more likely to be missed
 ```
 
 **Age-Related Bias:**
+
 ```
 Predictive Parity by Age Group:
 - 18-40 years: 38% PPV (lower precision)
@@ -262,7 +265,7 @@ Predictive Parity by Age Group:
 Age bias: Middle-aged patients receive more accurate predictions
 ```
 
-### 3. Feature Impact Analysis
+### 3. Feature impact analysis
 
 **Most Influential Features (SHAP):**
 
@@ -281,9 +284,10 @@ Age bias: Middle-aged patients receive more accurate predictions
 - **Proxy bias**: Insurance type, ZIP code income, primary language
 - **Clinical correlation**: Some bias may reflect actual health disparities
 
-### 4. Individual Case Examples
+### 4. Individual case examples
 
 **Case 1: Potential Racial Bias**
+
 ```
 Patient Profile:
 - Black, Female, Age 45
@@ -304,6 +308,7 @@ Bias Assessment: Racial and socioeconomic factors inflated risk score
 ```
 
 **Case 2: Missed Female Patient**
+
 ```
 Patient Profile:
 - White, Female, Age 62
@@ -323,9 +328,9 @@ SHAP Explanation:
 Bias Assessment: Gender bias led to underestimation of risk
 ```
 
-## Regulatory Compliance Analysis
+## Regulatory compliance analysis
 
-### FDA AI/ML Guidance Compliance
+### FDA AI/ML guidance compliance
 
 **Algorithm Transparency:**
 
@@ -342,7 +347,7 @@ Bias Assessment: Gender bias led to underestimation of risk
 - **Clinical Impact**: Significant (affects care allocation)
 - **Mitigation Required**: Yes (bias correction needed)
 
-### HIPAA Compliance
+### HIPAA compliance
 
 **Data Protection:**
 
@@ -351,7 +356,7 @@ Bias Assessment: Gender bias led to underestimation of risk
 - ✅ Access controls and audit logging
 - ✅ Minimum necessary data principle followed
 
-### CMS Innovation Requirements
+### CMS innovation requirements
 
 **Health Equity:**
 
@@ -360,9 +365,9 @@ Bias Assessment: Gender bias led to underestimation of risk
 - ⚠️ **Correction plan needed**: Bias mitigation strategy required
 - ✅ **Monitoring plan**: Continuous bias monitoring enabled
 
-## Bias Mitigation Recommendations
+## Bias mitigation recommendations
 
-### 1. Immediate Actions
+### 1. Immediate actions
 
 **Data Enhancement:**
 
@@ -382,7 +387,7 @@ Bias Assessment: Gender bias led to underestimation of risk
 - Implement second opinion protocols for demographic edge cases
 - Train clinical staff on bias awareness and mitigation
 
-### 2. Long-term Improvements
+### 2. Long-term improvements
 
 **Algorithmic Fairness:**
 
@@ -402,9 +407,9 @@ Bias Assessment: Gender bias led to underestimation of risk
 - Create incident response plan for bias violations
 - Establish governance committee for AI fairness oversight
 
-## Monitoring and Maintenance
+## Monitoring and maintenance
 
-### Continuous Monitoring Setup
+### Continuous monitoring setup
 
 ```python
 # Healthcare bias monitoring configuration
@@ -428,55 +433,63 @@ monitoring_config = {
 }
 ```
 
-### Performance Tracking
+### Performance tracking
 
 **Monthly Reviews:**
+
 - Model performance by demographic group
 - Bias metric trends over time
 - Clinical outcome correlation analysis
 - Staff feedback on prediction utility
 
 **Quarterly Audits:**
+
 - Comprehensive bias assessment
 - Regulatory compliance review
 - Clinical effectiveness evaluation
 - Stakeholder feedback collection
 
-## Healthcare AI Best Practices
+## Healthcare AI best practices
 
-### Clinical Integration
+### Clinical integration
 
 #### 1. Human-AI Collaboration
-   - AI predictions as decision support, not replacement
-   - Clear indication of AI involvement in care decisions
-   - Easy override mechanisms for clinical judgment
+
+- AI predictions as decision support, not replacement
+- Clear indication of AI involvement in care decisions
+- Easy override mechanisms for clinical judgment
 
 #### 2. Transparency
-   - Explain AI predictions in clinical terms
-   - Document AI usage in patient records
-   - Train staff on AI capabilities and limitations
+
+- Explain AI predictions in clinical terms
+- Document AI usage in patient records
+- Train staff on AI capabilities and limitations
 
 #### 3. Continuous Improvement
-   - Regular retraining with new data
-   - Bias monitoring and correction
-   - Clinical outcome feedback integration
 
-### Regulatory Preparedness
+- Regular retraining with new data
+- Bias monitoring and correction
+- Clinical outcome feedback integration
+
+### Regulatory preparedness
 
 #### 1. Documentation
-   - Maintain complete audit trails
-   - Document all model changes and rationale
-   - Keep regulatory submission materials current
+
+- Maintain complete audit trails
+- Document all model changes and rationale
+- Keep regulatory submission materials current
 
 #### 2. Risk Management
-   - Regular risk assessments
-   - Incident reporting and response
-   - Continuous safety monitoring
+
+- Regular risk assessments
+- Incident reporting and response
+- Continuous safety monitoring
 
 #### 3. Quality Assurance
-   - Peer review of AI decisions
-   - Clinical validation studies
-   - External audit readiness
+
+- Peer review of AI decisions
+- Clinical validation studies
+- External audit readiness
 
 ## Conclusion
 

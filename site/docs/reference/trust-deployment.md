@@ -1,10 +1,10 @@
-# Trust & Deployment Guide
+# Trust & deployment guide
 
 This guide provides essential information about GlassAlpha's architecture, licensing, security, compliance, and deployment to help organizations evaluate and confidently adopt the tool.
 
-## Architecture & Design
+## Architecture & design
 
-### Built for Enterprise Reliability
+### Built for enterprise reliability
 
 GlassAlpha uses a **plugin-based architecture** designed for extensibility and reliability:
 
@@ -13,7 +13,7 @@ GlassAlpha uses a **plugin-based architecture** designed for extensibility and r
 - **Protocol-Based Interfaces**: Clean separation of concerns with type-safe interfaces
 - **Audit Trail Integration**: Every decision and component selection is logged for reproducibility
 
-### System Flow
+### System flow
 
 ```
 User Configuration → Component Selection → Data Processing →
@@ -27,15 +27,15 @@ PDF Report Generation → Audit Manifest Creation
 - **Extensible Framework**: Easy to add new model types and explainers
 - **Enterprise Ready**: Clear separation between OSS and commercial features
 
-## Licensing & Dependencies
+## Licensing & dependencies
 
-### Open Source Foundation
+### Open source foundation
 
 - **Core License**: Apache 2.0 - Full commercial use permitted
 - **No GPL Dependencies**: Carefully curated stack avoids license contamination
 - **Enterprise Compatible**: Compatible with corporate licensing requirements
 
-### Technology Stack Confidence
+### Technology stack confidence
 
 | Component        | License    | Purpose         | Enterprise Ready     |
 | ---------------- | ---------- | --------------- | -------------------- |
@@ -51,31 +51,31 @@ PDF Report Generation → Audit Manifest Creation
 - **Container Friendly**: Works in Docker/Kubernetes without conflicts
 - **Audit Compliant**: Full source transparency for regulatory review
 
-## Security & Privacy
+## Security & privacy
 
-### Security-First Design
+### Security-first design
 
 - **Local Processing**: All analysis happens on your infrastructure
 - **No Data Transmission**: Your data never leaves your environment
 - **Privacy by Default**: No telemetry collection (opt-in only)
 - **Audit Logging**: Complete activity tracking without storing sensitive data
 
-### Enterprise Security Features
+### Enterprise security features
 
 - **File-Based Storage**: No persistent databases required
 - **Memory Cleanup**: Sensitive data cleared after processing
 - **Reproducible Security**: All operations are deterministic and auditable
 - **Air-Gap Compatible**: Full offline operation capability
 
-### Security Reporting
+### Security reporting
 
 - **Vulnerability Reports**: security@glassalpha.com
 - **Response Time**: 48-hour acknowledgment target
 - **Responsible Disclosure**: Coordinated vulnerability handling
 
-## Regulatory Compliance
+## Regulatory compliance
 
-### Supported Frameworks
+### Supported frameworks
 
 GlassAlpha addresses key regulatory requirements:
 
@@ -94,16 +94,16 @@ GlassAlpha addresses key regulatory requirements:
 - Risk classification and transparency
 - Human oversight and quality management
 
-### Compliance Features
+### Compliance features
 
 - **Deterministic Audits**: Reproducible results for regulatory verification
 - **Complete Lineage**: Full audit trails with cryptographic hashes
 - **Professional Reports**: Publication-quality documentation
 - **Fairness Metrics**: Demographic parity and equal opportunity analysis
 
-## Deployment & Production
+## Deployment & production
 
-### Deployment Options
+### Deployment options
 
 **Local Installation**
 
@@ -125,7 +125,7 @@ pip install -e .
 - Reproducible installation across environments
 - Git-based version control integration
 
-### Production Considerations
+### Production considerations
 
 **Performance**
 
@@ -139,9 +139,9 @@ pip install -e .
 - **Update Strategy**: Clear migration paths between versions
 - **Support Model**: Community support with enterprise options
 
-## Confidence Indicators
+## Confidence indicators
 
-### Why Organizations Trust GlassAlpha
+### Why organizations trust GlassAlpha
 
 ✅ **Open Source Transparency**: Full code visibility for security review
 ✅ **Enterprise License Compatibility**: No GPL contamination or restrictions
@@ -151,7 +151,7 @@ pip install -e .
 ✅ **Security-First Design**: Local processing, no data transmission
 ✅ **Extensible Architecture**: Future-proof for new model types and regulations
 
-### Getting Started
+### Getting started
 
 1. **Install**: `pip install -e .` in the packages directory
 2. **First Audit**: `glassalpha audit --config configs/german_credit_simple.yaml --output audit.pdf`

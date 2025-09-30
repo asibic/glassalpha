@@ -12,7 +12,7 @@ The dataset system automatically:
 - **Mirrors** data to requested locations
 - **Handles** concurrent access safely
 
-## Available Datasets
+## Available datasets
 
 Use `glassalpha datasets list` to see all available datasets:
 
@@ -22,7 +22,7 @@ glassalpha datasets list
 # german_credit    v1        german_credit_processed.csv
 ```
 
-### German Credit Dataset
+### German Credit dataset
 
 The German Credit dataset is a canonical benchmark for credit risk assessment and fairness analysis.
 
@@ -34,7 +34,7 @@ The German Credit dataset is a canonical benchmark for credit risk assessment an
 
 ## Configuration
 
-### Dataset Specification
+### Dataset specification
 
 Configure datasets using the `data.dataset` field:
 
@@ -56,7 +56,7 @@ data:
     - gender
 ```
 
-### Fetch Policies
+### Fetch policies
 
 Control when datasets are fetched:
 
@@ -70,7 +70,7 @@ data:
   fetch: if_missing # Default
 ```
 
-### Offline Mode
+### Offline mode
 
 Disable network operations for air-gapped environments:
 
@@ -80,7 +80,7 @@ data:
   offline: true # No network access
 ```
 
-## Cache Locations
+## Cache locations
 
 Datasets are cached in OS-appropriate directories:
 
@@ -95,9 +95,9 @@ export GLASSALPHA_DATA_DIR="/custom/cache/location"
 glassalpha datasets cache-dir  # Shows current location
 ```
 
-## CLI Commands
+## CLI commands
 
-### List Available Datasets
+### List available datasets
 
 ```bash
 glassalpha datasets list
@@ -105,7 +105,7 @@ glassalpha datasets list
 # german_credit    v1        german_credit_processed.csv
 ```
 
-### Show Dataset Information
+### Show dataset information
 
 ```bash
 glassalpha datasets info german_credit
@@ -116,7 +116,7 @@ glassalpha datasets info german_credit
 # Currently exists: true
 ```
 
-### Fetch Dataset Manually
+### Fetch dataset manually
 
 ```bash
 glassalpha datasets fetch german_credit
@@ -130,9 +130,9 @@ glassalpha datasets fetch german_credit --force
 glassalpha datasets fetch german_credit --dest /tmp/custom_location.csv
 ```
 
-## Path vs Dataset Configuration
+## Path vs dataset configuration
 
-### Recommended: Dataset Keys
+### Recommended: dataset keys
 
 ```yaml
 data:
@@ -140,7 +140,7 @@ data:
   fetch: if_missing
 ```
 
-### Alternative: Explicit Paths
+### Alternative: explicit paths
 
 ```yaml
 data:
@@ -155,9 +155,9 @@ The dataset key approach is preferred as it:
 - Supports version management
 - Works across different environments
 
-## How It Works
+## How it works
 
-### Automatic Resolution
+### Automatic resolution
 
 When you specify a dataset:
 
@@ -166,7 +166,7 @@ When you specify a dataset:
 3. **Fetch if Needed**: Download and process if missing
 4. **Mirror to Request**: Create hard link or copy to requested location
 
-### Concurrent Safety
+### Concurrent safety
 
 Multiple processes can request the same dataset simultaneously:
 
@@ -174,7 +174,7 @@ Multiple processes can request the same dataset simultaneously:
 - **Atomic Operations**: Temporary files ensure no partial downloads
 - **Cache Reuse**: Only one process downloads, others use cached result
 
-### Cross-Platform Compatibility
+### Cross-platform compatibility
 
 The system handles filesystem differences:
 
@@ -182,14 +182,14 @@ The system handles filesystem differences:
 - **Copy Fallback**: Used for cross-device filesystems
 - **Directory Creation**: Automatically creates parent directories
 
-## Environment Variables
+## Environment variables
 
 - `GLASSALPHA_DATA_DIR`: Override default cache location
 - Standard OS cache directories used when not set
 
 ## Troubleshooting
 
-### Common Issues
+### Common issues
 
 **"Data file not found"**
 
@@ -207,7 +207,7 @@ The system handles filesystem differences:
 - Set `offline: false` to enable network access
 - Or provide files manually at specified paths
 
-### Debug Information
+### Debug information
 
 ```bash
 # Check cache location
@@ -220,7 +220,7 @@ glassalpha datasets info german_credit
 glassalpha datasets fetch german_credit --force
 ```
 
-## Adding New Datasets
+## Adding new datasets
 
 To add a new dataset to the registry:
 

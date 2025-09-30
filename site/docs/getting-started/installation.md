@@ -1,32 +1,32 @@
-# Installation Guide
+# Installation guide
 
 Complete installation instructions for GlassAlpha on different platforms and environments.
 
-## System Requirements
+## System requirements
 
-### Minimum Requirements
+### Minimum requirements
 
 - **Python**: 3.11 or higher
 - **Memory**: 2GB RAM available
 - **Storage**: 1GB disk space for installation and temporary files
 - **OS**: macOS 10.15+, Linux (Ubuntu 20.04+), Windows 10+ (WSL2 recommended)
 
-### Recommended Environment
+### Recommended environment
 
 - **Python**: 3.11+
 - **Memory**: 8GB+ RAM for large datasets
 - **Storage**: SSD for better performance
 - **CPU**: Multi-core processor for parallel processing
 
-### Supported Platforms
+### Supported platforms
 
 - **macOS**: Intel and Apple Silicon (M1/M2/M3)
 - **Linux**: Ubuntu 20.04+, CentOS 8+, RHEL 8+, and most modern distributions
 - **Windows**: 10/11 (native support, WSL2 recommended for best experience)
 
-## Installation Methods
+## Installation methods
 
-### Standard Installation (Recommended)
+### Standard installation (recommended)
 
 GlassAlpha is currently distributed as source code via GitHub. PyPI distribution may be available in potential future releases.
 
@@ -50,7 +50,7 @@ pip install -e ".[dev]"
 glassalpha --help
 ```
 
-### Development Installation
+### Development installation
 
 For contributors or those who need development tools:
 
@@ -229,9 +229,9 @@ pip install -e .
 - Native Windows may have PDF generation limitations
 - Use PowerShell or Command Prompt for native installation
 
-## Verification and Testing
+## Verification and testing
 
-### Basic Verification
+### Basic verification
 
 After installation, verify GlassAlpha is working correctly:
 
@@ -276,7 +276,7 @@ METRICS:
   ...
 ```
 
-### Python API Verification
+### Python API verification
 
 Test the Python API:
 
@@ -294,7 +294,7 @@ print("Available explainers:", list(ExplainerRegistry.get_all().keys()))
 print("Configuration system working!")
 ```
 
-### End-to-End Test
+### End-to-end test
 
 Run a complete audit to verify all components:
 
@@ -320,7 +320,7 @@ Successful execution should:
 
 ## Dependencies
 
-### Core Dependencies
+### Core dependencies
 
 GlassAlpha automatically installs these required dependencies:
 
@@ -348,7 +348,7 @@ GlassAlpha automatically installs these required dependencies:
 - `typer>=0.9.0` - Command-line interface
 - `pyyaml>=6.0` - YAML configuration files
 
-### Optional Dependencies
+### Optional dependencies
 
 **Development Tools** (with `[dev]` install):
 
@@ -358,7 +358,7 @@ GlassAlpha automatically installs these required dependencies:
 - `mypy>=1.5.0` - Type checking
 - `pre-commit>=3.3.0` - Git hooks
 
-### Version Compatibility
+### Version compatibility
 
 GlassAlpha is tested with:
 
@@ -368,9 +368,9 @@ GlassAlpha is tested with:
 - **LightGBM**: 3.3.x, 4.0.x
 - **SHAP**: 0.42.x, 0.43.x
 
-## Environment Management
+## Environment management
 
-### Using Virtual Environments
+### Using virtual environments
 
 **Why Virtual Environments?**
 
@@ -397,7 +397,7 @@ poetry add glassalpha
 poetry shell
 ```
 
-### Environment Variables
+### Environment variables
 
 **Configuration:**
 
@@ -413,9 +413,9 @@ export GLASSALPHA_CONFIG_DIR=~/.config/glassalpha
 glassalpha audit --config my_config.yaml --output audit.pdf
 ```
 
-## Troubleshooting Installation
+## Troubleshooting installation
 
-### Common Installation Issues
+### Common installation issues
 
 **Python Version Issues:**
 
@@ -477,7 +477,7 @@ pip uninstall weasyprint
 pip install weasyprint
 ```
 
-### Memory and Performance Issues
+### Memory and performance issues
 
 **Insufficient Memory:**
 
@@ -503,7 +503,7 @@ pip install -e . --index-url https://pypi.org/simple/
 pip install -e . --only-binary=all --prefer-binary
 ```
 
-### Verification Failures
+### Verification failures
 
 **CLI Command Not Found:**
 
@@ -534,7 +534,7 @@ python -c "import xgboost; print('xgboost OK')"
 python -c "import glassalpha; print('glassalpha OK')"
 ```
 
-## Docker Installation (Alternative)
+## Docker installation (alternative)
 
 For containerized environments:
 
@@ -570,7 +570,7 @@ docker run -v $(pwd):/data glassalpha \
   audit --config /data/config.yaml --output /data/audit.pdf
 ```
 
-## Next Steps
+## Next steps
 
 After successful installation:
 
@@ -580,7 +580,7 @@ After successful installation:
 4. **Trust & Deployment** - [Architecture, licensing, security, and compliance](../reference/trust-deployment.md) for regulated environments
 5. **Join the Community** - [GitHub Discussions](https://github.com/GlassAlpha/glassalpha/discussions)
 
-## Getting Help
+## Getting help
 
 If you encounter installation issues not covered here:
 

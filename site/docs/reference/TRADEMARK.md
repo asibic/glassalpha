@@ -1,14 +1,14 @@
-# GlassAlpha Trademark Guidelines
+# GlassAlpha trademark guidelines
 
-## Trademark Notice
+## Trademark notice
 
 "GlassAlpha" and "GlassAlpha" are trademarks of Gabriel Mays. The GlassAlpha logo and associated brand assets are proprietary and protected by trademark law.
 
-## What This Means
+## What this means
 
 While the GlassAlpha software is open source under the Apache 2.0 license, the GlassAlpha name and logo are **not** open source. This is a common practice in open source projects to maintain brand integrity and user trust.
 
-## Permitted Uses
+## Permitted uses
 
 You MAY:
 
@@ -17,7 +17,7 @@ You MAY:
 - ✅ Use the GlassAlpha name in package managers when distributing unmodified versions
 - ✅ Include the GlassAlpha logo when linking back to the official project
 
-## Restricted Uses
+## Restricted uses
 
 You MAY NOT without explicit permission:
 
@@ -27,7 +27,7 @@ You MAY NOT without explicit permission:
 - ❌ Imply endorsement by the GlassAlpha project
 - ❌ Use GlassAlpha branding in a way that could cause confusion about the origin of software
 
-## Naming Derivatives
+## Naming derivatives
 
 If you fork or create a derivative work, you must:
 
@@ -57,4 +57,4 @@ If you have questions about using the GlassAlpha name or logo, please open an is
 
 ---
 
-*These guidelines help ensure that users can identify official GlassAlpha releases and protect the reputation and integrity of the project.*
+_These guidelines help ensure that users can identify official GlassAlpha releases and protect the reputation and integrity of the project._

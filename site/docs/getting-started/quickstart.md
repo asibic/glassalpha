@@ -1,4 +1,4 @@
-# Quick Start Guide
+# Quick start guide
 
 Get up and running with GlassAlpha in less than 10 minutes. This guide will take you from installation to generating your first professional audit PDF.
 
@@ -11,7 +11,7 @@ Get up and running with GlassAlpha in less than 10 minutes. This guide will take
 
 ## Step 1: Installation
 
-### Clone and Install
+### Clone and install
 
 Clone and setup:
 
@@ -48,11 +48,11 @@ glassalpha --help
 
 You should see the CLI help message with available commands.
 
-## Step 2: Generate Your First Audit
+## Step 2: Generate your first audit
 
 GlassAlpha comes with a ready-to-use German Credit dataset example that demonstrates all core capabilities.
 
-### Run the Audit Command
+### Run the audit command
 
 Generate audit PDF (takes ~3 seconds):
 
@@ -62,7 +62,7 @@ glassalpha audit \
   --output my_first_audit.pdf
 ```
 
-### What Happens
+### What happens
 
 1. **Automatic Dataset Resolution**: Uses built-in German Credit dataset from registry
 2. **Model Training**: Trains XGBoost classifier with optimal parameters
@@ -70,7 +70,7 @@ glassalpha audit \
 4. **Fairness Analysis**: Computes bias metrics for protected attributes (gender, age)
 5. **PDF Generation**: Creates professional audit report with visualizations
 
-### Expected Output
+### Expected output
 
 ```
 Loading data and initializing components...
@@ -103,44 +103,44 @@ Generating PDF report: my_first_audit.pdf
 The audit report is ready for review and regulatory submission.
 ```
 
-## Step 3: Review Your Audit Report
+## Step 3: Review your audit report
 
 Open `my_first_audit.pdf` to see your comprehensive audit report containing:
 
-### Executive Summary
+### Executive summary
 
 - Key findings and compliance status
 - Model performance overview
 - Bias detection results
 - Regulatory assessment
 
-### Model Performance Analysis
+### Model performance analysis
 
 - Accuracy, precision, recall, F1 score, AUC-ROC
 - Confusion matrix
 - Performance visualizations
 
-### SHAP Explanations
+### SHAP explanations
 
 - Global feature importance rankings
 - Individual prediction explanations
 - Waterfall plots showing decision factors
 
-### Fairness Analysis
+### Fairness analysis
 
 - Demographic parity assessment
 - Equal opportunity analysis
 - Bias detection across protected attributes
 - Statistical significance testing
 
-### Reproducibility Manifest
+### Reproducibility manifest
 
 - Complete audit trail with timestamps
 - Dataset fingerprints and model parameters
 - Random seeds and component versions
 - Git commit information
 
-## Step 4: Understanding the Configuration
+## Step 4: Understanding the configuration
 
 The `configs/german_credit_simple.yaml` file contains all audit settings:
 
@@ -201,9 +201,9 @@ metrics:
     metrics: [demographic_parity, equal_opportunity]
 ```
 
-## Next Steps
+## Next steps
 
-### Try Advanced Features
+### Try advanced features
 
 Enable strict mode for regulatory compliance:
 
@@ -222,7 +222,7 @@ glassalpha audit \
   --output lightgbm_audit.pdf
 ```
 
-### Explore More Options
+### Explore more options
 
 See all available CLI options:
 
@@ -250,7 +250,7 @@ glassalpha datasets info german_credit  # Show dataset details
 glassalpha datasets cache-dir   # Show where datasets are cached
 ```
 
-### Work with Your Own Data
+### Work with your own data
 
 1. **Prepare your data**: CSV format with target column and features
 2. **Create configuration**: Copy and modify `german_credit_simple.yaml`
@@ -258,30 +258,30 @@ glassalpha datasets cache-dir   # Show where datasets are cached
 
 See the [Configuration Guide](configuration.md) for detailed customization options.
 
-## Common Use Cases
+## Common use cases
 
-### Financial Services Compliance
+### Financial services compliance
 
 - Credit scoring model validation
 - Fair lending assessments
 - Regulatory reporting (ECOA, FCRA)
 - Model risk management
 
-### HR and Employment
+### HR and employment
 
 - Hiring algorithm audits
 - Promotion decision analysis
 - Salary equity assessments
 - EEO compliance verification
 
-### Healthcare and Insurance
+### Healthcare and insurance
 
 - Risk assessment model validation
 - Treatment recommendation audits
 - Coverage decision analysis
 - Health equity evaluations
 
-## Getting Help
+## Getting help
 
 - **Documentation**: [Complete Guide](../index.md)
 - **Configuration Reference**: [Configuration Guide](configuration.md)
