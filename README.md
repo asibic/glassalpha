@@ -47,13 +47,13 @@ glassalpha audit --config configs/german_credit_simple.yaml --output audit.pdf
 
 ## Documentation
 
-- **[Full Documentation](site/docs/)** - Complete user guides and tutorials
+- **[Full Documentation](https://glassalpha.com/)** - Complete user guides and tutorials
 - **[Developer Guide](packages/README.md)** - Architecture, development, and contribution details
-- **[German Credit Tutorial](site/docs/examples/german-credit-audit.md)** - Step-by-step example
+- **[German Credit Tutorial](https://glassalpha.com/examples/german-credit-audit/)** - Step-by-step example
 
 ## Contributing
 
-We welcome contributions! See [Contributing Guidelines](site/docs/contributing.md) for development setup and guidelines.
+We welcome contributions! See [Contributing Guidelines](https://glassalpha.com/reference/contributing/) for development setup and guidelines.
 
 ## License
 
