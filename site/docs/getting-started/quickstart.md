@@ -286,10 +286,9 @@ See the [Configuration Guide](configuration.md) for detailed customization optio
 - **Documentation**: [Complete Guide](../index.md)
 - **Configuration Reference**: [Configuration Guide](configuration.md)
 - **Examples**:
-  - [5-minute Quick Start](../examples/quick-start-audit.md)
-  - [German Credit Deep Dive](../examples/german-credit-audit.md)
-  - [Healthcare Bias Detection](../examples/healthcare-bias-detection.md)
-  - [Configuration Comparison](../examples/configuration-comparison.md)
+  - [German Credit Deep Dive](../examples/german-credit-audit.md) - Complete audit walkthrough
+  - [Healthcare Bias Detection](../examples/healthcare-bias-detection.md) - Medical AI compliance example
+  - [Fraud Detection Audit](../examples/fraud-detection-audit.md) - Financial services example
 - **Issues**: [GitHub Issues](https://github.com/GlassAlpha/glassalpha/issues)
 
 ## Summary

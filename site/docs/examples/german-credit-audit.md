@@ -468,7 +468,7 @@ This tutorial demonstrates how GlassAlpha enables thorough, regulatory-ready ML 
 
 - [Configuration Guide](../getting-started/configuration.md) - Detailed configuration options
 - [CLI Reference](../reference/cli.md) - Complete command documentation
-- [Compliance Overview](../reference/compliance.md) - Regulatory framework guidance
+- [Trust & Deployment](../reference/trust-deployment.md) - Architecture, licensing, security, and compliance
 - [Troubleshooting Guide](../reference/troubleshooting.md) - Common issues and solutions
 
 For questions or support, please visit our [GitHub repository](https://github.com/GlassAlpha/glassalpha) or contact our team.

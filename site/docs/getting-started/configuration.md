@@ -596,6 +596,6 @@ model.type
 
 ## Schema Reference
 
-For a complete schema reference with all available fields, types, and validation rules, see the [API Reference](../reference/api.md).
+For detailed technical information about GlassAlpha's architecture and interfaces, see the [Trust & Deployment Guide](../reference/trust-deployment.md).
 
 This configuration guide provides the foundation for creating effective, compliant audit configurations. Start with the provided examples and customize based on your specific requirements, data characteristics, and regulatory context.

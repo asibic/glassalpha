@@ -577,7 +577,7 @@ After successful installation:
 1. **Try the Quick Start** - [Generate your first audit in 10 minutes](../getting-started/quickstart.md)
 2. **Explore Examples** - [German Credit tutorial](../examples/german-credit-audit.md)
 3. **Read Configuration Guide** - [Understand all options](../getting-started/configuration.md)
-4. **Production Deployment** - [Enterprise deployment guide](../reference/deployment.md) for regulated environments
+4. **Trust & Deployment** - [Architecture, licensing, security, and compliance](../reference/trust-deployment.md) for regulated environments
 5. **Join the Community** - [GitHub Discussions](https://github.com/GlassAlpha/glassalpha/discussions)
 
 ## Getting Help

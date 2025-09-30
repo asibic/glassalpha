@@ -2,6 +2,14 @@
 
 GlassAlpha is an **extensible framework** for AI compliance and interpretability, supporting tabular ML models with planned expansion to LLMs and multimodal systems.
 
+## Overview
+
+GlassAlpha provides **deterministic, regulator-ready audit reports** with complete lineage tracking. Run the same config twice, get byte-identical PDFs. Every decision is explainable, every metric is reproducible, every audit trail is complete.
+
+**Designed for**: Organizations needing transparent, auditable ML systems that meet regulatory requirements (EU AI Act, CFPB guidance, etc.).
+
+**[→ Project Homepage](../README.md)** | **[→ User Documentation](../site/docs/)**
+
 ### Core Design Principles
 
 1. **Plugin Architecture**: All components (models, explainers, metrics) use dynamic registration
@@ -52,17 +60,93 @@ packages/
 
 ## Installation
 
-### Basic Installation (OSS)
+### Requirements
+
+- **Python**: 3.11 or higher (3.12 recommended)
+- **Memory**: 2GB minimum (8GB recommended for large datasets)
+- **Storage**: 1GB free space for datasets and reports
+- **Network**: Required for initial dataset downloads (unless using `--offline` mode)
+
+### Quick Installation
 
 ```bash
-pip install glassalpha
+# Clone the repository
+git clone https://github.com/GlassAlpha/glassalpha
+cd glassalpha/packages
+
+# Install GlassAlpha (includes all dependencies)
+pip install -e .
 ```
 
 ### Development Installation
 
+For contributors and advanced users:
+
 ```bash
-cd packages
+# Create virtual environment (recommended)
+python3 -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+
+# Upgrade pip and install in development mode
+python -m pip install --upgrade pip
 pip install -e ".[dev]"
+
+# Verify installation
+glassalpha --help
+```
+
+### Offline Installation
+
+For air-gapped environments:
+
+```bash
+# Pre-download datasets to cache directory first
+glassalpha datasets fetch german_credit
+glassalpha datasets fetch adult_income
+
+# Then use with offline mode
+glassalpha audit --config configs/german_credit_simple.yaml --output audit.pdf --offline
+```
+
+### Troubleshooting Installation
+
+**Common Issues:**
+
+1. **Python Version**: Ensure you're using Python 3.11+
+
+   ```bash
+   python3 --version  # Should show 3.11.x or higher
+   ```
+
+2. **Virtual Environment**: Always use a virtual environment for isolation
+
+   ```bash
+   python3 -m venv glassalpha-env
+   source glassalpha-env/bin/activate
+   ```
+
+3. **Build Dependencies**: If you encounter build errors:
+
+   ```bash
+   # Install system dependencies first
+   # On Ubuntu/Debian:
+   sudo apt-get install build-essential python3-dev
+
+   # On macOS:
+   brew install gcc
+   ```
+
+**Verification:**
+
+```bash
+# Check installation
+glassalpha --help
+
+# List available components
+glassalpha list
+
+# Test with German Credit example
+glassalpha audit --config configs/german_credit_simple.yaml --output test_audit.pdf
 ```
 
 ## Quick Start
@@ -176,6 +260,8 @@ glassalpha datasets fetch german_credit
 
 ## Architecture Highlights
 
+GlassAlpha's architecture is designed for **extensibility**, **determinism**, and **regulatory compliance**. The system uses modern Python patterns to ensure reliable, auditable ML model assessments.
+
 ### 1. Protocol-Based Interfaces
 
 All components implement protocols for maximum flexibility:
@@ -188,6 +274,12 @@ class ModelInterface(Protocol):
     def get_capabilities(self) -> dict: ...
 ```
 
+**Benefits:**
+
+- **Duck typing**: Focus on behavior, not inheritance hierarchies
+- **Easy wrapping**: Wrap existing libraries without modification
+- **Type safety**: mypy verification of protocol compliance
+
 ### 2. Registry Pattern
 
 Components self-register for dynamic loading:
@@ -197,6 +289,12 @@ Components self-register for dynamic loading:
 class XGBoostWrapper(ModelInterface):
     capabilities = {"supports_shap": True, "data_modality": "tabular"}
 ```
+
+**Selection Process:**
+
+1. Configuration specifies preferences (e.g., `priority: [treeshap, kernelshap]`)
+2. Registry finds first compatible component based on model capabilities
+3. Selected component logged in audit manifest for reproducibility
 
 ### 3. Deterministic Plugin Selection
 
@@ -208,6 +306,12 @@ explainers:
   priority: ["treeshap", "kernelshap"]
 ```
 
+**Why Deterministic:**
+
+- **Reproducible audits**: Same config = same components selected
+- **Regulatory compliance**: Audit trails must be verifiable
+- **Debugging**: Predictable component selection aids troubleshooting
+
 ### 4. Audit Profiles
 
 Different audit types use different component sets:
@@ -215,8 +319,84 @@ Different audit types use different component sets:
 ```python
 class TabularComplianceProfile(AuditProfile):
     compatible_models = ["xgboost", "lightgbm", "logistic_regression"]
-    required_metrics = ["accuracy", "fairness", "drift"]
+    required_metrics = ["accuracy", "demographic_parity"]
+    default_explainers = ["treeshap", "kernelshap"]
+    report_template = "standard_audit.html"
 ```
+
+**Benefits:**
+
+- **Validated combinations**: Ensures compatible components
+- **Simplified configuration**: Users specify profile, not individual components
+- **Regulatory alignment**: Profiles match compliance requirements
+
+### 5. Configuration-Driven Pipeline
+
+Every aspect of the audit pipeline is configuration-driven:
+
+```yaml
+# High-level intent
+audit_profile: german_credit_default
+
+# Model selection
+model:
+  type: xgboost
+
+# Explainer preferences
+explainers:
+  priority: [treeshap, kernelshap]
+
+# Strict mode for regulatory compliance
+strict: true
+```
+
+**Configuration Benefits:**
+
+- **Human-readable**: YAML format that's version-controllable
+- **Validated**: Pydantic models catch errors before execution
+- **Flexible**: Support for environment-specific overrides
+- **Auditable**: Configuration hash included in audit manifest
+
+### 6. Enterprise Feature Separation
+
+Clear boundaries between OSS and Enterprise features:
+
+```python
+@check_feature("advanced_explainers")
+def deep_shap_explain():
+    if not is_enterprise():
+        raise FeatureNotAvailable("Enterprise license required")
+    # Enterprise implementation
+```
+
+**OSS Focus:** Core audit functionality, TreeSHAP, standard metrics
+**Enterprise:** Advanced explainers, monitoring dashboards, custom integrations
+
+### 7. Comprehensive Audit Trails
+
+Complete provenance tracking for regulatory compliance:
+
+```python
+class ManifestGenerator:
+    def generate(self):
+        return {
+            "config_hash": hash_config(config),
+            "data_hash": hash_dataframe(data),
+            "git_sha": get_git_commit(),
+            "selected_components": self.components,
+            "seeds": self.seeds,
+            "timestamp": datetime.utcnow()
+        }
+```
+
+**Audit Trail Contents:**
+
+- Configuration fingerprint (hash)
+- Dataset fingerprint (hash)
+- Git commit SHA and timestamp
+- Selected components and their versions
+- All random seeds used
+- Environment information
 
 ## Testing
 
@@ -238,34 +418,139 @@ glassalpha audit --config configs/german_credit_simple.yaml --output test_audit.
 
 See [CONTRIBUTING.md](../site/docs/contributing.md) for development guidelines.
 
+## Development & Contributing
+
+### Development Setup
+
+1. **Clone and Setup:**
+
+   ```bash
+   git clone https://github.com/GlassAlpha/glassalpha
+   cd glassalpha/packages
+   python3 -m venv .venv
+   source .venv/bin/activate
+   pip install -e ".[dev]"
+   ```
+
+2. **Run Tests:**
+
+   ```bash
+   # Run all tests
+   pytest
+
+   # Run with coverage
+   pytest --cov=src/glassalpha
+
+   # Run specific test file
+   pytest tests/test_audit_pipeline.py -v
+   ```
+
+3. **Code Quality:**
+
+   ```bash
+   # Format code
+   ruff format src/ tests/
+
+   # Lint code
+   ruff check src/ tests/
+
+   # Type check
+   mypy src/
+   ```
+
+### Contributing Guidelines
+
+**Areas for Enhancement:**
+
+- Additional model support (neural networks, time series)
+- Advanced explainability methods (counterfactuals, gradient-based)
+- Extended compliance frameworks (GDPR, HIPAA, SOX)
+- Performance optimizations for large datasets
+
+**Development Workflow:**
+
+1. Create feature branch from `main`
+2. Write tests first (TDD approach)
+3. Implement feature with type hints
+4. Add documentation and examples
+5. Run full test suite
+6. Submit PR with clear description
+
+**Code Standards:**
+
+- **Type Hints**: Required for all public APIs
+- **Documentation**: Google-style docstrings for all modules/functions
+- **Testing**: >90% test coverage required
+- **Linting**: Ruff + Black formatting enforced
+
+See [Contributing Guide](../site/docs/contributing.md) for detailed development guidelines.
+
 ## License & Dependencies
 
-### Licensing Structure
+### Core License Structure
 
-- **Core Library**: Apache 2.0 License - Full open source access to core functionality
+- **GlassAlpha Framework**: Apache License 2.0 ([LICENSE](../LICENSE))
+- **Enterprise Extensions**: Commercial license for advanced features (separate package)
+- **Brand**: "GlassAlpha" trademark - see [TRADEMARK.md](../TRADEMARK.md)
 
-### Dependency Compatibility
+### Technology Stack & Licenses
 
-All dependencies are chosen for enterprise compatibility and regulatory compliance:
+GlassAlpha uses industry-standard, enterprise-compatible dependencies with proven licensing compatibility:
 
-| Component        | License    | Purpose               | Enterprise Ready             |
-| ---------------- | ---------- | --------------------- | ---------------------------- |
-| **SHAP**         | MIT        | TreeSHAP explanations | ✅ No GPL contamination      |
-| **XGBoost**      | Apache 2.0 | Tree models           | ✅ Compatible license family |
-| **LightGBM**     | MIT        | Alternative models    | ✅ Microsoft-backed          |
-| **scikit-learn** | BSD        | Baseline models       | ✅ Academic standard         |
-| **NumPy/Pandas** | BSD        | Data processing       | ✅ Core scientific stack     |
+| Component        | License     | Purpose                     | Why Chosen                                     |
+| ---------------- | ----------- | --------------------------- | ---------------------------------------------- |
+| **Python SHAP**  | MIT License | TreeSHAP explanations       | ✅ Enterprise-compatible, no GPL contamination |
+| **XGBoost**      | Apache 2.0  | Gradient boosting models    | ✅ Same license family, proven in production   |
+| **LightGBM**     | MIT License | Alternative tree models     | ✅ Microsoft-backed, widely adopted            |
+| **scikit-learn** | BSD License | Baseline models & utilities | ✅ Academic standard, fully compatible         |
+| **NumPy**        | BSD License | Numerical computing         | ✅ Core scientific Python library              |
+| **Pandas**       | BSD License | Data manipulation           | ✅ Industry standard for data science          |
+| **WeasyPrint**   | BSD License | PDF generation              | ✅ Pure Python, no system dependencies         |
+| **Typer**        | MIT License | CLI framework               | ✅ Modern, type-safe command interface         |
+| **Pydantic**     | MIT License | Configuration validation    | ✅ Runtime type checking and validation        |
 
-**Key Licensing Note**: GlassAlpha uses the MIT-licensed Python [SHAP](https://github.com/shap/shap) library, not the GPL-licensed R `treeshap` package, ensuring maximum enterprise compatibility.
+### Licensing Confidence & Risk Mitigation
 
-### Reproducible Builds
+**✅ No GPL Dependencies**: GlassAlpha deliberately avoids GPL-licensed components to ensure maximum compatibility with enterprise environments. We use the MIT-licensed Python [SHAP](https://github.com/shap/shap) library rather than the GPL-licensed R `treeshap` package.
 
-Dependencies are locked for deterministic builds:
+**✅ Apache 2.0 Compatible Stack**: All dependencies are compatible with Apache 2.0 licensing, allowing:
+
+- Commercial use without restrictions
+- Integration with proprietary systems
+- Distribution in closed-source applications
+- Patent protection for contributors
+
+**✅ Regulatory Compliance Ready**: The licensing structure supports:
+
+- Audit trail preservation
+- Reproducible builds with locked dependency versions
+- No vendor lock-in through open standards
+- Full source code transparency for regulatory review
+
+### Enterprise Integration
+
+The clean licensing structure enables:
+
+- **Container Integration**: Deploy in Docker/Kubernetes without license conflicts
+- **CI/CD Pipelines**: Automated builds with reproducible dependency resolution
+- **Cloud Deployment**: Compatible with AWS, Azure, GCP licensing requirements
+- **On-Premise Installation**: Full control over software stack and dependencies
+
+### Dependency Verification
+
+All dependencies are locked to specific versions in [`constraints.txt`](constraints.txt) for reproducible builds:
 
 ```bash
+# Reproducible installation
 pip install -c constraints.txt -e .
 ```
 
 ## Support
 
-- OSS: GitHub Issues
+- **OSS Community**: [GitHub Issues](https://github.com/GlassAlpha/glassalpha/issues)
+- **Enterprise**: Priority support with SLA (contact for availability)
+- **Discussions**: [GitHub Discussions](https://github.com/GlassAlpha/glassalpha/discussions)
+
+---
+
+_For questions, see the [FAQ](../site/docs/faq.md) or start a [GitHub Discussion](https://github.com/GlassAlpha/glassalpha/discussions)._

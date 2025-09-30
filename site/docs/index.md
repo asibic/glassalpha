@@ -157,9 +157,9 @@ This configuration format supports deterministic, reproducible audits.
 
 ## Use Cases
 
-- [Working Examples](examples/quick-start-audit.md) - Step-by-step tutorials for different use cases
+- [German Credit Audit](examples/german-credit-audit.md) - Complete audit walkthrough with German Credit dataset
 - [Healthcare Bias Detection](examples/healthcare-bias-detection.md) - Medical AI compliance example
-- [Configuration Comparison](examples/configuration-comparison.md) - Choosing the right audit approach
+- [Fraud Detection Audit](examples/fraud-detection-audit.md) - Financial services compliance example
 
 _Comprehensive examples with real datasets and regulatory interpretations_
 
@@ -167,12 +167,15 @@ _Comprehensive examples with real datasets and regulatory interpretations_
 
 - [Quick Start Guide](getting-started/quickstart.md) - Installation and first audit
 - [Configuration Guide](getting-started/configuration.md) - YAML configuration reference
-- [Regulatory Compliance](reference/compliance.md) - Compliance frameworks
+- [Trust & Deployment](reference/trust-deployment.md) - Architecture, licensing, security, and compliance
 - [Contributing Guidelines](reference/contributing.md) - Enhancement opportunities
 
-## License & Support
+## License & Trademark
 
-- **License & Guidelines**: Apache 2.0 - See [LICENSE](https://github.com/GlassAlpha/glassalpha/blob/main/LICENSE) and [Trademark Guidelines](https://github.com/GlassAlpha/glassalpha/blob/main/TRADEMARK.md)
+- **License: Apache 2.0 - See [LICENSE](https://github.com/GlassAlpha/glassalpha/blob/main/LICENSE)
+- **Trademark:** While GlassAlpha’s code is open source, the brand is not. We respectfully request that our name and logo not be used in confusing or misleading ways. See [TRADEMARK](reference/TRADEMARK.md).
+
+## Support
 - **Issues**: [GitHub Issues](https://github.com/GlassAlpha/glassalpha/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/GlassAlpha/glassalpha/discussions)
 

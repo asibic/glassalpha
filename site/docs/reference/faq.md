@@ -34,7 +34,7 @@ GlassAlpha maintains audit quality through:
 - **Professional reporting** with publication-quality visualizations
 - **Regulatory alignment** with established compliance frameworks
 
-For detailed information about system design and quality assurance, see the [Architecture Guide](../reference/architecture.md).
+For detailed information about system design and quality assurance, see the [Trust & Deployment Guide](../reference/trust-deployment.md).
 
 ## Installation & Setup
 
@@ -119,7 +119,7 @@ All dependencies are automatically installed during setup.
 
 1. **Follow the Quick Start guide for a 5-minute introduction:**
 
-   - [Quick Start Audit](../examples/quick-start-audit.md) - Fastest way to get started
+   - [German Credit Audit](../examples/german-credit-audit.md) - Complete audit walkthrough
 
 2. **Use the German Credit example:**
 
@@ -226,7 +226,7 @@ class MyModel:
         pass
 ```
 
-See the [API Reference](../reference/api.md) for complete examples.
+See the [Trust & Deployment Guide](../reference/trust-deployment.md) for technical details.
 
 ### Can I use deep learning models?
 
@@ -261,7 +261,7 @@ GlassAlpha currently focuses on **tabular data** for classification tasks. Addit
 - **Fair Housing Act** (US) - Housing discrimination
 - **Employment Standards** (EEOC, various) - Hiring discrimination
 
-See the [Compliance Framework Guide](../reference/compliance.md) for detailed mapping.
+See the [Trust & Deployment Guide](../reference/trust-deployment.md) for compliance framework information.
 
 ### Can GlassAlpha reports be submitted to regulators?
 
@@ -354,7 +354,7 @@ Yes, GlassAlpha is designed for production use:
 - **Configuration files** for different environments
 - **Enterprise deployment** with RBAC and monitoring
 
-For comprehensive production deployment guidance, see the [Production Deployment Guide](../reference/deployment.md).
+For comprehensive production deployment guidance, see the [Trust & Deployment Guide](../reference/trust-deployment.md).
 
 ### Are there any limitations I should know about?
 
@@ -571,7 +571,7 @@ For immediate help, check the [Troubleshooting Guide](../reference/troubleshooti
 
 **Recommended Reading:**
 
-- [Compliance Framework Overview](../reference/compliance.md)
+- [Trust & Deployment Guide](../reference/trust-deployment.md) - Architecture, licensing, security, and compliance
 - [German Credit Tutorial](../examples/german-credit-audit.md) (detailed interpretation)
 - Industry guides on algorithmic fairness and bias
 

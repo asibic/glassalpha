@@ -655,7 +655,7 @@ pytest --cov=src/glassalpha   # Coverage
 
 **Getting Unstuck:**
 
-1. Check [Architecture Guide](architecture.md) for system design
+1. Check [Trust & Deployment Guide](trust-deployment.md) for system design
 2. Look at existing implementations for patterns
 3. Search [GitHub Issues](https://github.com/GlassAlpha/glassalpha/issues)
 4. Ask in [GitHub Discussions](https://github.com/GlassAlpha/glassalpha/discussions)
