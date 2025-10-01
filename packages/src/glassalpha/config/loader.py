@@ -5,6 +5,7 @@ validating against the schema and audit profile requirements.
 """
 
 import logging
+from importlib.resources import files as pkg_files
 from pathlib import Path
 from typing import Any
 
@@ -26,17 +27,29 @@ def load_yaml(path: str | Path) -> dict[str, Any]:
         Parsed YAML content
 
     Raises:
-        FileNotFoundError: If file doesn't exist
+        FileNotFoundError: If file doesn't exist locally or in package
         yaml.YAMLError: If YAML is invalid
 
     """
     path = Path(path)
-    if not path.exists():
-        raise FileNotFoundError(f"Configuration file not found: {path}")
+    text_content = None
+
+    if path.exists():
+        # Load from local file system
+        try:
+            text_content = path.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError) as e:
+            raise ValueError(f"Failed to read configuration file {path}: {e}") from e
+    else:
+        # Fall back to packaged built-ins by filename
+        try:
+            candidate = pkg_files("glassalpha.data.configs") / path.name
+            text_content = candidate.read_text(encoding="utf-8")
+        except Exception as e:
+            raise FileNotFoundError(f"Configuration file not found: {path}") from e
 
     try:
-        with open(path) as f:
-            return yaml.safe_load(f) or {}
+        return yaml.safe_load(text_content) or {}
     except yaml.YAMLError as e:
         raise ValueError(f"Invalid YAML in {path}: {e}") from e
 
@@ -310,3 +323,28 @@ def save_config(config: AuditConfig, path: str | Path, include_defaults: bool = 
         yaml.safe_dump(config_dict, f, default_flow_style=False, sort_keys=False)
 
     logger.info(f"Configuration saved to {path}")
+
+
+def load_builtin_config(name: str) -> AuditConfig:
+    """Load a packaged config by base name, e.g. 'german_credit_simple.yaml' or 'german_credit_simple'.
+
+    Args:
+        name: Config name, optionally with .yaml extension
+
+    Returns:
+        Validated AuditConfig object
+
+    Raises:
+        FileNotFoundError: If config doesn't exist in package
+        ValueError: If config is invalid
+
+    """
+    if not name.endswith(".yaml"):
+        name += ".yaml"
+
+    try:
+        text = (pkg_files("glassalpha.data.configs") / name).read_text(encoding="utf-8")
+        config_dict = yaml.safe_load(text) or {}
+        return load_config(config_dict)
+    except Exception as e:
+        raise ValueError(f"Failed to load builtin config '{name}': {e}") from e

@@ -108,6 +108,8 @@ include-package-data = true
 [tool.setuptools.package-data]
 # Contract compliance: Include templates in wheel for importlib.resources loading
 "glassalpha.report.templates" = ["*.html", "*.css", "*.js", "*.txt"]
+# Include built-in configuration files for wheel-based testing
+"glassalpha.data.configs" = ["*.yaml"]
 
 [tool.ruff]
 line-length = 120  # Modern standard (vs outdated 100) - matches industry practice
