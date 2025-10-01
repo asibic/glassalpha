@@ -6,6 +6,10 @@ import pytest
 from pydantic import ValidationError
 
 from glassalpha.config.loader import load_config_from_file
+
+# Make tests CWD-independent by using absolute paths based on this file's location
+HERE = Path(__file__).resolve().parent
+CONFIG_DIR = HERE.parent / "configs"
 from glassalpha.config.schema import DataConfig
 from glassalpha.datasets.registry import REGISTRY
 from glassalpha.pipeline.audit import AuditPipeline
@@ -23,7 +27,7 @@ class TestDatasetFetchingIntegration:
     def test_full_dataset_fetching_pipeline(self):
         """Test that the complete dataset fetching pipeline works."""
         # Use the german_credit_simple.yaml config
-        config = load_config_from_file("configs/german_credit_simple.yaml")
+        config = load_config_from_file(CONFIG_DIR / "german_credit_simple.yaml")
 
         # Verify config loaded correctly
         assert config.data.dataset == "german_credit"
@@ -200,7 +204,7 @@ class TestDatasetFetchingIntegration:
             meta_file.unlink()
 
         # Fetch dataset (should create metadata)
-        config = load_config_from_file("configs/german_credit_simple.yaml")
+        config = load_config_from_file(CONFIG_DIR / "german_credit_simple.yaml")
         pipeline = AuditPipeline(config)
 
         # Trigger dataset fetching
