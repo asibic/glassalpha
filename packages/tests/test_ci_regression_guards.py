@@ -263,7 +263,8 @@ class TestFeatureRegressionGuards:
         rf_binary = RandomForestClassifier(n_estimators=10, random_state=42)
         rf_binary.fit(X_binary, y_binary)
 
-        calibrated_binary = maybe_calibrate(rf_binary, X_binary, y_binary, "isotonic")
+        calibrated_binary = maybe_calibrate(rf_binary, method="isotonic", cv=5)
+        calibrated_binary.fit(X_binary, y_binary)
         proba_binary = calibrated_binary.predict_proba(X_binary)
 
         assert proba_binary.shape == (100, 2), f"Binary calibration broke shape: {proba_binary.shape}"
@@ -281,7 +282,8 @@ class TestFeatureRegressionGuards:
         rf_multi = RandomForestClassifier(n_estimators=10, random_state=42)
         rf_multi.fit(X_multi, y_multi)
 
-        calibrated_multi = maybe_calibrate(rf_multi, X_multi, y_multi, "isotonic")
+        calibrated_multi = maybe_calibrate(rf_multi, method="isotonic", cv=5)
+        calibrated_multi.fit(X_multi, y_multi)
         proba_multi = calibrated_multi.predict_proba(X_multi)
 
         assert proba_multi.shape == (100, 3), f"Multiclass calibration broke shape: {proba_multi.shape}"

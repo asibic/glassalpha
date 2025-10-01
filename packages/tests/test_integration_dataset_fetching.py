@@ -75,9 +75,9 @@ class TestDatasetFetchingIntegration:
 
     def test_cache_directory_integration(self):
         """Test that cache directory resolution works in context."""
-        from glassalpha.utils.cache_dirs import get_data_root
+        from glassalpha.utils.cache_dirs import ensure_dir_writable, resolve_data_root
 
-        cache_root = get_data_root()
+        cache_root = ensure_dir_writable(resolve_data_root())
 
         # Should be OS-appropriate location
         assert cache_root.exists()
