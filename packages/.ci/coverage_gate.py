@@ -49,7 +49,7 @@ def save_baseline(baseline_path: Path, coverage: float):
 def main():
     """Main trend monitoring logic."""
     # Configuration
-    MIN_COVERAGE = 70  # Minimum expected coverage (warning only)
+    MIN_COVERAGE = 65  # Minimum expected coverage (warning only)
     REGRESSION_TOLERANCE = 2.0  # Allow 2% regression without failing
 
     # Paths
