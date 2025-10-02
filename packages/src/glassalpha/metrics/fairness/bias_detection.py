@@ -10,8 +10,8 @@ import logging
 import numpy as np
 import pandas as pd
 
-from ...core.registry import MetricRegistry
 from ..base import BaseMetric
+from ..registry import MetricRegistry
 
 logger = logging.getLogger(__name__)
 

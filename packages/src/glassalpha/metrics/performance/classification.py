@@ -36,8 +36,8 @@ except ImportError:
     recall_score = _sklearn_unavailable
     roc_auc_score = _sklearn_unavailable
 
-from ...core.registry import MetricRegistry
 from ..base import BaseMetric
+from ..registry import MetricRegistry
 
 logger = logging.getLogger(__name__)
 

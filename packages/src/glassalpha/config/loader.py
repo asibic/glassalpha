@@ -11,7 +11,7 @@ from typing import Any
 
 import yaml
 
-from ..core.registry import ProfileRegistry
+from ..profiles.registry import ProfileRegistry
 from .schema import AuditConfig
 
 logger = logging.getLogger(__name__)
@@ -121,17 +121,27 @@ def apply_profile_defaults(config: dict[str, Any], profile_name: str | None = No
         return config
 
     # Get profile from registry
-    profile_cls = ProfileRegistry.get(profile_name)
-    if not profile_cls:
+    try:
+        profile_cls = ProfileRegistry.get(profile_name)
+    except KeyError:
         logger.warning(f"Unknown audit profile: {profile_name}")
         return config
 
-    # Get default config from profile
-    if hasattr(profile_cls, "get_default_config"):
-        default_config = profile_cls.get_default_config()
-        # Merge with user config (user config takes precedence)
-        config = merge_configs(default_config, config)
-        logger.info(f"Applied defaults from profile '{profile_name}'")
+    # Apply profile defaults
+    try:
+        if hasattr(profile_cls, "apply_defaults"):
+            config = profile_cls.apply_defaults(config)
+            logger.info(f"Applied defaults from profile '{profile_name}'")
+        elif hasattr(profile_cls, "get_default_config"):
+            default_config = profile_cls.get_default_config()
+            # Merge with user config (user config takes precedence)
+            config = merge_configs(default_config, config)
+            logger.info(f"Applied defaults from profile '{profile_name}'")
+        else:
+            logger.warning(f"Profile '{profile_name}' does not provide defaults")
+    except Exception as e:
+        logger.warning(f"Failed to apply profile '{profile_name}' defaults: {e}")
+        return config
 
     # Validate against profile requirements
     if hasattr(profile_cls, "validate_config"):

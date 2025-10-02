@@ -11,7 +11,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-from ..core.registry import MetricRegistry
+from .registry import MetricRegistry
 
 logger = logging.getLogger(__name__)
 

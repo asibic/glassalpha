@@ -1,16 +1,19 @@
-"""Metric registry utilities for GlassAlpha.
+"""Metric registry for GlassAlpha.
 
-This module provides utilities specific to metrics, building on the core
-registry system. It includes functions for selecting appropriate metrics
-based on model type, audit profile, and data characteristics.
+This module defines the MetricRegistry using the decorator-friendly registry
+and provides utilities for metric selection and computation.
 """
 
 import logging
 from typing import Any
 
-from ..core.registry import MetricRegistry
+from ..core.decor_registry import DecoratorFriendlyRegistry
 
 logger = logging.getLogger(__name__)
+
+# Create the metric registry using the decorator-friendly registry
+MetricRegistry = DecoratorFriendlyRegistry(group="glassalpha.metrics")
+MetricRegistry.discover()  # Safe discovery without heavy imports
 
 
 def get_metrics_by_type(metric_type: str) -> list[str]:
@@ -53,9 +56,8 @@ def get_required_metrics_for_profile(profile_name: str) -> dict[str, list[str]]:
             "fairness": ["demographic_parity", "equal_opportunity"],
             "drift": ["psi", "ks_test"],
         }
-    else:
-        # Default minimal set
-        return {"performance": ["accuracy"], "fairness": [], "drift": []}
+    # Default minimal set
+    return {"performance": ["accuracy"], "fairness": [], "drift": []}
 
 
 def select_appropriate_metrics(
@@ -111,7 +113,10 @@ def select_appropriate_metrics(
 
 
 def compute_all_metrics(
-    metric_names: list[str], y_true: Any, y_pred: Any, sensitive_features: Any = None
+    metric_names: list[str],
+    y_true: Any,
+    y_pred: Any,
+    sensitive_features: Any = None,
 ) -> dict[str, dict[str, float]]:
     """Compute multiple metrics at once.
 

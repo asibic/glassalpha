@@ -13,7 +13,6 @@ import pytest
 from glassalpha.core import (
     FeatureNotAvailable,
     ModelRegistry,
-    NoOpExplainer,
     NoOpMetric,
     PassThroughModel,
     check_feature,
@@ -46,15 +45,19 @@ def test_passthrough_model_works():
 
 def test_noop_explainer_works():
     """Test NoOp explainer returns valid structure."""
-    explainer = NoOpExplainer()
+    # Test that noop explainer exists and is registered
+    from glassalpha.explain.registry import ExplainerRegistry
+
+    explainer_class = ExplainerRegistry.get("noop")
+    assert explainer_class is not None
     model = PassThroughModel()
     df = pd.DataFrame({"a": [1, 2], "b": [3, 4]})
 
-    explanation = explainer.explain(model, df)
+    explanation = explainer_class().explain(model, df)
 
     assert explanation["status"] == "no_explanation"
     assert explanation["shap_values"].shape == (2, 2)
-    assert explainer.supports_model(model)
+    assert explainer_class().supports_model(model)
 
 
 def test_noop_metric_works():
@@ -89,6 +92,7 @@ def test_deterministic_explainer_selection():
     selected1 = select_explainer("xgboost", config1)
     selected2 = select_explainer("xgboost", config2)
 
+    # Should select noop explainer when explicitly requested in priority
     assert selected1 == selected2 == "noop"
 
 
@@ -139,9 +143,9 @@ def test_registry_priority_selection():
     selected = select_explainer("test_model", config)
     assert selected == "noop"
 
-    # Should fall back to noop for incompatible model
+    # Should select noop explainer for unknown model since it's in priority list
     selected = select_explainer("unknown_model", config)
-    assert selected == "noop"  # NoOp supports all models
+    assert selected == "noop"  # NoOp is compatible with everything when explicitly requested
 
 
 def test_enterprise_component_filtering():

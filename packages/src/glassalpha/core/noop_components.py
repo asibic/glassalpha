@@ -10,10 +10,6 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-from .interfaces import (
-    ModelInterface,
-)
-
 logger = logging.getLogger(__name__)
 
 
@@ -76,62 +72,6 @@ class PassThroughModel:
         return self.capabilities
 
 
-class NoOpExplainer:
-    """Minimal explainer that returns empty explanations."""
-
-    capabilities = {
-        "supported_models": ["all"],  # Works with any model
-        "explanation_type": "none",
-        "data_modality": "any",
-    }
-    version = "1.0.0"
-    priority = -100  # Lowest priority fallback
-
-    def __init__(self):
-        """Initialize NoOp explainer."""
-        logger.info("NoOpExplainer initialized")
-
-    def explain(self, model: ModelInterface, X: pd.DataFrame, y: np.ndarray | None = None) -> dict[str, Any]:
-        """Return minimal explanation structure.
-
-        Args:
-            model: Model to explain (ignored)
-            X: Input data (used for shape)
-            y: Target values (ignored)
-
-        Returns:
-            Minimal explanation dictionary
-
-        """
-        n_samples, n_features = X.shape
-        logger.debug(f"NoOpExplainer generating empty explanation for {n_samples} samples")
-
-        return {
-            "status": "no_explanation",
-            "reason": "NoOp explainer - no actual explanation generated",
-            "shap_values": np.zeros((n_samples, n_features)),
-            "feature_importance": np.zeros(n_features),
-            "base_value": 0.0,
-            "explainer_type": "noop",
-        }
-
-    def supports_model(self, model: ModelInterface) -> bool:
-        """Support all models.
-
-        Args:
-            model: Any model
-
-        Returns:
-            Always True
-
-        """
-        return True
-
-    def get_explanation_type(self) -> str:
-        """Return explanation type."""
-        return "noop"
-
-
 class NoOpMetric:
     """Minimal metric that returns placeholder values."""
 
@@ -186,8 +126,7 @@ def _register_noop_components():
         # Register PassThrough model
         ModelRegistry.register("passthrough", PassThroughModel)
 
-        # Register NoOp explainer
-        ExplainerRegistry.register("noop", NoOpExplainer)
+        # Note: NoOp explainer is registered by the explainer module
 
         # Register NoOp metric
         MetricRegistry.register("noop", NoOpMetric)

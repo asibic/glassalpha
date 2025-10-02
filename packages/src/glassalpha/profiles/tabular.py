@@ -6,10 +6,11 @@ of tabular machine learning models (XGBoost, LightGBM, LogisticRegression).
 
 from typing import Any
 
-from .base import BaseAuditProfile
+from .registry import ProfileRegistry
 
 
-class TabularComplianceProfile(BaseAuditProfile):
+@ProfileRegistry.register("tabular_compliance", priority=10)
+class TabularComplianceProfile:
     """Profile for tabular model compliance audits.
 
     This is the primary profile for Phase 1, focusing on tree-based models
@@ -64,8 +65,8 @@ class TabularComplianceProfile(BaseAuditProfile):
         "noop",  # Last resort for testing
     ]
 
-    @classmethod
-    def validate_config(cls, config: dict[str, Any]) -> bool:
+    @staticmethod
+    def validate_config(config: dict[str, Any]) -> bool:
         """Validate configuration for tabular compliance.
 
         Args:
@@ -78,8 +79,7 @@ class TabularComplianceProfile(BaseAuditProfile):
             ValueError: If configuration is invalid
 
         """
-        # Run parent validation
-        super().validate_config(config)
+        # Run validation (no parent class now)
 
         # Additional tabular-specific validation
         data_config = config.get("data", {})
@@ -87,7 +87,7 @@ class TabularComplianceProfile(BaseAuditProfile):
         # Check for protected attributes (needed for fairness)
         if "protected_attributes" not in data_config:
             raise ValueError(
-                f"Profile '{cls.name}' requires 'protected_attributes' in data configuration for fairness analysis"
+                f"Profile '{cls.name}' requires 'protected_attributes' in data configuration for fairness analysis",
             )
 
         # Check for schema (needed for determinism)
@@ -119,8 +119,75 @@ class TabularComplianceProfile(BaseAuditProfile):
 
         return True
 
-    @classmethod
-    def get_default_config(cls) -> dict[str, Any]:
+    @staticmethod
+    def apply_defaults(cfg: dict[str, Any]) -> dict[str, Any]:
+        """Apply tabular compliance defaults to configuration.
+
+        Args:
+            cfg: User configuration dictionary
+
+        Returns:
+            Configuration with defaults applied
+
+        """
+        out = dict(cfg)
+
+        # Explainers - prefer TreeSHAP for tree models, fallback to KernelSHAP
+        out.setdefault(
+            "explainers",
+            {
+                "strategy": "first_compatible",
+                "priority": ["treeshap", "kernelshap"],
+            },
+        )
+
+        # Metrics - performance and fairness
+        out.setdefault(
+            "metrics",
+            {
+                "performance": ["accuracy", "precision", "recall", "f1", "auc_roc"],
+                "fairness": ["demographic_parity", "equal_opportunity"],
+                "drift": ["psi", "kl_divergence"],
+            },
+        )
+
+        # Report template
+        out.setdefault(
+            "report",
+            {
+                "template": "standard_audit.html",
+                "output_format": "pdf",
+            },
+        )
+
+        # Reproducibility settings
+        out.setdefault(
+            "reproducibility",
+            {
+                "random_seed": 42,
+                "deterministic": True,
+                "capture_environment": True,
+            },
+        )
+
+        return out
+
+    @staticmethod
+    def required_extras(cfg: dict[str, Any]) -> list[str]:
+        """Get required extras for this profile.
+
+        Args:
+            cfg: Configuration dictionary
+
+        Returns:
+            List of required extra dependency groups
+
+        """
+        # Tabular compliance typically needs the tabular stack
+        return ["tabular"]
+
+    @staticmethod
+    def get_default_config() -> dict[str, Any]:
         """Get default configuration for this profile.
 
         Returns:

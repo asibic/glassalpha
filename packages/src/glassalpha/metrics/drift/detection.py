@@ -12,8 +12,8 @@ import pandas as pd
 from scipy import stats
 from scipy.spatial.distance import jensenshannon
 
-from ...core.registry import MetricRegistry
 from ..base import BaseMetric
+from ..registry import MetricRegistry
 
 logger = logging.getLogger(__name__)
 
@@ -611,7 +611,7 @@ class PredictionDriftMetric(BaseMetric):
             }
 
             logger.debug(
-                f"Prediction drift: score={drift_score:.3f}, level={overall_drift}, indicators={drift_indicators}"
+                f"Prediction drift: score={drift_score:.3f}, level={overall_drift}, indicators={drift_indicators}",
             )
 
             return results

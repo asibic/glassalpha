@@ -178,15 +178,13 @@ class PluginRegistry:
 
 # Global registries for different component types
 ModelRegistry = PluginRegistry("glassalpha.models")
-# ExplainerRegistry is now defined in the explain module to avoid circular imports
-MetricRegistry = PluginRegistry("glassalpha.metrics")
+# ExplainerRegistry and MetricRegistry are now defined in their respective modules
+# to avoid circular imports and support decorator registration
 ProfileRegistry = PluginRegistry("glassalpha.profiles")
 DataRegistry = PluginRegistry("glassalpha.data_handlers")
 
 # Discover plugins on import
 ModelRegistry.discover()
-# ExplainerRegistry.discover() is handled in the explain module
-MetricRegistry.discover()
 ProfileRegistry.discover()
 DataRegistry.discover()
 
@@ -195,13 +193,36 @@ def _get_explainer_registry():
     """Lazy getter for ExplainerRegistry to avoid circular imports."""
     try:
         from ..explain.registry import ExplainerRegistry
+
         return ExplainerRegistry
     except ImportError:
         # Fallback to basic registry if explain module not available
         return PluginRegistry("glassalpha.explainers")
 
 
-# For backward compatibility, provide ExplainerRegistry through lazy loading
+def _get_metric_registry():
+    """Lazy getter for MetricRegistry to avoid circular imports."""
+    try:
+        from ..metrics.registry import MetricRegistry
+
+        return MetricRegistry
+    except ImportError:
+        # Fallback to basic registry if metrics module not available
+        return PluginRegistry("glassalpha.metrics")
+
+
+def _get_profile_registry():
+    """Lazy getter for ProfileRegistry to avoid circular imports."""
+    try:
+        from ..profiles.registry import ProfileRegistry
+
+        return ProfileRegistry
+    except ImportError:
+        # Fallback to basic registry if profiles module not available
+        return PluginRegistry("glassalpha.profiles")
+
+
+# For backward compatibility, provide registries through lazy loading
 class ExplainerRegistryProxy:
     """Proxy for ExplainerRegistry that loads it lazily."""
 
@@ -211,13 +232,46 @@ class ExplainerRegistryProxy:
         real_registry = _get_explainer_registry()
         # Replace this proxy with the real registry in the module
         import sys
+
         current_module = sys.modules[__name__]
-        setattr(current_module, 'ExplainerRegistry', real_registry)
+        current_module.ExplainerRegistry = real_registry
         return getattr(real_registry, name)
 
 
-# Initially set ExplainerRegistry to the proxy
+class MetricRegistryProxy:
+    """Proxy for MetricRegistry that loads it lazily."""
+
+    @classmethod
+    def __getattr__(cls, name):
+        # Import the real MetricRegistry when first accessed
+        real_registry = _get_metric_registry()
+        # Replace this proxy with the real registry in the module
+        import sys
+
+        current_module = sys.modules[__name__]
+        current_module.MetricRegistry = real_registry
+        return getattr(real_registry, name)
+
+
+class ProfileRegistryProxy:
+    """Proxy for ProfileRegistry that loads it lazily."""
+
+    @classmethod
+    def __getattr__(cls, name):
+        # Import the real ProfileRegistry when first accessed
+        real_registry = _get_profile_registry()
+        # Replace this proxy with the real registry in the module
+        import sys
+
+        current_module = sys.modules[__name__]
+        current_module.ProfileRegistry = real_registry
+        return getattr(real_registry, name)
+
+
+# Initially set registries to proxies
 ExplainerRegistry = ExplainerRegistryProxy()
+MetricRegistry = MetricRegistryProxy()
+ProfileRegistry = ProfileRegistryProxy()
 
 
 def list_components(component_type: str = None, include_enterprise: bool = False) -> dict[str, list[str]]:
@@ -265,17 +319,26 @@ def select_explainer(model_type: str, config: dict[str, Any]) -> str | None:
         Selected explainer name or None
 
     """
-    # Get priority list from config
-    explainer_config = config.get("explainers", {})
-    priority_list = explainer_config.get("priority", [])
+    try:
+        return ExplainerRegistry.find_compatible(model_type, config)
+    except RuntimeError:
+        return None
 
-    if not priority_list:
-        # Fall back to all registered explainers
-        priority_list = ExplainerRegistry.names()
 
-    # Return first in priority list
-    for name in priority_list:
-        if ExplainerRegistry.has(name):
-            return name
+def instantiate_explainer(name: str, **kwargs: Any) -> Any:
+    """Instantiate an explainer by name.
 
-    return None
+    Args:
+        name: Explainer name to instantiate
+        **kwargs: Arguments to pass to explainer constructor
+
+    Returns:
+        Instantiated explainer object
+
+    Raises:
+        KeyError: If explainer name not found
+        ImportError: If explainer dependencies not available
+
+    """
+    cls = ExplainerRegistry.get(name)
+    return cls(**kwargs)

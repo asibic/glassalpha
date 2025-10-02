@@ -14,7 +14,6 @@ import numpy as np
 # SHAP import moved to function level for true lazy loading
 # This prevents SHAP from being imported at module level even if available
 from glassalpha.explain.base import ExplainerBase
-from glassalpha.explain.registry import ExplainerRegistry
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -58,7 +57,6 @@ _TREE_CLASS_NAMES = {
 }
 
 
-@ExplainerRegistry.register("treeshap", import_check="shap", extra_hint="shap", priority=100)
 class TreeSHAPExplainer(ExplainerBase):
     """TreeSHAP explainer for tree-based machine learning models."""
 

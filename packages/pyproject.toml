@@ -55,6 +55,7 @@ core = [
 xgboost = ["xgboost>=2.1"]
 lightgbm = ["lightgbm>=4.5"]
 shap = ["shap>=0.45"]
+fairness = ["fairlearn>=0.10"]
 
 # Bundles for convenience
 tabular = [
@@ -98,6 +99,12 @@ passthrough = "glassalpha.models.passthrough:PassThroughModel"
 [project.entry-points."glassalpha.explainers"]
 treeshap = "glassalpha.explain.shap.tree:TreeSHAPExplainer"
 kernelshap = "glassalpha.explain.shap.kernel:KernelSHAPExplainer"
+
+[project.entry-points."glassalpha.metrics"]
+noop_metric = "glassalpha.metrics.base:NoOpMetric"
+
+[project.entry-points."glassalpha.profiles"]
+tabular_compliance = "glassalpha.profiles.tabular:TabularComplianceProfile"
 
 [build-system]
 requires = ["setuptools>=70.0.0", "wheel>=0.43.0", "build>=1.2.1"]

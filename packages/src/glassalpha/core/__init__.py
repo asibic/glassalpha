@@ -19,7 +19,6 @@ from .interfaces import (
 
 # Import NoOp components to auto-register them
 from .noop_components import (
-    NoOpExplainer,
     NoOpMetric,
     PassThroughModel,
 )
@@ -29,6 +28,7 @@ from .registry import (
     MetricRegistry,
     ModelRegistry,
     ProfileRegistry,
+    instantiate_explainer,
     list_components,
     select_explainer,
 )
@@ -47,6 +47,7 @@ __all__ = [
     "ProfileRegistry",
     "DataRegistry",
     # Registry utilities
+    "instantiate_explainer",
     "list_components",
     "select_explainer",
     # Feature management
@@ -55,6 +56,5 @@ __all__ = [
     "FeatureNotAvailable",
     # NoOp implementations
     "PassThroughModel",
-    "NoOpExplainer",
     "NoOpMetric",
 ]

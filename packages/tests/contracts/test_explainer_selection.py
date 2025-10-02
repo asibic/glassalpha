@@ -39,8 +39,8 @@ class TestExplainerSelection:
         from glassalpha.explain.registry import ExplainerRegistry  # noqa: PLC0415
 
         # Test with string model type
-        explainer_class = ExplainerRegistry.find_compatible("xgboost")
-        assert explainer_class is not None  # noqa: S101
+        explainer_name = ExplainerRegistry.find_compatible("xgboost")
+        assert explainer_name == "treeshap"  # noqa: S101
 
         # Test with mock model object
         class XGBoostModel:
@@ -48,8 +48,8 @@ class TestExplainerSelection:
                 return {"type": "xgboost"}
 
         xgb_model = XGBoostModel()
-        explainer_class = ExplainerRegistry.find_compatible(xgb_model)
-        assert explainer_class is not None  # noqa: S101
+        explainer_name = ExplainerRegistry.find_compatible(xgb_model)
+        assert explainer_name == "treeshap"  # noqa: S101
 
     def test_sklearn_models_have_compatible_explainers(self) -> None:
         """Test that sklearn models find compatible explainers."""
@@ -61,8 +61,8 @@ class TestExplainerSelection:
         ]
 
         for model_type in sklearn_model_types:
-            explainer_class = ExplainerRegistry.find_compatible(model_type)
-            assert explainer_class is not None, f"No explainer found for {model_type}"  # noqa: S101
+            explainer_name = ExplainerRegistry.find_compatible(model_type)
+            assert explainer_name == "kernelshap", f"No explainer found for {model_type}"  # noqa: S101
 
     def test_kernel_shap_supports_tree_models(self) -> None:
         """Test that KernelSHAP is compatible with tree models.
@@ -120,7 +120,7 @@ class TestExplainerSelection:
         ]
 
         for model_type in test_cases:
-            # Multiple calls should return same explainer class
+            # Multiple calls should return same explainer name
             explainer1 = ExplainerRegistry.find_compatible(model_type)
             explainer2 = ExplainerRegistry.find_compatible(model_type)
             explainer3 = ExplainerRegistry.find_compatible(model_type)
@@ -142,12 +142,18 @@ class TestExplainerSelection:
         try:
             from glassalpha.explain.shap.tree import TreeSHAPExplainer  # noqa: PLC0415
 
-            assert xgb_explainer == TreeSHAPExplainer, "XGBoost should prefer TreeSHAP over KernelSHAP"  # noqa: S101
+            assert xgb_explainer == "treeshap", "XGBoost should prefer TreeSHAP over KernelSHAP"  # noqa: S101
         except ImportError:
             # If TreeSHAP not available, should fall back to KernelSHAP
-            from glassalpha.explain.shap.kernel import KernelSHAPExplainer  # noqa: PLC0415
 
-            assert xgb_explainer == KernelSHAPExplainer  # noqa: S101
+            assert xgb_explainer == "kernelshap"  # noqa: S101
+
+    def test_explainer_selection_returns_string_name(self) -> None:
+        """Test that explainer selection returns string names, not classes."""
+        from glassalpha.core import select_explainer
+
+        name = select_explainer("xgboost", {"explainers": {"priority": ["noop"]}})
+        assert isinstance(name, str) and name == "noop"
 
     def test_mock_model_without_get_model_info(self) -> None:
         """Test explainer compatibility with models lacking get_model_info."""

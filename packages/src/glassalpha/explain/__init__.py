@@ -1,6 +1,7 @@
 """Explainer modules for GlassAlpha."""
 
 from .base import ExplainerBase
+from .noop import NoOpExplainer
 from .registry import ExplainerRegistry
 
 # Conditionally import SHAP explainers if SHAP is available
@@ -14,4 +15,4 @@ except ImportError:
     # SHAP not available - explainers will be registered via entry points when needed
     pass
 
-__all__ = ["ExplainerBase", "ExplainerRegistry"]
+__all__ = ["ExplainerBase", "ExplainerRegistry", "NoOpExplainer"]

@@ -43,24 +43,30 @@ class TestDeterministicSelection:
         """Test that priority order is respected in selection."""
 
         # Register additional test explainers
-        @ExplainerRegistry.register("test_high_priority", priority=100)
+        # Register additional test explainers
+        @ExplainerRegistry.register("test_high_priority", priority=100, supports=["xgboost"])
         class TestHighPriority:
-            capabilities = {"supported_models": ["xgboost"]}
             version = "1.0.0"
             priority = 100
 
-        @ExplainerRegistry.register("test_low_priority", priority=1)
+        @ExplainerRegistry.register("test_low_priority", priority=1, supports=["xgboost"])
         class TestLowPriority:
-            capabilities = {"supported_models": ["xgboost"]}
             version = "1.0.0"
             priority = 1
 
-        # Config with specific priority
-        config = {"explainers": {"priority": ["test_low_priority", "test_high_priority", "noop"]}}
+        try:
+            # Config with specific priority
+            config = {"explainers": {"priority": ["test_low_priority", "test_high_priority", "noop"]}}
 
-        # Should select based on config priority, not internal priority
-        selected = select_explainer("xgboost", config)
-        assert selected == "test_low_priority", "Config priority should override internal priority"
+            # Should select based on config priority, not internal priority
+            selected = select_explainer("xgboost", config)
+            assert selected == "test_low_priority", "Config priority should override internal priority"
+        finally:
+            # Clean up test registrations
+            if "test_high_priority" in ExplainerRegistry._specs:
+                del ExplainerRegistry._specs["test_high_priority"]
+            if "test_low_priority" in ExplainerRegistry._specs:
+                del ExplainerRegistry._specs["test_low_priority"]
 
     def test_fallback_to_noop(self):
         """Test fallback to NoOp explainer when others unavailable."""
@@ -73,21 +79,25 @@ class TestDeterministicSelection:
         """Test that model compatibility affects selection."""
 
         # Register model-specific explainer
-        @ExplainerRegistry.register("test_specific", priority=50)
+        @ExplainerRegistry.register("test_specific", priority=50, supports=["specific_model"])
         class TestSpecific:
-            capabilities = {"supported_models": ["specific_model"]}
             version = "1.0.0"
             priority = 50
 
-        config = {"explainers": {"priority": ["test_specific", "noop"]}}
+        try:
+            config = {"explainers": {"priority": ["test_specific", "noop"]}}
 
-        # Should skip incompatible explainer
-        selected = select_explainer("different_model", config)
-        assert selected == "noop", "Should skip incompatible explainer"
+            # Should skip incompatible explainer
+            selected = select_explainer("different_model", config)
+            assert selected == "noop", "Should skip incompatible explainer"
 
-        # Should select compatible explainer
-        selected = select_explainer("specific_model", config)
-        assert selected == "test_specific", "Should select compatible explainer"
+            # Should select compatible explainer
+            selected = select_explainer("specific_model", config)
+            assert selected == "test_specific", "Should select compatible explainer"
+        finally:
+            # Clean up test registration
+            if "test_specific" in ExplainerRegistry._specs:
+                del ExplainerRegistry._specs["test_specific"]
 
     def test_empty_priority_list(self):
         """Test behavior with empty priority list."""

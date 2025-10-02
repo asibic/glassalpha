@@ -9,8 +9,9 @@ from typing import Any
 
 import typer
 
-from ..core.registry import ModelRegistry
+from ..core.registry import ModelRegistry, ProfileRegistry
 from ..explain.registry import ExplainerRegistry
+from ..metrics.registry import MetricRegistry
 
 logger = logging.getLogger(__name__)
 
@@ -134,17 +135,60 @@ def preflight_check_dependencies():
         )
         return False
 
-    # Check explainer availability
-    available_explainers = ExplainerRegistry.available_plugins()
+    # Check explainer compatibility
+    try:
+        # Try to find a compatible explainer for a basic model type
+        ExplainerRegistry.find_compatible("logistic_regression", config)
+        typer.secho("✓ Explainers available and compatible", fg=typer.colors.GREEN)
+    except RuntimeError as e:
+        # Get install hint for the first available explainer that needs installation
+        for name in ExplainerRegistry.names():
+            hint = ExplainerRegistry.get_install_hint(name)
+            if hint:
+                typer.secho(
+                    f"Note: {e!s}. {hint}",
+                    fg=typer.colors.BLUE,
+                    err=True,
+                )
+                break
+        else:
+            typer.secho(
+                f"Warning: {e!s}",
+                fg=typer.colors.YELLOW,
+                err=True,
+            )
 
-    # At least one explainer should be available for meaningful audits
-    explainer_available = any(available_explainers.values())
-    if not explainer_available:
+    # Check metric availability
+    available_metrics = MetricRegistry.available_plugins()
+
+    # At least one metric should be available for meaningful audits
+    metric_available = any(available_metrics.values())
+    if not metric_available:
         typer.secho(
-            "Warning: No explainers available. Install SHAP for explainability features.",
+            "Warning: No metrics available. Core functionality may be limited.",
             fg=typer.colors.YELLOW,
             err=True,
         )
+
+    # Check profile availability
+    profile_name = config.get("audit_profile")
+    if profile_name:
+        try:
+            profile_cls = ProfileRegistry.get(profile_name)
+            # Check if profile requires extras
+            if hasattr(profile_cls, "required_extras"):
+                required_extras = profile_cls.required_extras(config)
+                if required_extras:
+                    typer.secho(
+                        f"Profile '{profile_name}' requires extras: {', '.join(required_extras)}",
+                        fg=typer.colors.BLUE,
+                    )
+        except KeyError:
+            typer.secho(
+                f"Warning: Unknown audit profile '{profile_name}'. Using generic defaults.",
+                fg=typer.colors.YELLOW,
+                err=True,
+            )
 
     return True
 
