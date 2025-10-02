@@ -89,23 +89,36 @@ Audit reports include:
 
 ## Installation
 
+Clone and setup
+
 ```bash
-# Clone and setup
 git clone https://github.com/GlassAlpha/glassalpha
 cd glassalpha/packages
+```
 
-# Python 3.11 or 3.12 recommended
+Python 3.11 or 3.12 recommended
+
+```bash
 python3 --version   # should show 3.11.x or 3.12.x
+```
 
-# (Recommended) Create a virtual environment
+(Recommended) Create a virtual environment
+
+```bash
 python3 -m venv .venv
 source .venv/bin/activate
+```
 
-# Upgrade pip and install in editable mode
+Upgrade pip and install in editable mode
+
+```bash
 python -m pip install --upgrade pip
 pip install -e ".[dev]"
+```
 
-# Verify installation
+Verify installation
+
+```bash
 glassalpha --help
 ```
 
@@ -123,8 +136,9 @@ We welcome contributions to enhance GlassAlpha's capabilities:
 
 ### Example: configuration format
 
+Working configuration structure:
+
 ```yaml
-# Working configuration structure
 audit_profile: german_credit_default
 
 data:
