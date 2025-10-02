@@ -23,7 +23,7 @@ from .noop_components import (
     NoOpMetric,
     PassThroughModel,
 )
-from .registry import (
+from .plugin_registry import (
     DataRegistry,
     ExplainerRegistry,
     MetricRegistry,

@@ -83,18 +83,12 @@ data:
     - age_group
     - foreign_worker
 
-# XGBoost model optimized for credit risk
+# LogisticRegression model (baseline, always available)
 model:
-  type: xgboost
+  type: logistic_regression
   params:
-    objective: binary:logistic
-    eval_metric: logloss
-    n_estimators: 100
-    max_depth: 6
-    learning_rate: 0.1
-    min_child_weight: 1
-    subsample: 0.8
-    colsample_bytree: 0.8
+    random_state: 42
+    max_iter: 1000
 
 # Explanation configuration
 explainers:

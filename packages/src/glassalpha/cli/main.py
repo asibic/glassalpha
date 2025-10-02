@@ -25,6 +25,13 @@ app = typer.Typer(
     add_completion=False,
     no_args_is_help=True,
     pretty_exceptions_enable=True,
+    epilog="""Installation Options:
+  Base install (LogisticRegression only): pip install glassalpha
+  XGBoost support: pip install 'glassalpha[xgboost]'
+  LightGBM support: pip install 'glassalpha[lightgbm]'
+  All ML libraries: pip install 'glassalpha[tabular]'
+
+For more information, visit: https://glassalpha.com""",
 )
 
 # Command groups
@@ -156,6 +163,44 @@ def monitor_drift(
         typer.secho(str(e), fg=typer.colors.RED, err=True)
         # Intentional: Hide Python internals from CLI users
         raise typer.Exit(1) from None
+
+
+# Add models command to show available models and installation options
+@app.command()
+def models():
+    """Show available models and installation options."""
+    # Import models to trigger registration
+
+    from ..core.plugin_registry import ModelRegistry
+
+    typer.echo("Available Models:")
+    typer.echo("=" * 50)
+
+    available_models = ModelRegistry.available_plugins()
+
+    if not available_models:
+        typer.secho("No models available. Install with: pip install 'glassalpha[tabular]'", fg=typer.colors.YELLOW)
+        return
+
+    for model, available in available_models.items():
+        status = "✅" if available else "❌"
+        extra_info = ""
+
+        if model == "xgboost" and not available:
+            extra_info = " (install with: pip install 'glassalpha[xgboost]')"
+        elif model == "lightgbm" and not available:
+            extra_info = " (install with: pip install 'glassalpha[lightgbm]')"
+        elif model in ["logistic_regression", "sklearn_generic"] and available:
+            extra_info = " (included in base install)"
+
+        typer.echo(f"  {status} {model}{extra_info}")
+
+    typer.echo()
+    typer.echo("Installation Options:")
+    typer.echo("  Base install (LogisticRegression only): pip install glassalpha")
+    typer.echo("  XGBoost support: pip install 'glassalpha[xgboost]'")
+    typer.echo("  LightGBM support: pip install 'glassalpha[lightgbm]'")
+    typer.echo("  All ML libraries: pip install 'glassalpha[tabular]'")
 
 
 if __name__ == "__main__":  # pragma: no cover

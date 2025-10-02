@@ -68,17 +68,13 @@ data:
   pii_detection: enabled
   clinical_codes_validation: true
 
-# Model configuration for healthcare
+# Model configuration for healthcare (LogisticRegression baseline)
 model:
-  type: xgboost
+  type: logistic_regression
   params:
-    # Conservative parameters for healthcare
-    n_estimators: 100
-    max_depth: 4 # Limit complexity for interpretability
-    learning_rate: 0.05 # Slower learning
-    subsample: 0.8
-    colsample_bytree: 0.8
-    min_child_weight: 3 # Prevent overfitting
+    # Conservative parameters for healthcare interpretability
+    random_state: 42
+    max_iter: 1000
 
   # Healthcare-specific validation
   validation:

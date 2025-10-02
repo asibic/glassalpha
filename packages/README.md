@@ -6,7 +6,7 @@ This is a technical deep-dive for devs. If you just want to generate your first 
 
 GlassAlpha generates deterministic audit PDFs with complete lineage tracking. Same config, same data, same seed = byte-identical PDF every time. Built for regulated ML deployments where you need to prove your model isn't biased and explain every decision.
 
-Currently supports tabular ML (XGBoost, LightGBM, Logistic Regression). LLM and vision model support may be added later based on demand.
+Currently supports tabular ML with LogisticRegression baseline (always available) plus optional XGBoost and LightGBM support. LLM and vision model support may be added later based on demand.
 
 **[→ Project Homepage](../README.md)** | **[→ User Documentation](https://glassalpha.com)**
 
@@ -21,7 +21,8 @@ Currently supports tabular ML (XGBoost, LightGBM, Logistic Regression). LLM and 
 
 ### Current features
 
-- ✅ XGBoost, LightGBM, LogisticRegression support
+- ✅ LogisticRegression baseline (always available)
+- ✅ XGBoost, LightGBM support (optional, install with extras)
 - ✅ TreeSHAP explainability
 - ✅ Fairness metrics (demographic parity, equal opportunity)
 - ✅ Basic recourse (immutables, monotonicity)
@@ -70,13 +71,15 @@ git clone https://github.com/GlassAlpha/glassalpha
 cd glassalpha/packages
 ```
 
-Install base framework only (lightweight)
+Install base framework only (lightweight, includes LogisticRegression)
 
 ```bash
 pip install -e .
 
-# Or install with ML libraries for tabular models
-pip install -e ".[tabular]"
+# Or install with advanced ML libraries
+pip install -e ".[xgboost]"      # XGBoost + SHAP only
+pip install -e ".[lightgbm]"     # LightGBM only
+pip install -e ".[tabular]"      # All tabular ML libraries
 ```
 
 ### Development installation
@@ -90,7 +93,8 @@ source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
 # Upgrade pip and install in development mode with all extras
 python -m pip install --upgrade pip
-pip install -e ".[dev,tabular]"
+pip install -e ".[dev]"         # Development tools only
+pip install -e ".[tabular]"     # Add ML libraries if needed
 
 # Verify installation
 glassalpha --help

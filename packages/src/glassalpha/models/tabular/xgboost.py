@@ -12,16 +12,44 @@ from typing import Any, ClassVar
 
 import numpy as np
 import pandas as pd
-import xgboost as xgb
 
-from glassalpha.core.registry import ModelRegistry
+# Lazy import - xgboost is optional
+# import xgboost as xgb
+from glassalpha.core.plugin_registry import ModelRegistry
 
 from .base import BaseTabularWrapper
 
 logger = logging.getLogger(__name__)
 
 
-@ModelRegistry.register("xgboost", priority=100)
+def _import_xgboost():
+    """Lazy import XGBoost with proper error handling."""
+    try:
+        import xgboost as xgb
+
+        return xgb
+    except ImportError as e:
+        raise ImportError(
+            "XGBoost is required for this model but not installed. Install it with: pip install 'glassalpha[xgboost]'",
+        ) from e
+
+
+def register_xgboost():
+    """Register XGBoost model plugin."""
+    try:
+        _import_xgboost()  # Check if XGBoost is available
+        return XGBoostWrapper
+    except ImportError:
+        # Return a dummy class that raises an error when instantiated
+        class UnavailableXGBoost:
+            def __init__(self, *args, **kwargs):
+                raise ImportError(
+                    "XGBoost is not installed. Install it with: pip install 'glassalpha[xgboost]'",
+                )
+
+        return UnavailableXGBoost
+
+
 class XGBoostWrapper(BaseTabularWrapper):
     """Wrapper for XGBoost models implementing ModelInterface protocol.
 
@@ -43,7 +71,7 @@ class XGBoostWrapper(BaseTabularWrapper):
     BINARY_CLASSES = 2
     BINARY_THRESHOLD = 0.5
 
-    def __init__(self, model_path: str | Path | None = None, model: xgb.Booster | None = None) -> None:
+    def __init__(self, model_path: str | Path | None = None, model: Any | None = None) -> None:
         """Initialize XGBoost wrapper.
 
         Args:
@@ -52,7 +80,7 @@ class XGBoostWrapper(BaseTabularWrapper):
 
         """
         super().__init__()
-        self.model: xgb.Booster | None = model
+        self.model: Any | None = model
         self.feature_names: list | None = None
         self.feature_names_: list | None = None  # For sklearn compatibility
         self.n_classes_: int = 2  # Default to binary classification
@@ -81,6 +109,7 @@ class XGBoostWrapper(BaseTabularWrapper):
             xgb.DMatrix: Properly formatted DMatrix with aligned features
 
         """
+        xgb = _import_xgboost()
         if isinstance(X, xgb.DMatrix):
             return X
         X = pd.DataFrame(X)
@@ -226,6 +255,7 @@ class XGBoostWrapper(BaseTabularWrapper):
         num_boost_round = params.pop("n_estimators", 50)
 
         # Train the model using xgb.train (not sklearn wrapper)
+        xgb = _import_xgboost()
         self.model = xgb.train(params, dtrain, num_boost_round=num_boost_round)
         self._is_fitted = True
 
@@ -282,6 +312,7 @@ class XGBoostWrapper(BaseTabularWrapper):
                     tmp_file.write(saved_data["model"])
                     tmp_file_path = tmp_file.name
 
+                xgb = _import_xgboost()
                 try:
                     self.model = xgb.Booster()
                     self.model.load_model(tmp_file_path)
@@ -295,6 +326,7 @@ class XGBoostWrapper(BaseTabularWrapper):
                 return self
             # Fall back to XGBoost's native format
             try:
+                xgb = _import_xgboost()
                 self.model = xgb.Booster()
                 self.model.load_model(str(path))
                 meta = json.loads(Path(str(path) + ".meta.json").read_text(encoding="utf-8"))
@@ -303,6 +335,7 @@ class XGBoostWrapper(BaseTabularWrapper):
                 self._is_fitted = True
             except (FileNotFoundError, json.JSONDecodeError):
                 # Final fallback to direct XGBoost model loading without metadata
+                xgb = _import_xgboost()
                 self.model = xgb.Booster()
                 self.model.load_model(str(path))
                 self._is_fitted = True
@@ -314,6 +347,7 @@ class XGBoostWrapper(BaseTabularWrapper):
         try:
             super().load(path)
             # Ensure the loaded model is an XGBoost Booster
+            xgb = _import_xgboost()
             if not isinstance(self.model, xgb.Booster):
                 raise ValueError("Loaded model is not an XGBoost Booster")
             logger.info(f"Loaded XGBoost model using base wrapper format from {path}")
@@ -325,6 +359,7 @@ class XGBoostWrapper(BaseTabularWrapper):
         # Load using XGBoost's native format
         try:
             # Try to load with metadata
+            xgb = _import_xgboost()
             self.model = xgb.Booster()
             self.model.load_model(str(path))
             meta = json.loads(Path(str(path) + ".meta.json").read_text(encoding="utf-8"))
@@ -333,6 +368,7 @@ class XGBoostWrapper(BaseTabularWrapper):
             self._is_fitted = True
         except (FileNotFoundError, json.JSONDecodeError):
             # Fallback to direct XGBoost model loading without metadata
+            xgb = _import_xgboost()
             self.model = xgb.Booster()
             self.model.load_model(str(path))
             self._is_fitted = True
@@ -380,6 +416,7 @@ class XGBoostWrapper(BaseTabularWrapper):
         """
         self._ensure_fitted()
         dm = self._to_dmatrix(X)
+        xgb = _import_xgboost()
         raw = self.model.predict(dm)
         if raw.ndim == 1:  # binary
             return (raw >= 0.5).astype(int)
@@ -397,6 +434,7 @@ class XGBoostWrapper(BaseTabularWrapper):
         """
         self._ensure_fitted()
         dm = self._to_dmatrix(X)
+        xgb = _import_xgboost()
         raw = self.model.predict(dm)
         if raw.ndim == 1:  # binary -> (n,2)
             return np.column_stack([1.0 - raw, raw])
@@ -451,6 +489,7 @@ class XGBoostWrapper(BaseTabularWrapper):
         self._ensure_fitted()
 
         # Get importance scores
+        xgb = _import_xgboost()
         importance = self.model.get_score(importance_type=importance_type)
 
         logger.debug(f"Extracted {importance_type} feature importance for {len(importance)} features")
@@ -470,6 +509,7 @@ class XGBoostWrapper(BaseTabularWrapper):
         # For JSON files, save in the expected test format
         if path.suffix.lower() == ".json":
             # Save XGBoost model to file first
+            xgb = _import_xgboost()
             self.model.save_model(str(path))
 
             # Read the saved model as JSON string
@@ -497,3 +537,22 @@ class XGBoostWrapper(BaseTabularWrapper):
         """String representation of the wrapper."""
         status = "loaded" if self.model else "not loaded"
         return f"XGBoostWrapper(status={status}, n_classes={self.n_classes}, version={self.version})"
+
+
+# Manual registration after class definition
+def _register_xgboost():
+    """Register XGBoost model with the plugin registry."""
+    from glassalpha.core.plugin_registry import PluginSpec
+
+    spec = PluginSpec(
+        name="xgboost",
+        entry_point="glassalpha.models.tabular.xgboost:XGBoostWrapper",
+        import_check="xgboost",
+        extra_hint="xgboost",
+        description="XGBoost gradient boosting wrapper",
+    )
+    ModelRegistry.register(spec)
+
+
+# Register XGBoost when module is imported
+_register_xgboost()

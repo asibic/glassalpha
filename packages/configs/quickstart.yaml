@@ -29,9 +29,9 @@ model:
 explainers:
   strategy: first_compatible
   priority:
-    - treeshap
+    - permutation # Always available fallback explainer
   config:
-    treeshap:
+    permutation:
       max_samples: 100
 
 metrics:

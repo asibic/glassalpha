@@ -113,25 +113,43 @@ Specifies the ML model to audit and its parameters.
 ```yaml
 model:
   # Required: Model type (triggers appropriate wrapper)
-  type: xgboost
+  type: logistic_regression # Default baseline model (always available)
+
+  # Optional: Allow fallback to baseline model if requested model unavailable
+  allow_fallback: true # Default: true
 
   # Optional: Pre-trained model path
   path: models/my_model.pkl
 
   # Optional: Model parameters (for training)
   params:
-    n_estimators: 100
-    max_depth: 6
-    learning_rate: 0.1
-    objective: binary:logistic
+    random_state: 42
+    max_iter: 1000
 ```
 
 **Supported Model Types:**
 
-- `xgboost` - XGBoost gradient boosting
-- `lightgbm` - LightGBM gradient boosting
-- `logistic_regression` - Scikit-learn LogisticRegression
-- `sklearn_generic` - Generic scikit-learn models
+- `logistic_regression` - Scikit-learn LogisticRegression (baseline, always available)
+- `xgboost` - XGBoost gradient boosting (optional, requires `pip install 'glassalpha[xgboost]'`)
+- `lightgbm` - LightGBM gradient boosting (optional, requires `pip install 'glassalpha[lightgbm]'`)
+- `sklearn_generic` - Generic scikit-learn models (baseline, always available)
+
+**Optional Dependencies:**
+
+GlassAlpha uses optional dependencies to keep the core installation lightweight. If you request a model that's not installed, GlassAlpha will:
+
+1. **Automatically fall back** to `logistic_regression` if `allow_fallback: true` (default)
+2. **Show clear installation instructions** for the requested model
+3. **Fail gracefully** if `allow_fallback: false` and model unavailable
+
+Example fallback behavior:
+
+```bash
+glassalpha audit --config my_config.yaml --output report.pdf
+# If XGBoost requested but not installed:
+# "Model 'xgboost' not available. Falling back to 'logistic_regression'.
+#  To enable 'xgboost', run: pip install 'glassalpha[xgboost]'"
+```
 
 **Model Loading vs Training:**
 

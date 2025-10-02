@@ -23,7 +23,7 @@ except ImportError:
 # Skip all tests if sklearn not available
 pytestmark = pytest.mark.skipif(not SKLEARN_AVAILABLE, reason="sklearn not available - CI compatibility issues")
 
-from glassalpha.core.registry import MetricRegistry
+from glassalpha.core import MetricRegistry
 from glassalpha.metrics.fairness.bias_detection import (
     DemographicParityMetric,
     EqualizedOddsMetric,
@@ -37,7 +37,12 @@ def binary_classification_data():
     """Create binary classification test data with fairness considerations."""
     np.random.seed(42)
     X, y = make_classification(
-        n_samples=1000, n_features=10, n_classes=2, n_informative=5, n_redundant=2, random_state=42
+        n_samples=1000,
+        n_features=10,
+        n_classes=2,
+        n_informative=5,
+        n_redundant=2,
+        random_state=42,
     )
 
     # Create predictions with some bias
@@ -58,7 +63,7 @@ def sensitive_features_binary():
             "gender": np.random.choice(["M", "F"], 1000),
             "age_group": np.random.choice(["young", "old"], 1000),
             "ethnicity": np.random.choice(["A", "B"], 1000),
-        }
+        },
     )
 
 
@@ -71,7 +76,7 @@ def sensitive_features_multiclass():
             "gender": np.random.choice(["M", "F", "O"], 1000),
             "age_group": np.random.choice(["young", "middle", "old"], 1000),
             "ethnicity": np.random.choice(["A", "B", "C", "D"], 1000),
-        }
+        },
     )
 
 
@@ -440,7 +445,7 @@ class TestFairnessMetricsEdgeCases:
                 "gender": np.random.choice(["M", "F"], 1000),
                 "age": np.random.choice(["young", "old"], 1000),
                 "race": np.random.choice(["A", "B", "C"], 1000),
-            }
+            },
         )
 
         metric = DemographicParityMetric()
@@ -473,7 +478,7 @@ class TestFairnessMetricsWithDifferentDataTypes:
             {
                 "category": np.random.choice(["Category A", "Category B", "Category C"], 1000),
                 "region": np.random.choice(["North", "South", "East", "West"], 1000),
-            }
+            },
         )
 
         metric = DemographicParityMetric()
@@ -486,7 +491,7 @@ class TestFairnessMetricsWithDifferentDataTypes:
         y_true, y_pred = binary_classification_data
 
         sensitive_df = pd.DataFrame(
-            {"numeric_group": np.random.choice([1, 2, 3], 1000), "binary_numeric": np.random.choice([0, 1], 1000)}
+            {"numeric_group": np.random.choice([1, 2, 3], 1000), "binary_numeric": np.random.choice([0, 1], 1000)},
         )
 
         metric = DemographicParityMetric()
@@ -499,7 +504,10 @@ class TestFairnessMetricsWithDifferentDataTypes:
         y_true, y_pred = binary_classification_data
 
         sensitive_df = pd.DataFrame(
-            {"is_member": np.random.choice([True, False], 1000), "has_attribute": np.random.choice([True, False], 1000)}
+            {
+                "is_member": np.random.choice([True, False], 1000),
+                "has_attribute": np.random.choice([True, False], 1000),
+            },
         )
 
         metric = DemographicParityMetric()

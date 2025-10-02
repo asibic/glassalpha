@@ -26,9 +26,9 @@ Complete installation instructions for GlassAlpha on different platforms and env
 
 ## Installation methods
 
-### Standard installation (recommended)
+### Quick start (recommended for new users)
 
-GlassAlpha is currently distributed as source code via GitHub. PyPI distribution may be available in potential future releases.
+Install GlassAlpha with just the essential dependencies for immediate use:
 
 ```bash
 # Clone and setup
@@ -42,12 +42,32 @@ python3 --version   # should show 3.11.x or 3.12.x
 python3 -m venv .venv
 source .venv/bin/activate
 
-# Upgrade pip and install in editable mode
+# Install core package (includes LogisticRegression baseline)
 python -m pip install --upgrade pip
-pip install -e ".[dev]"
+pip install -e .
 
-# Verify installation
-glassalpha --help
+# Verify installation works immediately
+glassalpha audit --config configs/quickstart.yaml --output test.pdf --dry-run
+```
+
+This installation provides:
+
+- ✅ LogisticRegression model (always available)
+- ✅ Permutation explainer (always available)
+- ✅ Full audit pipeline functionality
+- ✅ PDF report generation
+
+### Advanced installation (for XGBoost/LightGBM)
+
+For advanced ML models and explainers:
+
+```bash
+# Install with tabular ML libraries
+pip install -e ".[tabular]"
+
+# Or install specific models
+pip install -e ".[xgboost]"      # XGBoost + SHAP
+pip install -e ".[lightgbm]"     # LightGBM only
 ```
 
 ### Development installation
@@ -55,23 +75,8 @@ glassalpha --help
 For contributors or those who need development tools:
 
 ```bash
-# Clone and setup
-git clone https://github.com/GlassAlpha/glassalpha
-cd glassalpha/packages
-
-# Python 3.11 or 3.12 recommended
-python3 --version   # should show 3.11.x or 3.12.x
-
-# (Recommended) Create a virtual environment
-python3 -m venv .venv
-source .venv/bin/activate
-
-# Upgrade pip and install in editable mode
-python -m pip install --upgrade pip
+# Install everything including dev tools
 pip install -e ".[dev]"
-
-# Verify installation
-glassalpha --help
 ```
 
 Development dependencies include:
@@ -79,6 +84,58 @@ Development dependencies include:
 - **Testing**: pytest, pytest-cov
 - **Code Quality**: ruff, mypy, black, pre-commit
 - **Documentation**: mkdocs, mkdocs-material
+
+## Model selection and fallbacks
+
+GlassAlpha uses a plugin system that allows you to choose which ML models to install based on your needs.
+
+### Available models
+
+| Model                  | Installation                         | Description                      | Use Case                            |
+| ---------------------- | ------------------------------------ | -------------------------------- | ----------------------------------- |
+| **LogisticRegression** | `pip install glassalpha`             | Baseline model, always available | Quick audits, regulatory compliance |
+| **XGBoost**            | `pip install 'glassalpha[xgboost]'`  | Advanced tree model              | Production ML systems               |
+| **LightGBM**           | `pip install 'glassalpha[lightgbm]'` | Microsoft's tree model           | Large datasets, performance         |
+
+### Automatic fallbacks
+
+If you request a model that isn't installed, GlassAlpha automatically falls back to LogisticRegression:
+
+```bash
+# This works even without XGBoost installed
+glassalpha audit --config configs/german_credit_simple.yaml --output audit.pdf
+# → Falls back to LogisticRegression with clear message
+```
+
+To disable fallbacks and require specific models:
+
+```yaml
+# In your config file
+model:
+  type: xgboost
+  allow_fallback: false # Strict mode - fails if XGBoost unavailable
+```
+
+### Installation recommendations
+
+**For new users:**
+
+```bash
+pip install glassalpha  # Start with LogisticRegression
+```
+
+**For production use:**
+
+```bash
+pip install 'glassalpha[tabular]'  # All models
+```
+
+**For specific needs:**
+
+```bash
+pip install 'glassalpha[xgboost]'   # XGBoost only
+pip install 'glassalpha[lightgbm]'  # LightGBM only
+```
 
 ## Platform-specific installation
 
@@ -320,27 +377,15 @@ Successful execution should:
 
 ## Dependencies
 
-### Core dependencies
+### Core dependencies (always installed)
 
-GlassAlpha automatically installs these required dependencies:
+GlassAlpha installs these essential dependencies automatically:
 
 **Data Processing:**
 
 - `pandas>=2.0.0` - Data manipulation and analysis
 - `numpy>=1.24.0` - Numerical computing
-- `scikit-learn>=1.3.0` - Machine learning utilities
-
-**Machine Learning:**
-
-- `xgboost>=1.7.0` - Gradient boosting framework
-- `lightgbm>=3.3.0` - Microsoft's gradient boosting
-- `shap>=0.42.0` - Model explanations
-
-**Visualization & Reporting:**
-
-- `matplotlib>=3.7.0` - Plotting and visualization
-- `seaborn>=0.12.0` - Statistical visualization
-- `weasyprint>=59.0` - PDF generation
+- `scikit-learn>=1.3.0` - Machine learning utilities (includes LogisticRegression)
 
 **Configuration & CLI:**
 
@@ -348,7 +393,19 @@ GlassAlpha automatically installs these required dependencies:
 - `typer>=0.9.0` - Command-line interface
 - `pyyaml>=6.0` - YAML configuration files
 
+**Visualization & Reporting:**
+
+- `matplotlib>=3.7.0` - Plotting and visualization
+- `seaborn>=0.12.0` - Statistical visualization
+- `weasyprint>=59.0` - PDF generation
+
 ### Optional dependencies
+
+**Machine Learning Models** (install with specific extras):
+
+- `xgboost>=1.7.0` - Gradient boosting framework (`[xgboost]` extra)
+- `lightgbm>=3.3.0` - Microsoft's gradient boosting (`[lightgbm]` extra)
+- `shap>=0.42.0` - Model explanations (`[xgboost]` and `[tabular]` extras)
 
 **Development Tools** (with `[dev]` install):
 

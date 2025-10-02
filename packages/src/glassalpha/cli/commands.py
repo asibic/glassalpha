@@ -311,6 +311,11 @@ def audit(  # pragma: no cover
         # Import here to avoid circular imports
         from ..config import load_config_from_file
         from ..core import list_components
+        from .preflight import preflight_check_dependencies, preflight_check_model
+
+        # Preflight checks - ensure dependencies are available
+        if not preflight_check_dependencies():
+            raise typer.Exit(1)
 
         typer.echo("GlassAlpha Audit Generation")
         typer.echo(f"{'=' * 40}")
@@ -321,6 +326,9 @@ def audit(  # pragma: no cover
             typer.echo(f"Applying overrides from: {override_config}")
 
         audit_config = load_config_from_file(config, override_path=override_config, profile_name=profile, strict=strict)
+
+        # Validate model availability and apply fallbacks
+        audit_config = preflight_check_model(audit_config)
 
         # Import all component modules to trigger registration - only when actually running audit
         _ensure_components_loaded()

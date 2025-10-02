@@ -34,7 +34,7 @@ except ImportError:
 # Skip all tests if sklearn not available
 pytestmark = pytest.mark.skipif(not SKLEARN_AVAILABLE, reason="sklearn not available - CI compatibility issues")
 
-from glassalpha.core.registry import ModelRegistry
+from glassalpha.core import ModelRegistry
 from glassalpha.models.tabular.sklearn import LogisticRegressionWrapper, SklearnGenericWrapper
 
 
@@ -43,7 +43,12 @@ def sample_classification_data():
     """Create sample classification dataset for testing."""
     np.random.seed(42)
     X, y = make_classification(
-        n_samples=200, n_features=10, n_classes=2, n_informative=8, n_redundant=1, random_state=42
+        n_samples=200,
+        n_features=10,
+        n_classes=2,
+        n_informative=8,
+        n_redundant=1,
+        random_state=42,
     )
 
     feature_names = [f"feature_{i}" for i in range(X.shape[1])]
@@ -79,7 +84,12 @@ def sample_multiclass_data():
     """Create sample multiclass classification dataset."""
     np.random.seed(42)
     X, y = make_classification(
-        n_samples=150, n_features=8, n_classes=3, n_informative=6, n_redundant=1, random_state=42
+        n_samples=150,
+        n_features=8,
+        n_classes=3,
+        n_informative=6,
+        n_redundant=1,
+        random_state=42,
     )
 
     feature_names = [f"feature_{i}" for i in range(X.shape[1])]

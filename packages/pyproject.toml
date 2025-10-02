@@ -46,11 +46,28 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+# Core dependencies - always available
+core = [
+    "scikit-learn>=1.5",     # Baseline model for audits that always work
+]
+
+# Heavy ML libraries - optional for advanced users
+xgboost = ["xgboost>=2.1"]
+lightgbm = ["lightgbm>=4.5"]
+shap = ["shap>=0.45"]
+
+# Bundles for convenience
 tabular = [
-    # Heavy ML libraries - optional for power users
-    "xgboost>=2.1",          # XGBoost with NumPy 2.x support
-    "lightgbm>=4.5",         # LightGBM with NumPy 2.x support
-    "shap>=0.45",            # SHAP explainability with NumPy 2.x support
+    "xgboost>=2.1",
+    "lightgbm>=4.5",
+    "shap>=0.45",
+]
+all = [
+    "xgboost>=2.1",
+    "lightgbm>=4.5",
+    "shap>=0.45",
+    "reportlab>=4.0",
+    "weasyprint>=62",
 ]
 dev = [
     "pytest>=8.0",
@@ -72,6 +89,11 @@ docs = [
 
 [project.scripts]
 glassalpha = "glassalpha.cli:app"
+
+[project.entry-points."glassalpha.models"]
+logistic_regression = "glassalpha.models.tabular.sklearn:register_logistic_regression"
+xgboost = "glassalpha.models.tabular.xgboost:register_xgboost"
+lightgbm = "glassalpha.models.tabular.lightgbm:register_lightgbm"
 
 [build-system]
 requires = ["setuptools>=70.0.0", "wheel>=0.43.0", "build>=1.2.1"]

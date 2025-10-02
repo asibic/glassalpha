@@ -256,6 +256,97 @@ data:
   # OR let GlassAlpha auto-detect (remove feature_columns)
 ```
 
+## Model and dependency issues
+
+### Model not available errors
+
+**Error messages:**
+
+```
+Model 'xgboost' not available. Falling back to 'logistic_regression'.
+To enable 'xgboost', run: pip install 'glassalpha[xgboost]'
+```
+
+Or:
+
+```
+Missing optional dependency 'xgboost' for plugin 'xgboost'.
+Try: pip install 'glassalpha[xgboost]'
+```
+
+**Cause:** GlassAlpha uses optional dependencies to keep the core installation lightweight. XGBoost and LightGBM are not installed by default.
+
+**Solutions:**
+
+1. **Use the baseline model** (recommended for getting started):
+
+   ```yaml
+   # In your config.yaml
+   model:
+     type: logistic_regression # Always available
+     params:
+       random_state: 42
+   ```
+
+2. **Install the specific model you need**:
+
+   ```bash
+   # For XGBoost
+   pip install 'glassalpha[xgboost]'
+
+   # For LightGBM
+   pip install 'glassalpha[lightgbm]'
+
+   # For all advanced models
+   pip install 'glassalpha[tabular]'
+   ```
+
+3. **Check what's currently available**:
+
+   ```bash
+   glassalpha models
+   ```
+
+4. **Disable fallbacks for strict requirements**:
+   ```yaml
+   model:
+     type: xgboost
+     allow_fallback: false # Fail if XGBoost not available
+   ```
+
+### Model loading failures
+
+**Error messages:**
+
+```
+ModuleNotFoundError: No module named 'xgboost'
+```
+
+**Cause:** The model library isn't installed in your environment.
+
+**Solutions:** Same as above - install the required optional dependency.
+
+### Fallback model not suitable
+
+**Error messages:**
+
+```
+Model 'xgboost' not available. Falling back to 'logistic_regression'.
+```
+
+**Cause:** The requested model isn't available, and fallback is enabled.
+
+**Solutions:**
+
+1. **Accept the fallback** (LogisticRegression is a solid baseline)
+2. **Install the requested model** using the provided installation command
+3. **Disable fallbacks** if you need the specific model:
+   ```yaml
+   model:
+     type: xgboost
+     allow_fallback: false
+   ```
+
 ## Data issues
 
 ### Dataset not found

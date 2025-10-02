@@ -7,12 +7,21 @@
 ```bash
 git clone https://github.com/GlassAlpha/glassalpha
 cd glassalpha/packages
+
+# Install base framework (includes LogisticRegression baseline)
 pip install -e .
+
+# Check what models are available
+glassalpha models
 ```
 
 ### Generate an audit PDF (uses included German Credit example)
 
 ```bash
+# Quick start with LogisticRegression (always available)
+glassalpha audit --config configs/quickstart.yaml --output audit.pdf
+
+# Or use the German Credit example (also uses LogisticRegression now)
 glassalpha audit --config configs/german_credit_simple.yaml --output audit.pdf
 ```
 
@@ -53,10 +62,20 @@ python3 -m venv .venv
 source .venv/bin/activate
 ```
 
-Upgrade pip and install in editable mode:
+Install GlassAlpha:
 
 ```bash
 python -m pip install --upgrade pip
+
+# Option 1: Base install (LogisticRegression only, recommended for getting started)
+pip install -e .
+
+# Option 2: With advanced ML libraries (if you need XGBoost/LightGBM)
+pip install -e ".[xgboost]"      # XGBoost + SHAP
+pip install -e ".[lightgbm]"     # LightGBM only
+pip install -e ".[tabular]"      # All advanced models
+
+# Option 3: Development install (includes testing tools)
 pip install -e ".[dev]"
 ```
 
@@ -64,6 +83,9 @@ Verify installation:
 
 ```bash
 glassalpha --help
+
+# Check what models are available
+glassalpha models
 ```
 
 You should see the CLI help message with available commands.

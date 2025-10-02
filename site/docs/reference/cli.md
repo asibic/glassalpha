@@ -34,6 +34,14 @@ glassalpha --quiet list
 
 ## Commands
 
+### models
+
+Show available models and installation options.
+
+```bash
+glassalpha models
+```
+
 ### audit
 
 Generate comprehensive audit reports from ML models.
@@ -240,6 +248,34 @@ Strict mode: valid
 
 Warning: No random seed specified - results may vary
 Warning: No protected attributes - fairness analysis limited
+```
+
+### models
+
+Show available models and installation options.
+
+```bash
+glassalpha models [OPTIONS]
+```
+
+#### Description
+
+Displays which ML models are currently available in your environment and provides installation instructions for missing optional models.
+
+#### Options
+
+None
+
+#### Examples
+
+```bash
+# Show available models
+glassalpha models
+
+# Output shows:
+# ✅ logistic_regression (included in base install)
+# ❌ xgboost (install with: pip install 'glassalpha[xgboost]')
+# ❌ lightgbm (install with: pip install 'glassalpha[lightgbm]')
 ```
 
 ### list

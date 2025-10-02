@@ -9,18 +9,47 @@ import logging
 from pathlib import Path
 from typing import Any, ClassVar
 
-import lightgbm as lgb
+# Lazy import - lightgbm is optional
+# import lightgbm as lgb
 import numpy as np
 import pandas as pd
 
-from glassalpha.core.registry import ModelRegistry
+from glassalpha.core.plugin_registry import ModelRegistry
 
 from .base import BaseTabularWrapper
 
 logger = logging.getLogger(__name__)
 
 
-@ModelRegistry.register("lightgbm", priority=90)
+def _import_lightgbm():
+    """Lazy import LightGBM with proper error handling."""
+    try:
+        import lightgbm as lgb
+
+        return lgb
+    except ImportError as e:
+        raise ImportError(
+            "LightGBM is required for this model but not installed. "
+            "Install it with: pip install 'glassalpha[lightgbm]'",
+        ) from e
+
+
+def register_lightgbm():
+    """Register LightGBM model plugin."""
+    try:
+        _import_lightgbm()  # Check if LightGBM is available
+        return LightGBMWrapper
+    except ImportError:
+        # Return a dummy class that raises an error when instantiated
+        class UnavailableLightGBM:
+            def __init__(self, *args, **kwargs):
+                raise ImportError(
+                    "LightGBM is not installed. Install it with: pip install 'glassalpha[lightgbm]'",
+                )
+
+        return UnavailableLightGBM
+
+
 class LightGBMWrapper(BaseTabularWrapper):
     """Wrapper for LightGBM models implementing ModelInterface protocol.
 
@@ -45,7 +74,7 @@ class LightGBMWrapper(BaseTabularWrapper):
     # Friend's spec: Mark as trainable (has fit method)
     trainable_in_pipeline = True
 
-    def __init__(self, model_path: str | Path | None = None, model: lgb.Booster | None = None) -> None:
+    def __init__(self, model_path: str | Path | None = None, model: Any | None = None) -> None:
         """Initialize LightGBM wrapper.
 
         Args:
@@ -54,7 +83,7 @@ class LightGBMWrapper(BaseTabularWrapper):
 
         """
         super().__init__()
-        self.model: lgb.Booster | None = model
+        self.model: Any | None = model
         self.feature_names: list | None = None
         self.feature_names_: list | None = None  # For sklearn compatibility
         self.n_classes: int = 2  # Default to binary classification
@@ -111,6 +140,7 @@ class LightGBMWrapper(BaseTabularWrapper):
             with tempfile.NamedTemporaryFile(delete=False, suffix=".txt", mode="w", encoding="utf-8") as tmp:
                 tmp.write(model_str)
                 tmp.flush()
+                lgb = _import_lightgbm()
                 self.model = lgb.Booster(model_file=tmp.name)
 
             # Clean up temp file
@@ -118,6 +148,7 @@ class LightGBMWrapper(BaseTabularWrapper):
 
         except (json.JSONDecodeError, KeyError):
             # Fall back to old text format
+            lgb = _import_lightgbm()
             self.model = lgb.Booster(model_file=str(path))
             self._extract_model_info()
 
@@ -150,6 +181,7 @@ class LightGBMWrapper(BaseTabularWrapper):
 
         # Prepare data for LightGBM
         X_processed = self._prepare_x(X)  # noqa: N806
+        lgb = _import_lightgbm()
         train_data = lgb.Dataset(X_processed, label=y)
 
         # Train model
@@ -354,3 +386,22 @@ class LightGBMWrapper(BaseTabularWrapper):
         """String representation of the wrapper."""
         status = "loaded" if self.model else "not loaded"
         return f"LightGBMWrapper(status={status}, n_classes={self.n_classes}, version={self.version})"
+
+
+# Manual registration after class definition
+def _register_lightgbm():
+    """Register LightGBM model with the plugin registry."""
+    from glassalpha.core.plugin_registry import PluginSpec
+
+    spec = PluginSpec(
+        name="lightgbm",
+        entry_point="glassalpha.models.tabular.lightgbm:LightGBMWrapper",
+        import_check="lightgbm",
+        extra_hint="lightgbm",
+        description="LightGBM gradient boosting wrapper",
+    )
+    ModelRegistry.register(spec)
+
+
+# Register LightGBM when module is imported
+_register_lightgbm()

@@ -20,7 +20,7 @@ except ImportError:
 # Skip all tests if sklearn not available
 pytestmark = pytest.mark.skipif(not SKLEARN_AVAILABLE, reason="sklearn not available - CI compatibility issues")
 
-from glassalpha.core.registry import MetricRegistry
+from glassalpha.core import MetricRegistry
 from glassalpha.metrics.performance.classification import (
     AccuracyMetric,
     AUCROCMetric,
@@ -37,7 +37,12 @@ def binary_classification_data():
     # Generate deterministic data
     np.random.seed(42)
     X, y = make_classification(
-        n_samples=100, n_features=10, n_classes=2, n_informative=5, n_redundant=2, random_state=42
+        n_samples=100,
+        n_features=10,
+        n_classes=2,
+        n_informative=5,
+        n_redundant=2,
+        random_state=42,
     )
 
     # Create predictions (with some errors)
@@ -59,7 +64,12 @@ def multiclass_classification_data():
     """Create multiclass classification test data."""
     np.random.seed(42)
     X, y = make_classification(
-        n_samples=100, n_features=10, n_classes=3, n_informative=6, n_redundant=2, random_state=42
+        n_samples=100,
+        n_features=10,
+        n_classes=3,
+        n_informative=6,
+        n_redundant=2,
+        random_state=42,
     )
 
     # Create predictions with some errors
@@ -85,7 +95,7 @@ def sensitive_features_data():
             "gender": np.random.choice(["M", "F"], 100),
             "age_group": np.random.choice(["young", "old"], 100),
             "ethnicity": np.random.choice(["A", "B", "C"], 100),
-        }
+        },
     )
 
 
@@ -517,7 +527,9 @@ class TestMetricsWithSensitiveFeatures:
     """Test metrics computation with sensitive features."""
 
     def test_metrics_ignore_sensitive_features_for_performance(
-        self, binary_classification_data, sensitive_features_data
+        self,
+        binary_classification_data,
+        sensitive_features_data,
     ):
         """Test that performance metrics ignore sensitive features."""
         y_true, y_pred, y_proba = binary_classification_data

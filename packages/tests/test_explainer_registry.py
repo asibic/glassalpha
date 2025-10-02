@@ -3,7 +3,7 @@
 Tests for explainer registration, discovery, and model compatibility checking.
 """
 
-from glassalpha.core.registry import ExplainerRegistry
+from glassalpha.core import ExplainerRegistry
 from glassalpha.explain.shap.kernel import KernelSHAPExplainer
 from glassalpha.explain.shap.tree import TreeSHAPExplainer
 
