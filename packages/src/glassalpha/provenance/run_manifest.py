@@ -342,6 +342,7 @@ def _get_dependency_provenance() -> dict[str, Any]:
     for package in core_packages:
         try:
             import importlib.metadata  # noqa: PLC0415
+
             dependencies[package] = importlib.metadata.version(package)
         except Exception:
             dependencies[package] = "unknown"
@@ -350,6 +351,7 @@ def _get_dependency_provenance() -> dict[str, Any]:
     installed_packages = {}
     try:
         import importlib.metadata
+
         installed_packages = {
             dist.metadata["Name"]: dist.version
             for dist in importlib.metadata.distributions()
@@ -435,7 +437,7 @@ def _sanitize_config_for_hash(config: dict[str, Any]) -> dict[str, Any]:
     clean_config = copy.deepcopy(config)
 
     # Remove or sanitize sensitive information
-    if "data" in clean_config and "path" in clean_config["data"]:
+    if "data" in clean_config and "path" in clean_config["data"] and clean_config["data"]["path"] is not None:
         # Keep only filename, not full path
         path = Path(clean_config["data"]["path"])
         clean_config["data"]["path"] = path.name

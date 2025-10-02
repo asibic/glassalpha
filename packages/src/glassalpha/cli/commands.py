@@ -312,18 +312,18 @@ def audit(  # pragma: no cover
         from ..config import load_config_from_file
         from ..core import list_components
 
-        # Import all component modules to trigger registration
-        _ensure_components_loaded()
-
         typer.echo("GlassAlpha Audit Generation")
         typer.echo(f"{'=' * 40}")
 
-        # Load configuration
+        # Load configuration - this doesn't need heavy ML libraries
         typer.echo(f"Loading configuration from: {config}")
         if override_config:
             typer.echo(f"Applying overrides from: {override_config}")
 
         audit_config = load_config_from_file(config, override_path=override_config, profile_name=profile, strict=strict)
+
+        # Import all component modules to trigger registration - only when actually running audit
+        _ensure_components_loaded()
 
         # Apply repro mode if requested
         if repro:
