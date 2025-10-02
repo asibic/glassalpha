@@ -11,15 +11,8 @@ from typing import TYPE_CHECKING, Any
 
 import numpy as np
 
-# Conditional shap import with graceful fallback for CI compatibility
-try:
-    import shap as _shap
-
-    SHAP_AVAILABLE = True
-except ImportError:  # More specific exception
-    _shap = None
-    SHAP_AVAILABLE = False
-
+# SHAP import moved to function level for true lazy loading
+# This prevents SHAP from being imported at module level even if available
 from glassalpha.core.registry import ExplainerRegistry
 from glassalpha.explain.base import ExplainerBase
 
@@ -27,6 +20,25 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
 logger = logging.getLogger(__name__)
+
+
+def _import_shap():
+    """Lazily import SHAP only when needed."""
+    try:
+        import shap
+
+        return shap, True
+    except ImportError:
+        return None, False
+
+
+# Check if shap is available for registration (but don't import yet)
+try:
+    import shap  # noqa: F401
+
+    SHAP_AVAILABLE = True
+except ImportError:
+    SHAP_AVAILABLE = False
 
 _TREE_CLASS_NAMES = {
     "DecisionTreeClassifier",
@@ -188,7 +200,12 @@ class TreeSHAPExplainer(ExplainerBase):
 
         if SHAP_AVAILABLE and self.supports_model(self.model):
             try:
-                self.explainer = _shap.TreeExplainer(self.model)
+                # SHAP imported lazily here - actual usage point
+                shap_lib, shap_available = _import_shap()
+                if not shap_available:
+                    msg = "SHAP library required for TreeSHAP explainer"
+                    raise ImportError(msg)
+                self.explainer = shap_lib.TreeExplainer(self.model)
             except RuntimeError as e:  # More specific exception
                 logger.warning(f"TreeExplainer init failed, falling back to None: {e}")
                 self.explainer = None

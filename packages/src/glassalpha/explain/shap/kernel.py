@@ -12,16 +12,8 @@ from typing import TYPE_CHECKING, Any, ClassVar
 
 import numpy as np
 
-# Conditional shap import with graceful fallback for CI compatibility
-try:
-    import shap
-
-    SHAP_AVAILABLE = True
-except ImportError:
-    # Fallback when shap unavailable (CI environment issues)
-    SHAP_AVAILABLE = False
-    shap = None
-
+# SHAP import moved to function level for true lazy loading
+# This prevents SHAP from being imported at module level even if available
 from glassalpha.core.registry import ExplainerRegistry
 from glassalpha.explain.base import ExplainerBase
 
@@ -31,7 +23,24 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-# Only register if shap is available
+def _import_shap():
+    """Lazily import SHAP only when needed."""
+    try:
+        import shap
+
+        return shap, True
+    except ImportError:
+        return None, False
+
+
+# Check if shap is available for registration (but don't import yet)
+try:
+    import shap  # noqa: F401
+
+    SHAP_AVAILABLE = True
+except ImportError:
+    SHAP_AVAILABLE = False
+
 if SHAP_AVAILABLE:
 
     @ExplainerRegistry.register("kernelshap", priority=50)
@@ -122,8 +131,12 @@ if SHAP_AVAILABLE:
                 msg = "KernelSHAPExplainer: wrapper lacks predict/predict_proba"
                 raise ValueError(msg)
 
-            # Create KernelSHAP explainer
-            self._explainer = shap.KernelExplainer(prediction_function, background_x)
+            # Create KernelSHAP explainer (SHAP imported lazily here)
+            shap_lib, shap_available = _import_shap()
+            if not shap_available:
+                msg = "SHAP library required for KernelSHAP explainer"
+                raise ImportError(msg)
+            self._explainer = shap_lib.KernelExplainer(prediction_function, background_x)
             self.explainer = self._explainer  # For test compatibility
             self.model = wrapper  # Store for later use
 

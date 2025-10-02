@@ -40,7 +40,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('packages/pyproject.toml') }}
+          key: ${{ runner.os }}-pip-${{ hashFiles('packages/pyproject.toml', 'packages/constraints.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-
 
@@ -71,8 +71,9 @@ jobs:
       - name: Upgrade toolchain and install dependencies
         run: |
           cd packages
-          echo "=== Install compatible dependency stack (numpy 2.0+ for xgboost compatibility) ==="
-          python -m pip install "numpy>=2.0,<2.2" "scipy>=1.10,<1.15" "scikit-learn>=1.3,<1.6" "matplotlib>=3.7,<3.9" "shap>=0.43,<0.46" "xgboost>=2.0,<2.1" "lightgbm>=4.0,<4.5" "pandas>=2.0,<2.3"
+          echo "=== Install compatible dependency stack using constraints.txt ==="
+          python -m pip install -c constraints.txt --upgrade pip setuptools wheel build
+          python -m pip install -c constraints.txt -e ".[tabular,dev]"
 
       - name: Build wheel and install (no editable)
         working-directory: packages
@@ -148,6 +149,54 @@ jobs:
           else:
               print("❌ Syntax errors found in Python files")
           sys.exit(0 if ok else 1)
+          PY
+
+      - name: NumPy/SHAP compatibility guard
+        working-directory: packages
+        run: |
+          echo "=== Verify NumPy/SHAP compatibility ==="
+          python - <<'PY'
+          import sys
+          import warnings
+
+          print("Checking NumPy and SHAP compatibility...")
+
+          # Check NumPy version
+          import numpy as np
+          numpy_version = tuple(map(int, np.__version__.split('.')[:2]))
+          print(f"NumPy version: {np.__version__}")
+
+          # Check SHAP version and compatibility
+          try:
+              import shap
+              shap_version = tuple(map(int, shap.__version__.split('.')[:2]))
+              print(f"SHAP version: {shap.__version__}")
+
+              # Compatibility checks for NumPy 2.x + SHAP
+              if numpy_version >= (2, 0) and shap_version < (0, 46):
+                  print("❌ ERROR: Incompatible NumPy 2.x + SHAP <0.46 detected")
+                  print("   NumPy 2.x requires SHAP >=0.46 for compatibility")
+                  print("   Current: NumPy {}, SHAP {}".format(np.__version__, shap.__version__))
+                  sys.exit(1)
+
+              # Test SHAP import doesn't fail with AttributeError
+              try:
+                  # This will fail if SHAP was compiled against NumPy 1.x but running on 2.x
+                  _ = shap.TreeExplainer  # Just accessing the class should trigger any import issues
+                  print("✅ SHAP import successful")
+              except AttributeError as e:
+                  if "obj2sctype" in str(e) or "_ARRAY_API" in str(e):
+                      print(f"❌ ERROR: SHAP/NumPy compatibility issue: {e}")
+                      print("   This typically means SHAP was compiled against NumPy 1.x but running on 2.x")
+                      sys.exit(1)
+                  else:
+                      raise  # Re-raise if it's a different AttributeError
+
+          except ImportError as e:
+              print(f"⚠️  WARNING: SHAP not available: {e}")
+              print("   This may cause explainer tests to be skipped")
+
+          print("✅ NumPy/SHAP compatibility check passed")
           PY
 
       - name: Run contract regression tests first
@@ -227,7 +276,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('packages/pyproject.toml') }}
+          key: ${{ runner.os }}-pip-${{ hashFiles('packages/pyproject.toml', 'packages/constraints.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-
 
