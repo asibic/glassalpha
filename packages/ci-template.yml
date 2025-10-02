@@ -93,6 +93,35 @@ jobs:
           PY
         working-directory: packages
 
+      # Fast import contract guard (prevent eager imports of heavy deps)
+      - name: Enforce lazy imports for heavy dependencies
+        run: |
+          python - <<'PY'
+          import ast, sys, pathlib
+          bad = []
+          root = pathlib.Path("src/glassalpha")
+
+          # Heavy dependencies that should only be imported lazily
+          heavy_deps = {"xgboost", "lightgbm", "shap"}
+
+          for p in root.rglob("*.py"):
+              tree = ast.parse(p.read_text(encoding="utf-8"))
+              for node in ast.walk(tree):
+                  if isinstance(node, ast.Import):
+                      for alias in node.names:
+                          if alias.name.split('.')[0] in heavy_deps:
+                              bad.append(f"{p}:{node.lineno} - Eager import of {alias.name}")
+                  elif isinstance(node, ast.ImportFrom):
+                      if node.module and node.module.split('.')[0] in heavy_deps:
+                          bad.append(f"{p}:{node.lineno} - Eager import of {node.module}")
+
+          if bad:
+              print("Eager imports of heavy dependencies detected (use lazy imports instead):")
+              print("\n".join(bad))
+              sys.exit(1)
+          PY
+        working-directory: packages
+
       # Run tests with coverage collection
       - name: Run tests with coverage
         run: |

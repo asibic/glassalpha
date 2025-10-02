@@ -15,8 +15,6 @@ import pandas as pd
 
 # Lazy import - xgboost is optional
 # import xgboost as xgb
-from glassalpha.core.plugin_registry import ModelRegistry
-
 from .base import BaseTabularWrapper
 
 logger = logging.getLogger(__name__)
@@ -542,16 +540,9 @@ class XGBoostWrapper(BaseTabularWrapper):
 # Manual registration after class definition
 def _register_xgboost():
     """Register XGBoost model with the plugin registry."""
-    from glassalpha.core.plugin_registry import PluginSpec
+    from glassalpha.core.registry import ModelRegistry
 
-    spec = PluginSpec(
-        name="xgboost",
-        entry_point="glassalpha.models.tabular.xgboost:XGBoostWrapper",
-        import_check="xgboost",
-        extra_hint="xgboost",
-        description="XGBoost gradient boosting wrapper",
-    )
-    ModelRegistry.register(spec)
+    ModelRegistry.register("xgboost", XGBoostWrapper)
 
 
 # Register XGBoost when module is imported

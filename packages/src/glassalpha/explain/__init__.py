@@ -3,13 +3,15 @@
 from .base import ExplainerBase
 from .registry import ExplainerRegistry
 
-# Import specific explainers
+# Conditionally import SHAP explainers if SHAP is available
+# This ensures they are registered without eager imports
 try:
-    from .shap.kernel import KernelSHAPExplainer
-    from .shap.tree import TreeSHAPExplainer
-except ImportError:
-    # Fallback when SHAP unavailable
-    TreeSHAPExplainer = None  # type: ignore
-    KernelSHAPExplainer = None  # type: ignore
+    import shap  # noqa: F401
 
-__all__ = ["ExplainerBase", "ExplainerRegistry", "KernelSHAPExplainer", "TreeSHAPExplainer"]
+    # Import the modules to trigger registration via decorators
+    from .shap import kernel, tree  # noqa: F401
+except ImportError:
+    # SHAP not available - explainers will be registered via entry points when needed
+    pass
+
+__all__ = ["ExplainerBase", "ExplainerRegistry"]

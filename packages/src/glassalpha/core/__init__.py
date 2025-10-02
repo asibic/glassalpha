@@ -23,9 +23,9 @@ from .noop_components import (
     NoOpMetric,
     PassThroughModel,
 )
-from .plugin_registry import (
+from .registry import (
     DataRegistry,
-    ExplainerRegistry,
+    ExplainerRegistry,  # This will be the lazy proxy
     MetricRegistry,
     ModelRegistry,
     ProfileRegistry,
@@ -44,11 +44,11 @@ __all__ = [
     "ModelRegistry",
     "ExplainerRegistry",
     "MetricRegistry",
-    "DataRegistry",
     "ProfileRegistry",
+    "DataRegistry",
     # Registry utilities
-    "select_explainer",
     "list_components",
+    "select_explainer",
     # Feature management
     "is_enterprise",
     "check_feature",

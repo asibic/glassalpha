@@ -9,7 +9,8 @@ from typing import Any
 
 import typer
 
-from ..core.plugin_registry import ModelRegistry
+from ..core.registry import ModelRegistry
+from ..explain.registry import ExplainerRegistry
 
 logger = logging.getLogger(__name__)
 
@@ -132,6 +133,18 @@ def preflight_check_dependencies():
             err=True,
         )
         return False
+
+    # Check explainer availability
+    available_explainers = ExplainerRegistry.available_plugins()
+
+    # At least one explainer should be available for meaningful audits
+    explainer_available = any(available_explainers.values())
+    if not explainer_available:
+        typer.secho(
+            "Warning: No explainers available. Install SHAP for explainability features.",
+            fg=typer.colors.YELLOW,
+            err=True,
+        )
 
     return True
 

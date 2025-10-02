@@ -14,8 +14,8 @@ import numpy as np
 
 # SHAP import moved to function level for true lazy loading
 # This prevents SHAP from being imported at module level even if available
-from glassalpha.core.registry import ExplainerRegistry
 from glassalpha.explain.base import ExplainerBase
+from glassalpha.explain.registry import ExplainerRegistry
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -43,7 +43,7 @@ except ImportError:
 
 if SHAP_AVAILABLE:
 
-    @ExplainerRegistry.register("kernelshap", priority=50)
+    @ExplainerRegistry.register("kernelshap", import_check="shap", extra_hint="shap", priority=50)
     class KernelSHAPExplainer(ExplainerBase):
         """Model-agnostic SHAP explainer using KernelSHAP algorithm."""
 

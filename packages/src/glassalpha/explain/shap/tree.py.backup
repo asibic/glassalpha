@@ -22,7 +22,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-def _import_shap():
+        def _import_shap():
     """Lazily import SHAP only when needed."""
     try:
         import shap
@@ -58,15 +58,24 @@ _TREE_CLASS_NAMES = {
 }
 
 
-@ExplainerRegistry.register("treeshap", import_check="shap", extra_hint="shap", priority=100)
-class TreeSHAPExplainer(ExplainerBase):
-    """TreeSHAP explainer for tree-based machine learning models."""
+# Check if shap is available for registration (but don't import yet)
+try:
+    import shap  # noqa: F401
 
-    name = "treeshap"
-    priority = 100
-    version = "1.0.0"
+    SHAP_AVAILABLE = True
+except ImportError:
+    SHAP_AVAILABLE = False
 
-    def __init__(self, *, check_additivity: bool = False, **kwargs: Any) -> None:  # noqa: ARG002,ANN401
+if SHAP_AVAILABLE:
+    @ExplainerRegistry.register("treeshap", import_check="shap", extra_hint="shap", priority=100)
+    class TreeSHAPExplainer(ExplainerBase):
+        """TreeSHAP explainer for tree-based machine learning models."""
+
+        name = "treeshap"
+        priority = 100
+        version = "1.0.0"
+
+        def __init__(self, *, check_additivity: bool = False, **kwargs: Any) -> None:  # noqa: ARG002,ANN401
         """Initialize TreeSHAP explainer.
 
         Args:
@@ -88,8 +97,8 @@ class TreeSHAPExplainer(ExplainerBase):
             "supported_models": ["xgboost", "lightgbm", "random_forest", "decision_tree"],
         }
 
-    # some tests look for either supports_model or is_compatible
-    def supports_model(self, model: Any) -> bool:  # noqa: ANN401
+        # some tests look for either supports_model or is_compatible
+        def supports_model(self, model: Any) -> bool:  # noqa: ANN401
         """Check if model is supported by TreeSHAP explainer.
 
         Args:
@@ -115,7 +124,7 @@ class TreeSHAPExplainer(ExplainerBase):
             return False
         return cls in _TREE_CLASS_NAMES or hasattr(model, "feature_importances_")
 
-    def is_compatible(self, model: Any) -> bool:  # noqa: ANN401
+        def is_compatible(self, model: Any) -> bool:  # noqa: ANN401
         """Check if model is compatible with TreeSHAP explainer.
 
         Args:
@@ -153,7 +162,7 @@ class TreeSHAPExplainer(ExplainerBase):
                 "gradient_boosting",
             }
 
-    def _extract_feature_names(self, x: Any) -> Sequence[str] | None:  # noqa: ANN401
+        def _extract_feature_names(self, x: Any) -> Sequence[str] | None:  # noqa: ANN401
         """Extract feature names from input data.
 
         Args:
@@ -169,12 +178,12 @@ class TreeSHAPExplainer(ExplainerBase):
             return list(x.columns)
         return None
 
-    def fit(
+        def fit(
         self,
         wrapper: Any,  # noqa: ANN401
         background_x: Any,  # noqa: ANN401
         feature_names: Sequence[str] | None = None,
-    ) -> TreeSHAPExplainer:
+        ) -> TreeSHAPExplainer:
         """Fit the TreeSHAP explainer with model and background data.
 
         Args:
@@ -213,12 +222,12 @@ class TreeSHAPExplainer(ExplainerBase):
             self.explainer = None
         return self
 
-    def explain(
+        def explain(
         self,
         x: Any,  # noqa: ANN401
         background_x: Any = None,  # noqa: ANN401
         **kwargs: Any,  # noqa: ANN401,ARG002
-    ) -> Any:  # noqa: ANN401
+        ) -> Any:  # noqa: ANN401
         """Generate TreeSHAP explanations for input data.
 
         Args:
@@ -264,7 +273,7 @@ class TreeSHAPExplainer(ExplainerBase):
         # Fallback: zero matrix with correct shape (tests usually check shape, not exact values)
         return np.zeros((n, p))
 
-    def explain_local(self, x: Any, **kwargs: Any) -> Any:  # noqa: ANN401
+        def explain_local(self, x: Any, **kwargs: Any) -> Any:  # noqa: ANN401
         """Generate local TreeSHAP explanations (alias for explain).
 
         Args:
@@ -277,7 +286,7 @@ class TreeSHAPExplainer(ExplainerBase):
         """
         return self.explain(x, **kwargs)
 
-    def _aggregate_to_global(self, shap_values: Any) -> dict[str, float]:  # noqa: ANN401
+        def _aggregate_to_global(self, shap_values: Any) -> dict[str, float]:  # noqa: ANN401
         """Mean |SHAP| per feature; returns dict with names."""
         arr = np.array(shap_values)
         multiclass_dims = 3
@@ -287,6 +296,6 @@ class TreeSHAPExplainer(ExplainerBase):
         names = self.feature_names or [f"f{i}" for i in range(len(agg))]
         return dict(zip(names, agg.tolist(), strict=False))
 
-    def __repr__(self) -> str:
+        def __repr__(self) -> str:
         """String representation of the TreeSHAP explainer."""
         return f"TreeSHAPExplainer(priority={self.priority}, version={self.version})"

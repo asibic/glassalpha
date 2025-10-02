@@ -14,8 +14,6 @@ from typing import Any, ClassVar
 import numpy as np
 import pandas as pd
 
-from glassalpha.core.plugin_registry import ModelRegistry
-
 from .base import BaseTabularWrapper
 
 logger = logging.getLogger(__name__)
@@ -391,16 +389,9 @@ class LightGBMWrapper(BaseTabularWrapper):
 # Manual registration after class definition
 def _register_lightgbm():
     """Register LightGBM model with the plugin registry."""
-    from glassalpha.core.plugin_registry import PluginSpec
+    from glassalpha.core.registry import ModelRegistry
 
-    spec = PluginSpec(
-        name="lightgbm",
-        entry_point="glassalpha.models.tabular.lightgbm:LightGBMWrapper",
-        import_check="lightgbm",
-        extra_hint="lightgbm",
-        description="LightGBM gradient boosting wrapper",
-    )
-    ModelRegistry.register(spec)
+    ModelRegistry.register("lightgbm", LightGBMWrapper)
 
 
 # Register LightGBM when module is imported

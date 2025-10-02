@@ -91,9 +91,13 @@ docs = [
 glassalpha = "glassalpha.cli:app"
 
 [project.entry-points."glassalpha.models"]
-logistic_regression = "glassalpha.models.tabular.sklearn:register_logistic_regression"
-xgboost = "glassalpha.models.tabular.xgboost:register_xgboost"
-lightgbm = "glassalpha.models.tabular.lightgbm:register_lightgbm"
+passthrough = "glassalpha.models.passthrough:PassThroughModel"
+# Note: The other models register themselves via manual registration functions
+# when their modules are imported, not via entry points
+
+[project.entry-points."glassalpha.explainers"]
+treeshap = "glassalpha.explain.shap.tree:TreeSHAPExplainer"
+kernelshap = "glassalpha.explain.shap.kernel:KernelSHAPExplainer"
 
 [build-system]
 requires = ["setuptools>=70.0.0", "wheel>=0.43.0", "build>=1.2.1"]

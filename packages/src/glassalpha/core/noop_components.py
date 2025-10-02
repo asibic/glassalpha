@@ -13,12 +13,10 @@ import pandas as pd
 from .interfaces import (
     ModelInterface,
 )
-from .registry import ExplainerRegistry, MetricRegistry, ModelRegistry
 
 logger = logging.getLogger(__name__)
 
 
-@ModelRegistry.register("passthrough", priority=-100)
 class PassThroughModel:
     """Minimal model that returns constant predictions."""
 
@@ -78,7 +76,6 @@ class PassThroughModel:
         return self.capabilities
 
 
-@ExplainerRegistry.register("noop", priority=-100)
 class NoOpExplainer:
     """Minimal explainer that returns empty explanations."""
 
@@ -135,7 +132,6 @@ class NoOpExplainer:
         return "noop"
 
 
-@MetricRegistry.register("noop", priority=-100)
 class NoOpMetric:
     """Minimal metric that returns placeholder values."""
 
@@ -147,7 +143,10 @@ class NoOpMetric:
         logger.info("NoOpMetric initialized")
 
     def compute(
-        self, y_true: np.ndarray, y_pred: np.ndarray, sensitive_features: pd.DataFrame | None = None
+        self,
+        y_true: np.ndarray,
+        y_pred: np.ndarray,
+        sensitive_features: pd.DataFrame | None = None,
     ) -> dict[str, float]:
         """Return placeholder metrics.
 
@@ -179,4 +178,23 @@ class NoOpMetric:
 
 
 # Auto-register on import
-logger.debug("NoOp components registered")
+def _register_noop_components():
+    """Register NoOp components with their respective registries."""
+    try:
+        from .registry import ExplainerRegistry, MetricRegistry, ModelRegistry
+
+        # Register PassThrough model
+        ModelRegistry.register("passthrough", PassThroughModel)
+
+        # Register NoOp explainer
+        ExplainerRegistry.register("noop", NoOpExplainer)
+
+        # Register NoOp metric
+        MetricRegistry.register("noop", NoOpMetric)
+
+        logger.debug("NoOp components registered")
+    except ImportError:
+        logger.debug("NoOp components registration skipped - registries not available")
+
+
+_register_noop_components()

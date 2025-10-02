@@ -698,28 +698,12 @@ def _register_models():
     """Register model classes with the plugin registry."""
     if SKLEARN_AVAILABLE:
         # Register LogisticRegression
-        from glassalpha.core.plugin_registry import PluginSpec
+        from glassalpha.core.registry import ModelRegistry
 
-        spec = PluginSpec(
-            name="logistic_regression",
-            entry_point="glassalpha.models.tabular.sklearn:LogisticRegressionWrapper",
-            import_check=None,  # Always available since sklearn is core
-            extra_hint=None,
-            description="Scikit-learn LogisticRegression wrapper",
-        )
-        from glassalpha.core.plugin_registry import ModelRegistry
-
-        ModelRegistry.register(spec)
+        ModelRegistry.register("logistic_regression", LogisticRegressionWrapper)
 
         # Register SklearnGeneric
-        spec = PluginSpec(
-            name="sklearn_generic",
-            entry_point="glassalpha.models.tabular.sklearn:SklearnGenericWrapper",
-            import_check=None,
-            extra_hint=None,
-            description="Generic scikit-learn estimator wrapper",
-        )
-        ModelRegistry.register(spec)
+        ModelRegistry.register("sklearn_generic", SklearnGenericWrapper)
 
 
 # Register models when module is imported
