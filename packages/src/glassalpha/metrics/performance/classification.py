@@ -140,7 +140,7 @@ class PrecisionMetric(BaseMetric):
             n_classes = len(np.unique(y_true))
             if n_classes == 2 and self.average == "binary":
                 # Binary classification
-                precision = precision_score(y_true, y_pred, average="binary")
+                precision = precision_score(y_true, y_pred, average="binary", zero_division=0)
 
             else:
                 # Multiclass classification
@@ -211,7 +211,7 @@ class RecallMetric(BaseMetric):
             n_classes = len(np.unique(y_true))
             if n_classes == 2 and self.average == "binary":
                 # Binary classification
-                recall = recall_score(y_true, y_pred, average="binary")
+                recall = recall_score(y_true, y_pred, average="binary", zero_division=0)
             else:
                 # Multiclass classification
                 recall = recall_score(y_true, y_pred, average=self.average, zero_division=0)

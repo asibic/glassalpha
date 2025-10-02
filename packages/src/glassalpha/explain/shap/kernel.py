@@ -54,6 +54,7 @@ class KernelSHAPExplainer(ExplainerBase):
         n_samples: int | None = None,
         background_size: int | None = None,
         link: str = "identity",
+        l1_reg: str = "num_features(10)",
         **kwargs: Any,  # noqa: ARG002,ANN401
     ) -> None:
         """Initialize KernelSHAP explainer.
@@ -62,6 +63,7 @@ class KernelSHAPExplainer(ExplainerBase):
             n_samples: Number of samples for KernelSHAP (backward compatibility)
             background_size: Background sample size
             link: Link function
+            l1_reg: L1 regularization for feature selection (default: "num_features(10)")
             **kwargs: Additional parameters
 
         Tests expect 'explainer' attribute to exist and be None before fit().
@@ -75,6 +77,7 @@ class KernelSHAPExplainer(ExplainerBase):
         self.n_samples = n_samples if n_samples is not None else 100  # Tests expect this attribute
         self.background_size = background_size if background_size is not None else 100  # Tests expect this
         self.link = link  # Tests expect this
+        self.l1_reg = l1_reg  # Explicit l1_reg to avoid deprecation warning
         self.base_value = None  # Tests expect this
         self.feature_names: Sequence[str] | None = None
         self.capabilities = {
@@ -188,8 +191,8 @@ class KernelSHAPExplainer(ExplainerBase):
         nsamples = kwargs.get("nsamples", self.max_samples or 100)
         logger.debug(f"Generating KernelSHAP explanations for {len(x)} samples with {nsamples} samples")
 
-        # Calculate SHAP values
-        shap_values = self._explainer.shap_values(x, nsamples=nsamples)
+        # Calculate SHAP values with explicit l1_reg to avoid deprecation warning
+        shap_values = self._explainer.shap_values(x, nsamples=nsamples, l1_reg=self.l1_reg)
         shap_values = np.array(shap_values)
 
         # Return structured dict for pipeline compatibility, raw values for tests

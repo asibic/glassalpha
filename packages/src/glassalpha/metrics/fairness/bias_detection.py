@@ -132,8 +132,11 @@ class DemographicParityMetric(BaseMetric):
 
             # Overall fairness score (average across attributes)
             fair_indicators = [v for k, v in results.items() if k.endswith("_is_fair")]
-            overall_fairness = np.mean(fair_indicators) if fair_indicators else 0.0
-            results["demographic_parity"] = float(overall_fairness)
+            if fair_indicators and len(fair_indicators) > 0:
+                overall_fairness = float(np.mean(fair_indicators))
+            else:
+                overall_fairness = 0.0
+            results["demographic_parity"] = overall_fairness
 
             results.update(
                 {
@@ -283,8 +286,11 @@ class EqualOpportunityMetric(BaseMetric):
 
             # Overall fairness score
             fair_indicators = [v for k, v in results.items() if k.endswith("_is_fair")]
-            overall_fairness = np.mean(fair_indicators) if fair_indicators else 0.0
-            results["equal_opportunity"] = float(overall_fairness)
+            if fair_indicators and len(fair_indicators) > 0:
+                overall_fairness = float(np.mean(fair_indicators))
+            else:
+                overall_fairness = 0.0
+            results["equal_opportunity"] = overall_fairness
 
             results.update(
                 {
@@ -421,8 +427,11 @@ class EqualizedOddsMetric(BaseMetric):
 
             # Overall fairness score
             fair_indicators = [v for k, v in results.items() if k.endswith("_is_fair")]
-            overall_fairness = np.mean(fair_indicators) if fair_indicators else 0.0
-            results["equalized_odds"] = float(overall_fairness)
+            if fair_indicators and len(fair_indicators) > 0:
+                overall_fairness = float(np.mean(fair_indicators))
+            else:
+                overall_fairness = 0.0
+            results["equalized_odds"] = overall_fairness
 
             results.update(
                 {
@@ -548,8 +557,11 @@ class PredictiveParityMetric(BaseMetric):
 
             # Overall fairness score
             fair_indicators = [v for k, v in results.items() if k.endswith("_is_fair")]
-            overall_fairness = np.mean(fair_indicators) if fair_indicators else 0.0
-            results["predictive_parity"] = float(overall_fairness)
+            if fair_indicators and len(fair_indicators) > 0:
+                overall_fairness = float(np.mean(fair_indicators))
+            else:
+                overall_fairness = 0.0
+            results["predictive_parity"] = overall_fairness
 
             results.update(
                 {

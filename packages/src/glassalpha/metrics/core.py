@@ -118,17 +118,17 @@ def compute_classification_metrics(
         # Precision, Recall, F1 with appropriate averaging
         if problem_type == "binary":
             try:
-                results["precision"] = float(precision_score(y_true, y_pred, pos_label=pos_label))
-                results["recall"] = float(recall_score(y_true, y_pred, pos_label=pos_label))
-                results["f1_score"] = float(f1_score(y_true, y_pred, pos_label=pos_label))
+                results["precision"] = float(precision_score(y_true, y_pred, pos_label=pos_label, zero_division=0))
+                results["recall"] = float(recall_score(y_true, y_pred, pos_label=pos_label, zero_division=0))
+                results["f1_score"] = float(f1_score(y_true, y_pred, pos_label=pos_label, zero_division=0))
             except Exception as e:
                 results["errors"].append(f"Binary metrics error: {e}")
         else:
             # Multiclass with averaging
             try:
-                results["precision"] = float(precision_score(y_true, y_pred, average=avg_strategy))
-                results["recall"] = float(recall_score(y_true, y_pred, average=avg_strategy))
-                results["f1_score"] = float(f1_score(y_true, y_pred, average=avg_strategy))
+                results["precision"] = float(precision_score(y_true, y_pred, average=avg_strategy, zero_division=0))
+                results["recall"] = float(recall_score(y_true, y_pred, average=avg_strategy, zero_division=0))
+                results["f1_score"] = float(f1_score(y_true, y_pred, average=avg_strategy, zero_division=0))
             except Exception as e:
                 results["errors"].append(f"Multiclass metrics error: {e}")
 

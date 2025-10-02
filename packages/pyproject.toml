@@ -203,6 +203,18 @@ markers = [
     "requires_xgboost: tests that need XGBoost runtime (can be skipped on incompatible environments)",
 ]
 testpaths = ["tests"]
+
+# Warning filters: treat our warnings as errors, filter third-party noise
+filterwarnings = [
+    "error::UserWarning:glassalpha.*",
+    "ignore:X does not have valid feature names.*:UserWarning:sklearn.base",
+    "ignore:X has feature names.*:UserWarning:sklearn.base",
+    "ignore:.*l1_reg.*deprecated.*:DeprecationWarning:shap.explainers._kernel",
+    "ignore:Mean of empty slice.*:RuntimeWarning:numpy",
+    "ignore:invalid value encountered in scalar divide.*:RuntimeWarning:numpy",
+    "ignore:Precision is ill-defined.*:UserWarning",
+    "ignore:PyPDF2 is deprecated.*:DeprecationWarning",
+]
 # pythonpath = ["src"]  # Removed: forces testing against installed package, not source tree
 
 [tool.coverage.run]
