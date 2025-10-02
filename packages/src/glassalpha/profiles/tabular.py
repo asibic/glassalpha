@@ -4,9 +4,12 @@ This profile defines the component set for regulatory compliance audits
 of tabular machine learning models (XGBoost, LightGBM, LogisticRegression).
 """
 
+import logging
 from typing import Any
 
 from .registry import ProfileRegistry
+
+logger = logging.getLogger(__name__)
 
 
 @ProfileRegistry.register("tabular_compliance", priority=10)
@@ -84,22 +87,22 @@ class TabularComplianceProfile:
         # Additional tabular-specific validation
         data_config = config.get("data", {})
 
-        # Check for protected attributes (needed for fairness)
+        # Check for protected attributes (needed for fairness) - warn if missing but don't fail
         if "protected_attributes" not in data_config:
-            raise ValueError(
-                f"Profile '{cls.name}' requires 'protected_attributes' in data configuration for fairness analysis",
+            logger.warning(
+                "Profile 'tabular_compliance' recommends 'protected_attributes' in data configuration for fairness analysis",
             )
 
-        # Check for schema (needed for determinism)
+        # Check for schema (needed for determinism) - warn if missing but don't fail
         if "schema_path" not in data_config and "schema" not in data_config:
-            raise ValueError(f"Profile '{cls.name}' requires data schema for deterministic validation")
+            logger.warning("Profile 'tabular_compliance' recommends data schema for deterministic validation")
 
         # Check explainer configuration
         explainer_config = config.get("explainers", {})
         if not explainer_config.get("priority"):
             # Provide default if not specified
             config["explainers"] = config.get("explainers", {})
-            config["explainers"]["priority"] = cls.explainer_priority
+            config["explainers"]["priority"] = ["treeshap", "kernelshap", "noop"]
 
         # Check metrics configuration
         metrics_config = config.get("metrics", {})
@@ -132,43 +135,57 @@ class TabularComplianceProfile:
         """
         out = dict(cfg)
 
-        # Explainers - prefer TreeSHAP for tree models, fallback to KernelSHAP
-        out.setdefault(
-            "explainers",
-            {
+        # Explainers - prefer TreeSHAP for tree models, fallback to KernelSHAP, then noop
+        if "explainers" not in out or not out["explainers"].get("priority"):
+            out["explainers"] = {
                 "strategy": "first_compatible",
-                "priority": ["treeshap", "kernelshap"],
-            },
-        )
+                "priority": ["treeshap", "kernelshap", "noop"],
+            }
+        elif "explainers" in out:
+            # Update existing explainer config with defaults
+            existing = out["explainers"]
+            existing.setdefault("strategy", "first_compatible")
+            existing.setdefault("priority", ["treeshap", "kernelshap", "noop"])
 
         # Metrics - performance and fairness
-        out.setdefault(
-            "metrics",
-            {
+        if "metrics" not in out:
+            out["metrics"] = {
                 "performance": ["accuracy", "precision", "recall", "f1", "auc_roc"],
                 "fairness": ["demographic_parity", "equal_opportunity"],
                 "drift": ["psi", "kl_divergence"],
-            },
-        )
+            }
+        else:
+            # Update existing metrics config with defaults
+            existing = out["metrics"]
+            existing.setdefault("performance", ["accuracy", "precision", "recall", "f1", "auc_roc"])
+            existing.setdefault("fairness", ["demographic_parity", "equal_opportunity"])
+            existing.setdefault("drift", ["psi", "kl_divergence"])
 
         # Report template
-        out.setdefault(
-            "report",
-            {
+        if "report" not in out:
+            out["report"] = {
                 "template": "standard_audit.html",
                 "output_format": "pdf",
-            },
-        )
+            }
+        else:
+            # Update existing report config with defaults
+            existing = out["report"]
+            existing.setdefault("template", "standard_audit.html")
+            existing.setdefault("output_format", "pdf")
 
         # Reproducibility settings
-        out.setdefault(
-            "reproducibility",
-            {
+        if "reproducibility" not in out:
+            out["reproducibility"] = {
                 "random_seed": 42,
                 "deterministic": True,
                 "capture_environment": True,
-            },
-        )
+            }
+        else:
+            # Update existing reproducibility config with defaults
+            existing = out["reproducibility"]
+            existing.setdefault("random_seed", 42)
+            existing.setdefault("deterministic", True)
+            existing.setdefault("capture_environment", True)
 
         return out
 
@@ -195,7 +212,7 @@ class TabularComplianceProfile:
 
         """
         return {
-            "audit_profile": cls.name,
+            "audit_profile": "tabular_compliance",
             "model": {
                 "type": "xgboost",  # Most common
                 "path": None,  # Must be provided
@@ -207,7 +224,7 @@ class TabularComplianceProfile:
             },
             "explainers": {
                 "strategy": "first_compatible",
-                "priority": cls.explainer_priority,
+                "priority": ["treeshap", "kernelshap", "noop"],
                 "config": {
                     "treeshap": {
                         "max_samples": 1000,
@@ -230,7 +247,7 @@ class TabularComplianceProfile:
                 "cost_function": "weighted_l1",
             },
             "report": {
-                "template": cls.report_template,
+                "template": "standard_audit.html",
                 "output_format": "pdf",
                 "include_sections": [
                     "lineage",

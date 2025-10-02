@@ -28,33 +28,83 @@ class PluginRegistry:
         self._entry_points: dict[str, str] = {}  # name -> "module:attr"
         self._objects: dict[str, Any] = {}  # name -> loaded object (class/callable)
         self._specs: dict[str, PluginSpec] = {}  # name -> PluginSpec
+        self._meta: dict[str, dict[str, Any]] = {}  # name -> metadata
         self._discovered = False
 
     # ----- public API expected by tests -----
 
-    def register(self, name_or_spec, obj=None, priority: int = 0, **metadata) -> None:
-        """Register a plugin.
+    def register(self, name_or_obj, obj=None, **meta):
+        """Register a plugin with decorator support.
 
         Args:
-            name_or_spec: Either a plugin name string or PluginSpec object
+            name_or_obj: Either plugin name (str) or object to register (class/callable)
             obj: The object to register (if name string provided)
-            priority: Priority for selection (if name string provided)
-            **metadata: Additional metadata
+            **meta: Metadata including import_check, extra_hint, priority, etc.
+
+        Returns:
+            For decorator usage: Returns the decorator function or registered object
+            For direct calls: Returns None
 
         """
-        if isinstance(name_or_spec, PluginSpec):
-            # Register a PluginSpec object
-            self._specs[name_or_spec.name] = name_or_spec
-            logger.debug(f"Registered plugin '{name_or_spec.name}' via PluginSpec")
-        elif obj is not None:
+        # Direct call: register("name", Class, import_check=..., extra_hint=...)
+        if obj is not None and callable(obj):
             # Register object directly
-            name = name_or_spec
+            name = name_or_obj
             self._objects[name] = obj
+            # Store metadata for priority, enterprise flag, and other info
+            info = self._meta.setdefault(name, {})
+            info.update(
+                {
+                    "priority": meta.get("priority", 0),
+                    "enterprise": bool(meta.get("enterprise", False)),
+                }
+            )
+            # Keep existing metadata fields if present
+            if "supports" in meta:
+                info["supports"] = meta["supports"]
             logger.debug(f"Registered plugin '{name}' with object")
-        else:
-            # Legacy method for backward compatibility
-            name = name_or_spec
-            logger.debug(f"Legacy register call for plugin '{name}' with priority {priority}")
+            return obj
+
+        # Decorator without args: @Registry.register
+        if callable(name_or_obj) and obj is None and not meta:
+            cls = name_or_obj
+            name = cls.__name__.lower()
+            self._objects[name] = cls
+            self._meta.setdefault(name, {}).update({"priority": 0})
+            logger.debug(f"Registered plugin '{name}' with class")
+            return cls
+
+        # Decorator with args: @Registry.register("name", import_check="pkg", ...)
+        name = name_or_obj
+
+        def deco(cls):
+            # Register both the spec and the object
+            if meta.get("import_check") or meta.get("extra_hint"):
+                spec = PluginSpec(
+                    name=name,
+                    entry_point="",
+                    import_check=meta.get("import_check"),
+                    extra_hint=meta.get("extra_hint"),
+                    description=meta.get("description"),
+                )
+                self._specs[name] = spec
+
+            self._objects[name] = cls
+            # Store metadata for priority, enterprise flag, and other info
+            info = self._meta.setdefault(name, {})
+            info.update(
+                {
+                    "priority": meta.get("priority", 0),
+                    "enterprise": bool(meta.get("enterprise", False)),
+                }
+            )
+            # Keep existing metadata fields if present
+            if "supports" in meta:
+                info["supports"] = meta["supports"]
+            logger.debug(f"Registered plugin '{name}' with class via decorator")
+            return cls
+
+        return deco
 
     def get(self, name: str) -> Any:
         """Return the registered object (class/callable). Lazy-load from entry points if needed."""
@@ -120,14 +170,46 @@ class PluginRegistry:
             return f"pip install 'glassalpha[{name}]'"
         return None
 
-    def get_all(self) -> dict[str, Any]:
-        """Get all registered plugin specs.
+    def get_all(self, include_enterprise: bool = True) -> list[str]:
+        """Get all plugin names, optionally filtering by enterprise status.
+
+        Args:
+            include_enterprise: If True, include enterprise-only plugins.
+                              If False, exclude enterprise-only plugins.
 
         Returns:
-            Dictionary mapping plugin names to specs
+            List of plugin names, filtered by enterprise status
 
         """
-        return {name: {"name": name} for name in self.names()}
+        self._ensure_discovered()
+        names = self.names()
+        if include_enterprise:
+            return names
+        return [n for n in names if not (self._meta.get(n, {}).get("enterprise", False))]
+
+    def get_metadata(self, name: str) -> dict[str, Any]:
+        """Get metadata for a plugin.
+
+        Args:
+            name: Plugin name
+
+        Returns:
+            Dictionary of metadata for the plugin
+
+        """
+        return self._meta.get(name, {})
+
+    def is_enterprise(self, name: str) -> bool:
+        """Check if a plugin is enterprise-only.
+
+        Args:
+            name: Plugin name
+
+        Returns:
+            True if plugin is enterprise-only, False otherwise
+
+        """
+        return self._meta.get(name, {}).get("enterprise", False)
 
     def load(self, name: str, *args, **kwargs) -> Any:
         """Load a plugin instance.
@@ -319,8 +401,10 @@ def select_explainer(model_type: str, config: dict[str, Any]) -> str | None:
         Selected explainer name or None
 
     """
+    # Get the current ExplainerRegistry instance (handles proxy loading)
+    current_registry = ExplainerRegistry
     try:
-        return ExplainerRegistry.find_compatible(model_type, config)
+        return current_registry.find_compatible(model_type, config)
     except RuntimeError:
         return None
 

@@ -108,6 +108,9 @@ class AuditReportRenderer:
         context = self._prepare_template_context(audit_results, embed_plots=embed_plots)
         context.update(template_vars)
 
+        # Add guard to prevent template rendering errors
+        self._validate_template_context(context)
+
         # Load and render template
         template = self.env.get_template(template_name)
         rendered_html = template.render(**context)
@@ -137,15 +140,84 @@ class AuditReportRenderer:
         """
         logger.debug("Preparing template context from audit results")
 
-        # Basic audit information
-        context = {
-            "report_title": "Machine Learning Model Audit Report",
-            "generation_date": datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S UTC"),
-            "version": "1.0.0",
-            "contact_email": "audit-support@example.com",
-            "success": audit_results.success,
-            "error_message": audit_results.error_message,
-        }
+        # Use centralized context building for consistency and safety
+        context = self._build_report_context(audit_results, embed_plots=embed_plots)
+
+        # Add metadata and descriptions
+        context.update(
+            {
+                "metric_descriptions": self._get_metric_descriptions(),
+                "plot_descriptions": self._get_plot_descriptions(),
+                "shap_descriptions": self._get_shap_descriptions(),
+            },
+        )
+
+        logger.debug(f"Template context prepared with {len(context)} variables")
+        return context
+
+    def _validate_template_context(self, context: dict[str, Any]) -> None:
+        """Validate template context to prevent rendering errors.
+
+        Args:
+            context: Template context dictionary
+
+        Raises:
+            TypeError: If context contains invalid types for template rendering
+
+        """
+        # Check that metrics is a dict if present
+        if "metrics" in context and not isinstance(context["metrics"], dict):
+            raise TypeError("Template context error: 'metrics' must be a dict")
+
+        # Check that model_performance is a dict if present
+        if "model_performance" in context and not isinstance(context["model_performance"], dict):
+            raise TypeError("Template context error: 'model_performance' must be a dict")
+
+        # Check that fairness_analysis is a dict if present
+        if "fairness_analysis" in context and not isinstance(context["fairness_analysis"], dict):
+            raise TypeError("Template context error: 'fairness_analysis' must be a dict")
+
+        # Check that drift_analysis is a dict if present
+        if "drift_analysis" in context and not isinstance(context["drift_analysis"], dict):
+            raise TypeError("Template context error: 'drift_analysis' must be a dict")
+
+        # Check that feature_importances is a dict with float values if present
+        if "feature_importances" in context:
+            if not isinstance(context["feature_importances"], dict):
+                raise TypeError("Template context error: 'feature_importances' must be a dict")
+
+            # Check that all values are numeric (int or float)
+            for feature, importance in context["feature_importances"].items():
+                if not isinstance(importance, (int, float)):
+                    raise TypeError(
+                        f"Template context error: 'feature_importances' values must be numeric, got {type(importance)} for feature '{feature}'",
+                    )
+
+    def _build_report_context(self, audit_results: AuditResults, *, embed_plots: bool = True) -> dict[str, Any]:
+        """Build normalized report context from audit results.
+
+        Args:
+            audit_results: Audit results to process
+            embed_plots: Whether to create and embed plots
+
+        Returns:
+            Normalized context dictionary safe for template rendering
+
+        """
+        from .context import normalize_audit_context  # noqa: PLC0415
+
+        # Get base context with proper normalization
+        context = normalize_audit_context(audit_results)
+
+        # Add basic audit information
+        context.update(
+            {
+                "report_title": "Machine Learning Model Audit Report",
+                "generation_date": datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S UTC"),
+                "version": "1.0.0",
+                "contact_email": "audit-support@example.com",
+            },
+        )
 
         # Extract audit metadata
         if audit_results.execution_info:
@@ -156,34 +228,6 @@ class AuditReportRenderer:
                     "strict_mode": audit_results.execution_info.get("strict_mode", False),
                 },
             )
-
-        # Contract compliance: Use centralized normalization
-        from .context import normalize_metrics  # noqa: PLC0415
-
-        model_performance = normalize_metrics(audit_results.model_performance)
-
-        # Normalize explanations to ensure all importances are scalar floats
-        normalized_explanations = self._normalize_explanations(audit_results.explanations)
-
-        # Add core audit results
-        context.update(
-            {
-                "model_performance": model_performance,
-                "fairness_analysis": audit_results.fairness_analysis,
-                "drift_analysis": audit_results.drift_analysis,
-                "explanations": normalized_explanations,
-                "data_summary": audit_results.data_summary,
-                "schema_info": audit_results.schema_info,
-                "model_info": audit_results.model_info,
-                "selected_components": audit_results.selected_components,
-                "manifest": audit_results.manifest,
-            },
-        )
-
-        # Add metric descriptions for better understanding
-        context["metric_descriptions"] = self._get_metric_descriptions()
-        context["plot_descriptions"] = self._get_plot_descriptions()
-        context["shap_descriptions"] = self._get_shap_descriptions()
 
         # Generate and embed plots if requested
         if embed_plots:
@@ -196,7 +240,6 @@ class AuditReportRenderer:
                 },
             )
 
-        logger.debug(f"Template context prepared with {len(context)} variables")
         return context
 
     def _generate_plots(self, audit_results: AuditResults) -> dict[str, dict[str, str]]:

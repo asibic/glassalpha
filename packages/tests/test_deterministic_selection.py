@@ -67,6 +67,14 @@ class TestDeterministicSelection:
                 del ExplainerRegistry._specs["test_high_priority"]
             if "test_low_priority" in ExplainerRegistry._specs:
                 del ExplainerRegistry._specs["test_low_priority"]
+            if "test_high_priority" in ExplainerRegistry._objects:
+                del ExplainerRegistry._objects["test_high_priority"]
+            if "test_low_priority" in ExplainerRegistry._objects:
+                del ExplainerRegistry._objects["test_low_priority"]
+            if "test_high_priority" in ExplainerRegistry._meta:
+                del ExplainerRegistry._meta["test_high_priority"]
+            if "test_low_priority" in ExplainerRegistry._meta:
+                del ExplainerRegistry._meta["test_low_priority"]
 
     def test_fallback_to_noop(self):
         """Test fallback to NoOp explainer when others unavailable."""
@@ -204,9 +212,9 @@ class TestMetricSelection:
         # Get all metrics multiple times
         results = []
         for _ in range(5):
-            metrics = MetricRegistry.get_all()
-            # Get keys in consistent order
-            metric_names = sorted(metrics.keys())
+            metric_names = MetricRegistry.get_all()
+            # Ensure consistent ordering
+            metric_names = sorted(metric_names)
             results.append(metric_names)
 
         # All results should be identical

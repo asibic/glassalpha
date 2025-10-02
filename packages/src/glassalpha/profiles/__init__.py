@@ -6,4 +6,7 @@ ensuring appropriate metrics, explainers, and report templates are used.
 
 from .registry import ProfileRegistry
 
-__all__ = ["ProfileRegistry"]
+# Import profile classes to trigger registration
+from .tabular import TabularComplianceProfile
+
+__all__ = ["ProfileRegistry", "TabularComplianceProfile"]

@@ -9,7 +9,7 @@ from typing import Any
 
 import typer
 
-from ..core.registry import ModelRegistry, ProfileRegistry
+from ..core.registry import ModelRegistry
 from ..explain.registry import ExplainerRegistry
 from ..metrics.registry import MetricRegistry
 
@@ -81,9 +81,10 @@ def _find_fallback_model(requested_model: str, available_models: dict[str, bool]
         Fallback model name or None if no suitable fallback
 
     """
-    # Priority order for fallbacks
+    # Priority order for fallbacks - always prefer more capable models
     fallback_priority = [
-        "logistic_regression",  # Always available baseline
+        "logistic_regression",  # Most capable baseline
+        "passthrough",  # Minimal but always works
     ]
 
     # Remove requested model from fallback list if it's in there
@@ -127,7 +128,11 @@ def preflight_check_dependencies():
     # Check model availability
     available_models = ModelRegistry.available_plugins()
 
-    if not available_models.get("logistic_regression", False):
+    # Check for basic models
+    has_logistic = available_models.get("logistic_regression", False)
+    has_passthrough = available_models.get("passthrough", False)
+
+    if not (has_logistic or has_passthrough):
         typer.secho(
             "Warning: No models available. Install scikit-learn for basic functionality.",
             fg=typer.colors.YELLOW,
@@ -135,10 +140,13 @@ def preflight_check_dependencies():
         )
         return False
 
-    # Check explainer compatibility
+    # Check explainer compatibility - use a model that's actually available
+    test_model = "logistic_regression" if has_logistic else "passthrough"
     try:
         # Try to find a compatible explainer for a basic model type
-        ExplainerRegistry.find_compatible("logistic_regression", config)
+        # Create a minimal config for the test
+        minimal_config = {"explainers": {"strategy": "first_compatible"}}
+        ExplainerRegistry.find_compatible(test_model, minimal_config)
         typer.secho("✓ Explainers available and compatible", fg=typer.colors.GREEN)
     except RuntimeError as e:
         # Get install hint for the first available explainer that needs installation
@@ -169,26 +177,6 @@ def preflight_check_dependencies():
             fg=typer.colors.YELLOW,
             err=True,
         )
-
-    # Check profile availability
-    profile_name = config.get("audit_profile")
-    if profile_name:
-        try:
-            profile_cls = ProfileRegistry.get(profile_name)
-            # Check if profile requires extras
-            if hasattr(profile_cls, "required_extras"):
-                required_extras = profile_cls.required_extras(config)
-                if required_extras:
-                    typer.secho(
-                        f"Profile '{profile_name}' requires extras: {', '.join(required_extras)}",
-                        fg=typer.colors.BLUE,
-                    )
-        except KeyError:
-            typer.secho(
-                f"Warning: Unknown audit profile '{profile_name}'. Using generic defaults.",
-                fg=typer.colors.YELLOW,
-                err=True,
-            )
 
     return True
 

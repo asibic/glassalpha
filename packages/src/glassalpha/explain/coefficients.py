@@ -1,0 +1,168 @@
+"""Coefficients-based explainer for linear models.
+
+This explainer uses the model's coefficients and intercept to generate
+feature attributions for linear and logistic regression models.
+"""
+
+from __future__ import annotations
+
+from typing import Any
+
+import numpy as np
+
+from glassalpha.explain.base import ExplainerBase
+
+
+class CoefficientsExplainer(ExplainerBase):
+    """Explainer that uses model coefficients for linear/logistic regression."""
+
+    name = "coefficients"
+    priority = 10  # Low priority, used as fallback
+    version = "1.0.0"
+
+    def __init__(self, **kwargs: Any) -> None:
+        """Initialize coefficients explainer."""
+        super().__init__()
+        self.model = None
+        self.feature_names = None
+        self.is_fitted = False
+
+    def fit(self, wrapper: Any, background_X: Any, feature_names: list[str] | None = None) -> CoefficientsExplainer:
+        """Fit the explainer.
+
+        Args:
+            wrapper: Model wrapper with predict/predict_proba methods
+            background_X: Background data for baseline (not used for coefficients)
+            feature_names: Optional feature names
+
+        Returns:
+            self: Returns self for chaining
+
+        """
+        self.model = wrapper
+        self.feature_names = feature_names
+        self.is_fitted = True
+        return self
+
+    def explain(self, X: np.ndarray, **kwargs: Any) -> dict[str, Any]:
+        """Generate explanations using model coefficients.
+
+        Args:
+            X: Input data to explain
+            **kwargs: Additional parameters
+
+        Returns:
+            Dictionary containing explanation results
+
+        """
+        if not self.is_fitted or self.model is None:
+            raise RuntimeError("Explainer must be fitted before explaining")
+
+        # Get model coefficients and intercept from the underlying model
+        underlying_model = getattr(self.model, "model", self.model)
+        coef_ = getattr(underlying_model, "coef_", None)
+        intercept_ = getattr(underlying_model, "intercept_", None)
+
+        if coef_ is None or (hasattr(coef_, "size") and coef_.size == 0):
+            raise RuntimeError("Model does not have coefficients (coef_)")
+
+        # Handle 2D coefficient arrays (e.g., from sklearn LogisticRegression)
+        if coef_.ndim > 1:
+            coef_ = coef_.flatten()
+
+        # Handle intercept (could be scalar or array)
+        if intercept_ is None:
+            intercept_ = 0.0
+        elif hasattr(intercept_, "__len__"):
+            intercept_ = intercept_[0]  # Take first element if array
+
+        # Ensure X is 2D
+        if X.ndim == 1:
+            X = X.reshape(1, -1)
+
+        n_samples, n_features = X.shape
+
+        # Compute feature attributions: coef * (X - mean_X)
+        # Use mean of background data if available, otherwise use 0
+        if hasattr(self.model, "_background_data"):
+            background_data = self.model._background_data
+        # Use mean of input data as baseline
+        elif hasattr(X, "mean"):  # pandas DataFrame
+            background_data = X.mean(axis=0).values.reshape(1, -1)
+        else:  # numpy array
+            background_data = np.mean(X, axis=0, keepdims=True)
+
+        # Compute attributions: coef * (X - baseline)
+        if hasattr(X, "values"):  # pandas DataFrame
+            X_values = X.values
+        else:  # numpy array
+            X_values = X
+        attributions = X_values - background_data
+        attributions = attributions * coef_
+
+        # Add intercept contribution (intercept * coef_0 equivalent)
+        intercept_attribution = np.full((n_samples, 1), intercept_)
+
+        # Combine attributions with intercept
+        attributions = np.column_stack([intercept_attribution, attributions])
+
+        # Set feature names
+        if self.feature_names is not None:
+            feature_names = ["intercept"] + list(self.feature_names)
+        else:
+            feature_names = ["intercept"] + [f"feature_{i}" for i in range(n_features)]
+
+        # For global importance, we want a single scalar per feature
+        # Take the mean absolute coefficient for each feature
+        global_importance = {}
+        for i, feature_name in enumerate(feature_names):
+            if i == 0:  # Skip intercept
+                continue
+            coef = coef_[i - 1]  # Skip intercept in coefficients
+            global_importance[feature_name] = float(abs(coef))  # Use absolute value for importance
+
+        # For coefficients, we can compute per-sample attributions
+        # Each sample's contribution is X[i] * coef_
+        per_sample_attributions = []
+        for i in range(n_samples):
+            sample_dict = {}
+            for j, feature_name in enumerate(feature_names):
+                if j == 0:  # Skip intercept
+                    continue
+                # Attribution for this feature = coefficient * feature_value
+                coef = coef_[j - 1]  # Skip intercept in coefficients
+                sample_dict[feature_name] = float(coef * X_values[i, j - 1])
+            per_sample_attributions.append(sample_dict)
+
+        return {
+            "local_explanations": attributions,
+            "global_importance": global_importance,
+            "feature_names": feature_names,
+            "status": "coefficients_explanation",
+        }
+
+    def explain_local(self, X: np.ndarray, **kwargs: Any) -> np.ndarray:
+        """Generate local explanations.
+
+        Args:
+            X: Input data to explain
+            **kwargs: Additional parameters
+
+        Returns:
+            Feature attributions for each sample
+
+        """
+        explanation = self.explain(X, **kwargs)
+        return explanation["shap_values"]
+
+    def supports_model(self, model: Any) -> bool:
+        """Check if model is supported.
+
+        Args:
+            model: Model to check
+
+        Returns:
+            True if model has coef_ attribute (linear/logistic regression)
+
+        """
+        return hasattr(model, "coef_")

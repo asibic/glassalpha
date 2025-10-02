@@ -52,8 +52,17 @@ class DecoratorFriendlyRegistry(PluginRegistry):
             # Register both the spec and the object
             self._specs[name_or_obj] = spec
             super().register(name_or_obj, obj)
-            # Store metadata for priority and other info
-            self._meta.setdefault(name_or_obj, {}).update(meta)
+            # Store metadata for priority, enterprise flag, and other info
+            info = self._meta.setdefault(name_or_obj, {})
+            info.update(
+                {
+                    "priority": meta.get("priority", 0),
+                    "enterprise": bool(meta.get("enterprise", False)),
+                }
+            )
+            # Keep existing metadata fields if present
+            if "supports" in meta:
+                info["supports"] = meta["supports"]
             return obj
 
         # Decorator without args: @Registry.register
@@ -97,3 +106,32 @@ class DecoratorFriendlyRegistry(PluginRegistry):
         """
         self._ensure_discovered()
         return sorted(self.names(), key=lambda n: self._meta.get(n, {}).get("priority", 0), reverse=reverse)
+
+    def get_all(self, include_enterprise: bool = True) -> list[str]:
+        """Get all plugin names, optionally filtering by enterprise status.
+
+        Args:
+            include_enterprise: If True, include enterprise-only plugins.
+                              If False, exclude enterprise-only plugins.
+
+        Returns:
+            List of plugin names, filtered by enterprise status
+
+        """
+        self._ensure_discovered()
+        names = getattr(self, "names_by_priority", self.names)()
+        if include_enterprise:
+            return names
+        return [n for n in names if not (self._meta.get(n, {}).get("enterprise", False))]
+
+    def is_enterprise(self, name: str) -> bool:
+        """Check if a plugin is enterprise-only.
+
+        Args:
+            name: Plugin name
+
+        Returns:
+            True if plugin is enterprise-only, False otherwise
+
+        """
+        return self._meta.get(name, {}).get("enterprise", False)

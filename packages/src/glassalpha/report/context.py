@@ -53,15 +53,22 @@ def normalize_audit_context(audit_results: Any) -> dict[str, Any]:  # noqa: ANN4
     """
     context = {}
 
-    # Safely extract and normalize metrics
+    # Safely extract and normalize metrics with explicit naming
     if hasattr(audit_results, "model_performance"):
         context["model_performance"] = normalize_metrics(audit_results.model_performance)
+        context["performance_metrics"] = context["model_performance"]  # Compatibility alias
+
+    if hasattr(audit_results, "fairness_analysis"):
+        context["fairness_analysis"] = audit_results.fairness_analysis
+        context["fairness_metrics"] = context["fairness_analysis"]  # Compatibility alias
+
+    if hasattr(audit_results, "drift_analysis"):
+        context["drift_analysis"] = audit_results.drift_analysis
+        context["drift_metrics"] = context["drift_analysis"]  # Compatibility alias
 
     # Safely extract other results with defaults
     context.update(
         {
-            "fairness_analysis": getattr(audit_results, "fairness_analysis", {}),
-            "drift_analysis": getattr(audit_results, "drift_analysis", {}),
             "explanations": getattr(audit_results, "explanations", {}),
             "data_summary": getattr(audit_results, "data_summary", {}),
             "schema_info": getattr(audit_results, "schema_info", {}),
@@ -72,6 +79,11 @@ def normalize_audit_context(audit_results: Any) -> dict[str, Any]:  # noqa: ANN4
             "error_message": getattr(audit_results, "error_message", None),
         },
     )
+
+    # Add feature_importances mapping for template compatibility
+    explanations = context.get("explanations", {})
+    if "global_importance" in explanations:
+        context["feature_importances"] = explanations["global_importance"]
 
     return context
 

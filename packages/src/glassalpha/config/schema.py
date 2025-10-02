@@ -125,7 +125,12 @@ class DataConfig(BaseModel):
         1. Schema-only configs are allowed (no dataset/path needed)
         2. For actual data use, dataset is required
         3. dataset="custom" requires path; other datasets forbid path
+        4. offline=True is incompatible with fetch="always"
         """
+        # Check offline + fetch="always" incompatibility first
+        if self.offline and self.fetch == "always":
+            raise ValueError("offline=True is incompatible with fetch='always'")
+
         # Schema-only configs are allowed (no dataset/path needed)
         if self.data_schema is not None and not (self.dataset or self.path):
             return self
@@ -365,6 +370,11 @@ class AuditConfig(BaseModel):
     audit_profile: str = Field(..., description="Audit profile name (e.g., tabular_compliance)")
     model: ModelConfig = Field(..., description="Model configuration")
     data: DataConfig = Field(..., description="Data configuration")
+
+    def __init__(self, **data):
+        # Profile defaults are applied in the loader, not here
+        # Schema should only validate, not mutate inputs
+        super().__init__(**data)
 
     # Optional fields with defaults
     explainers: ExplainerConfig = Field(default_factory=ExplainerConfig, description="Explainer configuration")

@@ -173,6 +173,10 @@ class TestEnterpriseComponentFiltering:
             version = "1.0.0"
             priority = 500
 
+            @classmethod
+            def is_compatible(cls, model_type=None, model=None):
+                return model_type in cls.capabilities.get("supported_models", [])
+
         config = {"explainers": {"priority": ["enterprise_premium", "noop"]}}
 
         # With license, should select enterprise component

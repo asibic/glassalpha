@@ -42,18 +42,60 @@ def _ascii(s: str) -> str:
     )
 
 
-def _ensure_components_loaded() -> None:
-    """Ensure all required components are imported and registered."""
-    try:
-        # Import model modules to trigger registration
-        from ..explain.shap import kernel, tree  # noqa: F401
-        from ..metrics.fairness import bias_detection  # noqa: F401
-        from ..metrics.performance import classification  # noqa: F401
-        from ..models.tabular import sklearn, xgboost  # noqa: F401
+def _bootstrap_components() -> None:
+    """Bootstrap basic built-in components for CLI operation.
 
-        logger.debug("All component modules imported and registered")
+    This imports the core built-ins that should always be available,
+    ensuring the registry has basic models and explainers before
+    preflight checks run.
+    """
+    logger.debug("Bootstrapping basic built-in components")
+
+    # Import basic models that should always be available
+    try:
+        from ..models import passthrough  # noqa: F401 - registers PassThroughModel
+
+        logger.debug("PassThroughModel imported")
     except ImportError as e:
-        logger.warning(f"Some components could not be imported: {e}")
+        logger.error(f"Failed to import PassThroughModel: {e}")
+        raise typer.Exit(2) from e
+
+    # Import sklearn models if available (they're optional)
+    try:
+        from ..models.tabular import sklearn  # noqa: F401 - registers LogisticRegression, etc.
+
+        logger.debug("sklearn models imported")
+    except ImportError as e:
+        logger.warning(f"sklearn models not available: {e}. Will use passthrough model only.")
+
+    # Import basic explainers
+    try:
+        from ..explain import (
+            coefficients,  # noqa: F401 - registers CoefficientsExplainer
+            noop,  # noqa: F401 - registers NoOpExplainer
+        )
+
+        logger.debug("Basic explainers imported")
+    except ImportError as e:
+        logger.warning(f"Failed to import basic explainers: {e}")
+
+    # Import basic metrics
+    try:
+        from ..metrics.performance import classification  # noqa: F401 - registers accuracy, etc.
+
+        logger.debug("Basic metrics imported")
+    except ImportError as e:
+        logger.warning(f"Failed to import basic metrics: {e}")
+
+    # Call discover() to ensure entry points are also registered
+    from ..core.registry import ExplainerRegistry, MetricRegistry, ModelRegistry, ProfileRegistry
+
+    ModelRegistry.discover()
+    ExplainerRegistry.discover()
+    MetricRegistry.discover()
+    ProfileRegistry.discover()
+
+    logger.debug("Component bootstrap completed")
 
 
 def _run_audit_pipeline(config, output_path: Path) -> None:
@@ -313,12 +355,15 @@ def audit(  # pragma: no cover
         from ..core import list_components
         from .preflight import preflight_check_dependencies, preflight_check_model
 
-        # Preflight checks - ensure dependencies are available
-        if not preflight_check_dependencies():
-            raise typer.Exit(1)
+        # Bootstrap basic components before any preflight checks
+        _bootstrap_components()
 
         typer.echo("GlassAlpha Audit Generation")
         typer.echo(f"{'=' * 40}")
+
+        # Preflight checks - ensure dependencies are available
+        if not preflight_check_dependencies():
+            raise typer.Exit(1)
 
         # Load configuration - this doesn't need heavy ML libraries
         typer.echo(f"Loading configuration from: {config}")
@@ -329,9 +374,6 @@ def audit(  # pragma: no cover
 
         # Validate model availability and apply fallbacks
         audit_config = preflight_check_model(audit_config)
-
-        # Import all component modules to trigger registration - only when actually running audit
-        _ensure_components_loaded()
 
         # Apply repro mode if requested
         if repro:

@@ -423,6 +423,7 @@ if SKLEARN_AVAILABLE:
                 "status": status,
                 "n_features": n_features,
                 "n_classes": self.n_classes,  # Always include n_classes (tests expect this key)
+                "model_type": self.model_type,  # Include model_type for explainer compatibility
             }
 
             # Friend's spec: Don't call get_params() when model is None to avoid crashes

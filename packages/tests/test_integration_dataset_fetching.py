@@ -151,10 +151,10 @@ class TestDatasetFetchingIntegration:
 
         # Should raise clear error about offline mode
         with pytest.raises(FileNotFoundError) as exc_info:
-            pipeline._ensure_dataset_availability(Path("/tmp/test.csv"))
+            pipeline._resolve_dataset_path()
 
         error_msg = str(exc_info.value)
-        assert "offline is true" in error_msg
+        assert "Offline mode" in error_msg
 
     def test_concurrent_access_safety(self):
         """Test that concurrent access to dataset fetching is safe."""

@@ -62,7 +62,8 @@ class TestExplainerSelection:
 
         for model_type in sklearn_model_types:
             explainer_name = ExplainerRegistry.find_compatible(model_type)
-            assert explainer_name == "kernelshap", f"No explainer found for {model_type}"  # noqa: S101
+            # Should get either coefficients or kernelshap for sklearn models
+            assert explainer_name in ["coefficients", "kernelshap"], f"No compatible explainer found for {model_type}"  # noqa: S101
 
     def test_kernel_shap_supports_tree_models(self) -> None:
         """Test that KernelSHAP is compatible with tree models.

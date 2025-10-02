@@ -210,9 +210,8 @@ class AuditPipeline:
         """
         logger.info("Loading and validating dataset")
 
-        # Resolve and ensure dataset availability
-        data_path = self._resolve_requested_path()
-        data_path = self._ensure_dataset_availability(data_path)
+        # Resolve dataset path with offline and fetch policy enforcement
+        data_path = self._resolve_dataset_path()
 
         # Load schema if specified
         schema = None
@@ -434,48 +433,14 @@ class AuditPipeline:
         # Import the explainer registry to ensure it's available
         from glassalpha.explain.registry import ExplainerRegistry  # noqa: PLC0415
 
-        # First try automatic compatibility detection
-        explainer_class = ExplainerRegistry.find_compatible(self.model)
-        selected_name = None
+        # Use config for explainer selection
+        explainer_name = ExplainerRegistry.find_compatible(self.model, self.config.model_dump())
 
-        if explainer_class:
-            # Found compatible explainer via automatic detection
-            if explainer_class.__name__ == "TreeSHAPExplainer":
-                selected_name = "treeshap"
-            elif explainer_class.__name__ == "KernelSHAPExplainer":
-                selected_name = "kernelshap"
-            else:
-                selected_name = "auto_detected"
+        # Get the explainer class
+        explainer_class = ExplainerRegistry.get(explainer_name)
+        selected_name = explainer_name
 
-            logger.info(f"Auto-detected compatible explainer: {selected_name}")
-        else:
-            # No automatic compatibility found, try explicit priority order
-            logger.debug("No automatic compatibility found, trying priority order")
-
-            # Get explainer priorities from config
-            explainer_priorities = []
-            if hasattr(self.config, "explainers") and hasattr(self.config.explainers, "priority"):
-                explainer_priorities = self.config.explainers.priority
-            else:
-                # Use default priority order (but exclude noop - it should raise if nothing found)
-                explainer_priorities = ["treeshap", "kernelshap"]
-
-            # Try each explainer in priority order
-            for explainer_name in explainer_priorities:
-                try:
-                    candidate_class = ExplainerRegistry.get(explainer_name)
-                    if candidate_class:
-                        # Check if this explainer is compatible with the model
-                        instance = candidate_class()
-                        if hasattr(instance, "is_compatible") and instance.is_compatible(self.model):
-                            explainer_class = candidate_class
-                            selected_name = explainer_name
-                            logger.debug(f"Found compatible explainer: {explainer_name}")
-                            break
-                        logger.debug(f"Explainer {explainer_name} not compatible with model")
-                except KeyError:
-                    logger.debug(f"Explainer {explainer_name} not available in registry")
-                    continue
+        logger.info(f"Selected explainer: {selected_name}")
 
         # If no explainer found, raise error (required by tests)
         if not explainer_class:
@@ -484,7 +449,6 @@ class AuditPipeline:
 
         # Create explainer instance
         selected_explainer = explainer_class()
-        logger.info(f"Selected explainer: {selected_name}")
 
         # Store selection info
         self.results.selected_components["explainer"] = {
@@ -533,25 +497,18 @@ class AuditPipeline:
             # Generate explanations
             explanations = self.explainer.explain(X_processed)
 
-        # Process explanations - handle different return formats from explainers
-        if isinstance(explanations, dict):
-            # Expected dictionary format
-            explanation_results = {
-                "global_importance": explanations.get("global_importance", {}),
-                "local_explanations_sample": explanations.get("local_explanations", [])[:5],  # First 5 samples
-                "summary_statistics": self._compute_explanation_stats(explanations),
-            }
-        else:
-            # Handle numpy array or other formats - create basic structure
-            logger.warning(f"Explainer returned {type(explanations)}, creating basic explanation structure")
-            explanation_results = {
-                "global_importance": {},
-                "local_explanations_sample": [],
-                "summary_statistics": {
-                    "explanation_type": "raw_array",
-                    "shape": getattr(explanations, "shape", "unknown"),
-                },
-            }
+        # Normalize explanations to canonical format
+        normalized_explanations = self._normalize_explanations(
+            explanations,
+            X_processed,
+            feature_names=list(X_processed.columns),
+        )
+
+        explanation_results = {
+            "global_importance": normalized_explanations["global_importance"],
+            "local_explanations_sample": normalized_explanations["local_explanations_sample"],
+            "summary_statistics": self._compute_explanation_stats(normalized_explanations),
+        }
 
         # Store in results
         self.results.explanations = explanation_results
@@ -559,6 +516,185 @@ class AuditPipeline:
         logger.info("Explanation generation completed")
 
         return explanation_results
+
+    def _normalize_explanations(self, explanations: Any, X: pd.DataFrame, feature_names: list[str]) -> dict[str, Any]:  # noqa: ANN401
+        """Normalize explainer outputs to canonical format.
+
+        Args:
+            explanations: Raw output from explainer
+            X: Input data for shape reference
+            feature_names: Feature names
+
+        Returns:
+            Dictionary with canonical explanation format
+
+        """
+        logger.info("Normalizing explainer outputs to canonical format")
+
+        # Handle different explainer output formats
+        if isinstance(explanations, dict):
+            # Already structured format
+            return self._normalize_dict_explanations(explanations, X, feature_names)
+        if isinstance(explanations, np.ndarray):
+            # Raw SHAP values array
+            return self._normalize_array_explanations(explanations, X, feature_names)
+        # Unknown format - create empty structure
+        logger.warning(f"Unknown explainer output format: {type(explanations)}")
+        return {
+            "global_importance": {},
+            "local_explanations_sample": [],
+            "ranking": [],
+        }
+
+    def _normalize_dict_explanations(
+        self,
+        explanations: dict,
+        X: pd.DataFrame,
+        feature_names: list[str],
+    ) -> dict[str, Any]:
+        """Normalize dictionary-format explanations."""
+        n_samples = len(X)
+
+        # Handle global_importance
+        global_importance = explanations.get("global_importance", {})
+        if isinstance(global_importance, dict):
+            # Already a dict - ensure all values are scalars
+            normalized_global = {}
+            for feature, value in global_importance.items():
+                if isinstance(value, (list, np.ndarray)):
+                    # Take mean if it's an array
+                    normalized_global[feature] = float(np.mean(value))
+                else:
+                    normalized_global[feature] = float(value)
+            global_importance = normalized_global
+        elif isinstance(global_importance, (list, np.ndarray)):
+            # Convert array to dict
+            global_importance = {
+                feature_names[i]: float(global_importance[i])
+                for i in range(min(len(feature_names), len(global_importance)))
+            }
+
+        # Handle local_explanations
+        local_explanations = explanations.get("local_explanations", [])
+        if isinstance(local_explanations, np.ndarray):
+            # Check dimensionality and reduce if needed
+            if local_explanations.ndim == 3:
+                # Multi-class: (n_samples, n_features, n_classes) or similar
+                # Reduce to 2D by taking mean across class dimension
+                # Try to identify class axis (usually last or second)
+                if local_explanations.shape[-1] <= local_explanations.shape[1]:
+                    # Class axis is likely last: (n_samples, n_features, n_classes)
+                    local_explanations = np.mean(np.abs(local_explanations), axis=-1)
+                else:
+                    # Class axis is likely middle: (n_samples, n_classes, n_features)
+                    local_explanations = np.mean(np.abs(local_explanations), axis=1)
+
+            # Now convert 2D array to list of dicts
+            local_explanations_sample = []
+            n_samples_to_show = min(5, local_explanations.shape[0])
+            n_features_local = min(local_explanations.shape[1], len(feature_names))
+
+            for i in range(n_samples_to_show):
+                sample_dict = {}
+                for j in range(n_features_local):
+                    value = local_explanations[i, j]
+                    sample_dict[feature_names[j]] = float(value)
+                local_explanations_sample.append(sample_dict)
+        else:
+            # Already in expected format or empty
+            local_explanations_sample = local_explanations[:5] if local_explanations else []
+
+        # Create ranking from global importance
+        ranking = sorted(global_importance.items(), key=lambda x: abs(x[1]), reverse=True)
+
+        return {
+            "global_importance": global_importance,
+            "local_explanations_sample": local_explanations_sample,
+            "ranking": ranking,
+        }
+
+    def _normalize_array_explanations(
+        self,
+        explanations: np.ndarray,
+        X: pd.DataFrame,
+        feature_names: list[str],
+    ) -> dict[str, Any]:
+        """Normalize array-format explanations."""
+        n_samples = len(X)
+
+        # Handle different array shapes
+        if explanations.ndim == 2:
+            # (n_samples, n_features) - per-sample attributions
+            n_samples, n_features = explanations.shape
+            if n_features != len(feature_names):
+                logger.warning(
+                    f"Feature count mismatch: explanations has {n_features} features, expected {len(feature_names)}",
+                )
+                n_features = min(n_features, len(feature_names))
+
+            # Global importance = mean absolute per-sample
+            global_importance = np.mean(np.abs(explanations), axis=0)
+            global_importance_dict = {}
+            for i in range(n_features):
+                value = global_importance[i]
+                # Handle arrays by taking mean
+                if isinstance(value, (list, np.ndarray)):
+                    global_importance_dict[feature_names[i]] = float(np.mean(value))
+                else:
+                    global_importance_dict[feature_names[i]] = float(value)
+            global_importance = global_importance_dict
+
+            # Local explanations sample
+            local_explanations_sample = []
+            for i in range(min(5, n_samples)):
+                sample_dict = {}
+                for j in range(n_features):
+                    value = explanations[i, j]
+                    # Handle arrays by taking mean or first element
+                    if isinstance(value, (list, np.ndarray)):
+                        sample_dict[feature_names[j]] = float(np.mean(value))
+                    else:
+                        sample_dict[feature_names[j]] = float(value)
+                local_explanations_sample.append(sample_dict)
+
+        elif explanations.ndim == 3:
+            # (n_samples, n_classes, n_features) or (n_samples, n_features, n_classes)
+            # Need to reduce class dimension
+            shape = explanations.shape
+
+            # Try to identify class axis by looking at sizes
+            # Class axis typically has smallest dimension (often 2 for binary)
+            if shape[-1] <= shape[1]:
+                # Class axis is likely last: (n_samples, n_features, n_classes)
+                class_axis = -1
+                n_samples, n_features = shape[0], shape[1]
+            else:
+                # Class axis is likely middle: (n_samples, n_classes, n_features)
+                class_axis = 1
+                n_samples, n_features = shape[0], shape[2]
+
+            # Reduce class dimension - use mean absolute across classes
+            reduced_explanations = np.mean(np.abs(explanations), axis=class_axis)
+
+            # Now treat as (n_samples, n_features)
+            return self._normalize_array_explanations(reduced_explanations, X, feature_names)
+
+        else:
+            logger.warning(f"Unsupported explanation array shape: {explanations.shape}")
+            return {
+                "global_importance": {},
+                "local_explanations_sample": [],
+                "ranking": [],
+            }
+
+        # Create ranking
+        ranking = sorted(global_importance.items(), key=lambda x: abs(x[1]), reverse=True)
+
+        return {
+            "global_importance": global_importance,
+            "local_explanations_sample": local_explanations_sample,
+            "ranking": ranking,
+        }
 
     def _compute_metrics(self, data: pd.DataFrame, schema: TabularDataSchema) -> None:  # noqa: C901
         """Compute all configured metrics.
@@ -893,18 +1029,23 @@ class AuditPipeline:
         logger.debug("Computing fairness metrics")
 
         # Get available fairness metrics
-        all_metrics = MetricRegistry.get_all()
+        all_metric_names = MetricRegistry.get_all()
         fairness_metrics = []
 
-        for name, metric_class in all_metrics.items():
-            # Check if it's a fairness metric
-            if (hasattr(metric_class, "metric_type") and metric_class.metric_type == "fairness") or name in [
-                "demographic_parity",
-                "equal_opportunity",
-                "equalized_odds",
-                "predictive_parity",
-            ]:
-                fairness_metrics.append(metric_class)
+        for name in all_metric_names:
+            try:
+                metric_class = MetricRegistry.get(name)
+                # Check if it's a fairness metric
+                if (hasattr(metric_class, "metric_type") and metric_class.metric_type == "fairness") or name in [
+                    "demographic_parity",
+                    "equal_opportunity",
+                    "equalized_odds",
+                    "predictive_parity",
+                ]:
+                    fairness_metrics.append(metric_class)
+            except (KeyError, ImportError):
+                # Skip unavailable metrics
+                continue
 
         if not fairness_metrics:
             logger.warning("No fairness metrics found")
@@ -926,7 +1067,9 @@ class AuditPipeline:
 
         except Exception as e:
             logger.error(f"Failed to compute fairness metrics: {e}")
-            self.results.fairness_analysis = {"error": str(e)}
+            # Store error in a way that won't break template rendering
+            self.results.fairness_analysis = {}
+            self.results.error_message = f"Fairness analysis failed: {e}"
 
     def _compute_drift_metrics(self, X: pd.DataFrame, y: np.ndarray) -> None:  # noqa: N803, ARG002
         """Compute drift metrics (placeholder implementation).
@@ -1178,8 +1321,142 @@ class AuditPipeline:
         except ImportError as e:
             logger.warning(f"Some components could not be imported: {e}")
 
+    def _resolve_dataset_path(self) -> Path:
+        """Resolve dataset path with offline and fetch policy enforcement.
+
+        This is the single source of truth for dataset access:
+        - Honors offline mode (raises if file missing)
+        - Respects fetch policy
+        - Handles both custom and built-in datasets
+
+        Returns:
+            Path to the available dataset file
+
+        Raises:
+            FileNotFoundError: If dataset is not available and cannot be fetched
+            ValueError: If configuration is invalid
+
+        """
+        from ..datasets.registry import REGISTRY
+        from ..utils.cache_dirs import resolve_data_root
+
+        cfg = self.config.data
+
+        # Custom dataset: user provides explicit path
+        if cfg.dataset == "custom":
+            path = Path(cfg.path).expanduser().resolve()
+
+            if path.exists():
+                return path
+
+            # File doesn't exist - check policy
+            if cfg.offline:
+                raise FileNotFoundError(
+                    f"Offline mode: dataset file not found at {path} with fetch='{cfg.fetch}'. "
+                    "Provide a local file or disable offline.",
+                )
+
+            if cfg.fetch in {None, "never"}:
+                raise FileNotFoundError(
+                    f"Dataset file not found at {path} and fetch='{cfg.fetch}'.",
+                )
+
+            # For custom paths, we don't have a fetch function
+            raise FileNotFoundError(
+                f"Custom data file not found: {path}\nPlease provide the file at this location.",
+            )
+
+        # Built-in dataset
+        spec = REGISTRY.get(cfg.dataset)
+        if not spec:
+            raise ValueError(f"Unknown dataset key: {cfg.dataset}")
+
+        cache_root = resolve_data_root()
+        cache_path = (cache_root / spec.default_relpath).resolve()
+
+        # Check if cached
+        if cache_path.exists():
+            return cache_path
+
+        # Not cached - check if we can fetch
+        if cfg.offline:
+            raise FileNotFoundError(
+                f"Offline mode: dataset '{cfg.dataset}' not cached at {cache_path}.",
+            )
+
+        if cfg.fetch == "never":
+            raise FileNotFoundError(
+                f"Dataset '{cfg.dataset}' not cached and fetch='never'.",
+            )
+
+        # Fetch and cache
+        return self._fetch_and_cache_builtin(cfg.dataset, cache_path)
+
+    def _fetch_and_cache_builtin(self, dataset_key: str, cache_path: Path) -> Path:
+        """Fetch and cache a built-in dataset.
+
+        Args:
+            dataset_key: Dataset identifier in registry
+            cache_path: Path to cache the dataset
+
+        Returns:
+            Path to the cached dataset file
+
+        Raises:
+            RuntimeError: If fetch fails
+
+        """
+        import shutil
+        import time
+
+        from ..datasets.registry import REGISTRY
+        from ..utils.cache_dirs import ensure_dir_writable
+        from ..utils.locks import file_lock, get_lock_path
+
+        def _retry_io(fn, attempts=5, base_sleep=0.05):
+            """Retry I/O operations with exponential backoff."""
+            last_error = None
+            sleep_time = base_sleep
+            for attempt in range(attempts):
+                try:
+                    return fn()
+                except OSError as e:
+                    last_error = e
+                    if attempt == attempts - 1:
+                        raise
+                    time.sleep(sleep_time)
+                    sleep_time *= 2
+            raise last_error
+
+        spec = REGISTRY[dataset_key]
+        cache_root = ensure_dir_writable(cache_path.parent)
+        cache_path.parent.mkdir(parents=True, exist_ok=True)
+
+        lock_path = get_lock_path(cache_path)
+        with file_lock(lock_path):
+            # Double-check inside lock (another process may have fetched)
+            if cache_path.exists():
+                return cache_path
+
+            # Fetch
+            logger.info(f"Fetching dataset {dataset_key} into cache")
+            produced = Path(spec.fetch_fn()).resolve()
+            tmp = cache_path.with_suffix(cache_path.suffix + ".tmp")
+
+            if produced != cache_path:
+                # Move atomically into cache location via temp + replace
+                _retry_io(lambda: shutil.move(str(produced), str(tmp)))
+                _retry_io(lambda: os.replace(str(tmp), str(cache_path)))
+            else:
+                # Fetcher wrote directly to final location
+                cache_path.touch(exist_ok=True)
+
+        return cache_path
+
     def _resolve_requested_path(self) -> Path:
         """Resolve the requested data path from configuration.
+
+        DEPRECATED: Use _resolve_dataset_path instead.
 
         Returns:
             Path to the requested data file

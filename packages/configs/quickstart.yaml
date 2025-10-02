@@ -21,7 +21,6 @@ data:
 
 model:
   type: logistic_regression
-  allow_fallback: true
   params:
     random_state: 42
     max_iter: 1000
