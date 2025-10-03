@@ -117,7 +117,18 @@ jobs:
               print('✅ No unwanted GPU dependencies found')
           "
           echo "=== Dependency version diagnostics ==="
-          python -c "import sys, numpy, scipy, sklearn, matplotlib; print('PY:', sys.executable); print('numpy:', numpy.__version__); print('scipy:', scipy.__version__); print('sklearn:', sklearn.__version__); print('matplotlib:', matplotlib.__version__)"
+          python -c "
+          import sys, numpy, scipy, sklearn
+          print('PY:', sys.executable)
+          print('numpy:', numpy.__version__)
+          print('scipy:', scipy.__version__)
+          print('sklearn:', sklearn.__version__)
+          try:
+              import matplotlib
+              print('matplotlib:', matplotlib.__version__)
+          except ImportError:
+              print('matplotlib: not installed (optional)')
+          "
           echo "=== Package installation verification ==="
           python -m pip show -f glassalpha | sed -n '1,200p'
           echo "=== Verify data package files specifically ==="
