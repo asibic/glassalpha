@@ -57,14 +57,16 @@ class AuditResults:
 class AuditPipeline:
     """Main pipeline for conducting comprehensive ML model audits."""
 
-    def __init__(self, config: AuditConfig) -> None:
+    def __init__(self, config: AuditConfig, selected_explainer: str | None = None) -> None:
         """Initialize audit pipeline with configuration.
 
         Args:
             config: Validated audit configuration
+            selected_explainer: Pre-selected explainer name to use (avoids re-selection)
 
         """
         self.config = config
+        self.selected_explainer = selected_explainer
         self.results = AuditResults()
 
         # Ensure all components are imported and registered
@@ -433,8 +435,11 @@ class AuditPipeline:
         # Import the explainer registry to ensure it's available
         from glassalpha.explain.registry import ExplainerRegistry  # noqa: PLC0415
 
-        # Use config for explainer selection
-        explainer_name = ExplainerRegistry.find_compatible(self.model, self.config.model_dump())
+        # Use pre-selected explainer if provided, otherwise select based on config
+        if self.selected_explainer:
+            explainer_name = self.selected_explainer
+        else:
+            explainer_name = ExplainerRegistry.find_compatible(self.model, self.config.model_dump())
 
         # Get the explainer class
         explainer_class = ExplainerRegistry.get(explainer_name)
@@ -1597,16 +1602,19 @@ class AuditPipeline:
         return requested_path
 
 
-def run_audit_pipeline(config: AuditConfig, progress_callback: Callable | None = None) -> AuditResults:
+def run_audit_pipeline(
+    config: AuditConfig, progress_callback: Callable | None = None, selected_explainer: str | None = None
+) -> AuditResults:
     """Convenience function to run audit pipeline.
 
     Args:
         config: Validated audit configuration
         progress_callback: Optional progress callback function
+        selected_explainer: Pre-selected explainer name to use (avoids re-selection)
 
     Returns:
         Audit results
 
     """
-    pipeline = AuditPipeline(config)
+    pipeline = AuditPipeline(config, selected_explainer=selected_explainer)
     return pipeline.run(progress_callback)

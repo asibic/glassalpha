@@ -96,3 +96,104 @@ model:
 
     finally:
         Path(config_path).unlink(missing_ok=True)
+
+
+def _has_jinja2():
+    """Check if jinja2 is available in the current environment."""
+    try:
+        import jinja2  # noqa: F401
+
+        return True
+    except ImportError:
+        return False
+
+
+def test_pdf_guard_without_pdf_backend_exits_cleanly(tmp_path):
+    """Test that PDF guard exits cleanly when PDF backend is missing."""
+    # Create a minimal config that requests PDF output
+    config_content = """
+audit_profile: "tabular_compliance"
+model:
+  type: "logistic_regression"
+data:
+  path: "test.csv"
+explainers:
+  strategy: "first_compatible"
+report:
+  output_format: "pdf"
+"""
+
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
+        f.write(config_content)
+        config_path = f.name
+
+    try:
+        # Create output path with .pdf extension
+        output_path = tmp_path / "test.pdf"
+
+        # Run the audit command
+        runner = CliRunner()
+        result = runner.invoke(app, ["audit", "--config", config_path, "--output", str(output_path)])
+
+        # Check if PDF backend is available (weasyprint or reportlab)
+        has_pdf_backend = False
+        try:
+            import weasyprint  # noqa: F401
+
+            has_pdf_backend = True
+        except ImportError:
+            try:
+                import reportlab  # noqa: F401
+
+                has_pdf_backend = True
+            except ImportError:
+                pass
+
+        if not has_pdf_backend:
+            # When PDF backend is not available, should exit with error and mention docs
+            assert result.exit_code != 0
+            assert 'pip install "glassalpha[docs]"' in (result.stdout + result.stderr)
+        else:
+            # When PDF backend is available, may fail for other reasons but not for missing PDF backend
+            # (the test doesn't check for other failures, just that it doesn't fail for missing PDF backend)
+            pass
+
+    finally:
+        Path(config_path).unlink(missing_ok=True)
+
+
+def test_environment_aware_quickstart_adaptation(tmp_path):
+    """Test that quickstart adapts to environment (HTML baseline, PDF when available)."""
+    runner = CliRunner()
+
+    # Test doctor command gives environment-aware recommendations
+    result = runner.invoke(app, ["doctor"])
+
+    assert result.exit_code == 0
+
+    # Should always show templating is OK (jinja2 is in core)
+    assert "Templating: ✅ installed" in result.stdout
+
+    # Check PDF backend availability
+    has_pdf_backend = False
+    try:
+        import weasyprint  # noqa: F401
+
+        has_pdf_backend = True
+    except ImportError:
+        try:
+            import reportlab  # noqa: F401
+
+            has_pdf_backend = True
+        except ImportError:
+            pass
+
+    if has_pdf_backend:
+        # When PDF backend is available, should recommend PDF
+        assert "quickstart.pdf" in result.stdout
+        assert "PDF backend: ✅ installed" in result.stdout
+    else:
+        # When PDF backend is not available, should recommend HTML
+        assert "quickstart.html" in result.stdout
+        assert "PDF backend: ❌ not installed" in result.stdout
+        assert 'pip install "glassalpha[docs]"' in result.stdout

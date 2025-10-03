@@ -122,8 +122,7 @@ def _show_installation_error(model_type: str):
 
 def preflight_check_dependencies():
     """Check core dependencies and show warnings for missing optional ones."""
-    typer.echo("GlassAlpha Audit Generation")
-    typer.echo("=" * 40)
+    # Banner is already printed by CLI command - don't duplicate
 
     # Check model availability
     available_models = ModelRegistry.available_plugins()

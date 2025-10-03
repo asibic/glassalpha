@@ -117,7 +117,18 @@ def validate_config_completeness(config_dict: dict[str, Any]) -> None:
             if isinstance(section_config, dict):
                 missing_fields = [field for field in required_fields if field not in section_config]
                 if missing_fields:
-                    incomplete_sections.append(f"{section}: missing {missing_fields}")
+                    # Special case: data.path is optional for built-in datasets like german_credit
+                    if section == "data" and "path" in missing_fields:
+                        dataset = section_config.get("dataset")
+                        if dataset in ["german_credit"]:  # Add other built-in datasets here
+                            # Demote to info since built-in datasets resolve their own paths
+                            logger.info(
+                                f"data.path not specified but using built-in dataset '{dataset}' - path will be resolved automatically"
+                            )
+                            missing_fields.remove("path")
+
+                    if missing_fields:  # Only add if there are still missing fields after special cases
+                        incomplete_sections.append(f"{section}: missing {missing_fields}")
 
     if incomplete_sections:
         logger.warning(

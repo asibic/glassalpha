@@ -133,6 +133,17 @@ class AuditPDFRenderer:
 
             return output_path
 
+        except ImportError as e:
+            # Graceful fallback: write HTML next to requested PDF and explain
+            html_path = str(Path(output_path).with_suffix(".html"))
+            Path(html_path).write_text(html_content, encoding="utf-8")
+            logger.warning(f"PDF backend not available. Wrote HTML to {html_path}")
+
+            raise RuntimeError(
+                f"PDF backend is not installed. Wrote HTML to {html_path}. "
+                'Install with: pip install "glassalpha[docs]" to enable PDF.',
+            ) from e
+
         except Exception as e:
             logger.error(f"Failed to generate PDF: {e}")
             raise RuntimeError(f"PDF generation failed: {e}") from e
@@ -448,6 +459,17 @@ class AuditPDFRenderer:
 
             return output_path
 
+        except ImportError as e:
+            # Graceful fallback: write HTML next to requested PDF and explain
+            html_path = str(Path(output_path).with_suffix(".html"))
+            Path(html_path).write_text(html_content, encoding="utf-8")
+            logger.warning(f"PDF backend not available. Wrote HTML to {html_path}")
+
+            raise RuntimeError(
+                f"PDF backend is not installed. Wrote HTML to {html_path}. "
+                'Install with: pip install "glassalpha[docs]" to enable PDF.',
+            ) from e
+
         except Exception as e:
             logger.error(f"HTML to PDF conversion failed: {e}")
             raise RuntimeError(f"PDF conversion failed: {e}") from e
@@ -475,5 +497,8 @@ def render_audit_pdf(
     """
     renderer = AuditPDFRenderer(config=config)
     return renderer.render_audit_pdf(
-        audit_results=audit_results, output_path=output_path, template_name=template_name, **template_vars
+        audit_results=audit_results,
+        output_path=output_path,
+        template_name=template_name,
+        **template_vars,
     )

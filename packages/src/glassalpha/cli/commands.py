@@ -24,6 +24,32 @@ def print_banner(title: str = "GlassAlpha Audit Generation") -> None:
     typer.echo("=" * 40)
 
 
+def _ensure_docs_if_pdf(output_path: str) -> None:
+    """Check if PDF output is requested and ensure docs dependencies are available.
+
+    Args:
+        output_path: Path to the output file
+
+    Raises:
+        SystemExit: If PDF is requested but jinja2 is not available
+
+    """
+    from pathlib import Path
+
+    if Path(output_path).suffix.lower() == ".pdf":
+        try:
+            import weasyprint  # noqa: F401
+        except ImportError:
+            try:
+                import reportlab  # noqa: F401
+            except ImportError:
+                raise SystemExit(
+                    "PDF requested but no PDF backend found.\n"
+                    'Install: pip install "glassalpha[docs]"\n'
+                    "Or use: --output audit.html",
+                )
+
+
 def _ascii(s: str) -> str:
     """Convert Unicode characters to ASCII equivalents for CLI compatibility."""
     return (
@@ -104,7 +130,7 @@ def _bootstrap_components() -> None:
     logger.debug("Component bootstrap completed")
 
 
-def _run_audit_pipeline(config, output_path: Path) -> None:
+def _run_audit_pipeline(config, output_path: Path, selected_explainer: str | None = None) -> None:
     """Execute the complete audit pipeline and generate PDF report.
 
     Args:
@@ -126,7 +152,7 @@ def _run_audit_pipeline(config, output_path: Path) -> None:
         typer.echo("  Loading data and initializing components...")
 
         # Run the actual audit pipeline
-        audit_results = run_audit_pipeline(config)
+        audit_results = run_audit_pipeline(config, selected_explainer=selected_explainer)
 
         if not audit_results.success:
             typer.secho(
@@ -380,6 +406,12 @@ def audit(  # pragma: no cover
         # Validate model availability and apply fallbacks
         audit_config = preflight_check_model(audit_config)
 
+        # Determine explainer selection early for consistent display
+        from ..explain.registry import ExplainerRegistry
+
+        selected_explainer = ExplainerRegistry.find_compatible(audit_config.model.type, audit_config.model_dump())
+        typer.echo(f"Explainer: {selected_explainer}")
+
         # Apply repro mode if requested
         if repro:
             from ..runtime import set_repro  # noqa: PLC0415
@@ -431,9 +463,12 @@ def audit(  # pragma: no cover
             typer.secho(_ascii("✓ Configuration valid (dry run - no report generated)"), fg=typer.colors.GREEN)
             return
 
+        # Check PDF dependencies if PDF output requested
+        _ensure_docs_if_pdf(str(output))
+
         # Run audit pipeline
         typer.echo("\nRunning audit pipeline...")
-        _run_audit_pipeline(audit_config, output)
+        _run_audit_pipeline(audit_config, output, selected_explainer)
 
     except FileNotFoundError as e:
         typer.secho(f"Error: {e}", fg=typer.colors.RED, err=True)
@@ -504,14 +539,25 @@ def doctor():  # pragma: no cover
     if not has_lightgbm:
         typer.echo("    -> Enable LightGBM models with: pip install 'glassalpha[trees]'")
 
-    # PDF rendering
+    # Templating (always available with core dependencies)
+    typer.echo("  Templating: ✅ installed (jinja2)")
+
+    # PDF backend (optional)
+    has_pdf_backend = False
     try:
         import weasyprint  # noqa: F401
 
-        typer.echo("  PDF backend: ✅ installed")
+        has_pdf_backend = True
+        typer.echo("  PDF backend: ✅ installed (weasyprint)")
     except ImportError:
-        typer.echo("  PDF backend: ❌ not installed")
-        typer.echo("    -> Enable PDF reports with: pip install 'glassalpha[docs]'")
+        try:
+            import reportlab  # noqa: F401
+
+            has_pdf_backend = True
+            typer.echo("  PDF backend: ✅ installed (reportlab)")
+        except ImportError:
+            typer.echo("  PDF backend: ❌ not installed")
+            typer.echo("    -> Enable PDF reports with: pip install 'glassalpha[docs]'")
 
     # Matplotlib for plots
     has_matplotlib = importlib.util.find_spec("matplotlib") is not None
@@ -540,7 +586,21 @@ def doctor():  # pragma: no cover
         typer.echo("  For plots in reports: pip install 'glassalpha[plots]'")
 
     typer.echo()
-    typer.echo("Ready to run: glassalpha audit --config configs/quickstart.yaml")
+
+    # Smart recommendation based on what's installed
+    def _has(mod):
+        return importlib.util.find_spec(mod) is not None
+
+    # HTML is always available (jinja2 is in core), PDF when backend is available
+    if has_pdf_backend:
+        suggested_command = "glassalpha audit --config configs/quickstart.yaml --output quickstart.pdf"
+    else:
+        suggested_command = "glassalpha audit --config configs/quickstart.yaml --output quickstart.html"
+
+    typer.echo(f"Ready to run: {suggested_command}")
+
+    if not has_pdf_backend:
+        typer.echo("  (PDF generation available after: pip install 'glassalpha[docs]')")
 
 
 def validate(  # pragma: no cover

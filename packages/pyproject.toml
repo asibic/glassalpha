@@ -36,6 +36,7 @@ dependencies = [
     # Utilities
     "orjson>=3.9.0",         # Fast JSON serialization
     "platformdirs>=4.0.0",   # Cross-platform user data directories
+    "jinja2>=3.1,<4",        # HTML templating - required for all report generation
 ]
 
 [project.optional-dependencies]
@@ -48,8 +49,11 @@ trees = ["xgboost>=2.0", "lightgbm>=4.0"]
 # Plotting and visualization dependencies
 plots = ["matplotlib>=3.9", "seaborn>=0.13"]
 
-# PDF generation and documentation dependencies
-docs = ["jinja2>=3.1", "weasyprint>=62"]
+# PDF generation dependencies (jinja2 is now in core)
+docs = [
+    "weasyprint>=63; platform_system!='Windows'",
+    "reportlab>=4.1; platform_system=='Windows'",
+]
 
 # Development dependencies
 dev = [

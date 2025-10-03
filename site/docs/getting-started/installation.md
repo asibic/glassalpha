@@ -26,6 +26,20 @@ Complete installation instructions for GlassAlpha on different platforms and env
 
 ## Installation methods
 
+### Feature matrix
+
+Choose your installation based on your needs:
+
+| Goal                          | Command                                                                                                      | What's Included                                            | Use Case                                          |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------- | ------------------------------------------------- |
+| **Minimal quickstart (HTML)** | `pip install glassalpha` then `glassalpha audit --config configs/quickstart.yaml --output audit.html`        | Core functionality, LogisticRegression model, HTML reports | Quick audits, development, lightweight deployment |
+| **Generate PDFs**             | `pip install "glassalpha[docs]"` then `glassalpha audit --config configs/quickstart.yaml --output audit.pdf` | PDF report generation (`jinja2`, `weasyprint`)             | Professional reports, regulatory submissions      |
+| **Advanced ML models**        | `pip install "glassalpha[trees]"`                                                                            | XGBoost, LightGBM models with SHAP explainers              | Production ML systems, complex models             |
+| **Full installation**         | `pip install "glassalpha[all]"`                                                                              | All optional features and models                           | Complete toolkit, maximum compatibility           |
+| **Development**               | `pip install "glassalpha[dev]"`                                                                              | Testing, linting, documentation tools                      | Contributors, CI/CD environments                  |
+
+**Why HTML by default?** Lighter, portable, works anywhere. PDF available via optional `docs` extra for professional reports.
+
 ### Quick start (recommended for new users)
 
 Install GlassAlpha with just the essential dependencies for immediate use:
@@ -47,7 +61,7 @@ python -m pip install --upgrade pip
 pip install -e .
 
 # Verify installation works immediately
-glassalpha audit --config configs/quickstart.yaml --output test.pdf --dry-run
+glassalpha audit --config configs/quickstart.yaml --output test.html --dry-run
 ```
 
 This installation provides:
@@ -359,13 +373,13 @@ Run a complete audit to verify all components:
 # Quick smoke test with German Credit dataset
 glassalpha audit \
   --config configs/german_credit_simple.yaml \
-  --output test_audit.pdf \
+  --output test_audit.html \
   --dry-run
 
-# If dry-run passes, run actual audit
+# If dry-run passes, run actual audit (add [docs] for PDF)
 glassalpha audit \
   --config configs/german_credit_simple.yaml \
-  --output test_audit.pdf
+  --output test_audit.html
 ```
 
 Successful execution should:
