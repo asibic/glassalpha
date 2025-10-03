@@ -5,8 +5,10 @@ GlassAlpha makes **deterministic, regulator-ready PDF audit reports** for tabula
 ## Quick Links
 
 - [**Quick start guide**](getting-started/quickstart.md): Run an audit in 60 seconds.
+- [**Using your own data**](getting-started/custom-data.md): Audit your models with custom CSV files.
+- [**Public datasets**](getting-started/data-sources.md): Test with 10+ curated benchmark datasets.
 - [**Examples**](examples/german-credit-audit.md): Walkthrough ML audits on credit, healthcare bias and fraud detection.
-- [**Trust & deployment**](examples/german-credit-audit.md): Misc. info on architecture, licensing, security, compliance, and deployment.
+- [**Trust & deployment**](reference/trust-deployment.md): Architecture, licensing, security, and compliance.
 
 ### Run first audit in 60 seconds
 
@@ -28,7 +30,51 @@ That's it. You now have a complete audit report with model performance, SHAP exp
 
 See [**more setup documentation here**](getting-started/quickstart.md).
 
-## Why GlassAlpha?
+## See It in Action (5-Minute Demo)
+
+Want to see what you get? Generate a professional audit PDF in 5 minutes:
+
+```bash
+# 1. Clone and install (90 seconds)
+git clone https://github.com/GlassAlpha/glassalpha
+cd glassalpha/packages && pip install -e .
+
+# 2. Generate audit (30 seconds)
+glassalpha audit --config configs/german_credit_simple.yaml --output audit.pdf
+
+# 3. Done! Open your professional PDF
+open audit.pdf  # macOS
+# xdg-open audit.pdf  # Linux
+# start audit.pdf  # Windows
+```
+
+**Result**: A 10-page professional audit PDF with:
+
+- ✅ Model performance metrics (accuracy, precision, recall, F1, AUC)
+- ✅ Fairness analysis (bias detection across demographic groups)
+- ✅ Feature importance (SHAP values showing what drives predictions)
+- ✅ Individual explanations (why specific decisions were made)
+- ✅ Complete audit trail (reproducibility manifest with all seeds and hashes)
+
+[See example output](examples/german-credit-audit.md)
+
+## Why Choose GlassAlpha?
+
+### How GlassAlpha Compares
+
+| Feature                   | GlassAlpha                      | Fairlearn        | AIF360               | Commercial Tools     |
+| ------------------------- | ------------------------------- | ---------------- | -------------------- | -------------------- |
+| **Audit PDFs**            | ✅ Professional, byte-identical | ❌ No reports    | ❌ No reports        | ✅ $$$               |
+| **Custom Data in 5 min**  | ✅ Yes                          | ⚠️ Complex setup | ⚠️ Complex setup     | ⚠️ Support needed    |
+| **Built-in Datasets**     | ✅ 10+ ready to use             | ❌ None          | ⚠️ Few               | ✅ Limited           |
+| **Model Support**         | ✅ XGBoost, LightGBM, sklearn   | ⚠️ sklearn only  | ⚠️ Limited           | ✅ Varies            |
+| **Deterministic Results** | ✅ Byte-identical PDFs          | ⚠️ Partial       | ❌ No                | ⚠️ Varies            |
+| **Offline/Air-gapped**    | ✅ 100% offline                 | ✅ Yes           | ✅ Yes               | ❌ Requires internet |
+| **Cost**                  | ✅ Free (Apache 2.0)            | ✅ Free (MIT)    | ✅ Free (Apache 2.0) | 💰 $5K-$50K+         |
+| **Regulatory Ready**      | ✅ Audit trails + manifests     | ❌ No trails     | ❌ No trails         | ✅ $$$               |
+| **Learning Curve**        | ✅ 60-second start              | ⚠️ Steep         | ⚠️ Steep             | ⚠️ Training needed   |
+
+**Bottom line**: GlassAlpha is the only OSS tool that combines professional audit PDFs, easy custom data support, and complete regulatory compliance—all in a 60-second setup.
 
 ### Designed for regulatory compliance
 
@@ -46,7 +92,7 @@ See [**more setup documentation here**](getting-started/quickstart.md).
 
 - **Single command** - `glassalpha audit` handles everything
 - **YAML configuration** - Policy-as-code for compliance requirements
-- **Fast execution** - Under 3 seconds from model to PDF
+- **Fast execution** - Under 60 seconds from model to PDF
 
 ## Supported models
 
@@ -96,10 +142,10 @@ git clone https://github.com/GlassAlpha/glassalpha
 cd glassalpha/packages
 ```
 
-Python 3.11 or 3.12 recommended
+Python 3.11, 3.12, or 3.13 supported
 
 ```bash
-python3 --version   # should show 3.11.x or 3.12.x
+python3 --version   # should show 3.11.x, 3.12.x, or 3.13.x
 ```
 
 (Recommended) Create a virtual environment
@@ -192,6 +238,8 @@ _Comprehensive examples with real datasets and regulatory interpretations._
 ## Documentation
 
 - [Quick start guide](getting-started/quickstart.md) - Installation and first audit
+- [Using custom data](getting-started/custom-data.md) - Audit your own models
+- [Public datasets](getting-started/data-sources.md) - 10+ curated benchmark datasets
 - [Configuration guide](getting-started/configuration.md) - YAML configuration reference
 - [Trust & deployment](reference/trust-deployment.md) - Architecture, licensing, security, and compliance
 - [Contribution guidelines](reference/contributing.md) - Enhancement opportunities

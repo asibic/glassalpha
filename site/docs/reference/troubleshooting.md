@@ -356,18 +356,43 @@ FileNotFoundError: Dataset file 'data/missing.csv' not found
 
 **Solutions:**
 
+1. **Check file paths (most common issue):**
+
 ```bash
 # Check file existence
 ls -la data/missing.csv
 
-# Use German Credit dataset (automatically downloaded)
-# Update config to use built-in dataset path:
+# Check current directory
+pwd
+
+# Use absolute paths in config
 ```
 
 ```yaml
 data:
-  path: ~/.glassalpha/data/german_credit_processed.csv # Auto-downloaded
+  path: /Users/yourname/data/dataset.csv # Absolute path
+  # OR
+  path: ~/data/dataset.csv # Home directory expansion
 ```
+
+!!! warning "Common Mistake: Relative Paths"
+Relative paths are resolved from where you run the command, not where the config file is located. Use absolute paths or `~` for home directory.
+
+2. **Use built-in datasets for testing:**
+
+```yaml
+data:
+  source: german_credit # Built-in dataset (auto-downloaded)
+  fetch: if_missing
+```
+
+3. **Browse available datasets:**
+
+```bash
+glassalpha datasets list
+```
+
+**Need help with data preparation?** See [Using Custom Data](../getting-started/custom-data.md) for a complete tutorial.
 
 ### Column not found
 
@@ -377,18 +402,141 @@ data:
 KeyError: Column 'target' not found in dataset
 ```
 
+**Causes:**
+
+- Column name misspelled or incorrect case
+- CSV file has no headers
+- Column name has spaces or special characters
+
 **Solutions:**
 
-```bash
-# Check column names in your data
-python -c "import pandas as pd; print(pd.read_csv('data/dataset.csv').columns.tolist())"
+1. **Inspect your data:**
 
-# Update configuration with correct column name
+```bash
+# Check column names
+python -c "import pandas as pd; df = pd.read_csv('data/dataset.csv'); print('Columns:', df.columns.tolist()); print('Shape:', df.shape)"
+
+# Check first few rows
+python -c "import pandas as pd; print(pd.read_csv('data/dataset.csv').head())"
 ```
+
+2. **Update configuration with exact column name:**
 
 ```yaml
 data:
-  target_column: correct_column_name # Use actual column name
+  path: data/dataset.csv
+  target_column: "actual_column_name" # Use quotes if spaces/special chars
+
+
+  # Check for common issues:
+  # - Extra spaces: "target " vs "target"
+  # - Case sensitivity: "Target" vs "target"
+  # - Special characters: "target_column" vs "target-column"
+```
+
+3. **Fix CSV headers:**
+
+```python
+import pandas as pd
+
+# Read CSV without headers
+df = pd.read_csv('data/dataset.csv', header=None)
+
+# Add column names
+df.columns = ['feature1', 'feature2', 'target']
+
+# Save with headers
+df.to_csv('data/dataset_with_headers.csv', index=False)
+```
+
+### Protected attributes not found
+
+**Error:**
+
+```
+KeyError: Protected attribute 'gender' not found in dataset
+```
+
+**Solutions:**
+
+1. **Check attribute names:**
+
+```bash
+# List all columns
+python -c "import pandas as pd; print(pd.read_csv('data/dataset.csv').columns.tolist())"
+```
+
+2. **Update config with correct names:**
+
+```yaml
+data:
+  protected_attributes:
+    - sex # Not 'gender'
+    - age_group # Not 'age'
+```
+
+3. **If attributes are missing from your data:**
+
+```yaml
+data:
+  protected_attributes: [] # Empty list if no protected attributes available
+
+# Note: Fairness metrics will be limited without protected attributes
+```
+
+**For more on protected attributes:** See [Using Custom Data](../getting-started/custom-data.md#protected-attributes).
+
+### Data format issues
+
+**Error:**
+
+```
+ParserError: Error tokenizing data. C error: Expected 5 fields, saw 7
+```
+
+**Causes:**
+
+- Inconsistent number of columns
+- Unescaped commas in text fields
+- Corrupted file
+
+**Solutions:**
+
+1. **Check for delimiter issues:**
+
+```python
+import pandas as pd
+
+# Try different delimiters
+df = pd.read_csv('data/dataset.csv', delimiter='\t')  # Tab-separated
+df = pd.read_csv('data/dataset.csv', delimiter=';')   # Semicolon-separated
+```
+
+2. **Handle problematic CSV files:**
+
+```python
+# Read with error handling
+df = pd.read_csv('data/dataset.csv',
+                 on_bad_lines='skip',  # Skip bad lines
+                 encoding='utf-8')      # Specify encoding
+```
+
+3. **Convert to a supported format:**
+
+```python
+import pandas as pd
+
+# Read problematic CSV
+df = pd.read_csv('data/dataset.csv', on_bad_lines='skip')
+
+# Save as Parquet (more robust)
+df.to_parquet('data/dataset.parquet', index=False)
+```
+
+```yaml
+# Update config to use Parquet
+data:
+  path: data/dataset.parquet
 ```
 
 ### Data type issues
@@ -399,16 +547,53 @@ data:
 TypeError: Object of type 'datetime64' is not JSON serializable
 ```
 
-**Solution:**
+**Causes:**
+
+- Datetime columns not converted
+- Complex object types
+- Mixed data types in columns
+
+**Solutions:**
+
+1. **Convert datetime columns:**
 
 ```python
-# Preprocess data to handle datetime columns
 import pandas as pd
 
 df = pd.read_csv('data/dataset.csv')
-# Convert datetime to timestamp or remove
-df['date_column'] = pd.to_datetime(df['date_column']).astype('int64')
+
+# Option 1: Convert to Unix timestamp
+df['date_column'] = pd.to_datetime(df['date_column']).astype('int64') // 10**9
+
+# Option 2: Extract useful features
+df['year'] = pd.to_datetime(df['date_column']).dt.year
+df['month'] = pd.to_datetime(df['date_column']).dt.month
+df['day_of_week'] = pd.to_datetime(df['date_column']).dt.dayofweek
+
+# Drop original datetime column
+df = df.drop('date_column', axis=1)
+
 df.to_csv('data/processed_dataset.csv', index=False)
+```
+
+2. **Handle categorical data:**
+
+```python
+# Check data types
+print(df.dtypes)
+
+# Convert object columns to category or numeric
+df['category_column'] = df['category_column'].astype('category').cat.codes
+```
+
+3. **Identify problematic columns:**
+
+```python
+# Find columns with mixed types
+for col in df.columns:
+    unique_types = df[col].apply(type).unique()
+    if len(unique_types) > 1:
+        print(f"Column '{col}' has mixed types: {unique_types}")
 ```
 
 ### Missing values
@@ -419,14 +604,216 @@ df.to_csv('data/processed_dataset.csv', index=False)
 ValueError: Input contains NaN, infinity or a value too large
 ```
 
-**Solution:**
+**Causes:**
+
+- Missing data in dataset
+- Infinite values from calculations
+- Very large numbers causing overflow
+
+**Solutions:**
+
+1. **Inspect missing data:**
+
+```python
+import pandas as pd
+
+df = pd.read_csv('data/dataset.csv')
+
+# Check missing values per column
+print(df.isnull().sum())
+
+# Check percentage missing
+print(df.isnull().sum() / len(df) * 100)
+
+# Identify rows with missing target
+print(df[df['target'].isnull()])
+```
+
+2. **Handle missing values:**
+
+```python
+# Option 1: Drop rows with missing target (recommended)
+df = df.dropna(subset=['target'])
+
+# Option 2: Drop columns with >30% missing
+threshold = 0.3
+df = df.loc[:, df.isnull().mean() < threshold]
+
+# Option 3: Impute missing values
+from sklearn.impute import SimpleImputer
+
+# For numeric columns
+numeric_cols = df.select_dtypes(include=['float64', 'int64']).columns
+imputer = SimpleImputer(strategy='median')
+df[numeric_cols] = imputer.fit_transform(df[numeric_cols])
+
+# For categorical columns
+categorical_cols = df.select_dtypes(include=['object']).columns
+df[categorical_cols] = df[categorical_cols].fillna(df[categorical_cols].mode().iloc[0])
+
+df.to_csv('data/cleaned_dataset.csv', index=False)
+```
+
+3. **Check for infinite values:**
+
+```python
+import numpy as np
+
+# Replace infinite values
+df = df.replace([np.inf, -np.inf], np.nan)
+
+# Then handle as missing values
+df = df.dropna()
+```
+
+**More data preparation guidance:** See [Using Custom Data - Data Cleaning](../getting-started/custom-data.md#step-1-prepare-your-data).
+
+### Target column issues
+
+**Error:**
+
+```
+ValueError: Target column must be binary (0/1) for classification
+```
+
+**Causes:**
+
+- Target has more than 2 unique values
+- Target is text instead of numeric
+- Target has missing values
+
+**Solutions:**
+
+1. **Check target distribution:**
+
+```python
+import pandas as pd
+
+df = pd.read_csv('data/dataset.csv')
+print("Target values:", df['target'].unique())
+print("Target counts:", df['target'].value_counts())
+print("Target type:", df['target'].dtype)
+```
+
+2. **Convert target to binary:**
+
+```python
+# If target is text (e.g., "Yes"/"No")
+df['target'] = (df['target'] == 'Yes').astype(int)
+
+# If target is numeric but not 0/1
+df['target'] = (df['target'] > threshold).astype(int)
+
+# If target is multi-class, convert to binary
+# Example: predict if class is "high risk" vs others
+df['target'] = (df['target'] == 'high_risk').astype(int)
+
+df.to_csv('data/dataset_binary.csv', index=False)
+```
+
+3. **Remove missing target values:**
+
+```python
+df = df.dropna(subset=['target'])
+print(f"Rows after removing missing targets: {len(df)}")
+```
+
+### Insufficient data
+
+**Error:**
+
+```
+ValueError: Insufficient samples for training (found 50, need at least 100)
+```
+
+**Causes:**
+
+- Dataset too small
+- Too many missing values removed
+- Heavy class imbalance with very few positive samples
+
+**Solutions:**
+
+1. **Check dataset size:**
+
+```python
+import pandas as pd
+
+df = pd.read_csv('data/dataset.csv')
+print(f"Total rows: {len(df)}")
+print(f"Class distribution:\n{df['target'].value_counts()}")
+print(f"Minimum class size: {df['target'].value_counts().min()}")
+```
+
+2. **Use a larger dataset:**
+
+   - Browse [freely available data sources](../getting-started/data-sources.md)
+   - Combine multiple datasets if possible
+   - Use German Credit (1,000 rows) for testing
+
+3. **If stuck with small data:**
 
 ```yaml
-# Add preprocessing configuration
-preprocessing:
-  handle_missing: true
-  missing_strategy: median # or 'mode' for categorical
+# Adjust model parameters for small datasets
+model:
+  type: logistic_regression # Better for small data than tree models
+  params:
+    max_iter: 1000
+    C: 1.0
+
+# Reduce explainer sample sizes
+explainers:
+  config:
+    treeshap:
+      max_samples: 50 # Reduce to match data size
 ```
+
+### Class imbalance
+
+**Warning:**
+
+```
+Warning: Severe class imbalance detected (99.5% negative class)
+```
+
+**Solutions:**
+
+1. **Check imbalance ratio:**
+
+```python
+import pandas as pd
+
+df = pd.read_csv('data/dataset.csv')
+value_counts = df['target'].value_counts()
+imbalance_ratio = value_counts.max() / value_counts.min()
+print(f"Imbalance ratio: {imbalance_ratio:.1f}:1")
+print(f"Class distribution:\n{value_counts}")
+```
+
+2. **Adjust model for imbalance:**
+
+```yaml
+model:
+  type: xgboost
+  params:
+    # Critical for imbalanced data
+    scale_pos_weight: 99 # Ratio of negative to positive samples
+    objective: binary:logistic
+```
+
+3. **Use appropriate metrics:**
+
+```yaml
+metrics:
+  performance:
+    metrics:
+      - precision # More important than accuracy for imbalanced data
+      - recall
+      - f1
+      - pr_auc # Better than roc_auc for imbalanced data
+```
+
+**Example configurations:** See `packages/configs/credit_card_fraud.yaml` for handling 99.8% class imbalance.
 
 ## Runtime errors
 

@@ -93,6 +93,8 @@ nav:
   - Getting Started:
       - Quick Start: getting-started/quickstart.md
       - Installation: getting-started/installation.md
+      - Using Custom Data: getting-started/custom-data.md
+      - Data Sources: getting-started/data-sources.md
       - Configuration: getting-started/configuration.md
       - Datasets: getting-started/datasets.md
   - Examples:

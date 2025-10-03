@@ -1,31 +1,36 @@
 # Quick start guide
 
-## The 60-second version
+## The 5-minute version
 
-### Clone and install
+Get your first professional audit PDF in 5 minutes:
 
 ```bash
+# 1. Clone and install (90 seconds)
 git clone https://github.com/GlassAlpha/glassalpha
-cd glassalpha/packages
+cd glassalpha/packages && pip install -e .
 
-# Install base framework (includes LogisticRegression baseline)
-pip install -e .
-
-# Check what models are available
-glassalpha models
-```
-
-### Generate an audit PDF (uses included German Credit example)
-
-```bash
-# Quick start with LogisticRegression (always available)
-glassalpha audit --config configs/quickstart.yaml --output audit.pdf
-
-# Or use the German Credit example (also uses LogisticRegression now)
+# 2. Generate audit (30 seconds)
 glassalpha audit --config configs/german_credit_simple.yaml --output audit.pdf
+
+# 3. Done! Open your professional PDF
+open audit.pdf  # macOS
+# xdg-open audit.pdf  # Linux
+# start audit.pdf  # Windows
 ```
 
-That's it! You now have a complete audit report with model performance, SHAP explanations, and fairness metrics.
+**What you get**: A 10-page professional audit PDF with:
+
+- ✅ Model performance metrics (accuracy, precision, recall, F1, AUC)
+- ✅ Fairness analysis (bias detection across demographic groups)
+- ✅ Feature importance (SHAP values showing what drives predictions)
+- ✅ Individual explanations (why specific decisions were made)
+- ✅ Complete audit trail (reproducibility manifest with all seeds and hashes)
+
+**Next steps**:
+
+- [Use your own data](custom-data.md)
+- [Try other datasets](data-sources.md)
+- [Understand the configuration](configuration.md)
 
 ## The 10-minute version
 
@@ -49,10 +54,10 @@ git clone https://github.com/GlassAlpha/glassalpha
 cd glassalpha/packages
 ```
 
-Python 3.11 or 3.12 recommended:
+Python 3.11, 3.12, or 3.13 supported:
 
 ```bash
-python3 --version   # should show 3.11.x or 3.12.x
+python3 --version   # should show 3.11.x, 3.12.x, or 3.13.x
 ```
 
 Create a virtual environment (recommended):
@@ -293,11 +298,15 @@ glassalpha datasets cache-dir   # Show where datasets are cached
 
 ### Work with your own data
 
-1. **Prepare your data**: CSV format with target column and features
-2. **Create configuration**: Copy and modify `german_credit_simple.yaml`
-3. **Run audit**: Use your configuration file
+Ready to audit your own models? We've made it easy:
 
-See the [Configuration Guide](configuration.md) for detailed customization options.
+1. **Follow the tutorial**: See [Using Custom Data](custom-data.md) for step-by-step guidance
+2. **Use our template**: The fully-commented configuration template is in `packages/configs/custom_template.yaml`
+3. **Try public datasets**: Browse [freely available data sources](data-sources.md) for testing
+
+**Need to choose a model?** The [Model Selection Guide](../reference/model-selection.md) helps you pick between LogisticRegression, XGBoost, and LightGBM with performance benchmarks.
+
+For detailed customization options, see the [Configuration Guide](configuration.md).
 
 ## Common use cases
 
@@ -325,12 +334,20 @@ See the [Configuration Guide](configuration.md) for detailed customization optio
 ## Getting help
 
 - **Documentation**: [Complete Guide](../index.md)
-- **Configuration Reference**: [Configuration Guide](configuration.md)
+- **Guides**:
+  - [Using Custom Data](custom-data.md) - Audit your own models
+  - [Freely Available Data Sources](data-sources.md) - Public datasets for testing
+  - [Configuration Reference](configuration.md) - All configuration options
+  - [Model Selection Guide](../reference/model-selection.md) - Choose the right model
+  - [Explainer Deep Dive](../reference/explainers.md) - Understanding explanations
 - **Examples**:
   - [German Credit Deep Dive](../examples/german-credit-audit.md) - Complete audit walkthrough
   - [Healthcare Bias Detection](../examples/healthcare-bias-detection.md) - Medical AI compliance example
   - [Fraud Detection Audit](../examples/fraud-detection-audit.md) - Financial services example
-- **Issues**: [GitHub Issues](https://github.com/GlassAlpha/glassalpha/issues)
+- **Support**:
+  - [FAQ](../reference/faq.md) - Frequently asked questions
+  - [Troubleshooting Guide](../reference/troubleshooting.md) - Common issues and solutions
+  - [GitHub Issues](https://github.com/GlassAlpha/glassalpha/issues) - Report bugs or request features
 
 ## Summary
 

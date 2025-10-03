@@ -132,6 +132,10 @@ report:
     compliance_statement: true
 ```
 
+**Want to understand these options better?** See the [Configuration Guide](../getting-started/configuration.md) for detailed explanations of all settings.
+
+**Considering a different model?** The [Model Selection Guide](../reference/model-selection.md) can help you choose between LogisticRegression, XGBoost, and LightGBM.
+
 ## Step 3: Running the audit
 
 Execute the audit with regulatory compliance mode enabled:

@@ -1,10 +1,18 @@
-# Datasets
+# Built-in datasets
 
 GlassAlpha provides automatic dataset fetching and caching for common benchmark datasets used in ML compliance auditing. This feature eliminates manual data preparation and ensures reproducible audit results.
 
+!!! info "Looking for more datasets?"
+This page covers GlassAlpha's **built-in dataset system** (automatic fetching and caching).
+
+    For a curated list of **freely available public datasets** for testing, see:
+
+    - [Freely Available Data Sources](data-sources.md) - Curated public datasets with example configs
+    - [Using Custom Data](custom-data.md) - Tutorial for using your own datasets
+
 ## Overview
 
-The dataset system automatically:
+The built-in dataset system automatically:
 
 - **Downloads** datasets from public repositories when needed
 - **Processes** raw data into ML-ready format
@@ -220,12 +228,20 @@ glassalpha datasets info german_credit
 glassalpha datasets fetch german_credit --force
 ```
 
+## Next steps
+
+- **Use built-in datasets** - Perfect for quick testing and examples
+- **Browse [public datasets](data-sources.md)** - Curated list with download links and example configs
+- **Use [your own data](custom-data.md)** - Complete tutorial for custom datasets
+
 ## Adding new datasets
 
-To add a new dataset to the registry:
+To add a new dataset to the built-in registry:
 
 1. **Create Dataset Loader**: Implement download and processing logic
 2. **Register Dataset**: Add to `REGISTRY` in `register_builtin.py`
 3. **Update Documentation**: Add to this page and CLI help
 
 See the source code for examples of dataset registration and implementation.
+
+**Contributing datasets:** If you have a high-quality public dataset that would benefit the community, see our [contribution guide](../reference/contributing.md) or open an issue on GitHub.

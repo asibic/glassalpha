@@ -106,6 +106,10 @@ data:
 - Protected attributes should be included in features for bias analysis
 - Features are automatically preprocessed based on data type
 
+**Using your own data?** See [Using Custom Data](custom-data.md) for a complete tutorial on data preparation and requirements.
+
+**Need example datasets?** Browse our [Freely Available Data Sources](data-sources.md) for curated public datasets with example configurations.
+
 ### Model configuration
 
 Specifies the ML model to audit and its parameters.
@@ -133,6 +137,8 @@ model:
 - `xgboost` - XGBoost gradient boosting (optional, requires `pip install 'glassalpha[xgboost]'`)
 - `lightgbm` - LightGBM gradient boosting (optional, requires `pip install 'glassalpha[lightgbm]'`)
 - `sklearn_generic` - Generic scikit-learn models (baseline, always available)
+
+**Need help choosing a model?** See the [Model Selection Guide](../reference/model-selection.md) for detailed comparisons, performance benchmarks, and use case recommendations.
 
 **Optional Dependencies:**
 
@@ -192,6 +198,8 @@ explainers:
 
 - `first_compatible` - Use first explainer compatible with model
 - `best_available` - Select highest-priority compatible explainer
+
+**Need help choosing an explainer?** See the [Explainer Deep Dive](../reference/explainers.md) for decision trees, performance comparisons, and configuration recommendations.
 
 ## Metrics configuration
 

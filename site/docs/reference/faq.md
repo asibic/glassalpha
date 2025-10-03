@@ -72,10 +72,10 @@ git clone https://github.com/GlassAlpha/glassalpha
 cd glassalpha/packages
 ```
 
-Python 3.11 or 3.12 recommended:
+Python 3.11, 3.12, or 3.13 supported:
 
 ```bash
-python3 --version   # should show 3.11.x or 3.12.x
+python3 --version   # should show 3.11.x, 3.12.x, or 3.13.x
 ```
 
 Create a virtual environment (recommended):
@@ -117,9 +117,7 @@ All dependencies are automatically installed during setup.
 
 ### How do I generate my first audit?
 
-1. **Follow the Quick Start guide for a 5-minute introduction:**
-
-   - [German Credit Audit](../examples/german-credit-audit.md) - Complete audit walkthrough
+1. **Follow the [Quick Start guide](../getting-started/quickstart.md) for a 5-minute introduction**
 
 2. **Use the German Credit example:**
 
@@ -129,7 +127,9 @@ glassalpha audit \
   --output my_audit.pdf
 ```
 
-3. **For your own data, create a configuration:**
+3. **For your own data:**
+   - See [Using Custom Data](../getting-started/custom-data.md) for a complete tutorial
+   - Use our configuration template in `packages/configs/custom_template.yaml` with detailed comments
 
 ```yaml
 audit_profile: tabular_compliance
@@ -147,6 +147,8 @@ model:
 ```bash
 glassalpha audit --config your_config.yaml --output audit.pdf
 ```
+
+**Want more examples?** Browse our [freely available data sources](../getting-started/data-sources.md) for curated public datasets.
 
 ### What file formats are supported for data?
 
@@ -204,6 +206,11 @@ GlassAlpha supports models saved with:
 
 - **TreeSHAP** - Exact SHAP values for tree-based models (XGBoost, LightGBM)
 - **KernelSHAP** - Model-agnostic explanations for any model type
+
+**Need help choosing?**
+
+- See the [Model Selection Guide](model-selection.md) for performance benchmarks and use case recommendations
+- See the [Explainer Deep Dive](explainers.md) for guidance on explanation methods
 
 ### How do I add support for a new model type?
 
@@ -554,10 +561,14 @@ For immediate help, check the [Troubleshooting Guide](../reference/troubleshooti
 
 **Essential Resources:**
 
-- [Quick Start Guide](../getting-started/quickstart.md)
-- [Configuration Guide](../getting-started/configuration.md)
-- [German Credit Tutorial](../examples/german-credit-audit.md)
-- [CLI Reference](../reference/cli.md)
+- [Quick Start Guide](../getting-started/quickstart.md) - 5-minute introduction
+- [Using Custom Data](../getting-started/custom-data.md) - Audit your own models
+- [Freely Available Data Sources](../getting-started/data-sources.md) - Public datasets for testing
+- [Configuration Guide](../getting-started/configuration.md) - Complete configuration reference
+- [Model Selection Guide](model-selection.md) - Choose the right model
+- [Explainer Deep Dive](explainers.md) - Understanding explanations
+- [German Credit Tutorial](../examples/german-credit-audit.md) - Complete walkthrough
+- [CLI Reference](cli.md) - Command-line interface
 
 ### I'm new to ML auditing. Where should I start?
 

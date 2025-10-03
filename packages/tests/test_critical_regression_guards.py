@@ -200,7 +200,7 @@ class TestArchitecturalConstraints:
         violations = []
 
         for config_file in config_dir.glob("*.yaml"):
-            with config_file.open("r") as f:
+            with config_file.open("r", encoding="utf-8") as f:
                 content = f.read()
 
             # Look for absolute user paths (security and portability issue)

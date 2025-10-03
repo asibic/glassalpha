@@ -52,8 +52,8 @@ Install GlassAlpha with just the essential dependencies for immediate use:
 git clone https://github.com/GlassAlpha/glassalpha
 cd glassalpha/packages
 
-# Python 3.11 or 3.12 recommended
-python3 --version   # should show 3.11.x or 3.12.x
+# Python 3.11, 3.12, or 3.13 supported
+python3 --version   # should show 3.11.x, 3.12.x, or 3.13.x
 
 # (Recommended) Create a virtual environment
 python3 -m venv .venv
@@ -125,6 +125,8 @@ GlassAlpha uses a plugin system that allows you to choose which ML models to ins
 | **XGBoost**            | `pip install 'glassalpha[xgboost]'`  | Advanced tree model              | Production ML systems               |
 | **LightGBM**           | `pip install 'glassalpha[lightgbm]'` | Microsoft's tree model           | Large datasets, performance         |
 
+**Need help choosing?** See the [Model Selection Guide](../reference/model-selection.md) for performance benchmarks and detailed comparisons.
+
 ### Automatic fallbacks
 
 If you request a model that isn't installed, GlassAlpha automatically falls back to LogisticRegression:
@@ -190,8 +192,8 @@ brew install libomp
 git clone https://github.com/GlassAlpha/glassalpha
 cd glassalpha/packages
 
-# Python 3.11 or 3.12 recommended
-python3 --version   # should show 3.11.x or 3.12.x
+# Python 3.11, 3.12, or 3.13 supported
+python3 --version   # should show 3.11.x, 3.12.x, or 3.13.x
 
 # (Recommended) Create a virtual environment
 python3 -m venv .venv
@@ -234,8 +236,8 @@ sudo apt install libpango1.0-dev libcairo2-dev libgtk-3-dev
 git clone https://github.com/GlassAlpha/glassalpha
 cd glassalpha/packages
 
-# Python 3.11 or 3.12 recommended
-python3 --version   # should show 3.11.x or 3.12.x
+# Python 3.11, 3.12, or 3.13 supported
+python3 --version   # should show 3.11.x, 3.12.x, or 3.13.x
 
 # (Recommended) Create a virtual environment
 python3 -m venv .venv
@@ -448,7 +450,7 @@ GlassAlpha installs these essential dependencies automatically:
 
 GlassAlpha is tested with:
 
-- **Python**: 3.11, 3.12
+- **Python**: 3.11, 3.12, 3.13
 - **scikit-learn**: 1.3.x, 1.4.x
 - **XGBoost**: 1.7.x, 2.0.x
 - **LightGBM**: 3.3.x, 4.0.x
@@ -660,11 +662,14 @@ docker run -v $(pwd):/data glassalpha \
 
 After successful installation:
 
-1. **Try the Quick Start** - [Generate your first audit in 10 minutes](../getting-started/quickstart.md)
-2. **Explore Examples** - [German Credit tutorial](../examples/german-credit-audit.md)
-3. **Read Configuration Guide** - [Understand all options](../getting-started/configuration.md)
-4. **Trust & Deployment** - [Architecture, licensing, security, and compliance](../reference/trust-deployment.md) for regulated environments
-5. **Join the Community** - [GitHub Discussions](https://github.com/GlassAlpha/glassalpha/discussions)
+1. **Try the Quick Start** - [Generate your first audit in 5 minutes](quickstart.md)
+2. **Use Your Own Data** - [Custom data tutorial](custom-data.md) with step-by-step guidance
+3. **Browse Example Datasets** - [Freely available data sources](data-sources.md) for testing
+4. **Explore Examples** - [German Credit tutorial](../examples/german-credit-audit.md)
+5. **Read Configuration Guide** - [Understand all options](configuration.md)
+6. **Choose Your Model** - [Model selection guide](../reference/model-selection.md) with benchmarks
+7. **Trust & Deployment** - [Architecture, licensing, security, and compliance](../reference/trust-deployment.md) for regulated environments
+8. **Join the Community** - [GitHub Discussions](https://github.com/GlassAlpha/glassalpha/discussions)
 
 ## Getting help
 

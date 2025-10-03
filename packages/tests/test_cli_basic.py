@@ -191,9 +191,9 @@ def test_environment_aware_quickstart_adaptation(tmp_path):
     if has_pdf_backend:
         # When PDF backend is available, should recommend PDF
         assert "quickstart.pdf" in result.stdout
-        assert "PDF backend: ✅ installed" in result.stdout
+        assert "PDF generation: ✅ installed" in result.stdout
     else:
         # When PDF backend is not available, should recommend HTML
         assert "quickstart.html" in result.stdout
-        assert "PDF backend: ❌ not installed" in result.stdout
+        assert "PDF generation: ❌ not installed" in result.stdout
         assert 'pip install "glassalpha[docs]"' in result.stdout
