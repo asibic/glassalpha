@@ -163,11 +163,16 @@ class LightGBMWrapper(BaseTabularWrapper):
 
         """
         # Handle random_state - LightGBM doesn't have set_params but we handle it via params dict
+        num_classes = len(np.unique(y))
         params = {
-            "objective": "binary" if len(np.unique(y)) == self.BINARY_CLASS_COUNT else "multiclass",
+            "objective": "binary" if num_classes == self.BINARY_CLASS_COUNT else "multiclass",
             "verbose": -1,
             "force_row_wise": True,
         }
+
+        # For multiclass, we must specify num_class parameter
+        if num_classes > self.BINARY_CLASS_COUNT:
+            params["num_class"] = num_classes
 
         if "random_state" in kwargs:
             params["random_seed"] = kwargs["random_state"]

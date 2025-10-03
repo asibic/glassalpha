@@ -604,7 +604,7 @@ if SKLEARN_AVAILABLE:
             self.feature_names = list(feature_names) if feature_names else None
 
             # Update capabilities based on model
-            if model:
+            if model is not None:
                 self.capabilities["supports_proba"] = hasattr(model, "predict_proba")
 
             logger.info("SklearnGenericWrapper initialized")
