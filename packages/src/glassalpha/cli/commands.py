@@ -143,7 +143,7 @@ def _run_audit_pipeline(config, output_path: Path, selected_explainer: str | Non
 
     # Import here to avoid circular imports and startup overhead
     from ..pipeline.audit import run_audit_pipeline
-    from ..report import PDFConfig, render_audit_pdf, render_audit_report
+    from ..report import render_audit_report
 
     start_time = time.time()
 
@@ -173,6 +173,9 @@ def _run_audit_pipeline(config, output_path: Path, selected_explainer: str | Non
 
         # Step 2: Generate report in specified format
         if output_format == "pdf":
+            # Import PDF dependencies only when needed
+            from ..report import PDFConfig, render_audit_pdf
+
             typer.echo(f"\nGenerating PDF report: {output_path}")
 
             # Create PDF configuration
