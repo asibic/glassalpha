@@ -113,14 +113,14 @@ class TestExplainerSelectionRisk:
 
     def test_new_explainer_selection_logic(self):
         """Test the new capability-aware explainer selection."""
-        from glassalpha.explain.registry import is_available, select_explainer
+        from glassalpha.explain.registry import _available, select_explainer
 
         # Test module availability checking
-        assert is_available("coefficients") is True  # No dependencies
-        assert is_available("permutation") is True  # No dependencies
+        assert _available("coefficients") is True  # No dependencies
+        assert _available("permutation") is True  # No dependencies
 
         # SHAP availability depends on installation
-        shap_available = is_available("kernelshap")
+        shap_available = _available("kernelshap")
 
         # Test linear model selection
         if shap_available:

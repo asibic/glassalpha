@@ -29,6 +29,7 @@ class PluginRegistry:
         self._objects: dict[str, Any] = {}  # name -> loaded object (class/callable)
         self._specs: dict[str, PluginSpec] = {}  # name -> PluginSpec
         self._meta: dict[str, dict[str, Any]] = {}  # name -> metadata
+        self._aliases: dict[str, str] = {}  # alias -> canonical_name
         self._discovered = False
 
     # ----- public API expected by tests -----
@@ -57,7 +58,7 @@ class PluginRegistry:
                 {
                     "priority": meta.get("priority", 0),
                     "enterprise": bool(meta.get("enterprise", False)),
-                }
+                },
             )
             # Keep existing metadata fields if present
             if "supports" in meta:
@@ -96,7 +97,7 @@ class PluginRegistry:
                 {
                     "priority": meta.get("priority", 0),
                     "enterprise": bool(meta.get("enterprise", False)),
-                }
+                },
             )
             # Keep existing metadata fields if present
             if "supports" in meta:
@@ -106,30 +107,46 @@ class PluginRegistry:
 
         return deco
 
+    def alias(self, alias: str, target: str) -> None:
+        """Create an alias for a plugin name.
+
+        Args:
+            alias: The alias name to create
+            target: The canonical name the alias points to
+
+        """
+        self._aliases[alias] = target
+
     def get(self, name: str) -> Any:
         """Return the registered object (class/callable). Lazy-load from entry points if needed."""
         self._ensure_discovered()
-        if name in self._objects:
-            return self._objects[name]
-        if name in self._entry_points:
-            module, attr = self._entry_points[name].split(":")
+
+        # Resolve alias if present
+        canonical_name = self._aliases.get(name, name)
+
+        if canonical_name in self._objects:
+            return self._objects[canonical_name]
+        if canonical_name in self._entry_points:
+            module, attr = self._entry_points[canonical_name].split(":")
             obj = getattr(__import__(module, fromlist=[attr]), attr)
-            self._objects[name] = obj
+            self._objects[canonical_name] = obj
             return obj
-        if name in self._specs:
+        if canonical_name in self._specs:
             # For backward compatibility, also check specs
-            return self._specs[name]
+            return self._specs[canonical_name]
         raise KeyError(f"Unknown plugin '{name}' for group '{self.group}'")
 
     # ----- convenience, not required by the failing test -----
 
     def has(self, name: str) -> bool:
         self._ensure_discovered()
-        return name in self._objects or name in self._entry_points
+        canonical_name = self._aliases.get(name, name)
+        return canonical_name in self._objects or canonical_name in self._entry_points
 
     def names(self) -> list[str]:
         self._ensure_discovered()
-        return sorted(set(self._objects) | set(self._entry_points))
+        names = set(self._objects) | set(self._entry_points) | set(self._aliases.keys())
+        return sorted(names)
 
     def available_plugins(self) -> dict[str, bool]:
         """Get availability status of all plugins.

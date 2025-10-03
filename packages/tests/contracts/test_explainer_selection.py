@@ -202,3 +202,33 @@ class TestExplainerSelection:
 
             with pytest.raises(RuntimeError, match=ERR_NO_EXPLAINER):
                 pipeline._select_explainer(config.model)  # noqa: SLF001
+
+    def test_registry_knows_common_aliases(self) -> None:
+        """Test that registry knows common aliases and resolves them correctly.
+
+        Prevents regression where configs use aliases but registry doesn't recognize them.
+        """
+        from glassalpha.explain.registry import ExplainerRegistry
+
+        # Test that aliases resolve to the same objects as canonical names
+        assert ExplainerRegistry.get("coefficients") == ExplainerRegistry.get("coef")
+        assert ExplainerRegistry.get("coefficients") == ExplainerRegistry.get("coeff")
+        assert ExplainerRegistry.get("permutation") == ExplainerRegistry.get("permutation_importance")
+        assert ExplainerRegistry.get("permutation") == ExplainerRegistry.get("perm")
+
+        # Test that aliases are recognized in names()
+        names = ExplainerRegistry.names()
+        assert "coefficients" in names
+        assert "coef" in names
+        assert "coeff" in names
+        assert "permutation" in names
+        assert "permutation_importance" in names
+        assert "perm" in names
+
+        # Test that has() works with aliases
+        assert ExplainerRegistry.has("coefficients")
+        assert ExplainerRegistry.has("coef")
+        assert ExplainerRegistry.has("coeff")
+        assert ExplainerRegistry.has("permutation")
+        assert ExplainerRegistry.has("permutation_importance")
+        assert ExplainerRegistry.has("perm")

@@ -11,6 +11,16 @@ from pathlib import Path
 import pytest
 
 
+def _assert_using_pypa_build():
+    """Guard against local 'build' package shadowing PyPA build tool."""
+    import pathlib
+
+    import build
+
+    build_path = pathlib.Path(build.__file__)
+    assert "site-packages" in str(build_path), f"Local 'build' package shadowing PyPA build at {build_path}"
+
+
 class TestWheelPackaging:
     """Test wheel packaging contract compliance."""
 
@@ -20,16 +30,20 @@ class TestWheelPackaging:
         Prevents the "Template not packaged in wheel" flake where tests
         find wrong wheels or templates are missing from built packages.
         """
+        # Guard against local build package shadowing PyPA build
+        _assert_using_pypa_build()
+
         # Build wheel in temporary directory
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir)
 
             # Build wheel (requires packages/ directory context)
             import subprocess  # noqa: PLC0415
+            import sys
 
             packages_dir = Path(__file__).parent.parent.parent
             result = subprocess.run(  # noqa: S603
-                ["python", "-m", "build", "--wheel", "--outdir", str(temp_path)],  # noqa: S607
+                [sys.executable, "-m", "build", "--wheel", "--outdir", str(temp_path)],
                 cwd=packages_dir,
                 capture_output=True,
                 text=True,

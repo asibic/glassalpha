@@ -28,10 +28,13 @@ model:
 explainers:
   strategy: first_compatible
   priority:
+    - coefficients
     - permutation # Always available fallback explainer
+    - kernelshap
   config:
     permutation:
-      max_samples: 100
+      n_repeats: 5
+      random_state: 42
 
 metrics:
   performance:

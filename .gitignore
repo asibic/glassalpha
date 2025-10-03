@@ -1,3 +1,34 @@
+# Build artifacts
+/packages/build/
+/packages/dist/
+/packages/*.egg-info/
+/packages/.pytest_cache/
+/packages/__pycache__/
+/packages/src/**/*.pyc
+/packages/src/**/__pycache__/
+
+ Virtual environments
+/packages/venv/
+/packages/.venv*
+
+# IDE files
+/packages/.vscode/
+/packages/.idea/
+*~
+
+OS files
+.DS_Store
+Thumbs.db
+
+Coverage reports
+/packages/.coverage
+/packages/htmlcov/
+/packages/coverage.xml
+
+Test artifacts
+/packages/test_*.pdf
+/packages/test_*.html
+
 # Python build & packaging
 __pycache__/
 *.py[cod]

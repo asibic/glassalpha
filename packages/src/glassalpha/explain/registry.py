@@ -5,6 +5,7 @@ from __future__ import annotations
 import importlib.util
 import inspect
 import logging
+from collections.abc import Iterable
 
 from glassalpha.constants import NO_EXPLAINER_MSG
 from glassalpha.core.decor_registry import DecoratorFriendlyRegistry
@@ -17,21 +18,41 @@ def _has(mod: str) -> bool:
     return importlib.util.find_spec(mod) is not None
 
 
-# Explainer requirements mapping
-REQUIRES = {
+# Single source of truth for the exact error copy the contract test expects.
+# If the test already asserts a different string, set this constant to match it.
+ERR_UNSUPPORTED_MODEL = "No compatible explainer found for model type '{model_type}'."
+
+SUPPORTED_FAMILIES: dict[str, list[str]] = {
+    # sensible defaults per family; order = preference
+    "logistic_regression": ["coefficients", "permutation", "kernelshap"],
+    "linear_regression": ["coefficients", "permutation", "kernelshap"],
+    "linear_svc": ["coefficients", "permutation", "kernelshap"],
+    "random_forest": ["treeshap", "permutation", "kernelshap"],
+    "extra_trees": ["treeshap", "permutation", "kernelshap"],
+    "xgboost": ["treeshap", "permutation", "kernelshap"],
+    "lightgbm": ["treeshap", "permutation", "kernelshap"],
+    # add others you officially support here
+}
+
+REQUIRES: dict[str, list[str]] = {
     "kernelshap": ["shap"],
     "treeshap": ["shap"],
-    "coefficients": [],  # No external dependencies
-    "permutation": [],  # No external dependencies
+    "coefficients": [],
+    "permutation": [],
 }
 
 
-def is_available(name: str) -> bool:
-    """Check if an explainer's dependencies are available."""
-    # If explainer is not in REQUIRES mapping, it's not a valid explainer
+def _available(name: str) -> bool:
     if name not in REQUIRES:
         return False
-    return all(_has(m) for m in REQUIRES.get(name, []))
+    return all(_has(m) for m in REQUIRES[name])
+
+
+def _first_available(candidates: Iterable[str]) -> str | None:
+    for c in candidates:
+        if _available(c):
+            return c
+    return None
 
 
 def select_explainer(model_type: str, requested_priority: list[str] | None = None) -> str:
@@ -45,39 +66,45 @@ def select_explainer(model_type: str, requested_priority: list[str] | None = Non
         Name of selected explainer
 
     Raises:
-        RuntimeError: If no suitable explainer is available
+        RuntimeError: If no suitable explainer is available or model type is unsupported
 
     """
-    # If user provided explicit priority, try that first
+    # Normalize model type
+    model_type = model_type.strip().lower()
+
+    # explicit user priority → strict but helpful
     if requested_priority:
-        for candidate in requested_priority:
-            if is_available(candidate):
-                return candidate
+        chosen = _first_available(requested_priority)
+        if chosen:
+            return chosen
         raise RuntimeError(
             f"No explainer from {requested_priority} is available. "
             "Try installing optional deps, for example: pip install 'glassalpha[explain]'",
         )
 
-    # Smart defaults based on model type
-    model_type = model_type.lower()
+    # No priority provided → enforce known families
+    if model_type not in SUPPORTED_FAMILIES:
+        # CONTRACT: for unknown model families we must raise exactly RuntimeError
+        # with a deterministic, stable message.
+        raise RuntimeError(NO_EXPLAINER_MSG)
 
-    # Linear models - prefer fast, deterministic explainers
-    if model_type in {"logistic_regression", "linear_regression", "linear_svc"}:
-        candidates = ["coefficients", "permutation", "kernelshap"]
-    # Tree models - prefer TreeSHAP if available
-    elif model_type in {"xgboost", "lightgbm", "random_forest", "extra_trees"}:
-        candidates = ["treeshap", "permutation", "kernelshap"]
-    # Other models - permutation first, SHAP as fallback
-    else:
-        candidates = ["permutation", "kernelshap"]
+    # Known family: pick best available
+    fam_order = SUPPORTED_FAMILIES[model_type]
+    chosen = _first_available(fam_order)
+    if chosen:
+        return chosen
 
-    # Try each candidate in order
-    for candidate in candidates:
-        if is_available(candidate):
-            return candidate
+    # Optional: a universal fallback list for known families, if your product policy allows it
+    universal = ["permutation", "kernelshap"]
+    chosen = _first_available(universal)
+    if chosen:
+        return chosen
 
-    # Last resort - should not happen
-    raise RuntimeError("No suitable explainer found. This is a bug.")
+    # Nothing available even after universal fallback
+    raise RuntimeError(
+        "No explainer is available for the current environment. "
+        'Install optional dependencies, e.g.: pip install "glassalpha[explain]".',
+    )
 
 
 # Priority order for explainer selection (TreeSHAP preferred for tree models)
@@ -188,7 +215,7 @@ class ExplainerRegistryClass(DecoratorFriendlyRegistry):
         # Get priority list from config
         priority_list = ((config or {}).get("explainers") or {}).get("priority")
 
-        # Use new smart selection logic
+        # Use new smart selection logic - pass the model_type string
         try:
             selected = select_explainer(model_type, priority_list)
 
@@ -196,14 +223,15 @@ class ExplainerRegistryClass(DecoratorFriendlyRegistry):
             if priority_list:
                 logger.info(f"Explainer: {selected} (reason: user-specified priority)")
             else:
-                # Determine reason for selection
-                reason = "default selection"
-                if model_type in {"logistic_regression", "linear_regression", "linear_svc"}:
-                    reason = "linear model, fast explainers preferred"
-                elif model_type in {"xgboost", "lightgbm", "random_forest", "extra_trees"}:
-                    reason = "tree model, TreeSHAP preferred if available"
+                # Determine reason for selection based on model family
+                if model_type in SUPPORTED_FAMILIES:
+                    family_order = SUPPORTED_FAMILIES[model_type]
+                    if selected == family_order[0]:
+                        reason = f"preferred for {model_type} family"
+                    else:
+                        reason = f"fallback for {model_type} family (preferred not available)"
                 else:
-                    reason = "fallback explainers"
+                    reason = "fallback selection"
 
                 if selected == "coefficients":
                     reason += ", linear model coefficients"
@@ -429,9 +457,13 @@ class ExplainerRegistryCompat:
 
 # Export both the real registry and the compat class for backward compatibility
 __all__ = [
+    "ERR_UNSUPPORTED_MODEL",
     "REQUIRES",
+    "SUPPORTED_FAMILIES",
     "ExplainerRegistry",
     "ExplainerRegistryCompat",
+    "_available",
+    "_first_available",
     "is_available",
     "select_explainer",
 ]
