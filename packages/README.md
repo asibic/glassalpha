@@ -33,6 +33,32 @@ Currently supports tabular ML with LogisticRegression baseline (always available
 
 More may be added depending on support and resourcing. Looking for something? **[Start a discussion](https://github.com/GlassAlpha/glassalpha/discussions)** or [contact me](https://glassalpha.com/contact/).
 
+## Performance
+
+GlassAlpha is designed for production use with responsive CLI and efficient audit generation.
+
+**CLI Performance** (measured on M1 Mac):
+
+- `glassalpha --help`: **~90ms** (83% faster than initial implementation)
+- `glassalpha --version`: **~45ms**
+- `glassalpha datasets list`: **~250ms**
+- Full audit generation: **~5s** (german_credit dataset)
+
+**Design Philosophy**:
+
+- Lazy loading of ML libraries (pandas, sklearn, xgboost) - only imported when actually needed
+- CLI commands load on-demand, not at startup
+- Minimal overhead for help/version commands
+- Optimized for interactive use
+
+**Performance Guarantees**:
+
+- All CLI commands maintain <300ms response time (enforced by automated tests)
+- Full audits complete in under 60 seconds for standard datasets
+- CI pipeline validates performance on every PR to prevent regressions
+
+**For Contributors**: See [Performance Testing](../site/docs/reference/contributing.md#performance-testing) section in CONTRIBUTING.md for lazy loading patterns and best practices.
+
 ### Project structure
 
 ```
