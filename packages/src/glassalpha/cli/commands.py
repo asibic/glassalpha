@@ -526,95 +526,111 @@ def doctor():  # pragma: no cover
     typer.echo("Optional Features")
     typer.echo("-" * 20)
 
-    # SHAP explainers
+    # Check all components
     has_shap = importlib.util.find_spec("shap") is not None
-    status = "✅ installed" if has_shap else "❌ not installed"
-    typer.echo(f"  SHAP: {status}")
-    if not has_shap:
-        typer.echo("    -> Enable KernelSHAP/TreeSHAP with: pip install 'glassalpha[explain]'")
-
-    # XGBoost
     has_xgboost = importlib.util.find_spec("xgboost") is not None
-    status = "✅ installed" if has_xgboost else "❌ not installed"
-    typer.echo(f"  XGBoost: {status}")
-    if not has_xgboost:
-        typer.echo("    -> Enable XGBoost models with: pip install 'glassalpha[explain]'")
-
-    # LightGBM
     has_lightgbm = importlib.util.find_spec("lightgbm") is not None
-    status = "✅ installed" if has_lightgbm else "❌ not installed"
-    typer.echo(f"  LightGBM: {status}")
-    if not has_lightgbm:
-        typer.echo("    -> Enable LightGBM models with: pip install 'glassalpha[explain]'")
-
-    # Templating (always available with core dependencies)
-    typer.echo("  Templating: ✅ installed (jinja2)")
-
-    # PDF backend (optional)
+    has_matplotlib = importlib.util.find_spec("matplotlib") is not None
+    
+    # PDF backend check
     has_pdf_backend = False
+    pdf_backend_name = None
     try:
         import weasyprint  # noqa: F401
-
         has_pdf_backend = True
-        typer.echo("  PDF backend: ✅ installed (weasyprint)")
+        pdf_backend_name = "weasyprint"
     except ImportError:
         try:
             import reportlab  # noqa: F401
-
             has_pdf_backend = True
-            typer.echo("  PDF backend: ✅ installed (reportlab)")
+            pdf_backend_name = "reportlab"
         except ImportError:
-            typer.echo("  PDF backend: ❌ not installed")
-            typer.echo("    -> Enable PDF reports with: pip install 'glassalpha[docs]'")
+            pass
 
-    # Matplotlib for plots
-    has_matplotlib = importlib.util.find_spec("matplotlib") is not None
-    status = "✅ installed" if has_matplotlib else "❌ not installed"
-    typer.echo(f"  Matplotlib: {status}")
-    if not has_matplotlib:
-        typer.echo("    -> Enable plots with: pip install 'glassalpha[viz]'")
+    # Group: SHAP + Tree models (they come together in [explain] extra)
+    has_all_explain = has_shap and has_xgboost and has_lightgbm
+    if has_all_explain:
+        typer.echo("  SHAP + tree models: ✅ installed")
+        typer.echo("    (includes SHAP, XGBoost, LightGBM)")
+    else:
+        typer.echo("  SHAP + tree models: ❌ not installed")
+        # Show what's partially there if any
+        installed_parts = []
+        if has_shap: installed_parts.append("SHAP")
+        if has_xgboost: installed_parts.append("XGBoost")
+        if has_lightgbm: installed_parts.append("LightGBM")
+        if installed_parts:
+            typer.echo(f"    (partially installed: {', '.join(installed_parts)})")
+
+    # Templating (always available)
+    typer.echo("  Templating: ✅ installed (jinja2)")
+
+    # PDF backend
+    if has_pdf_backend:
+        typer.echo(f"  PDF generation: ✅ installed ({pdf_backend_name})")
+    else:
+        typer.echo("  PDF generation: ❌ not installed")
+
+    # Visualization
+    if has_matplotlib:
+        typer.echo("  Visualization: ✅ installed (matplotlib)")
+    else:
+        typer.echo("  Visualization: ❌ not installed")
 
     typer.echo()
 
-    # Recommendations
-    typer.echo("Recommendations")
-    typer.echo("-" * 15)
+    # Status summary and next steps
+    typer.echo("Status & Next Steps")
+    typer.echo("-" * 20)
 
     missing_features = []
-    if not (has_shap and has_xgboost and has_lightgbm):
+    
+    # Check what's missing
+    if not has_all_explain:
         missing_features.append("SHAP + tree models")
-        typer.echo("  For SHAP + tree models (XGBoost/LightGBM): pip install 'glassalpha[explain]'")
-    else:
-        typer.echo("  ✅ SHAP + tree models available")
-
-    if not has_matplotlib:
-        missing_features.append("plots")
-        typer.echo("  For plots in reports: pip install 'glassalpha[viz]'")
-
     if not has_pdf_backend:
         missing_features.append("PDF generation")
+    if not has_matplotlib:
+        missing_features.append("visualization")
 
-    # Show quick install option if multiple features missing
-    if len(missing_features) > 1:
+    # Show appropriate message
+    if not missing_features:
+        typer.echo("  ✅ All optional features installed!")
         typer.echo()
-        typer.echo("  💡 Quick install everything: pip install 'glassalpha[all]'")
-
-    typer.echo()
+    else:
+        typer.echo("  Missing features:")
+        typer.echo()
+        
+        # Show specific install commands for what's missing
+        if not has_all_explain:
+            typer.echo("  📦 For SHAP + tree models (XGBoost, LightGBM):")
+            typer.echo("     pip install 'glassalpha[explain]'")
+            typer.echo()
+        
+        if not has_pdf_backend:
+            typer.echo("  📄 For PDF reports:")
+            typer.echo("     pip install 'glassalpha[docs]'")
+            typer.echo()
+        
+        if not has_matplotlib:
+            typer.echo("  📊 For enhanced plots:")
+            typer.echo("     pip install 'glassalpha[viz]'")
+            typer.echo()
+        
+        # Show quick install if multiple things missing
+        if len(missing_features) > 1:
+            typer.echo("  💡 Or install everything at once:")
+            typer.echo("     pip install 'glassalpha[all]'")
+            typer.echo()
 
     # Smart recommendation based on what's installed
-    def _has(mod):
-        return importlib.util.find_spec(mod) is not None
-
-    # HTML is always available (jinja2 is in core), PDF when backend is available
     if has_pdf_backend:
         suggested_command = "glassalpha audit --config configs/quickstart.yaml --output quickstart.pdf"
     else:
         suggested_command = "glassalpha audit --config configs/quickstart.yaml --output quickstart.html"
 
     typer.echo(f"Ready to run: {suggested_command}")
-
-    if not has_pdf_backend:
-        typer.echo("  (PDF generation available after: pip install 'glassalpha[docs]')")
+    typer.echo()
 
 
 def validate(  # pragma: no cover
