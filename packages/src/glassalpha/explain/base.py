@@ -18,6 +18,25 @@ class ExplainerBase:
     priority: int = 0
     version: str = "1.0.0"
 
+    @classmethod
+    def is_compatible(cls, *, model: Any = None, model_type: str | None = None, config: dict | None = None) -> bool:
+        """Check if this explainer is compatible with the given model.
+
+        Args:
+            model: The model instance (optional)
+            model_type: String model type identifier (optional)
+            config: Configuration dict (optional)
+
+        Returns:
+            True if compatible, False otherwise
+
+        Note:
+            All arguments are keyword-only to prevent signature drift.
+            Subclasses must implement this method with the same signature.
+
+        """
+        raise NotImplementedError(f"{cls.__name__} must implement is_compatible classmethod")
+
     def fit(self, wrapper: Any, background_X, feature_names: Sequence[str] | None = None):
         """Fit the explainer with a model wrapper and background data.
 

@@ -53,17 +53,39 @@ class ExplainerRegistryClass(DecoratorFriendlyRegistry):
                 return True
             return False
 
-        # 2) Check class-level override
+        # 2) Check class-level is_compatible method
         try:
             cls = self.get(name)
             if hasattr(cls, "is_compatible"):
-                # Check method signature to see what parameters it accepts
-                sig = inspect.signature(cls.is_compatible)
-                if "model_type" in sig.parameters:
-                    return bool(cls.is_compatible(model_type=model_type, model=model))
-                return bool(cls.is_compatible(model))
-        except (KeyError, ImportError):
-            pass
+                # Try new keyword-only signature first (Phase 2.5 standardization)
+                try:
+                    return bool(cls.is_compatible(model=model, model_type=model_type, config=None))
+                except TypeError as e:
+                    # Handle legacy signatures gracefully
+                    logger.warning(
+                        f"{name}.is_compatible has incompatible signature: {e}. "
+                        f"Please update to: @classmethod is_compatible(cls, *, model=None, model_type=None, config=None)",
+                    )
+
+                    # Try legacy fallback patterns
+                    try:
+                        # Try with just model parameter (old instance method pattern)
+                        sig = inspect.signature(cls.is_compatible)
+                        if "model_type" in sig.parameters:
+                            # Old keyword pattern
+                            return bool(cls.is_compatible(model_type=model_type, model=model))
+                        # Old positional pattern
+                        return bool(cls.is_compatible(model if model is not None else model_type))
+                    except Exception:  # noqa: BLE001
+                        # If all attempts fail, treat as incompatible
+                        logger.error(f"Could not determine compatibility for {name}, treating as incompatible")
+                        return False
+        except (KeyError, ImportError) as e:
+            logger.debug(f"Explainer {name} not available: {e}")
+            return False
+        except Exception as e:  # noqa: BLE001
+            logger.error(f"Error checking compatibility for {name}: {e}")
+            return False
 
         # 3) Default: not compatible (prevents silent fallbacks)
         return False

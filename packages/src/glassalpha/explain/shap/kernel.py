@@ -285,30 +285,48 @@ class KernelSHAPExplainer(ExplainerBase):
         "linear_model",
     }
 
-    def is_compatible(self, model: Any) -> bool:  # noqa: ANN401
+    @classmethod
+    def is_compatible(cls, *, model: Any = None, model_type: str | None = None, config: dict | None = None) -> bool:  # noqa: ANN401, ARG003
         """Check if model is compatible with KernelSHAP explainer.
 
         Args:
-            model: Model or model type string to check
+            model: Model instance (optional)
+            model_type: String model type identifier (optional)
+            config: Configuration dict (optional, unused)
 
         Returns:
             True if model is compatible with KernelSHAP
 
-        """
-        # Contract compliance: KernelSHAP supports both tree and linear models
-        if isinstance(model, str):
-            return str(model).lower() in self.SUPPORTED_MODELS
+        Note:
+            All arguments are keyword-only. KernelSHAP is model-agnostic and works
+            with most model types as a fallback explainer.
 
-        # For model objects, check model type via get_model_info()
-        try:
-            model_info = getattr(model, "get_model_info", dict)()
-            model_type = model_info.get("model_type", "")
-        except Exception:  # noqa: BLE001
-            # Fallback to old method for compatibility
-            logger.debug("Could not get model info, using fallback method")
-            return self.supports_model(model)
-        else:
-            return model_type in self.SUPPORTED_MODELS
+        """
+        # Check model_type string if provided
+        if model_type:
+            return model_type.lower() in cls.SUPPORTED_MODELS
+
+        # Check model object if provided
+        if model is not None:
+            # Handle string model type
+            if isinstance(model, str):
+                return model.lower() in cls.SUPPORTED_MODELS
+
+            # For model objects, check model type via get_model_info()
+            try:
+                model_info = getattr(model, "get_model_info", dict)()
+                extracted_type = model_info.get("model_type", "")
+                if extracted_type:
+                    return extracted_type.lower() in cls.SUPPORTED_MODELS
+            except Exception:  # noqa: BLE001
+                pass
+
+            # Fallback: KernelSHAP is model-agnostic, so return True for unknown models
+            # as it can work with any model that has predict/predict_proba
+            return True
+
+        # If neither provided, return True (KernelSHAP is fallback explainer)
+        return True
 
     def _extract_feature_names(self, x: Any) -> Sequence[str] | None:  # noqa: ANN401
         """Extract feature names from input data."""
