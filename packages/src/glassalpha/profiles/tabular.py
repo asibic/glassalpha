@@ -171,6 +171,7 @@ class TabularComplianceProfile:
             # Update existing report config with defaults
             existing = out["report"]
             existing.setdefault("template", "standard_audit.html")
+            # Don't override output_format if user explicitly set it
             existing.setdefault("output_format", "pdf")
 
         # Reproducibility settings

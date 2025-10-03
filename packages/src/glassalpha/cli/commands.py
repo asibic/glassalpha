@@ -131,11 +131,11 @@ def _bootstrap_components() -> None:
 
 
 def _run_audit_pipeline(config, output_path: Path, selected_explainer: str | None = None) -> None:
-    """Execute the complete audit pipeline and generate PDF report.
+    """Execute the complete audit pipeline and generate report in specified format.
 
     Args:
         config: Validated audit configuration
-        output_path: Path where PDF report should be saved
+        output_path: Path where report should be saved
 
     """
     import time
@@ -143,9 +143,12 @@ def _run_audit_pipeline(config, output_path: Path, selected_explainer: str | Non
 
     # Import here to avoid circular imports and startup overhead
     from ..pipeline.audit import run_audit_pipeline
-    from ..report import PDFConfig, render_audit_pdf
+    from ..report import PDFConfig, render_audit_pdf, render_audit_report
 
     start_time = time.time()
+
+    # Determine output format from config
+    output_format = getattr(config.report, "output_format", "pdf") if hasattr(config, "report") else "pdf"
 
     try:
         # Step 1: Run audit pipeline
@@ -168,54 +171,105 @@ def _run_audit_pipeline(config, output_path: Path, selected_explainer: str | Non
         # Show audit summary
         _display_audit_summary(audit_results)
 
-        # Step 2: Generate PDF report
-        typer.echo(f"\nGenerating PDF report: {output_path}")
+        # Step 2: Generate report in specified format
+        if output_format == "pdf":
+            typer.echo(f"\nGenerating PDF report: {output_path}")
 
-        # Create PDF configuration
-        pdf_config = PDFConfig(
-            page_size="A4",
-            title="ML Model Audit Report",
-            author="GlassAlpha",
-            subject="Machine Learning Model Compliance Assessment",
-            optimize_size=True,
-        )
+            # Create PDF configuration
+            pdf_config = PDFConfig(
+                page_size="A4",
+                title="ML Model Audit Report",
+                author="GlassAlpha",
+                subject="Machine Learning Model Compliance Assessment",
+                optimize_size=True,
+            )
 
-        # Generate PDF
-        pdf_start = time.time()
-        pdf_path = render_audit_pdf(
-            audit_results=audit_results,
-            output_path=output_path,
-            config=pdf_config,
-            report_title=f"ML Model Audit Report - {datetime.now().strftime('%Y-%m-%d')}",
-            generation_date=datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC"),
-        )
+            # Generate PDF
+            pdf_start = time.time()
+            pdf_path = render_audit_pdf(
+                audit_results=audit_results,
+                output_path=output_path,
+                config=pdf_config,
+                report_title=f"ML Model Audit Report - {datetime.now().strftime('%Y-%m-%d')}",
+                generation_date=datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC"),
+            )
 
-        pdf_time = time.time() - pdf_start
-        file_size = pdf_path.stat().st_size
+            pdf_time = time.time() - pdf_start
+            file_size = pdf_path.stat().st_size
 
-        # Generate manifest sidecar if provenance manifest is available
-        manifest_path = None
-        if hasattr(audit_results, "execution_info") and "provenance_manifest" in audit_results.execution_info:
-            from ..provenance import write_manifest_sidecar  # noqa: PLC0415
+            # Generate manifest sidecar if provenance manifest is available
+            manifest_path = None
+            if hasattr(audit_results, "execution_info") and "provenance_manifest" in audit_results.execution_info:
+                from ..provenance import write_manifest_sidecar  # noqa: PLC0415
 
-            try:
-                manifest_path = write_manifest_sidecar(
-                    audit_results.execution_info["provenance_manifest"],
-                    output_path,
-                )
-                typer.echo(_ascii(f"📋 Manifest: {manifest_path}"))
-            except Exception as e:
-                logger.warning(f"Failed to write manifest sidecar: {e}")
+                try:
+                    manifest_path = write_manifest_sidecar(
+                        audit_results.execution_info["provenance_manifest"],
+                        output_path,
+                    )
+                    typer.echo(_ascii(f"📋 Manifest: {manifest_path}"))
+                except Exception as e:
+                    logger.warning(f"Failed to write manifest sidecar: {e}")
 
-        # Success message
-        total_time = time.time() - start_time
-        typer.echo(_ascii("\n🎉 Audit Report Generated Successfully!"))
+            # Success message
+            total_time = time.time() - start_time
+            typer.echo(_ascii("\n🎉 Audit Report Generated Successfully!"))
+
+        elif output_format == "html":
+            typer.echo(f"\nGenerating HTML report: {output_path}")
+
+            # Generate HTML
+            html_start = time.time()
+            html_content = render_audit_report(
+                audit_results=audit_results,
+                output_path=output_path,
+                report_title=f"ML Model Audit Report - {datetime.now().strftime('%Y-%m-%d')}",
+                generation_date=datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC"),
+            )
+
+            html_time = time.time() - html_start
+            file_size = len(html_content.encode("utf-8"))
+
+            # Generate manifest sidecar if provenance manifest is available
+            manifest_path = None
+            if hasattr(audit_results, "execution_info") and "provenance_manifest" in audit_results.execution_info:
+                from ..provenance import write_manifest_sidecar  # noqa: PLC0415
+
+                try:
+                    manifest_path = write_manifest_sidecar(
+                        audit_results.execution_info["provenance_manifest"],
+                        output_path,
+                    )
+                    typer.echo(_ascii(f"📋 Manifest: {manifest_path}"))
+                except Exception as e:
+                    logger.warning(f"Failed to write manifest sidecar: {e}")
+
+            # Success message
+            total_time = time.time() - start_time
+            typer.echo(_ascii("\n🎉 Audit Report Generated Successfully!"))
+
+        else:
+            typer.secho(f"Error: Unsupported output format '{output_format}'", fg=typer.colors.RED, err=True)
+            raise typer.Exit(1)
+
         typer.echo("=" * 50)
-        typer.secho(_ascii(f"📁 Output: {pdf_path}"), fg=typer.colors.GREEN)
-        typer.echo(_ascii(f"📊 Size: {file_size:,} bytes ({file_size / 1024:.1f} KB)"))
-        typer.echo(_ascii(f"⏱️  Total time: {total_time:.2f}s"))
-        typer.echo(_ascii(f"   • Pipeline: {pipeline_time:.2f}s"))
-        typer.echo(_ascii(f"   • PDF generation: {pdf_time:.2f}s"))
+
+        # Show final output information
+        if output_format == "pdf":
+            typer.secho(_ascii(f"📁 Output: {output_path}"), fg=typer.colors.GREEN)
+            typer.echo(_ascii(f"📊 Size: {file_size:,} bytes ({file_size / 1024:.1f} KB)"))
+            typer.echo(_ascii(f"⏱️  Total time: {total_time:.2f}s"))
+            typer.echo(_ascii(f"   • Pipeline: {pipeline_time:.2f}s"))
+            if output_format == "pdf":
+                typer.echo(_ascii(f"   • PDF generation: {pdf_time:.2f}s"))
+        elif output_format == "html":
+            typer.secho(_ascii(f"📁 Output: {output_path}"), fg=typer.colors.GREEN)
+            typer.echo(_ascii(f"📊 Size: {file_size:,} bytes ({file_size / 1024:.1f} KB)"))
+            typer.echo(_ascii(f"⏱️  Total time: {total_time:.2f}s"))
+            typer.echo(_ascii(f"   • Pipeline: {pipeline_time:.2f}s"))
+            typer.echo(_ascii(f"   • HTML generation: {html_time:.2f}s"))
+
+        typer.echo(_ascii("\nThe audit report is ready for review and regulatory submission."))
 
         # Regulatory compliance message
         if config.strict_mode:
@@ -464,7 +518,11 @@ def audit(  # pragma: no cover
             return
 
         # Check PDF dependencies if PDF output requested
-        _ensure_docs_if_pdf(str(output))
+        output_format = (
+            getattr(audit_config.report, "output_format", "pdf") if hasattr(audit_config, "report") else "pdf"
+        )
+        if output_format == "pdf":
+            _ensure_docs_if_pdf(str(output))
 
         # Run audit pipeline
         typer.echo("\nRunning audit pipeline...")
@@ -531,17 +589,19 @@ def doctor():  # pragma: no cover
     has_xgboost = importlib.util.find_spec("xgboost") is not None
     has_lightgbm = importlib.util.find_spec("lightgbm") is not None
     has_matplotlib = importlib.util.find_spec("matplotlib") is not None
-    
+
     # PDF backend check
     has_pdf_backend = False
     pdf_backend_name = None
     try:
         import weasyprint  # noqa: F401
+
         has_pdf_backend = True
         pdf_backend_name = "weasyprint"
     except ImportError:
         try:
             import reportlab  # noqa: F401
+
             has_pdf_backend = True
             pdf_backend_name = "reportlab"
         except ImportError:
@@ -556,9 +616,12 @@ def doctor():  # pragma: no cover
         typer.echo("  SHAP + tree models: ❌ not installed")
         # Show what's partially there if any
         installed_parts = []
-        if has_shap: installed_parts.append("SHAP")
-        if has_xgboost: installed_parts.append("XGBoost")
-        if has_lightgbm: installed_parts.append("LightGBM")
+        if has_shap:
+            installed_parts.append("SHAP")
+        if has_xgboost:
+            installed_parts.append("XGBoost")
+        if has_lightgbm:
+            installed_parts.append("LightGBM")
         if installed_parts:
             typer.echo(f"    (partially installed: {', '.join(installed_parts)})")
 
@@ -584,7 +647,7 @@ def doctor():  # pragma: no cover
     typer.echo("-" * 20)
 
     missing_features = []
-    
+
     # Check what's missing
     if not has_all_explain:
         missing_features.append("SHAP + tree models")
@@ -600,23 +663,23 @@ def doctor():  # pragma: no cover
     else:
         typer.echo("  Missing features:")
         typer.echo()
-        
+
         # Show specific install commands for what's missing
         if not has_all_explain:
             typer.echo("  📦 For SHAP + tree models (XGBoost, LightGBM):")
             typer.echo("     pip install 'glassalpha[explain]'")
             typer.echo()
-        
+
         if not has_pdf_backend:
             typer.echo("  📄 For PDF reports:")
             typer.echo("     pip install 'glassalpha[docs]'")
             typer.echo()
-        
+
         if not has_matplotlib:
             typer.echo("  📊 For enhanced plots:")
             typer.echo("     pip install 'glassalpha[viz]'")
             typer.echo()
-        
+
         # Show quick install if multiple things missing
         if len(missing_features) > 1:
             typer.echo("  💡 Or install everything at once:")
