@@ -141,6 +141,9 @@ jobs:
 
       # Run tests with coverage collection
       - name: Run tests with coverage
+        env:
+          MPLBACKEND: Agg
+          TQDM_DISABLE: "1"
         run: |
           # Install test dependencies
           pip install numpy pandas scikit-learn pyyaml

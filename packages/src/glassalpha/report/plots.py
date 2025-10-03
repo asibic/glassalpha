@@ -6,9 +6,32 @@ metrics, and drift detection suitable for regulatory reporting.
 """
 
 import logging
+import os
+import sys
 import warnings
 from pathlib import Path
 from typing import Any
+
+
+# Guard against GUI backends in headless environments
+def _ensure_headless_backend():
+    """Ensure matplotlib uses a headless backend for CI/tests."""
+    # Respect an explicit user setting if provided
+    if os.environ.get("MPLBACKEND"):
+        return
+    # On macOS, the default Cocoa backend will crash in non-GUI contexts
+    if sys.platform == "darwin":
+        import matplotlib
+
+        matplotlib.use("Agg", force=True)
+    # On Linux CI without DISPLAY, use Agg
+    if sys.platform.startswith("linux") and not os.environ.get("DISPLAY"):
+        import matplotlib
+
+        matplotlib.use("Agg", force=True)
+
+
+_ensure_headless_backend()
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -92,7 +115,7 @@ class AuditPlotter:
                 "grid.alpha": 0.7,
                 # Ensure deterministic behavior
                 "figure.max_open_warning": 0,
-            }
+            },
         )
 
         # Set color cycle
@@ -157,7 +180,10 @@ class AuditPlotter:
         return fig
 
     def create_shap_summary_plot(
-        self, shap_values: np.ndarray | None, feature_names: list[str], title: str = "SHAP Summary Plot"
+        self,
+        shap_values: np.ndarray | None,
+        feature_names: list[str],
+        title: str = "SHAP Summary Plot",
     ) -> Figure:
         """Create SHAP summary plot showing feature impact distribution.
 
@@ -306,7 +332,9 @@ class AuditPlotter:
         return fig
 
     def create_performance_metrics_summary(
-        self, metrics: dict[str, float | dict[str, Any]], title: str = "Model Performance Summary"
+        self,
+        metrics: dict[str, float | dict[str, Any]],
+        title: str = "Model Performance Summary",
     ) -> Figure:
         """Create performance metrics summary visualization.
 
@@ -376,7 +404,9 @@ class AuditPlotter:
         return fig
 
     def create_fairness_analysis(
-        self, fairness_results: dict[str, dict[str, Any]], title: str = "Fairness Analysis"
+        self,
+        fairness_results: dict[str, dict[str, Any]],
+        title: str = "Fairness Analysis",
     ) -> Figure:
         """Create comprehensive fairness analysis visualization.
 
@@ -517,7 +547,12 @@ class AuditPlotter:
 
         # Plot diagonal reference line
         ax.plot(
-            [0, 1], [0, 1], color=PROFESSIONAL_COLORS["neutral"], linestyle="--", linewidth=1, label="Random Classifier"
+            [0, 1],
+            [0, 1],
+            color=PROFESSIONAL_COLORS["neutral"],
+            linestyle="--",
+            linewidth=1,
+            label="Random Classifier",
         )
 
         # Customize plot
@@ -533,7 +568,11 @@ class AuditPlotter:
         return fig
 
     def create_feature_distribution(
-        self, data: pd.DataFrame, feature: str, target: str | None = None, title: str | None = None
+        self,
+        data: pd.DataFrame,
+        feature: str,
+        target: str | None = None,
+        title: str | None = None,
     ) -> Figure:
         """Create feature distribution plot.
 
@@ -580,13 +619,12 @@ class AuditPlotter:
                         color=FAIRNESS_COLORS[i % len(FAIRNESS_COLORS)],
                     )
             ax.legend()
+        # Single distribution
+        elif data[feature].dtype in ["object", "category"]:
+            counts = data[feature].value_counts()
+            ax.bar(counts.index, counts.values, color=PROFESSIONAL_COLORS["secondary"], alpha=0.8)
         else:
-            # Single distribution
-            if data[feature].dtype in ["object", "category"]:
-                counts = data[feature].value_counts()
-                ax.bar(counts.index, counts.values, color=PROFESSIONAL_COLORS["secondary"], alpha=0.8)
-            else:
-                ax.hist(data[feature].dropna(), bins=20, color=PROFESSIONAL_COLORS["secondary"], alpha=0.8)
+            ax.hist(data[feature].dropna(), bins=20, color=PROFESSIONAL_COLORS["secondary"], alpha=0.8)
 
         ax.set_xlabel(self._format_feature_name(feature), fontweight="bold")
         ax.set_ylabel("Count", fontweight="bold")
@@ -671,7 +709,11 @@ class AuditPlotter:
         # Create pie chart
         colors = [PROFESSIONAL_COLORS["success"], PROFESSIONAL_COLORS["error"]]
         wedges, texts, autotexts = ax.pie(
-            bias_counts.values(), labels=bias_counts.keys(), colors=colors, autopct="%1.0f%%", startangle=90
+            bias_counts.values(),
+            labels=bias_counts.keys(),
+            colors=colors,
+            autopct="%1.0f%%",
+            startangle=90,
         )
 
         ax.set_title(f"Bias Detection: {attr_name}", fontweight="bold")
@@ -752,7 +794,9 @@ class AuditPlotter:
 
 # Convenience functions for common plot types
 def create_shap_plots(
-    explanations: dict[str, Any], feature_names: list[str], style: str = "professional"
+    explanations: dict[str, Any],
+    feature_names: list[str],
+    style: str = "professional",
 ) -> dict[str, Figure]:
     """Create comprehensive SHAP visualization suite.
 
@@ -829,7 +873,8 @@ def create_performance_plots(
 
 
 def create_fairness_plots(
-    fairness_results: dict[str, dict[str, Any]], style: str = "professional"
+    fairness_results: dict[str, dict[str, Any]],
+    style: str = "professional",
 ) -> dict[str, Figure]:
     """Create fairness analysis visualization suite.
 
@@ -851,7 +896,10 @@ def create_fairness_plots(
 
 
 def plot_drift_analysis(
-    reference_data: pd.DataFrame, current_data: pd.DataFrame, features: list[str], style: str = "professional"
+    reference_data: pd.DataFrame,
+    current_data: pd.DataFrame,
+    features: list[str],
+    style: str = "professional",
 ) -> dict[str, Figure]:
     """Create drift analysis visualization suite.
 
