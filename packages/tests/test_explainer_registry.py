@@ -136,12 +136,12 @@ class TestExplainerCompatibility:
             kernel_explainer = KernelSHAPExplainer()
 
             # For tree model, TreeSHAP should be compatible
-            assert tree_explainer.is_compatible("xgboost") is True
-            assert kernel_explainer.is_compatible("xgboost") is True
+            assert tree_explainer.is_compatible(model_type="xgboost") is True
+            assert kernel_explainer.is_compatible(model_type="xgboost") is True
 
             # For linear model, only KernelSHAP should be compatible
-            assert tree_explainer.is_compatible("logistic_regression") is False
-            assert kernel_explainer.is_compatible("logistic_regression") is True
+            assert tree_explainer.is_compatible(model_type="logistic_regression") is False
+            assert kernel_explainer.is_compatible(model_type="logistic_regression") is True
 
         except (ImportError, AttributeError):
             # Expected if SHAP not available
