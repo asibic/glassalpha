@@ -48,7 +48,7 @@ viz = ["matplotlib>=3.9", "seaborn>=0.13"]
 
 # PDF generation dependencies (jinja2 is now in core)
 docs = [
-    "weasyprint>=63; platform_system!='Windows'",
+    "weasyprint>=63,<64; platform_system!='Windows'",
     "reportlab>=4.1; platform_system=='Windows'",
 ]
 

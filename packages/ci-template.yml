@@ -31,8 +31,10 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          # OpenMP for xgboost at runtime, cairo/pango for HTML→PDF if you add WeasyPrint later
-          sudo apt-get install -y libgomp1 libcairo2 pango1.0-tools fonts-dejavu-core
+          # OpenMP for xgboost at runtime
+          # WeasyPrint dependencies: cairo, pango, gdk-pixbuf, libffi
+          # Fonts for consistent PDF rendering
+          sudo apt-get install -y libgomp1 libcairo2 pango1.0-tools libgdk-pixbuf2.0-0 libffi-dev fonts-dejavu-core
 
       - name: Pin pip tooling to constraints
         working-directory: packages
