@@ -35,3 +35,4 @@ typing-inspection==0.4.2
 joblib==1.5.2
 threadpoolctl==3.6.0
 rich==13.9.4
+weasyprint==63.3
