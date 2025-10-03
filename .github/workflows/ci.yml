@@ -73,7 +73,7 @@ jobs:
           cd packages
           echo "=== Install compatible dependency stack using constraints.txt ==="
           python -m pip install -c constraints.txt --upgrade pip setuptools wheel build
-          python -m pip install -c constraints.txt -e ".[tabular,dev]"
+          python -m pip install -c constraints.txt -e ".[all,dev]"
 
       - name: Build wheel and install (no editable)
         working-directory: packages
