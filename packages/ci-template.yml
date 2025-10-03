@@ -1,7 +1,7 @@
-# CI Template - Wheel-first approach to prevent thrashing
+# CI Template - Robust cross-platform testing with constraint files
 # Copy this to .github/workflows/ci.yml when ready to add CI
 
-name: CI - Wheel First
+name: CI - Cross Platform
 
 on:
   push:
@@ -10,53 +10,70 @@ on:
     branches: [main]
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
+  tests:
     strategy:
       matrix:
-        python-version: ["3.11", "3.12", "3.13"]
-        dependencies: ["core", "full"]
-
+        os: [ubuntu-latest, macos-14]
+        python-version: ["3.11", "3.12"]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
+
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+          cache: "pip"
+          cache-dependency-path: |
+            packages/pyproject.toml
+            packages/constraints/constraints-${{ runner.os }}-py${{ matrix.python-version }}.txt
 
-      # Download coverage baseline for trend checking
-      - name: Download coverage baseline
-        uses: actions/download-artifact@v4
-        with:
-          name: coverage-baseline
-          path: packages/.ci/
-        continue-on-error: true
-
-      # CRITICAL: Install build tools first
-      - name: Install build dependencies
+      - name: Install OS deps (Linux only)
+        if: runner.os == 'Linux'
         run: |
-          python -m pip install --upgrade pip
-          pip install build pytest pytest-cov pytest-mock
+          sudo apt-get update
+          # OpenMP for xgboost at runtime, cairo/pango for HTML→PDF if you add WeasyPrint later
+          sudo apt-get install -y libgomp1 libcairo2 pango1.0-tools fonts-dejavu-core
 
-      # CRITICAL: Always build wheel first (like local development)
-      - name: Build wheel
-        run: python -m build
+      - name: Pin pip tooling to constraints
         working-directory: packages
-
-      # Install based on dependency matrix
-      - name: Install from wheel (core dependencies only)
-        if: matrix.dependencies == 'core'
+        env:
+          PIP_DISABLE_PIP_VERSION_CHECK: "1"
+          PIP_PREFER_BINARY: "1"
         run: |
-          pip install --force-reinstall dist/*.whl
-        working-directory: packages
+          pip install -r constraints/tooling-${{ runner.os }}-py${{ matrix.python-version }}.txt
 
-      - name: Install from wheel (with optional dependencies)
-        if: matrix.dependencies == 'full'
-        run: |
-          pip install --force-reinstall dist/*.whl
-          # Install optional dependencies for comprehensive testing
-          pip install xgboost lightgbm shap
+      - name: Install project with constraints
         working-directory: packages
+        env:
+          PIP_DISABLE_PIP_VERSION_CHECK: "1"
+          PIP_PREFER_BINARY: "1"
+        run: |
+          pip install -e ".[all]" -c constraints/constraints-${{ runner.os }}-py${{ matrix.python-version }}.txt
+          pip check
+          python -c "import numpy,scipy,pandas,sklearn; print('OK wheels:', numpy.__version__, scipy.__version__, pandas.__version__, sklearn.__version__)"
+
+      - name: Enforce wheel-only for heavy deps
+        working-directory: packages
+        run: |
+          pip install --only-binary=:all: \
+            numpy scipy pandas scikit-learn shap xgboost lightgbm matplotlib seaborn \
+            -c constraints/constraints-${{ runner.os }}-py${{ matrix.python-version }}.txt
+
+      - name: Runtime smoke
+        working-directory: packages
+        run: |
+          python - <<'PY'
+          import xgboost, lightgbm, shap
+          import numpy as np, pandas as pd
+          print("xgboost:", xgboost.__version__)
+          print("lightgbm:", lightgbm.__version__)
+          print("shap:", shap.__version__)
+          PY
+
+      - name: Diagnose wheel vs source builds
+        working-directory: packages
+        run: |
+          python diagnose_wheels.py
 
       # Optional: Enable packaging assertion in CI
       - name: Verify packaging
