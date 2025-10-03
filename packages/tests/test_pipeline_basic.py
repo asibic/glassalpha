@@ -153,12 +153,20 @@ class TestAuditPipelineComponentSelection:
     """Test component selection logic."""
 
     def test_select_explainer_basic(self, minimal_config):
-        """Test explainer selection method exists."""
+        """Test explainer selection error handling when explainer unavailable."""
         pipeline = AuditPipeline(minimal_config)
-        pipeline.model = Mock()  # Mock model
+        pipeline.model = Mock()
 
-        # Test that method raises error when no compatible explainer
-        with pytest.raises(RuntimeError, match="No compatible explainer found"):
+        # Request an explainer that doesn't exist in the registry
+        # This tests the error path when user specifies unavailable explainer
+        pipeline.config.explainers = ExplainerConfig(
+            strategy="first_compatible",
+            priority=["nonexistent_explainer_xyz_123"],  # Guaranteed to not exist
+        )
+
+        # Should raise RuntimeError when explainer is not available
+        # Note: Error message may be either from direct selection or legacy fallback
+        with pytest.raises(RuntimeError, match="No (explainer from.*is available|compatible explainer found)"):
             pipeline._select_explainer()
 
 
