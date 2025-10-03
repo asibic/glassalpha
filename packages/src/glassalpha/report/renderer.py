@@ -215,7 +215,6 @@ class AuditReportRenderer:
                 "report_title": "Machine Learning Model Audit Report",
                 "generation_date": datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S UTC"),
                 "version": "1.0.0",
-                "contact_email": "audit-support@example.com",
             },
         )
 
