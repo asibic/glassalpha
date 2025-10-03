@@ -201,6 +201,7 @@ addopts = [
 ]
 markers = [
     "requires_xgboost: tests that need XGBoost runtime (can be skipped on incompatible environments)",
+    "slow: tests that take longer than usual (e.g. full audits, can be skipped with -m 'not slow')",
 ]
 testpaths = ["tests"]
 

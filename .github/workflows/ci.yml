@@ -214,6 +214,15 @@ jobs:
           export MPLBACKEND=Agg
           env PYTHONPATH="" python -m pytest tests/contracts/ -v --tb=short || echo "Contract tests not found, skipping"
 
+      - name: Run performance regression tests
+        working-directory: packages
+        run: |
+          echo "=== Run performance regression tests (CLI speed + audit smoke test) ==="
+          export MPLBACKEND=Agg
+          env PYTHONPATH="" python -m pytest tests/test_cli_performance.py tests/test_explainer_registry_contract.py tests/test_audit_smoke.py \
+              -v --tb=short
+          echo "✅ Performance tests passed"
+
       - name: Run tests with coverage (wheel-first)
         working-directory: packages
         run: |

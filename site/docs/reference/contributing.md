@@ -169,6 +169,84 @@ def test_xgboost_wrapper_deterministic():
     np.testing.assert_array_equal(pred1, pred2)
 ```
 
+### Performance testing
+
+CLI performance is critical for user experience. We maintain automated performance regression tests.
+
+**Performance Expectations:**
+
+| Command                    | Target | Current Baseline |
+| -------------------------- | ------ | ---------------- |
+| `glassalpha --help`        | <300ms | ~108ms           |
+| `glassalpha --version`     | <100ms | ~46ms            |
+| `glassalpha datasets list` | <500ms | ~248ms           |
+| Full audit (german_credit) | <60s   | ~5s              |
+
+**Run Performance Tests:**
+
+```bash
+# Run all performance tests
+pytest tests/test_cli_performance.py -v
+
+# Skip slow tests during rapid iteration
+pytest -m "not slow" -v
+
+# Test specific performance aspects
+pytest tests/test_cli_performance.py::TestCLIPerformance::test_help_command_fast -v
+```
+
+**Performance Test Categories:**
+
+1. **CLI Speed Tests** - Ensure commands stay responsive
+2. **Import Cleanness Tests** - Verify no heavy imports at module level
+3. **Audit Smoke Tests** - Validate end-to-end audit completion
+
+**Maintaining Performance:**
+
+When adding new features, follow lazy loading patterns:
+
+```python
+# ❌ BAD: Eager import at module level
+from sklearn.model_selection import train_test_split
+
+def split_data(data):
+    return train_test_split(data)
+
+# ✅ GOOD: Lazy import within function
+def split_data(data):
+    from sklearn.model_selection import train_test_split
+    return train_test_split(data)
+
+# ✅ GOOD: __getattr__ pattern for backward compatibility
+def __getattr__(name):
+    if name == "load_german_credit":
+        from .german_credit import load_german_credit
+        return load_german_credit
+    raise AttributeError(f"module has no attribute {name!r}")
+```
+
+**Check for Regressions:**
+
+If your changes affect CLI startup or command performance:
+
+```bash
+# Measure CLI help time
+time glassalpha --help
+
+# Profile import time
+python -X importtime -c "import glassalpha.__main__" 2> importtime.txt
+cat importtime.txt
+
+# Run full performance suite
+pytest tests/test_cli_performance.py -v -s
+```
+
+Performance tests run automatically in CI and will fail if:
+
+- `--help` exceeds 300ms (currently 108ms with 3x safety margin)
+- Heavy ML libraries (pandas, sklearn, xgboost) load during `--help`
+- Full audits take longer than 60s
+
 ## Contribution workflow
 
 ### 1. Choose contribution type
