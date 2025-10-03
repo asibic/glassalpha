@@ -10,7 +10,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-import weasyprint
 from weasyprint import CSS, HTML
 
 from ...pipeline.audit import AuditResults
@@ -119,10 +118,9 @@ class AuditPDFRenderer:
                 pdf_version="1.4",  # Good compatibility
                 pdf_identifier=False,  # Deterministic output
                 pdf_variant="pdf/a-1b" if self.config.optimize_size else None,
-                optimize_size=self.config.optimize_size,
                 presentational_hints=True,
-                font_config=None,  # Use system fonts
-                counter_style=weasyprint.css.get_all_computed_styles,
+                optimize_images=self.config.optimize_size,
+                jpeg_quality=self.config.image_quality,
             )
 
             # Set PDF metadata
@@ -448,7 +446,8 @@ class AuditPDFRenderer:
                 target=str(output_path),
                 pdf_version="1.4",
                 pdf_identifier=False,
-                optimize_size=self.config.optimize_size,
+                optimize_images=self.config.optimize_size,
+                jpeg_quality=self.config.image_quality,
             )
 
             # Set metadata
