@@ -22,23 +22,16 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
 ]
 dependencies = [
-    # Core framework
+    # Core framework - minimal dependencies for basic functionality
     "typer>=0.9.0",          # CLI framework with command groups
     "pydantic>=2.5.0",       # Config validation and schemas
     "pyyaml>=6.0",           # YAML config parsing
 
-    # Scientific stack - NumPy 2.x for Python 3.13+ support
-    # Use constraints.txt for exact reproducible versions
+    # Scientific stack - minimal for basic model support
     "numpy>=2.1",            # First version with Python 3.13 wheels
     "pandas>=2.2.3",         # Python 3.13 support
     "scipy>=1.15",           # First version with Python 3.13 wheels
-    "scikit-learn>=1.5",     # NumPy 2.x compatible
-
-    # Report generation
-    "jinja2>=3.1.0",         # Template engine for reports
-    "weasyprint>=60.0",      # PDF generation
-    "matplotlib>=3.8",       # NumPy 2.x compatible
-    "seaborn>=0.13.0",       # NumPy 2.x compatible
+    "scikit-learn>=1.5",     # NumPy 2.x compatible, provides LogisticRegression for base install
 
     # Utilities
     "orjson>=3.9.0",         # Fast JSON serialization
@@ -46,30 +39,19 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# Core dependencies - always available
-core = [
-    "scikit-learn>=1.5",     # Baseline model for audits that always work
-]
+# SHAP explainers - enables KernelSHAP and TreeSHAP
+explain = ["shap>=0.44"]
 
-# Heavy ML libraries - optional for advanced users
-xgboost = ["xgboost>=2.1"]
-lightgbm = ["lightgbm>=4.5"]
-shap = ["shap>=0.45"]
-fairness = ["fairlearn>=0.10"]
+# Tree models - XGBoost and LightGBM support
+trees = ["xgboost>=2.0", "lightgbm>=4.0"]
 
-# Bundles for convenience
-tabular = [
-    "xgboost>=2.1",
-    "lightgbm>=4.5",
-    "shap>=0.45",
-]
-all = [
-    "xgboost>=2.1",
-    "lightgbm>=4.5",
-    "shap>=0.45",
-    "reportlab>=4.0",
-    "weasyprint>=62",
-]
+# Plotting and visualization dependencies
+plots = ["matplotlib>=3.9"]
+
+# PDF generation and documentation dependencies
+docs = ["jinja2>=3.1", "weasyprint>=62"]
+
+# Development dependencies
 dev = [
     "pytest>=8.0",
     "pytest-cov>=4.1",
@@ -79,11 +61,9 @@ dev = [
     "black>=23.0",
     "pre-commit>=3.5",
 ]
-docs = [
-    "mkdocs>=1.5",
-    "mkdocs-material>=9.4",
-    "mkdocstrings[python]>=0.24",
-]
+
+# Everything - all optional features
+all = ["glassalpha[explain,trees,plots,docs]"]
 # Enterprise dependencies (not included in OSS)
 # These would be in glassalpha-enterprise package
 # enterprise = [...]

@@ -28,14 +28,6 @@ model:
     learning_rate: 0.1
     max_depth: 3
 
-explainers:
-  strategy: first_compatible
-  priority:
-    - treeshap
-  config:
-    treeshap:
-      max_samples: 100
-
 metrics:
   performance:
     metrics:

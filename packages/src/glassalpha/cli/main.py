@@ -26,10 +26,10 @@ app = typer.Typer(
     no_args_is_help=True,
     pretty_exceptions_enable=True,
     epilog="""Installation Options:
-  Base install (LogisticRegression only): pip install glassalpha
-  XGBoost support: pip install 'glassalpha[xgboost]'
-  LightGBM support: pip install 'glassalpha[lightgbm]'
-  All ML libraries: pip install 'glassalpha[tabular]'
+  Minimal install: pip install glassalpha                    # LogisticRegression + basic explainers
+  SHAP explainers: pip install 'glassalpha[explain]'        # Enables KernelSHAP + TreeSHAP
+  Tree models: pip install 'glassalpha[trees]'              # XGBoost + LightGBM support
+  Everything: pip install 'glassalpha[all]'                 # All optional features
 
 For more information, visit: https://glassalpha.com""",
 )
@@ -105,12 +105,13 @@ app.add_typer(dashboard_app, name="dashboard")
 app.add_typer(monitor_app, name="monitor")
 
 # Import and register commands
-from .commands import audit, list_components_cmd, validate
+from .commands import audit, doctor, list_components_cmd, validate
 
 # Register main commands
 app.command()(audit)
 app.command("validate")(validate)
 app.command("list", help="List available components")(list_components_cmd)
+app.command("doctor", help="Check environment and optional features")(doctor)
 
 # Register datasets commands with lazy loading (Phase 2 performance optimization)
 # These import the datasets module only when the command is actually invoked,
@@ -228,12 +229,14 @@ def models():
 
         typer.echo(f"  {status} {model}{extra_info}")
 
-    typer.echo()
-    typer.echo("Installation Options:")
-    typer.echo("  Base install (LogisticRegression only): pip install glassalpha")
-    typer.echo("  XGBoost support: pip install 'glassalpha[xgboost]'")
-    typer.echo("  LightGBM support: pip install 'glassalpha[lightgbm]'")
-    typer.echo("  All ML libraries: pip install 'glassalpha[tabular]'")
+        typer.echo()
+        typer.echo("Installation Options:")
+        typer.echo(
+            "  Minimal install: pip install glassalpha                    # LogisticRegression + basic explainers"
+        )
+        typer.echo("  SHAP explainers: pip install 'glassalpha[explain]'        # Enables KernelSHAP + TreeSHAP")
+        typer.echo("  Tree models: pip install 'glassalpha[trees]'              # XGBoost + LightGBM support")
+        typer.echo("  Everything: pip install 'glassalpha[all]'                 # All optional features")
 
 
 if __name__ == "__main__":  # pragma: no cover

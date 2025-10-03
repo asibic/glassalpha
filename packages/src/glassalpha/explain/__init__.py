@@ -1,5 +1,7 @@
 """Explainer modules for GlassAlpha."""
 
+# Import coefficients explainer (no dependencies)
+from . import coefficients  # noqa: F401
 from .base import ExplainerBase
 from .noop import NoOpExplainer
 from .registry import ExplainerRegistry

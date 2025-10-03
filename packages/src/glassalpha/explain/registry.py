@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import importlib.util
 import inspect
 import logging
 
@@ -9,6 +10,74 @@ from glassalpha.constants import NO_EXPLAINER_MSG
 from glassalpha.core.decor_registry import DecoratorFriendlyRegistry
 
 logger = logging.getLogger(__name__)
+
+
+def _has(mod: str) -> bool:
+    """Check if a module is available."""
+    return importlib.util.find_spec(mod) is not None
+
+
+# Explainer requirements mapping
+REQUIRES = {
+    "kernelshap": ["shap"],
+    "treeshap": ["shap"],
+    "coefficients": [],  # No external dependencies
+    "permutation": [],  # No external dependencies
+}
+
+
+def is_available(name: str) -> bool:
+    """Check if an explainer's dependencies are available."""
+    # If explainer is not in REQUIRES mapping, it's not a valid explainer
+    if name not in REQUIRES:
+        return False
+    return all(_has(m) for m in REQUIRES.get(name, []))
+
+
+def select_explainer(model_type: str, requested_priority: list[str] | None = None) -> str:
+    """Select the best available explainer for a model type.
+
+    Args:
+        model_type: Type of model (e.g., 'xgboost', 'logistic_regression')
+        requested_priority: Optional explicit priority list from config
+
+    Returns:
+        Name of selected explainer
+
+    Raises:
+        RuntimeError: If no suitable explainer is available
+
+    """
+    # If user provided explicit priority, try that first
+    if requested_priority:
+        for candidate in requested_priority:
+            if is_available(candidate):
+                return candidate
+        raise RuntimeError(
+            f"No explainer from {requested_priority} is available. "
+            "Try installing optional deps, for example: pip install 'glassalpha[explain]'",
+        )
+
+    # Smart defaults based on model type
+    model_type = model_type.lower()
+
+    # Linear models - prefer fast, deterministic explainers
+    if model_type in {"logistic_regression", "linear_regression", "linear_svc"}:
+        candidates = ["coefficients", "permutation", "kernelshap"]
+    # Tree models - prefer TreeSHAP if available
+    elif model_type in {"xgboost", "lightgbm", "random_forest", "extra_trees"}:
+        candidates = ["treeshap", "permutation", "kernelshap"]
+    # Other models - permutation first, SHAP as fallback
+    else:
+        candidates = ["permutation", "kernelshap"]
+
+    # Try each candidate in order
+    for candidate in candidates:
+        if is_available(candidate):
+            return candidate
+
+    # Last resort - should not happen
+    raise RuntimeError("No suitable explainer found. This is a bug.")
 
 
 # Priority order for explainer selection (TreeSHAP preferred for tree models)
@@ -104,9 +173,60 @@ class ExplainerRegistryClass(DecoratorFriendlyRegistry):
             RuntimeError: If no compatible explainer found
 
         """
+        # Extract model type
+        if isinstance(model, str):
+            model_type = model.lower()
+        else:
+            info = getattr(model, "get_model_info", dict)() or {}
+            model_type = (
+                info.get("type")
+                or info.get("model_type")
+                or getattr(model, "type", None)
+                or model.__class__.__name__.lower()
+            )
+
+        # Get priority list from config
+        priority_list = ((config or {}).get("explainers") or {}).get("priority")
+
+        # Use new smart selection logic
+        try:
+            selected = select_explainer(model_type, priority_list)
+
+            # Log the selection with reason
+            if priority_list:
+                logger.info(f"Explainer: {selected} (reason: user-specified priority)")
+            else:
+                # Determine reason for selection
+                reason = "default selection"
+                if model_type in {"logistic_regression", "linear_regression", "linear_svc"}:
+                    reason = "linear model, fast explainers preferred"
+                elif model_type in {"xgboost", "lightgbm", "random_forest", "extra_trees"}:
+                    reason = "tree model, TreeSHAP preferred if available"
+                else:
+                    reason = "fallback explainers"
+
+                if selected == "coefficients":
+                    reason += ", linear model coefficients"
+                elif selected == "treeshap" or selected == "kernelshap":
+                    reason += ", SHAP detected"
+                elif selected == "permutation":
+                    reason += ", SHAP not installed"
+
+                logger.info(f"Explainer: {selected} (reason: {reason})")
+
+            return selected
+
+        except RuntimeError as e:
+            # If new logic fails, fall back to old logic for compatibility
+            logger.warning(f"New explainer selection failed: {e}, falling back to legacy logic")
+            return self._find_compatible_legacy(model, config)
+
+    def _find_compatible_legacy(self, model, config: dict | None = None) -> str:
+        """Legacy explainer selection logic for fallback compatibility."""
         # Debug: check which registry instance this is
-        logger.debug(f"find_compatible called on registry with id: {id(self)}")
+        logger.debug(f"_find_compatible_legacy called on registry with id: {id(self)}")
         logger.debug(f"Available explainers: {self.names()}")
+
         # Extract model type
         if isinstance(model, str):
             model_type = model.lower()
@@ -308,4 +428,10 @@ class ExplainerRegistryCompat:
 
 
 # Export both the real registry and the compat class for backward compatibility
-__all__ = ["ExplainerRegistry", "ExplainerRegistryCompat"]
+__all__ = [
+    "REQUIRES",
+    "ExplainerRegistry",
+    "ExplainerRegistryCompat",
+    "is_available",
+    "select_explainer",
+]

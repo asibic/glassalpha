@@ -88,24 +88,38 @@ packages/
 - **Storage**: 1GB free space for datasets and reports
 - **Network**: Required for initial dataset downloads (unless using `--offline` mode)
 
-### Quick installation
+### Installation
 
-Clone the repository
+GlassAlpha uses optional dependencies to keep the base install lightweight while providing advanced features when needed.
+
+#### Install paths
+
+| Goal                | Command                             | Notes                           |
+| ------------------- | ----------------------------------- | ------------------------------- |
+| Minimal quickstart  | `pip install glassalpha`            | Runs linear demo out of the box |
+| Add SHAP explainers | `pip install 'glassalpha[explain]'` | Enables KernelSHAP and TreeSHAP |
+| Tree models too     | `pip install 'glassalpha[trees]'`   | XGBoost and LightGBM support    |
+| Everything          | `pip install 'glassalpha[all]'`     | All optional features           |
+
+#### Quick installation
+
+Clone the repository:
 
 ```bash
 git clone https://github.com/GlassAlpha/glassalpha
 cd glassalpha/packages
 ```
 
-Install base framework only (lightweight, includes LogisticRegression)
+Install base framework (lightweight, includes LogisticRegression baseline):
 
 ```bash
 pip install -e .
 
-# Or install with advanced ML libraries
-pip install -e ".[xgboost]"      # XGBoost + SHAP only
-pip install -e ".[lightgbm]"     # LightGBM only
-pip install -e ".[tabular]"      # All tabular ML libraries
+# Add optional features as needed
+pip install -e ".[explain]"      # SHAP explainers (KernelSHAP, TreeSHAP)
+pip install -e ".[trees]"        # XGBoost + LightGBM models
+pip install -e ".[plots]"        # Matplotlib for enhanced plots
+pip install -e ".[docs]"         # WeasyPrint for PDF generation
 ```
 
 ### Development installation
@@ -234,6 +248,40 @@ explainers:
 
 reproducibility:
   random_seed: 42
+```
+
+#### Explainers
+
+GlassAlpha automatically selects the best available explainer based on your model type and installed dependencies:
+
+| Model family       | Default order                       | Why                                                       |
+| ------------------ | ----------------------------------- | --------------------------------------------------------- |
+| Linear or logistic | coef → permutation → kernelshap     | Fast, deterministic, no heavy deps. SHAP only if present. |
+| Tree ensembles     | treeshap → permutation → kernelshap | Use TreeSHAP if SHAP is installed.                        |
+| Other black box    | permutation → kernelshap            | Always works. SHAP optional.                              |
+
+**When to use SHAP vs permutation:**
+
+- **Use permutation** (default): Faster, works with any model, no SHAP dependency
+- **Use SHAP** (install with `glassalpha[explain]`): More accurate for tree models, but requires SHAP library (~50MB)
+
+The explainer selection is logged with reasoning:
+
+```
+Explainer: coef (reason: linear model, SHAP not installed)
+Explainer: treeshap (reason: tree model, SHAP detected)
+```
+
+Override selection in config:
+
+```yaml
+explainers:
+  priority:
+    - treeshap
+    - permutation
+  params:
+    treeshap:
+      max_samples: 100
 ```
 
 ### Data sources

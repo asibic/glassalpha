@@ -18,6 +18,12 @@ import typer
 logger = logging.getLogger(__name__)
 
 
+def print_banner(title: str = "GlassAlpha Audit Generation") -> None:
+    """Print a standardized banner for CLI commands."""
+    typer.echo(title)
+    typer.echo("=" * 40)
+
+
 def _ascii(s: str) -> str:
     """Convert Unicode characters to ASCII equivalents for CLI compatibility."""
     return (
@@ -358,8 +364,7 @@ def audit(  # pragma: no cover
         # Bootstrap basic components before any preflight checks
         _bootstrap_components()
 
-        typer.echo("GlassAlpha Audit Generation")
-        typer.echo(f"{'=' * 40}")
+        print_banner()
 
         # Preflight checks - ensure dependencies are available
         if not preflight_check_dependencies():
@@ -445,6 +450,96 @@ def audit(  # pragma: no cover
         typer.secho(f"Audit failed: {e}", fg=typer.colors.RED, err=True)
         # CLI design: Hide Python internals from users (verbose mode shows full details)
         raise typer.Exit(1) from None
+
+
+def doctor():  # pragma: no cover
+    """Check environment and optional features.
+
+    This command diagnoses the current environment and shows what optional
+    features are available and how to enable them.
+
+    Examples:
+        # Basic environment check
+        glassalpha doctor
+
+        # Verbose output
+        glassalpha doctor --verbose
+
+    """
+    import importlib.util
+    import platform
+    import sys
+
+    typer.echo("GlassAlpha Environment Check")
+    typer.echo("=" * 40)
+
+    # Basic environment info
+    typer.echo("Environment")
+    typer.echo(f"  Python: {sys.version}")
+    typer.echo(f"  OS: {platform.system()} {platform.machine()}")
+    typer.echo()
+
+    # Optional features check
+    typer.echo("Optional Features")
+    typer.echo("-" * 20)
+
+    # SHAP explainers
+    has_shap = importlib.util.find_spec("shap") is not None
+    status = "✅ installed" if has_shap else "❌ not installed"
+    typer.echo(f"  SHAP: {status}")
+    if not has_shap:
+        typer.echo("    -> Enable KernelSHAP/TreeSHAP with: pip install 'glassalpha[explain]'")
+
+    # XGBoost
+    has_xgboost = importlib.util.find_spec("xgboost") is not None
+    status = "✅ installed" if has_xgboost else "❌ not installed"
+    typer.echo(f"  XGBoost: {status}")
+    if not has_xgboost:
+        typer.echo("    -> Enable XGBoost models with: pip install 'glassalpha[trees]'")
+
+    # LightGBM
+    has_lightgbm = importlib.util.find_spec("lightgbm") is not None
+    status = "✅ installed" if has_lightgbm else "❌ not installed"
+    typer.echo(f"  LightGBM: {status}")
+    if not has_lightgbm:
+        typer.echo("    -> Enable LightGBM models with: pip install 'glassalpha[trees]'")
+
+    # PDF rendering
+    try:
+        import weasyprint
+
+        typer.echo("  PDF backend: ✅ weasyprint available")
+    except ImportError:
+        typer.echo("  PDF backend: ❌ weasyprint not available")
+
+    # Matplotlib for plots
+    has_matplotlib = importlib.util.find_spec("matplotlib") is not None
+    status = "✅ installed" if has_matplotlib else "❌ not installed"
+    typer.echo(f"  Matplotlib: {status}")
+    if not has_matplotlib:
+        typer.echo("    -> Enable plots with: pip install 'glassalpha[plots]'")
+
+    typer.echo()
+
+    # Recommendations
+    typer.echo("Recommendations")
+    typer.echo("-" * 15)
+
+    if not has_shap:
+        typer.echo("  For tree SHAP explanations: pip install 'glassalpha[explain]'")
+    else:
+        typer.echo("  ✅ SHAP explainers available")
+
+    if not (has_xgboost or has_lightgbm):
+        typer.echo("  For tree models: pip install 'glassalpha[trees]'")
+    else:
+        typer.echo("  ✅ Tree models available")
+
+    if not has_matplotlib:
+        typer.echo("  For plots in reports: pip install 'glassalpha[plots]'")
+
+    typer.echo()
+    typer.echo("Ready to run: glassalpha audit --config configs/quickstart.yaml")
 
 
 def validate(  # pragma: no cover
