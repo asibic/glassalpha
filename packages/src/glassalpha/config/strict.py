@@ -90,11 +90,19 @@ def validate_strict_mode(config: AuditConfig) -> None:
     if not config.audit_profile:
         errors.append("Audit profile must be specified in strict mode")
 
-    # Check metrics are specified
-    if not config.metrics.performance:
+    # Check metrics are specified (handle both list and MetricCategory)
+    performance_metrics = (
+        config.metrics.performance
+        if isinstance(config.metrics.performance, list)
+        else config.metrics.performance.metrics
+    )
+    if not performance_metrics:
         errors.append("Performance metrics must be specified in strict mode")
 
-    if not config.metrics.fairness:
+    fairness_metrics = (
+        config.metrics.fairness if isinstance(config.metrics.fairness, list) else config.metrics.fairness.metrics
+    )
+    if not fairness_metrics:
         errors.append("Fairness metrics must be specified in strict mode")
 
     # Check recourse if enabled

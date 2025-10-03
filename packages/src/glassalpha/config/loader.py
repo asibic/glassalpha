@@ -5,6 +5,8 @@ validating against the schema and audit profile requirements.
 """
 
 import logging
+import os
+import re
 from importlib.resources import files as pkg_files
 from pathlib import Path
 from typing import Any
@@ -15,6 +17,35 @@ from ..profiles.registry import ProfileRegistry
 from .schema import AuditConfig
 
 logger = logging.getLogger(__name__)
+
+
+def _substitute_env_vars(value: Any) -> Any:
+    """Recursively substitute environment variables in configuration values.
+
+    Supports ${VAR_NAME} syntax for environment variable substitution.
+
+    Args:
+        value: Value to process (string, dict, list, or other)
+
+    Returns:
+        Value with environment variables substituted
+
+    """
+    if isinstance(value, str):
+        # Substitute ${VAR_NAME} patterns
+        def replace_env_var(match):
+            var_name = match.group(1)
+            return os.environ.get(var_name, match.group(0))  # Return original if not found
+
+        return re.sub(r"\$\{([^}]+)\}", replace_env_var, value)
+
+    if isinstance(value, dict):
+        return {k: _substitute_env_vars(v) for k, v in value.items()}
+
+    if isinstance(value, list):
+        return [_substitute_env_vars(item) for item in value]
+
+    return value
 
 
 def load_yaml(path: str | Path) -> dict[str, Any]:
@@ -228,6 +259,11 @@ def load_config(config_dict: dict[str, Any], profile_name: str | None = None, st
 
     # Apply defaults and validate
     config_dict = apply_profile_defaults(config_dict, config_dict.get("audit_profile"))
+
+    # Substitute environment variables
+    logger.info("Substituting environment variables in configuration")
+    config_dict = _substitute_env_vars(config_dict)
+
     audit_config = validate_config(config_dict)
 
     # Warn about unknown keys in non-critical sections (routed to loader logger)
@@ -327,6 +363,18 @@ def save_config(config: AuditConfig, path: str | Path, include_defaults: bool = 
 
     # Convert to dictionary - use ternary for cleaner code
     config_dict = config.model_dump() if include_defaults else config.model_dump(exclude_defaults=True)
+
+    # Convert PosixPath objects to strings for YAML serialization
+    def convert_paths(obj):
+        if isinstance(obj, dict):
+            return {k: convert_paths(v) for k, v in obj.items()}
+        if isinstance(obj, list):
+            return [convert_paths(item) for item in obj]
+        if isinstance(obj, Path):
+            return str(obj)
+        return obj
+
+    config_dict = convert_paths(config_dict)
 
     # Write YAML
     with open(path, "w") as f:
