@@ -39,6 +39,7 @@ class TestCLIPerformance:
             [sys.executable, "-m", "glassalpha", "--help"],
             capture_output=True,
             text=True,
+            encoding="utf-8",
             timeout=2,
             check=False,
         )
@@ -69,6 +70,7 @@ class TestCLIPerformance:
             [sys.executable, "-m", "glassalpha", "--version"],
             capture_output=True,
             text=True,
+            encoding="utf-8",
             timeout=1,
             check=False,
         )
@@ -97,6 +99,7 @@ class TestCLIPerformance:
             [sys.executable, "-m", "glassalpha", "datasets", "list"],
             capture_output=True,
             text=True,
+            encoding="utf-8",
             timeout=2,
             check=False,
         )
@@ -125,6 +128,7 @@ class TestCLIPerformance:
             [sys.executable, "-X", "importtime", "-c", "import glassalpha.__main__"],
             capture_output=True,
             text=True,
+            encoding="utf-8",
             timeout=5,
             check=False,
         )
@@ -206,6 +210,7 @@ class TestCLIPerformance:
             ],
             capture_output=True,
             text=True,
+            encoding="utf-8",
             timeout=120,  # 2 minute hard timeout
             check=False,
         )
@@ -256,6 +261,7 @@ else:
             [sys.executable, "-c", code],
             capture_output=True,
             text=True,
+            encoding="utf-8",
             timeout=5,
             check=False,
         )
@@ -307,6 +313,7 @@ else:
             [sys.executable, "-c", code],
             capture_output=True,
             text=True,
+            encoding="utf-8",
             timeout=5,
             check=False,
         )
