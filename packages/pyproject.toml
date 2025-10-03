@@ -33,6 +33,9 @@ dependencies = [
     "scipy>=1.15",           # First version with Python 3.13 wheels
     "scikit-learn>=1.5",     # NumPy 2.x compatible, provides LogisticRegression for base install
 
+    # Visualization - required for audit report generation
+    "matplotlib>=3.9",       # Core plotting for audit visualizations
+
     # Utilities
     "orjson>=3.9.0",         # Fast JSON serialization
     "platformdirs>=4.0.0",   # Cross-platform user data directories
@@ -43,8 +46,8 @@ dependencies = [
 # SHAP explainers and tree models - enables advanced explainers and models
 explain = ["shap>=0.44", "xgboost>=2.0", "lightgbm>=4.0"]
 
-# Plotting and visualization dependencies
-viz = ["matplotlib>=3.9", "seaborn>=0.13"]
+# Enhanced visualization dependencies (seaborn adds nicer defaults)
+viz = ["seaborn>=0.13"]
 
 # PDF generation dependencies (jinja2 is now in core)
 docs = [
