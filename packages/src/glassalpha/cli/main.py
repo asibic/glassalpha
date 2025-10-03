@@ -105,7 +105,6 @@ app.add_typer(dashboard_app, name="dashboard")
 app.add_typer(monitor_app, name="monitor")
 
 # Import and register commands
-from . import datasets
 from .commands import audit, list_components_cmd, validate
 
 # Register main commands
@@ -113,11 +112,45 @@ app.command()(audit)
 app.command("validate")(validate)
 app.command("list", help="List available components")(list_components_cmd)
 
-# Register datasets commands
-datasets_app.command("list")(datasets.list_datasets)
-datasets_app.command("info")(datasets.dataset_info)
-datasets_app.command("cache-dir")(datasets.show_cache_dir)
-datasets_app.command("fetch")(datasets.fetch_dataset)
+# Register datasets commands with lazy loading (Phase 2 performance optimization)
+# These import the datasets module only when the command is actually invoked,
+# not during --help rendering, saving ~500ms of import time
+
+
+@datasets_app.command("list")
+def list_datasets_lazy():
+    """List all available datasets in the registry."""
+    from .datasets import list_datasets
+
+    return list_datasets()
+
+
+@datasets_app.command("info")
+def dataset_info_lazy(dataset: str = typer.Argument(..., help="Dataset key to inspect")):
+    """Show detailed information about a specific dataset."""
+    from .datasets import dataset_info
+
+    return dataset_info(dataset)
+
+
+@datasets_app.command("cache-dir")
+def show_cache_dir_lazy():
+    """Show the directory where datasets are cached."""
+    from .datasets import show_cache_dir
+
+    return show_cache_dir()
+
+
+@datasets_app.command("fetch")
+def fetch_dataset_lazy(
+    dataset: str = typer.Argument(..., help="Dataset key to fetch"),
+    force: bool = typer.Option(False, "--force", "-f", help="Force re-download even if file exists"),
+    dest: Path = typer.Option(None, "--dest", help="Custom destination path"),
+):
+    """Fetch and cache a dataset from the registry."""
+    from .datasets import fetch_dataset
+
+    return fetch_dataset(dataset, force, dest)
 
 
 # Dashboard commands (enterprise stubs)

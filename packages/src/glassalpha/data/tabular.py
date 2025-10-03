@@ -16,7 +16,6 @@ from typing import Any
 import numpy as np
 import pandas as pd
 from pydantic import Field
-from sklearn.model_selection import train_test_split
 
 from .base import DataInterface, DataSchema
 
@@ -250,6 +249,9 @@ class TabularDataLoader(DataInterface):
             stratify = data[stratify_column]
 
         logger.info(f"Splitting data: {len(data)} total, test_size={test_size}")
+
+        # Lazy import - don't load sklearn during CLI --help (Phase 1 performance optimization)
+        from sklearn.model_selection import train_test_split
 
         try:
             train_data, test_data = train_test_split(
