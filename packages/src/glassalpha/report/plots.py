@@ -36,9 +36,16 @@ _ensure_headless_backend()
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import seaborn as sns
 from matplotlib import rcParams
 from matplotlib.figure import Figure
+
+# Optional: seaborn for enhanced styling (graceful fallback if not available)
+try:
+    import seaborn as sns
+
+    HAS_SEABORN = True
+except ImportError:
+    HAS_SEABORN = False
 
 # Suppress warnings for cleaner output
 warnings.filterwarnings("ignore", category=UserWarning)
@@ -485,16 +492,40 @@ class AuditPlotter:
         fig, ax = plt.subplots(figsize=(8, 6))
 
         # Create heatmap with custom colormap
-        sns.heatmap(
-            cm,
-            annot=True,
-            fmt="d",
-            cmap="Blues",
-            xticklabels=class_names,
-            yticklabels=class_names,
-            cbar_kws={"label": "Count"},
-            ax=ax,
-        )
+        if HAS_SEABORN:
+            sns.heatmap(
+                cm,
+                annot=True,
+                fmt="d",
+                cmap="Blues",
+                xticklabels=class_names,
+                yticklabels=class_names,
+                cbar_kws={"label": "Count"},
+                ax=ax,
+            )
+        else:
+            # Fallback to matplotlib imshow if seaborn not available
+            im = ax.imshow(cm, interpolation="nearest", cmap="Blues")
+            ax.figure.colorbar(im, ax=ax, label="Count")
+
+            # Set ticks and labels
+            ax.set_xticks(np.arange(len(class_names)))
+            ax.set_yticks(np.arange(len(class_names)))
+            ax.set_xticklabels(class_names)
+            ax.set_yticklabels(class_names)
+
+            # Add text annotations
+            thresh = cm.max() / 2.0
+            for i in range(cm.shape[0]):
+                for j in range(cm.shape[1]):
+                    ax.text(
+                        j,
+                        i,
+                        format(cm[i, j], "d"),
+                        ha="center",
+                        va="center",
+                        color="white" if cm[i, j] > thresh else "black",
+                    )
 
         ax.set_xlabel("Predicted Label", fontweight="bold")
         ax.set_ylabel("True Label", fontweight="bold")
