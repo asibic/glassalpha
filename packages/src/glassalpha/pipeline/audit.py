@@ -1603,7 +1603,9 @@ class AuditPipeline:
 
 
 def run_audit_pipeline(
-    config: AuditConfig, progress_callback: Callable | None = None, selected_explainer: str | None = None
+    config: AuditConfig,
+    progress_callback: Callable | None = None,
+    selected_explainer: str | None = None,
 ) -> AuditResults:
     """Convenience function to run audit pipeline.
 
@@ -1616,5 +1618,9 @@ def run_audit_pipeline(
         Audit results
 
     """
-    pipeline = AuditPipeline(config, selected_explainer=selected_explainer)
+    kwargs = {}
+    if selected_explainer is not None:
+        kwargs["selected_explainer"] = selected_explainer
+
+    pipeline = AuditPipeline(config, **kwargs)
     return pipeline.run(progress_callback)
