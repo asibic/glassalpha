@@ -126,12 +126,20 @@ class TestEnterpriseComponentFiltering:
             version = "1.0.0"
             priority = 100
 
+            @classmethod
+            def is_compatible(cls, *, model=None, model_type=None, config=None):
+                return True  # Test explainer accepts all models
+
         # Register an OSS explainer
         @ExplainerRegistry.register("oss_explainer", enterprise=False, priority=50)
         class OSSExplainer:
             capabilities = {"supported_models": ["all"]}
             version = "1.0.0"
             priority = 50
+
+            @classmethod
+            def is_compatible(cls, *, model=None, model_type=None, config=None):
+                return True  # Test explainer accepts all models
 
         # Without enterprise flag, should not see enterprise component
         oss_components = ExplainerRegistry.get_all(include_enterprise=False)
@@ -155,6 +163,10 @@ class TestEnterpriseComponentFiltering:
             version = "1.0.0"
             priority = 1000
 
+            @classmethod
+            def is_compatible(cls, *, model=None, model_type=None, config=None):
+                return model_type in cls.capabilities.get("supported_models", [])
+
         config = {"explainers": {"priority": ["enterprise_best", "noop"]}}
 
         # Without license, should skip enterprise and select noop
@@ -174,7 +186,7 @@ class TestEnterpriseComponentFiltering:
             priority = 500
 
             @classmethod
-            def is_compatible(cls, model_type=None, model=None):
+            def is_compatible(cls, *, model=None, model_type=None, config=None):
                 return model_type in cls.capabilities.get("supported_models", [])
 
         config = {"explainers": {"priority": ["enterprise_premium", "noop"]}}

@@ -53,7 +53,9 @@ class TestExplainerRegistry:
 
         @ExplainerRegistry.register("test_explainer", import_check="test_dep")
         class TestExplainer:
-            pass
+            @classmethod
+            def is_compatible(cls, *, model=None, model_type=None, config=None):
+                return True
 
         # Should be registered
         assert "test_explainer" in ExplainerRegistry.names()

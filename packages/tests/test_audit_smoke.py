@@ -45,6 +45,7 @@ def test_audit_german_credit_simple_works(tmp_path):
         check=False,
         capture_output=True,
         text=True,
+        encoding="utf-8",
         timeout=120,  # 2 minute timeout
     )
 
@@ -100,6 +101,7 @@ def test_audit_stderr_no_explainer_errors(tmp_path):
         check=False,
         capture_output=True,
         text=True,
+        encoding="utf-8",
         timeout=120,
     )
 
@@ -144,6 +146,7 @@ def test_quickstart_audit_works(tmp_path):
         check=False,
         capture_output=True,
         text=True,
+        encoding="utf-8",
         timeout=120,
     )
 

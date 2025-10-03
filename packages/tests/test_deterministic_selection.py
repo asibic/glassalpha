@@ -49,10 +49,18 @@ class TestDeterministicSelection:
             version = "1.0.0"
             priority = 100
 
+            @classmethod
+            def is_compatible(cls, *, model=None, model_type=None, config=None):
+                return model_type == "xgboost"
+
         @ExplainerRegistry.register("test_low_priority", priority=1, supports=["xgboost"])
         class TestLowPriority:
             version = "1.0.0"
             priority = 1
+
+            @classmethod
+            def is_compatible(cls, *, model=None, model_type=None, config=None):
+                return model_type == "xgboost"
 
         try:
             # Config with specific priority
@@ -91,6 +99,10 @@ class TestDeterministicSelection:
         class TestSpecific:
             version = "1.0.0"
             priority = 50
+
+            @classmethod
+            def is_compatible(cls, *, model=None, model_type=None, config=None):
+                return model_type == "specific_model"
 
         try:
             config = {"explainers": {"priority": ["test_specific", "noop"]}}
