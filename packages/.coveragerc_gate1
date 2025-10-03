@@ -1,0 +1,35 @@
+[run]
+branch = True
+source =
+    src/glassalpha
+
+# Gate 1: Critical-path modules for strict 90%+ coverage
+# Include core business logic that must never regress
+include =
+    src/glassalpha/config/*
+    src/glassalpha/pipeline/*
+    src/glassalpha/models/*
+    src/glassalpha/report/renderer.py
+    src/glassalpha/core/interfaces.py
+    src/glassalpha/core/registry.py
+    src/glassalpha/metrics/core.py
+    src/glassalpha/metrics/thresholds.py
+    src/glassalpha/models/calibration.py
+
+omit =
+    */__main__.py
+    */cli/*
+    */report/templates/*
+    */report/plots.py
+    */report/renderers/*
+    */profiles/*
+    */datasets/*
+    */metrics/fairness/*
+    */metrics/drift/*
+    */utils/proc.py
+    */models/_io.py
+
+[report]
+# fail_under controlled by CI command line, not config file
+show_missing = True
+skip_covered = True

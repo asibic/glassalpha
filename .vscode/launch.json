@@ -1,0 +1,56 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Python: Current File",
+      "type": "python",
+      "request": "launch",
+      "program": "${file}",
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}/packages",
+      "python": "${workspaceFolder}/packages/venv/bin/python",
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}/packages/src"
+      }
+    },
+    {
+      "name": "Python: Test Current File",
+      "type": "python",
+      "request": "launch",
+      "module": "pytest",
+      "args": ["${file}", "-v"],
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}/packages",
+      "python": "${workspaceFolder}/packages/venv/bin/python",
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}/packages/src"
+      }
+    },
+    {
+      "name": "GlassAlpha CLI: Audit",
+      "type": "python",
+      "request": "launch",
+      "module": "glassalpha.cli.main",
+      "args": ["audit", "--config", "configs/example_audit.yaml", "--output", "test_audit.pdf"],
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}/packages",
+      "python": "${workspaceFolder}/packages/venv/bin/python",
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}/packages/src"
+      }
+    },
+    {
+      "name": "Run All Tests",
+      "type": "python",
+      "request": "launch",
+      "module": "pytest",
+      "args": ["tests/", "-v", "--tb=short"],
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}/packages",
+      "python": "${workspaceFolder}/packages/venv/bin/python",
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}/packages/src"
+      }
+    }
+  ]
+}
