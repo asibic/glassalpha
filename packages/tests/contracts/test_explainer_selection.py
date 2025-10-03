@@ -83,7 +83,7 @@ class TestExplainerSelection:
         ]
 
         for model_type in tree_model_types:
-            is_compatible = explainer.is_compatible(model_type)
+            is_compatible = explainer.is_compatible(model_type=model_type)
             assert is_compatible, f"KernelSHAP should be compatible with {model_type}"  # noqa: S101
 
     def test_tree_shap_supports_tree_models(self) -> None:
@@ -104,7 +104,7 @@ class TestExplainerSelection:
         ]
 
         for model_type in tree_model_types:
-            is_compatible = explainer.is_compatible(model_type)
+            is_compatible = explainer.is_compatible(model_type=model_type)
             assert is_compatible, f"TreeSHAP should be compatible with {model_type}"  # noqa: S101
 
     def test_explainer_selection_deterministic(self) -> None:
@@ -169,7 +169,7 @@ class TestExplainerSelection:
 
         # Should fall back to supports_model check
         # KernelSHAP is model-agnostic so should support models with predict
-        is_compatible = explainer.is_compatible(model)
+        is_compatible = explainer.is_compatible(model=model)
         assert isinstance(is_compatible, bool)  # Should not crash  # noqa: S101
 
     def test_pipeline_explainer_selection_integration(self) -> None:
