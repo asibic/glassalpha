@@ -503,7 +503,6 @@ def doctor():  # pragma: no cover
     """
     import importlib.util
     import platform
-    import sys
 
     typer.echo("GlassAlpha Environment Check")
     typer.echo("=" * 40)
@@ -512,6 +511,15 @@ def doctor():  # pragma: no cover
     typer.echo("Environment")
     typer.echo(f"  Python: {sys.version}")
     typer.echo(f"  OS: {platform.system()} {platform.machine()}")
+    typer.echo()
+
+    # Core features - always available
+    typer.echo("Core Features (always available)")
+    typer.echo("-" * 20)
+    typer.echo("  ✅ LogisticRegression (scikit-learn)")
+    typer.echo("  ✅ NoOp explainers (baseline)")
+    typer.echo("  ✅ HTML reports (jinja2)")
+    typer.echo("  ✅ Basic metrics (performance, fairness)")
     typer.echo()
 
     # Optional features check
@@ -530,14 +538,14 @@ def doctor():  # pragma: no cover
     status = "✅ installed" if has_xgboost else "❌ not installed"
     typer.echo(f"  XGBoost: {status}")
     if not has_xgboost:
-        typer.echo("    -> Enable XGBoost models with: pip install 'glassalpha[trees]'")
+        typer.echo("    -> Enable XGBoost models with: pip install 'glassalpha[explain]'")
 
     # LightGBM
     has_lightgbm = importlib.util.find_spec("lightgbm") is not None
     status = "✅ installed" if has_lightgbm else "❌ not installed"
     typer.echo(f"  LightGBM: {status}")
     if not has_lightgbm:
-        typer.echo("    -> Enable LightGBM models with: pip install 'glassalpha[trees]'")
+        typer.echo("    -> Enable LightGBM models with: pip install 'glassalpha[explain]'")
 
     # Templating (always available with core dependencies)
     typer.echo("  Templating: ✅ installed (jinja2)")
@@ -564,7 +572,7 @@ def doctor():  # pragma: no cover
     status = "✅ installed" if has_matplotlib else "❌ not installed"
     typer.echo(f"  Matplotlib: {status}")
     if not has_matplotlib:
-        typer.echo("    -> Enable plots with: pip install 'glassalpha[plots]'")
+        typer.echo("    -> Enable plots with: pip install 'glassalpha[viz]'")
 
     typer.echo()
 
@@ -572,18 +580,24 @@ def doctor():  # pragma: no cover
     typer.echo("Recommendations")
     typer.echo("-" * 15)
 
-    if not has_shap:
-        typer.echo("  For tree SHAP explanations: pip install 'glassalpha[explain]'")
+    missing_features = []
+    if not (has_shap and has_xgboost and has_lightgbm):
+        missing_features.append("SHAP + tree models")
+        typer.echo("  For SHAP + tree models (XGBoost/LightGBM): pip install 'glassalpha[explain]'")
     else:
-        typer.echo("  ✅ SHAP explainers available")
-
-    if not (has_xgboost or has_lightgbm):
-        typer.echo("  For tree models: pip install 'glassalpha[trees]'")
-    else:
-        typer.echo("  ✅ Tree models available")
+        typer.echo("  ✅ SHAP + tree models available")
 
     if not has_matplotlib:
-        typer.echo("  For plots in reports: pip install 'glassalpha[plots]'")
+        missing_features.append("plots")
+        typer.echo("  For plots in reports: pip install 'glassalpha[viz]'")
+
+    if not has_pdf_backend:
+        missing_features.append("PDF generation")
+
+    # Show quick install option if multiple features missing
+    if len(missing_features) > 1:
+        typer.echo()
+        typer.echo("  💡 Quick install everything: pip install 'glassalpha[all]'")
 
     typer.echo()
 

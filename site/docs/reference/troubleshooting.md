@@ -288,23 +288,20 @@ Try: pip install 'glassalpha[xgboost]'
        random_state: 42
    ```
 
-2. **Install the specific model you need**:
+2. **Install the features you need**:
 
    ```bash
-   # For XGBoost
-   pip install 'glassalpha[xgboost]'
+   # For SHAP + tree models (includes XGBoost and LightGBM)
+   pip install 'glassalpha[explain]'
 
-   # For LightGBM
-   pip install 'glassalpha[lightgbm]'
-
-   # For all advanced models
-   pip install 'glassalpha[tabular]'
+   # For all features
+   pip install 'glassalpha[all]'
    ```
 
 3. **Check what's currently available**:
 
    ```bash
-   glassalpha models
+   glassalpha doctor
    ```
 
 4. **Disable fallbacks for strict requirements**:

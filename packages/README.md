@@ -94,12 +94,15 @@ GlassAlpha uses optional dependencies to keep the base install lightweight while
 
 #### Install paths
 
-| Goal                | Command                             | Notes                           |
-| ------------------- | ----------------------------------- | ------------------------------- |
-| Minimal quickstart  | `pip install glassalpha`            | Runs linear demo out of the box |
-| Add SHAP explainers | `pip install 'glassalpha[explain]'` | Enables KernelSHAP and TreeSHAP |
-| Tree models too     | `pip install 'glassalpha[trees]'`   | XGBoost and LightGBM support    |
-| Everything          | `pip install 'glassalpha[all]'`     | All optional features           |
+| Goal               | Command                             | Notes                                 |
+| ------------------ | ----------------------------------- | ------------------------------------- |
+| Minimal quickstart | `pip install glassalpha`            | LogisticRegression + basic explainers |
+| SHAP + tree models | `pip install 'glassalpha[explain]'` | SHAP + XGBoost + LightGBM             |
+| Visualization      | `pip install 'glassalpha[viz]'`     | Matplotlib + Seaborn for plots        |
+| PDF reports        | `pip install 'glassalpha[docs]'`    | WeasyPrint for PDF generation         |
+| Everything         | `pip install 'glassalpha[all]'`     | All optional features                 |
+
+**Tip:** Run `glassalpha doctor` to check your environment and see what features are available.
 
 #### Quick installation
 
@@ -116,28 +119,41 @@ Install base framework (lightweight, includes LogisticRegression baseline):
 pip install -e .
 
 # Add optional features as needed
-pip install -e ".[explain]"      # SHAP explainers (KernelSHAP, TreeSHAP)
-pip install -e ".[trees]"        # XGBoost + LightGBM models
-pip install -e ".[plots]"        # Matplotlib for enhanced plots
+pip install -e ".[explain]"      # SHAP + XGBoost + LightGBM
+pip install -e ".[viz]"          # Matplotlib + Seaborn for plots
 pip install -e ".[docs]"         # WeasyPrint for PDF generation
+
+# Or install everything at once
+pip install -e ".[all]"          # All optional features
 ```
 
 ### Development installation
 
 For contributors and advanced users:
 
+**Quick setup (recommended):**
+
 ```bash
 # Create virtual environment (recommended)
 python3 -m venv .venv
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
-# Upgrade pip and install in development mode with all extras
-python -m pip install --upgrade pip
-pip install -e ".[dev]"         # Development tools only
-pip install -e ".[tabular]"     # Add ML libraries if needed
+# One-command setup: installs everything, sets up hooks, runs doctor
+make dev-setup
+```
+
+**Manual setup:**
+
+```bash
+# Create virtual environment
+python3 -m venv .venv
+source .venv/bin/activate
+
+# Install in development mode with all extras
+pip install -e ".[dev,all]"
 
 # Verify installation
-glassalpha --help
+glassalpha doctor
 ```
 
 ### Reproducible installation
@@ -145,7 +161,7 @@ glassalpha --help
 For CI/CD or reproducible builds, use the constraints file:
 
 ```bash
-pip install -c constraints.txt -e ".[dev,tabular]"
+pip install -c constraints.txt -e ".[dev,all]"
 ```
 
 This locks all dependencies to tested versions.

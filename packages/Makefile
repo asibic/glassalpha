@@ -1,11 +1,13 @@
 # GlassAlpha - Wheel-first development workflow
-.PHONY: smoke build install test lint clean hooks help
+.PHONY: smoke build install test lint clean hooks help dev-setup check
 
 # Default target
 help:
 	@echo "GlassAlpha Development Commands:"
 	@echo ""
+	@echo "🚀 dev-setup  - Complete dev environment setup (one-time)"
 	@echo "🔥 smoke      - Run wheel smoke test (validates 4 critical contracts)"
+	@echo "🔍 check      - Quick pre-commit check (smoke test + doctor)"
 	@echo "📦 build      - Build wheel"
 	@echo "📥 install    - Install wheel (for testing)"
 	@echo "🧪 test       - Run full test suite"
@@ -13,10 +15,11 @@ help:
 	@echo "🧹 clean      - Clean build artifacts"
 	@echo "🪝 hooks      - Install git hooks (pre-commit + pre-push)"
 	@echo ""
-	@echo "Smart git hooks workflow:"
-	@echo "1. make hooks           (one-time setup)"
-	@echo "2. git commit          (pre-commit: smoke test if fragile areas changed)"
-	@echo "3. git push            (pre-push: always runs smoke test)"
+	@echo "Getting Started:"
+	@echo "1. make dev-setup      (one-time: installs deps + hooks + runs doctor)"
+	@echo "2. make check          (before commit: validates setup)"
+	@echo "3. git commit          (pre-commit: smoke test if fragile areas changed)"
+	@echo "4. git push            (pre-push: always runs smoke test)"
 
 # Smoke test - the key guardrail against CI thrashing
 smoke:
@@ -57,9 +60,30 @@ hooks:
 	@echo ""
 	@echo "Hooks installed! Your commits and pushes are now protected."
 
-# Fast pre-push checklist (what the user suggested)
-check: smoke
-	@echo "✅ Smoke test passed"
+# Complete dev environment setup (one-time)
+dev-setup:
+	@echo "🚀 Setting up development environment..."
 	@echo ""
-	@echo "Optional: Run full test suite with dependencies installed:"
-	@echo "  pip install -e ".[dev]" && make test"
+	@echo "📦 Installing package with all dependencies..."
+	pip install -e ".[dev,all]"
+	@echo ""
+	@echo "🪝 Installing git hooks..."
+	@$(MAKE) hooks
+	@echo ""
+	@echo "🏥 Running environment check..."
+	@glassalpha doctor
+	@echo ""
+	@echo "✅ Development environment ready!"
+	@echo ""
+	@echo "Next steps:"
+	@echo "  - Run 'make check' before committing"
+	@echo "  - Run 'make test' for full test suite"
+	@echo "  - Run 'glassalpha audit --config configs/quickstart.yaml --output test.pdf' for a quick test"
+
+# Fast pre-commit check
+check: smoke
+	@echo ""
+	@echo "🏥 Checking environment..."
+	@glassalpha doctor
+	@echo ""
+	@echo "✅ All checks passed - ready to commit!"

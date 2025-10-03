@@ -34,9 +34,12 @@ Choose your installation based on your needs:
 | ----------------------------- | ------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------- | ------------------------------------------------- |
 | **Minimal quickstart (HTML)** | `pip install glassalpha` then `glassalpha audit --config configs/quickstart.yaml --output audit.html`        | Core functionality, LogisticRegression model, HTML reports | Quick audits, development, lightweight deployment |
 | **Generate PDFs**             | `pip install "glassalpha[docs]"` then `glassalpha audit --config configs/quickstart.yaml --output audit.pdf` | PDF report generation (`jinja2`, `weasyprint`)             | Professional reports, regulatory submissions      |
-| **Advanced ML models**        | `pip install "glassalpha[trees]"`                                                                            | XGBoost, LightGBM models with SHAP explainers              | Production ML systems, complex models             |
+| **SHAP + tree models**        | `pip install "glassalpha[explain]"`                                                                          | SHAP + XGBoost + LightGBM models                           | Production ML systems, complex models             |
+| **Visualization**             | `pip install "glassalpha[viz]"`                                                                              | Matplotlib + Seaborn for enhanced plots                    | Better visualizations in reports                  |
 | **Full installation**         | `pip install "glassalpha[all]"`                                                                              | All optional features and models                           | Complete toolkit, maximum compatibility           |
-| **Development**               | `pip install "glassalpha[dev]"`                                                                              | Testing, linting, documentation tools                      | Contributors, CI/CD environments                  |
+| **Development**               | `pip install "glassalpha[dev,all]"`                                                                          | Testing, linting, documentation tools + all features       | Contributors, CI/CD environments                  |
+
+**Tip:** Run `glassalpha doctor` after installation to check your environment and see what features are available.
 
 **Why HTML by default?** Lighter, portable, works anywhere. PDF available via optional `docs` extra for professional reports.
 
@@ -71,33 +74,44 @@ This installation provides:
 - ✅ Full audit pipeline functionality
 - ✅ PDF report generation
 
-### Advanced installation (for XGBoost/LightGBM)
+### Advanced installation (for SHAP + tree models)
 
-For advanced ML models and explainers:
+For XGBoost, LightGBM, and SHAP explainers:
 
 ```bash
-# Install with tabular ML libraries
-pip install -e ".[tabular]"
+# Install with SHAP + tree models (includes XGBoost and LightGBM)
+pip install -e ".[explain]"
 
-# Or install specific models
-pip install -e ".[xgboost]"      # XGBoost + SHAP
-pip install -e ".[lightgbm]"     # LightGBM only
+# Check what's available
+glassalpha doctor
 ```
 
 ### Development installation
 
 For contributors or those who need development tools:
 
+**Quick setup (recommended):**
+
 ```bash
-# Install everything including dev tools
-pip install -e ".[dev]"
+# One-command setup: installs everything, sets up hooks, runs doctor
+make dev-setup
+```
+
+**Manual setup:**
+
+```bash
+# Install everything including dev tools and all features
+pip install -e ".[dev,all]"
+
+# Verify installation
+glassalpha doctor
 ```
 
 Development dependencies include:
 
 - **Testing**: pytest, pytest-cov
 - **Code Quality**: ruff, mypy, black, pre-commit
-- **Documentation**: mkdocs, mkdocs-material
+- **All Features**: SHAP, XGBoost, LightGBM, matplotlib, WeasyPrint
 
 ## Model selection and fallbacks
 
@@ -141,14 +155,15 @@ pip install glassalpha  # Start with LogisticRegression
 **For production use:**
 
 ```bash
-pip install 'glassalpha[tabular]'  # All models
+pip install 'glassalpha[all]'  # All features
 ```
 
 **For specific needs:**
 
 ```bash
-pip install 'glassalpha[xgboost]'   # XGBoost only
-pip install 'glassalpha[lightgbm]'  # LightGBM only
+pip install 'glassalpha[explain]'   # SHAP + XGBoost + LightGBM
+pip install 'glassalpha[viz]'       # Matplotlib + Seaborn
+pip install 'glassalpha[docs]'      # PDF generation
 ```
 
 ## Platform-specific installation

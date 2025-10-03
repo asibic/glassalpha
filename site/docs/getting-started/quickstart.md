@@ -71,9 +71,8 @@ python -m pip install --upgrade pip
 pip install -e .
 
 # Option 2: With advanced ML libraries (if you need XGBoost/LightGBM)
-pip install -e ".[xgboost]"      # XGBoost + SHAP
-pip install -e ".[lightgbm]"     # LightGBM only
-pip install -e ".[tabular]"      # All advanced models
+pip install -e ".[explain]"      # SHAP + XGBoost + LightGBM
+pip install -e ".[all]"          # All features
 
 # Option 3: Development install (includes testing tools)
 pip install -e ".[dev]"

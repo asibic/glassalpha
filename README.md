@@ -11,7 +11,13 @@ Clone and install
 ```bash
 git clone https://github.com/GlassAlpha/glassalpha
 cd glassalpha/packages
-pip install -e .
+pip install -e ".[all]"  # Install with all optional features
+```
+
+Check your environment
+
+```bash
+glassalpha doctor
 ```
 
 Generate an audit PDF (uses included German Credit example)
@@ -21,6 +27,8 @@ glassalpha audit --config configs/german_credit_simple.yaml --output audit.pdf
 ```
 
 That's it. You now have a complete audit report with model performance, SHAP explanations, and fairness metrics.
+
+**Tip:** Run `glassalpha doctor` anytime to check what features are available and see installation options.
 
 **More details:** See the [full installation guide](packages/README.md#installation) and [German Credit tutorial](https://glassalpha.com/examples/german-credit-audit/) to see what's in the report.
 

@@ -9,9 +9,11 @@ handling with 'from None' to hide Python internals from end users.
 """
 
 import logging
+import sys
 from pathlib import Path
 
 import typer
+from platformdirs import user_data_dir
 
 from .. import __version__
 
@@ -26,10 +28,11 @@ app = typer.Typer(
     no_args_is_help=True,
     pretty_exceptions_enable=True,
     epilog="""Installation Options:
-  Minimal install: pip install glassalpha                    # LogisticRegression + basic explainers
-  SHAP explainers: pip install 'glassalpha[explain]'        # Enables KernelSHAP + TreeSHAP
-  Tree models: pip install 'glassalpha[trees]'              # XGBoost + LightGBM support
-  Everything: pip install 'glassalpha[all]'                 # All optional features
+  Minimal install: pip install glassalpha                   # LogisticRegression + basic explainers
+  SHAP + trees:    pip install 'glassalpha[explain]'        # SHAP + XGBoost + LightGBM
+  Visualization:   pip install 'glassalpha[viz]'            # Matplotlib + Seaborn
+  PDF reports:     pip install 'glassalpha[docs]'           # PDF generation
+  Everything:      pip install 'glassalpha[all]'            # All optional features
 
 For more information, visit: https://glassalpha.com""",
 )
@@ -52,6 +55,29 @@ monitor_app = typer.Typer(
     help="Monitoring operations (Enterprise only)",
     no_args_is_help=True,
 )
+
+
+# First-run detection helper
+def _show_first_run_tip():
+    """Show helpful tip on first run."""
+    # Skip for --help, --version, and doctor command
+    if "--help" in sys.argv or "-h" in sys.argv or "--version" in sys.argv or "-V" in sys.argv or "doctor" in sys.argv:
+        return
+
+    # Check for state file
+    state_dir = Path(user_data_dir("glassalpha", "glassalpha"))
+    state_file = state_dir / ".first_run_complete"
+
+    if not state_file.exists():
+        # Create state directory and file
+        state_dir.mkdir(parents=True, exist_ok=True)
+        state_file.touch()
+
+        # Show tip
+        typer.echo()
+        typer.secho("👋 Welcome to GlassAlpha!", fg=typer.colors.BRIGHT_BLUE, bold=True)
+        typer.echo("   Run 'glassalpha doctor' to check your environment and see what features are available.")
+        typer.echo()
 
 
 # Version callback
@@ -94,6 +120,9 @@ def main_callback(
         logging.getLogger().setLevel(logging.ERROR)
     elif verbose:
         logging.getLogger().setLevel(logging.DEBUG)
+
+    # First-run detection - show helpful tip once
+    _show_first_run_tip()
 
 
 # Add command groups to main app
@@ -220,10 +249,8 @@ def models():
         status = "✅" if available else "❌"
         extra_info = ""
 
-        if model == "xgboost" and not available:
-            extra_info = " (install with: pip install 'glassalpha[xgboost]')"
-        elif model == "lightgbm" and not available:
-            extra_info = " (install with: pip install 'glassalpha[lightgbm]')"
+        if model in ["xgboost", "lightgbm"] and not available:
+            extra_info = " (install with: pip install 'glassalpha[explain]')"
         elif model in ["logistic_regression", "sklearn_generic"] and available:
             extra_info = " (included in base install)"
 
@@ -231,12 +258,11 @@ def models():
 
         typer.echo()
         typer.echo("Installation Options:")
-        typer.echo(
-            "  Minimal install: pip install glassalpha                    # LogisticRegression + basic explainers"
-        )
-        typer.echo("  SHAP explainers: pip install 'glassalpha[explain]'        # Enables KernelSHAP + TreeSHAP")
-        typer.echo("  Tree models: pip install 'glassalpha[trees]'              # XGBoost + LightGBM support")
-        typer.echo("  Everything: pip install 'glassalpha[all]'                 # All optional features")
+        typer.echo("  Minimal install: pip install glassalpha                  # LogisticRegression + basic explainers")
+        typer.echo("  SHAP + trees:    pip install 'glassalpha[explain]'       # SHAP + XGBoost + LightGBM")
+        typer.echo("  Visualization:   pip install 'glassalpha[viz]'           # Matplotlib + Seaborn")
+        typer.echo("  PDF reports:     pip install 'glassalpha[docs]'          # PDF generation")
+        typer.echo("  Everything:      pip install 'glassalpha[all]'           # All optional features")
 
 
 if __name__ == "__main__":  # pragma: no cover
