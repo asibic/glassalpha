@@ -46,7 +46,7 @@ explain = ["shap>=0.44"]
 trees = ["xgboost>=2.0", "lightgbm>=4.0"]
 
 # Plotting and visualization dependencies
-plots = ["matplotlib>=3.9"]
+plots = ["matplotlib>=3.9", "seaborn>=0.13"]
 
 # PDF generation and documentation dependencies
 docs = ["jinja2>=3.1", "weasyprint>=62"]
