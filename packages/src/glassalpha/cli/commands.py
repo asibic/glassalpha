@@ -506,11 +506,12 @@ def doctor():  # pragma: no cover
 
     # PDF rendering
     try:
-        import weasyprint
+        import weasyprint  # noqa: F401
 
-        typer.echo("  PDF backend: ✅ weasyprint available")
+        typer.echo("  PDF backend: ✅ installed")
     except ImportError:
-        typer.echo("  PDF backend: ❌ weasyprint not available")
+        typer.echo("  PDF backend: ❌ not installed")
+        typer.echo("    -> Enable PDF reports with: pip install 'glassalpha[docs]'")
 
     # Matplotlib for plots
     has_matplotlib = importlib.util.find_spec("matplotlib") is not None
