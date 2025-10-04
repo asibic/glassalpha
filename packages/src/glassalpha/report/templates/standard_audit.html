@@ -441,6 +441,225 @@
       .mt-2 {
         margin-top: 1rem;
       }
+
+      /* Table of Contents */
+      .toc {
+        background-color: var(--light-gray);
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        padding: 1.5rem;
+        margin: 2rem 0;
+      }
+
+      .toc h2 {
+        margin-top: 0;
+        border-bottom: 2px solid var(--secondary-color);
+        padding-bottom: 0.5rem;
+      }
+
+      .toc-list {
+        list-style: none;
+        padding-left: 0;
+        margin: 1rem 0;
+      }
+
+      .toc-list li {
+        margin: 0.5rem 0;
+        padding-left: 1.5rem;
+      }
+
+      .toc-list li a {
+        color: var(--secondary-color);
+        text-decoration: none;
+        font-weight: 500;
+      }
+
+      .toc-list li a:hover {
+        text-decoration: underline;
+        color: var(--primary-color);
+      }
+
+      .toc-list .toc-subsection {
+        margin-left: 1.5rem;
+        font-size: 10pt;
+        color: var(--text-color);
+      }
+
+      /* Section numbering */
+      .section-number {
+        color: var(--secondary-color);
+        font-weight: 600;
+        margin-right: 0.5rem;
+      }
+
+      /* Enhanced strict mode badge */
+      .strict-mode-enabled {
+        background-color: var(--success-color);
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 4px;
+        font-weight: 600;
+        font-size: 10pt;
+      }
+
+      .strict-mode-disabled {
+        background-color: var(--error-color);
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 4px;
+        font-weight: 600;
+        font-size: 10pt;
+      }
+
+      /* Hash truncation with tooltip */
+      .hash-display {
+        cursor: help;
+        border-bottom: 1px dotted var(--secondary-color);
+      }
+
+      /* Metadata table */
+      .metadata-table {
+        width: 100%;
+        margin: 1rem 0;
+        font-size: 9pt;
+      }
+
+      .metadata-table td {
+        padding: 0.25rem 0.5rem;
+        border: none;
+      }
+
+      .metadata-table td:first-child {
+        font-weight: 600;
+        width: 30%;
+      }
+
+      /* Pipeline diagram */
+      .pipeline-diagram {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin: 1.5rem 0;
+        padding: 1rem;
+        background-color: white;
+      }
+
+      .pipeline-step {
+        background-color: var(--light-gray);
+        border: 2px solid var(--secondary-color);
+        border-radius: 6px;
+        padding: 1rem;
+        min-width: 120px;
+        text-align: center;
+        font-size: 10pt;
+      }
+
+      .pipeline-step-title {
+        font-weight: 600;
+        color: var(--primary-color);
+        margin-bottom: 0.25rem;
+      }
+
+      .pipeline-step-desc {
+        font-size: 9pt;
+        color: #666;
+      }
+
+      .pipeline-arrow {
+        font-size: 18pt;
+        color: var(--secondary-color);
+        font-weight: 600;
+      }
+
+      /* Risk indicators */
+      .risk-indicator {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        margin-right: 0.5rem;
+      }
+
+      .risk-low {
+        background-color: var(--success-color);
+      }
+
+      .risk-medium {
+        background-color: var(--warning-color);
+      }
+
+      .risk-high {
+        background-color: var(--error-color);
+      }
+
+      /* Glossary */
+      .glossary-term {
+        font-weight: 600;
+        color: var(--secondary-color);
+        margin-top: 1rem;
+      }
+
+      .glossary-definition {
+        margin-left: 1rem;
+        margin-bottom: 0.5rem;
+      }
+
+      /* Page counter for print */
+      @media print {
+        @page {
+          margin: 0.75in;
+          @bottom-center {
+            content: "Page " counter(page) " of " counter(pages);
+          }
+        }
+
+        body {
+          counter-reset: page;
+        }
+
+        .footer {
+          position: fixed;
+          bottom: 0;
+          width: 100%;
+        }
+
+        .page-number {
+          display: block;
+        }
+      }
+
+      .page-number {
+        display: none;
+        text-align: center;
+        font-size: 9pt;
+        color: #666;
+        margin-top: 0.5rem;
+      }
+
+      /* Tooltip styling */
+      [title] {
+        position: relative;
+        cursor: help;
+      }
+
+      /* Model card styling */
+      .model-card {
+        background-color: #f8f9ff;
+        border-left: 4px solid var(--secondary-color);
+        padding: 1.5rem;
+        margin: 1rem 0;
+      }
+
+      .model-card h4 {
+        margin-top: 0;
+        color: var(--secondary-color);
+      }
+
+      .model-card ul {
+        margin: 0.5rem 0;
+      }
     </style>
   </head>
   <body>
@@ -456,14 +675,110 @@
           <strong>Profile:</strong>
           <span class="badge badge-primary">{{ audit_profile }}</span>
           {% endif %} {% if strict_mode %}
-          <span class="badge badge-warning">Strict Mode</span>
+          <span
+            class="strict-mode-enabled"
+            role="status"
+            aria-label="Strict mode enabled"
+          >
+            ✓ Strict Mode Enabled
+          </span>
+          {% else %}
+          <span
+            class="strict-mode-disabled"
+            role="status"
+            aria-label="Strict mode disabled"
+          >
+            ⚠ Strict Mode Disabled
+          </span>
           {% endif %}
         </div>
+
+        <!-- Metadata Table -->
+        <table class="metadata-table">
+          <tr>
+            <td>GlassAlpha Version:</td>
+            <td>{{ version | default("1.0.0") }}</td>
+            <td>Python Version:</td>
+            <td>
+              {{ manifest.environment.python_version.split()[0] if manifest and
+              manifest.environment and manifest.environment.python_version else
+              "N/A" }}
+            </td>
+          </tr>
+          <tr>
+            <td>Report Generated:</td>
+            <td>{{ generation_date }}</td>
+            <td>Execution Time:</td>
+            <td>
+              {{ "%.2f seconds" | format(manifest.execution.duration_seconds) if
+              manifest and manifest.execution and
+              manifest.execution.duration_seconds else "N/A" }}
+            </td>
+          </tr>
+        </table>
       </header>
 
+      <!-- Table of Contents -->
+      <nav class="toc" role="navigation" aria-label="Table of contents">
+        <h2>Table of Contents</h2>
+        <ul class="toc-list">
+          <li><a href="#section-1">1. Executive Summary</a></li>
+          <li><a href="#section-2">2. Data Overview</a></li>
+          {% if preprocessing_info %}
+          <li><a href="#section-3">3. Preprocessing Verification</a></li>
+          <li><a href="#section-4">4. Model Performance Analysis</a></li>
+          {% else %}
+          <li><a href="#section-3">3. Model Performance Analysis</a></li>
+          {% endif %} {% if explanations %}
+          <li>
+            <a href="#section-shap"
+              >{{ "5" if preprocessing_info else "4" }}. Model Explainability
+              (SHAP Analysis)</a
+            >
+          </li>
+          {% endif %} {% if fairness_analysis %}
+          <li>
+            <a href="#section-fairness"
+              >{{ "6" if preprocessing_info else "5" }}. Fairness & Bias
+              Analysis</a
+            >
+          </li>
+          {% endif %}
+          <li>
+            <a href="#section-audit-trail"
+              >{{ "7" if preprocessing_info else "6" }}. Audit Trail &
+              Reproducibility</a
+            >
+          </li>
+          <li>
+            <a href="#section-compliance"
+              >{{ "8" if preprocessing_info else "7" }}. Regulatory Compliance
+              Assessment</a
+            >
+          </li>
+          <li>
+            <a href="#section-model-card"
+              >{{ "9" if preprocessing_info else "8" }}. Model Card</a
+            >
+          </li>
+          <li>
+            <a href="#section-glossary"
+              >{{ "10" if preprocessing_info else "9" }}. Glossary</a
+            >
+          </li>
+        </ul>
+      </nav>
+
       <!-- Executive Summary -->
-      <section class="section executive-summary">
-        <h2>Executive Summary</h2>
+      <section
+        id="section-1"
+        class="section executive-summary"
+        role="region"
+        aria-labelledby="exec-summary-heading"
+      >
+        <h2 id="exec-summary-heading">
+          <span class="section-number">1.</span>Executive Summary
+        </h2>
 
         <div class="two-column">
           <div>
@@ -553,6 +868,31 @@
                 <span class="status-indicator status-warning">Limited</span>
                 {% endif %}
               </li>
+
+              <li>
+                <strong>Preprocessing Verification:</strong>
+                {% if preprocessing_info and preprocessing_info.mode ==
+                'artifact' %}
+                <span
+                  class="status-indicator status-pass"
+                  aria-label="Production artifact verified"
+                  >Production Artifact Verified</span
+                >
+                {% elif preprocessing_info and preprocessing_info.mode == 'auto'
+                %}
+                <span
+                  class="status-indicator status-fail"
+                  aria-label="Non-compliant auto mode"
+                  >Non-Compliant (Auto Mode)</span
+                >
+                {% else %}
+                <span
+                  class="status-indicator status-warning"
+                  aria-label="Not configured"
+                  >Not Configured</span
+                >
+                {% endif %}
+              </li>
             </ul>
           </div>
         </div>
@@ -588,8 +928,15 @@
       <div class="page-break"></div>
 
       <!-- Data Overview -->
-      <section class="section">
-        <h2>Data Overview</h2>
+      <section
+        id="section-2"
+        class="section"
+        role="region"
+        aria-labelledby="data-overview-heading"
+      >
+        <h2 id="data-overview-heading">
+          <span class="section-number">2.</span>Data Overview
+        </h2>
 
         <h3>Dataset Statistics</h3>
         <div class="table-container">
@@ -674,8 +1021,15 @@
       <!-- Preprocessing -->
       {% if preprocessing_info %}
       <div class="page-break"></div>
-      <section class="section">
-        <h2>Preprocessing Verification</h2>
+      <section
+        id="section-3"
+        class="section"
+        role="region"
+        aria-labelledby="preprocessing-heading"
+      >
+        <h2 id="preprocessing-heading">
+          <span class="section-number">3.</span>Preprocessing Verification
+        </h2>
 
         {% if preprocessing_info.mode == 'auto' %}
         <div class="callout callout-error">
@@ -753,27 +1107,50 @@
               <tr>
                 <td><strong>File Hash (SHA256)</strong></td>
                 <td>
-                  <code class="text-small"
-                    >{{ preprocessing_info.file_hash | replace('sha256:', '')
+                  {% set full_file_hash = preprocessing_info.file_hash |
+                  replace('sha256:', '') %}
+                  <code
+                    class="text-small hash-display"
+                    title="Full hash: {{ full_file_hash }}"
+                    >{{ full_file_hash[:12] }}...{{ full_file_hash[-12:]
                     }}</code
                   >
                 </td>
                 <td>
-                  <span class="status-indicator status-pass">Verified</span>
+                  <span
+                    class="status-indicator status-pass"
+                    aria-label="File hash verified"
+                    >Verified</span
+                  >
                 </td>
               </tr>
               {% endif %} {% if preprocessing_info.params_hash %}
               <tr>
                 <td><strong>Params Hash (SHA256)</strong></td>
                 <td>
-                  <code class="text-small"
-                    >{{ preprocessing_info.params_hash | replace('sha256:', '')
+                  {% set full_params_hash = preprocessing_info.params_hash |
+                  replace('sha256:', '') %}
+                  <code
+                    class="text-small hash-display"
+                    title="Full hash: {{ full_params_hash }}"
+                    >{{ full_params_hash[:12] }}...{{ full_params_hash[-12:]
                     }}</code
                   >
                 </td>
                 <td>
-                  <span class="status-indicator status-pass">Verified</span>
+                  <span
+                    class="status-indicator status-pass"
+                    aria-label="Parameters hash verified"
+                    >Verified</span
+                  >
                 </td>
+              </tr>
+              {% endif %} {% if preprocessing_info.manifest and
+              preprocessing_info.manifest.created_at %}
+              <tr>
+                <td><strong>Artifact Created</strong></td>
+                <td>{{ preprocessing_info.manifest.created_at }}</td>
+                <td>—</td>
               </tr>
               {% endif %}
             </tbody>
@@ -782,7 +1159,34 @@
 
         {% if preprocessing_info.manifest and
         preprocessing_info.manifest.components %}
-        <h3>Preprocessing Components</h3>
+        <h3>Preprocessing Pipeline</h3>
+        <p class="text-muted">
+          The following transformation steps are applied to data in sequence.
+        </p>
+
+        <!-- Pipeline Diagram -->
+        <div
+          class="pipeline-diagram"
+          role="img"
+          aria-label="Preprocessing pipeline flow diagram"
+        >
+          {% set component_count = preprocessing_info.manifest.components |
+          length %} {% for component in preprocessing_info.manifest.components
+          %}
+          <div class="pipeline-step">
+            <div class="pipeline-step-title">
+              {{ loop.index }}. {{ component.name.split('.')[-1] | title }}
+            </div>
+            <div class="pipeline-step-desc">
+              {{ component.class.split('.')[-1] }}
+            </div>
+          </div>
+          {% if not loop.last %}
+          <div class="pipeline-arrow" aria-hidden="true">→</div>
+          {% endif %} {% endfor %}
+        </div>
+
+        <h3>Component Details</h3>
         <p class="text-muted">
           Learned parameters extracted from the preprocessing artifact. These
           values were fitted on production training data and applied to audit
@@ -791,17 +1195,50 @@
 
         {% for component in preprocessing_info.manifest.components %}
         <div class="component-card">
-          <h4>{{ component.name }}</h4>
+          <h4>
+            {% if 'imputer' in component.name.lower() %}
+            <span
+              class="risk-indicator risk-medium"
+              title="Medium impact: Imputation affects missing data handling"
+            ></span>
+            {% elif 'scaler' in component.name.lower() or 'standard' in
+            component.class.lower() %}
+            <span
+              class="risk-indicator risk-low"
+              title="Low impact: Scaling preserves data relationships"
+            ></span>
+            {% elif 'onehot' in component.name.lower() or 'encoder' in
+            component.class.lower() %}
+            <span
+              class="risk-indicator risk-medium"
+              title="Medium impact: Encoding affects categorical representation"
+            ></span>
+            {% else %}
+            <span class="risk-indicator risk-low"></span>
+            {% endif %} {{ component.name }}
+          </h4>
           <div class="info-grid">
             <span class="info-label">Class:</span>
             <span class="info-value">
               <code class="text-small">{{ component.class }}</code>
             </span>
 
-            {% if component.strategy %}
-            <span class="info-label">Strategy:</span>
-            <span class="info-value">{{ component.strategy }}</span>
-            {% endif %} {% if component.handle_unknown %}
+            <span class="info-label">Purpose:</span>
+            <span class="info-value">
+              {% if 'SimpleImputer' in component.class %} Fills in missing
+              values using the {{ component.strategy if component.strategy else
+              'configured' }} strategy {% elif 'StandardScaler' in
+              component.class %} Standardizes features by removing the mean and
+              scaling to unit variance {% elif 'OneHotEncoder' in
+              component.class %} Converts categorical variables into binary
+              indicator features {% elif 'RobustScaler' in component.class %}
+              Scales features using statistics robust to outliers {% elif
+              'MinMaxScaler' in component.class %} Scales features to a fixed
+              range (typically 0 to 1) {% else %} Data transformation component
+              {% endif %}
+            </span>
+
+            {% if component.handle_unknown %}
             <span class="info-label">Handle Unknown:</span>
             <span class="info-value">{{ component.handle_unknown }}</span>
             {% endif %} {% if component.drop %}
@@ -931,6 +1368,29 @@
         {% endfor %} {% endif %} {% if preprocessing_info.manifest and
         preprocessing_info.manifest.artifact_runtime_versions %}
         <h3>Runtime Version Information</h3>
+
+        {% set has_mismatch = namespace(value=false) %} {% for lib, artifact_ver
+        in preprocessing_info.manifest.artifact_runtime_versions.items() %} {%
+        set audit_ver = preprocessing_info.manifest.audit_runtime_versions[lib]
+        if preprocessing_info.manifest.audit_runtime_versions else "N/A" %} {%
+        if artifact_ver != audit_ver %} {% set has_mismatch.value = true %} {%
+        endif %} {% endfor %} {% if has_mismatch.value %}
+        <div class="callout callout-warning">
+          <h4>⚠️ Version Mismatch Detected</h4>
+          <p>
+            The preprocessing artifact was created with different library
+            versions than the current audit environment. While the artifact has
+            been successfully loaded, version differences may affect
+            reproducibility.
+          </p>
+          <p>
+            <strong>Recommendation:</strong> For maximum reproducibility, use
+            the same library versions that were used to create the preprocessing
+            artifact.
+          </p>
+        </div>
+        {% endif %}
+
         <div class="table-container">
           <table>
             <thead>
@@ -970,6 +1430,48 @@
           during the training of the preprocessing artifact. High unknown rates
           may indicate distribution shift or data quality issues.
         </p>
+
+        {% set high_unknown_cols = [] %} {% for col, rate in
+        preprocessing_unknown_rates.items() %} {% if rate > 0.10 %} {% set _ =
+        high_unknown_cols.append(col) %} {% endif %} {% endfor %} {% if
+        high_unknown_cols %}
+        <div class="callout callout-warning">
+          <h4>⚠️ High Unknown Category Rates Detected</h4>
+          <p>
+            The following columns have high unknown category rates (>10%):
+            <strong>{{ high_unknown_cols | join(', ') }}</strong>
+          </p>
+          <p><strong>Potential Causes:</strong></p>
+          <ul>
+            <li>
+              Data distribution has shifted since preprocessing artifact was
+              created
+            </li>
+            <li>
+              Audit data comes from a different population than training data
+            </li>
+            <li>
+              New categories have emerged that didn't exist during training
+            </li>
+          </ul>
+          <p><strong>Recommended Actions:</strong></p>
+          <ul>
+            <li>Investigate the source of unknown categories</li>
+            <li>
+              Consider retraining the preprocessing artifact with updated
+              training data
+            </li>
+            <li>
+              Verify that audit data is from the same distribution as production
+              data
+            </li>
+            <li>
+              Review the encoder's handle_unknown strategy for appropriateness
+            </li>
+          </ul>
+        </div>
+        {% endif %}
+
         <div class="table-container">
           <table>
             <thead>
@@ -1005,8 +1507,17 @@
       {% endif %}
 
       <!-- Model Performance -->
-      <section class="section">
-        <h2>Model Performance Analysis</h2>
+      <section
+        id="section-{{ '4' if preprocessing_info else '3' }}"
+        class="section"
+        role="region"
+        aria-labelledby="performance-heading"
+      >
+        <h2 id="performance-heading">
+          <span class="section-number"
+            >{{ '4.' if preprocessing_info else '3.' }}</span
+          >Model Performance Analysis
+        </h2>
 
         {% if model_performance %}
         <h3>Performance Metrics</h3>
@@ -1125,8 +1636,17 @@
 
       <!-- SHAP Explanations -->
       {% if explanations %}
-      <section class="section">
-        <h2>Model Explainability (SHAP Analysis)</h2>
+      <section
+        id="section-shap"
+        class="section"
+        role="region"
+        aria-labelledby="shap-heading"
+      >
+        <h2 id="shap-heading">
+          <span class="section-number"
+            >{{ '5.' if preprocessing_info else '4.' }}</span
+          >Model Explainability (SHAP Analysis)
+        </h2>
 
         {% if explanations.global_importance %}
         <h3>Feature Importance</h3>
@@ -1222,8 +1742,17 @@
 
       <!-- Fairness Analysis -->
       {% if fairness_analysis %}
-      <section class="section">
-        <h2>Fairness & Bias Analysis</h2>
+      <section
+        id="section-fairness"
+        class="section"
+        role="region"
+        aria-labelledby="fairness-heading"
+      >
+        <h2 id="fairness-heading">
+          <span class="section-number"
+            >{{ '6.' if preprocessing_info else '5.' }}</span
+          >Fairness & Bias Analysis
+        </h2>
 
         <p>Analysis of potential bias across protected demographic groups:</p>
 
@@ -1337,8 +1866,17 @@
       <div class="page-break"></div>
 
       <!-- Audit Trail & Reproducibility -->
-      <section class="section">
-        <h2>Audit Trail & Reproducibility</h2>
+      <section
+        id="section-audit-trail"
+        class="section"
+        role="region"
+        aria-labelledby="audit-trail-heading"
+      >
+        <h2 id="audit-trail-heading">
+          <span class="section-number"
+            >{{ '7.' if preprocessing_info else '6.' }}</span
+          >Audit Trail & Reproducibility
+        </h2>
 
         <h3>Execution Information</h3>
         <div class="info-grid">
@@ -1505,8 +2043,17 @@
       <div class="page-break"></div>
 
       <!-- Regulatory Compliance -->
-      <section class="section">
-        <h2>Regulatory Compliance Assessment</h2>
+      <section
+        id="section-compliance"
+        class="section"
+        role="region"
+        aria-labelledby="compliance-heading"
+      >
+        <h2 id="compliance-heading">
+          <span class="section-number"
+            >{{ '8.' if preprocessing_info else '7.' }}</span
+          >Regulatory Compliance Assessment
+        </h2>
 
         <h3>Compliance Checklist</h3>
         <div class="table-container">
@@ -1614,14 +2161,45 @@
                   else "Enhanced data governance recommended" }}
                 </td>
               </tr>
+              <tr>
+                <td><strong>Preprocessing Verification</strong></td>
+                <td>
+                  <span
+                    class="status-indicator status-{{ 'pass' if (preprocessing_info and preprocessing_info.mode == 'artifact') else 'fail' }}"
+                    aria-label="Preprocessing verification status"
+                    >{{ 'Complete' if (preprocessing_info and
+                    preprocessing_info.mode == 'artifact') else 'Non-Compliant'
+                    }}</span
+                  >
+                </td>
+                <td>
+                  {{ "Production artifact verified with dual hash system" if
+                  (preprocessing_info and preprocessing_info.mode == 'artifact')
+                  else "Auto mode used - not suitable for regulatory compliance"
+                  }}
+                </td>
+                <td>
+                  {{ "Preprocessing transformations match production deployment"
+                  if (preprocessing_info and preprocessing_info.mode ==
+                  'artifact') else "Requires artifact mode with hash
+                  verification for compliance" }}
+                </td>
+              </tr>
             </tbody>
           </table>
         </div>
 
         <h3>Regulatory Framework Assessment</h3>
+        <p class="text-muted text-small">
+          Assessment against major regulatory frameworks as of their latest
+          revisions.
+        </p>
         <div class="two-column">
           <div>
-            <h4>GDPR Compliance (EU)</h4>
+            <h4>GDPR (EU) - Regulation (EU) 2016/679</h4>
+            <p class="text-small text-muted">
+              Effective: May 25, 2018 | Article 22 - Automated Decision-Making
+            </p>
             <ul class="text-small">
               <li>[PASS] Right to explanation supported (SHAP analysis)</li>
               <li>
@@ -1639,7 +2217,10 @@
             </ul>
           </div>
           <div>
-            <h4>Equal Credit Opportunity Act (US)</h4>
+            <h4>Equal Credit Opportunity Act (US) - 15 U.S.C. § 1691</h4>
+            <p class="text-small text-muted">
+              Enacted: 1974 | Regulation B (12 CFR Part 1002)
+            </p>
             <ul class="text-small">
               <li>
                 [{{ 'PASS' if fairness_analysis else 'FAIL' }}] Disparate impact
@@ -1689,6 +2270,325 @@
         {% endif %}
       </section>
 
+      <div class="page-break"></div>
+
+      <!-- Model Card -->
+      <section
+        id="section-model-card"
+        class="section"
+        role="region"
+        aria-labelledby="model-card-heading"
+      >
+        <h2 id="model-card-heading">
+          <span class="section-number"
+            >{{ '9.' if preprocessing_info else '8.' }}</span
+          >Model Card
+        </h2>
+
+        <p class="text-muted">
+          This model card provides essential information about the ML model's
+          intended use, limitations, and ethical considerations following the
+          Model Cards framework (Mitchell et al., 2019).
+        </p>
+
+        <div class="model-card">
+          <h4>Model Details</h4>
+          <ul>
+            <li>
+              <strong>Model Type:</strong> {{ model_info.type | default("N/A") |
+              title }}
+            </li>
+            <li>
+              <strong>Model Version:</strong> {{ version | default("1.0.0") }}
+            </li>
+            <li>
+              <strong>Training Date:</strong> {{
+              preprocessing_info.manifest.created_at if (preprocessing_info and
+              preprocessing_info.manifest and
+              preprocessing_info.manifest.created_at) else generation_date }}
+            </li>
+            <li>
+              <strong>Model Owner:</strong> [Organization Name - To Be
+              Completed]
+            </li>
+          </ul>
+        </div>
+
+        <div class="model-card">
+          <h4>Intended Use</h4>
+          <ul>
+            <li>
+              <strong>Primary Use Case:</strong> {{ schema_info.target |
+              default("Classification/Prediction") }} on tabular data
+            </li>
+            <li>
+              <strong>Intended Users:</strong> Data scientists, compliance
+              officers, and decision-makers requiring transparent ML predictions
+            </li>
+            <li>
+              <strong>Out-of-Scope Uses:</strong> This model should not be used
+              for decisions outside the training data distribution or for
+              populations not represented in the training data
+            </li>
+          </ul>
+        </div>
+
+        <div class="model-card">
+          <h4>Training Data</h4>
+          <ul>
+            <li>
+              <strong>Dataset Size:</strong> {{ data_summary.shape[0] if
+              data_summary.shape else "N/A" }} samples
+            </li>
+            <li>
+              <strong>Features:</strong> {{ data_summary.shape[1] if
+              data_summary.shape else "N/A" }} input variables
+            </li>
+            <li>
+              <strong>Protected Attributes:</strong> {{
+              schema_info.sensitive_features | join(", ") if
+              schema_info.sensitive_features else "None specified" }}
+            </li>
+            <li>
+              <strong>Data Quality:</strong> {{ "%.1f%%" |
+              format(((data_summary.shape[0] * data_summary.shape[1] -
+              (data_summary.missing_count | default(0))) /
+              (data_summary.shape[0] * data_summary.shape[1]) * 100) if
+              data_summary.shape else 0) }} complete
+            </li>
+          </ul>
+        </div>
+
+        <div class="model-card">
+          <h4>Performance Metrics</h4>
+          <ul>
+            {% set acc = None %} {% if model_performance.accuracy %} {% set acc
+            = model_performance.accuracy.value if model_performance.accuracy is
+            mapping and model_performance.accuracy.value is defined else
+            model_performance.accuracy %}
+            <li>
+              <strong>Accuracy:</strong> {{ "%.1f%%" | format(acc * 100) }}
+            </li>
+            {% endif %}
+            <li>
+              <strong>Overall Assessment:</strong> {{ 'Excellent' if (acc and
+              acc > 0.9) else ('Good' if (acc and acc > 0.8) else ('Fair' if
+              (acc and acc > 0.6) else 'Needs Improvement')) if acc else 'Not
+              Available' }}
+            </li>
+          </ul>
+        </div>
+
+        <div class="model-card">
+          <h4>Ethical Considerations</h4>
+          <ul>
+            <li>
+              <strong>Fairness:</strong> {{ "Bias detected in " + (bias_detected
+              | unique | join(", ")) if bias_detected else "No significant bias
+              detected in protected attributes" }}
+            </li>
+            <li>
+              <strong>Privacy:</strong> Model operates on aggregated data
+              without individual identification
+            </li>
+            <li>
+              <strong>Transparency:</strong> SHAP explanations provide
+              interpretable feature importance
+            </li>
+            <li>
+              <strong>Accountability:</strong> Full audit trail maintained with
+              reproducible seeds
+            </li>
+          </ul>
+        </div>
+
+        <div class="model-card">
+          <h4>Limitations & Risks</h4>
+          <ul>
+            <li>
+              Model performance may degrade on data from different distributions
+              than training data
+            </li>
+            <li>
+              Protected attribute fairness assessed at time of audit; ongoing
+              monitoring recommended
+            </li>
+            {% if preprocessing_info and preprocessing_info.mode == 'auto' %}
+            <li>
+              <strong>CRITICAL:</strong> Auto preprocessing mode used - not
+              suitable for production deployment
+            </li>
+            {% endif %}
+            <li>
+              Model interpretability relies on SHAP approximations which may not
+              capture all nonlinear interactions
+            </li>
+            <li>
+              Regulatory compliance assessment is not legal advice; consult with
+              legal counsel before deployment
+            </li>
+          </ul>
+        </div>
+
+        <div class="model-card">
+          <h4>Maintenance & Monitoring</h4>
+          <ul>
+            <li>
+              Model should be re-audited periodically or when significant data
+              distribution changes occur
+            </li>
+            <li>
+              Monitor for data drift, concept drift, and fairness degradation in
+              production
+            </li>
+            <li>
+              Update preprocessing artifacts when training data is refreshed
+            </li>
+            <li>
+              Maintain version control for models, preprocessing artifacts, and
+              audit reports
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <div class="page-break"></div>
+
+      <!-- Glossary -->
+      <section
+        id="section-glossary"
+        class="section"
+        role="region"
+        aria-labelledby="glossary-heading"
+      >
+        <h2 id="glossary-heading">
+          <span class="section-number"
+            >{{ '10.' if preprocessing_info else '9.' }}</span
+          >Glossary
+        </h2>
+
+        <p class="text-muted">
+          Key terms and concepts used in this audit report, defined for
+          non-technical reviewers.
+        </p>
+
+        <div class="glossary-term">Accuracy</div>
+        <div class="glossary-definition">
+          The proportion of correct predictions out of all predictions made. A
+          model with 85% accuracy makes correct predictions 85% of the time.
+        </div>
+
+        <div class="glossary-term">Artifact (Preprocessing)</div>
+        <div class="glossary-definition">
+          A saved file containing the exact preprocessing transformations
+          (imputation, scaling, encoding) used on training data. Ensures audit
+          data is transformed identically to production data.
+        </div>
+
+        <div class="glossary-term">Bias (Statistical)</div>
+        <div class="glossary-definition">
+          Systematic unfairness in model predictions across different
+          demographic groups. Detected through fairness metrics that compare
+          outcomes between protected groups.
+        </div>
+
+        <div class="glossary-term">Demographic Parity</div>
+        <div class="glossary-definition">
+          A fairness metric requiring that positive predictions occur at equal
+          rates across all demographic groups. For example, loan approval rates
+          should be similar across all age groups.
+        </div>
+
+        <div class="glossary-term">Equal Opportunity</div>
+        <div class="glossary-definition">
+          A fairness metric requiring that qualified individuals have equal
+          chances of positive outcomes regardless of protected attributes.
+          Focuses on true positive rates.
+        </div>
+
+        <div class="glossary-term">Feature</div>
+        <div class="glossary-definition">
+          An input variable used by the model to make predictions. Features can
+          be demographic information, financial data, behavioral patterns, etc.
+        </div>
+
+        <div class="glossary-term">Feature Importance</div>
+        <div class="glossary-definition">
+          A measure of how much each feature contributes to model predictions.
+          Higher importance means the feature has greater influence on outcomes.
+        </div>
+
+        <div class="glossary-term">Hash (Cryptographic)</div>
+        <div class="glossary-definition">
+          A unique digital fingerprint of a file or data. Any change to the file
+          produces a completely different hash, enabling verification that files
+          haven't been tampered with.
+        </div>
+
+        <div class="glossary-term">Imputation</div>
+        <div class="glossary-definition">
+          The process of filling in missing values in data. Common strategies
+          include using the median, mean, or most frequent value from training
+          data.
+        </div>
+
+        <div class="glossary-term">Model Card</div>
+        <div class="glossary-definition">
+          Standardized documentation describing a model's intended use,
+          limitations, training data, and ethical considerations. Promotes
+          transparency and responsible AI deployment.
+        </div>
+
+        <div class="glossary-term">OneHotEncoder</div>
+        <div class="glossary-definition">
+          A transformation that converts categorical variables (like "red",
+          "blue", "green") into binary indicator columns (is_red: yes/no,
+          is_blue: yes/no, is_green: yes/no).
+        </div>
+
+        <div class="glossary-term">Protected Attribute</div>
+        <div class="glossary-definition">
+          A characteristic protected by anti-discrimination laws, such as age,
+          gender, race, or disability status. Models must be evaluated for fair
+          treatment across these attributes.
+        </div>
+
+        <div class="glossary-term">Reproducibility</div>
+        <div class="glossary-definition">
+          The ability to generate identical results when running the same
+          analysis multiple times. Critical for regulatory audits to verify that
+          results haven't been cherry-picked.
+        </div>
+
+        <div class="glossary-term">Scaling (Feature)</div>
+        <div class="glossary-definition">
+          Transforming numerical features to a common range or distribution.
+          StandardScaler removes the mean and scales to unit variance; this
+          helps models treat all features fairly.
+        </div>
+
+        <div class="glossary-term">SHAP (SHapley Additive exPlanations)</div>
+        <div class="glossary-definition">
+          A method for explaining individual predictions by quantifying each
+          feature's contribution. Based on game theory and provides
+          theoretically sound explanations.
+        </div>
+
+        <div class="glossary-term">Strict Mode</div>
+        <div class="glossary-definition">
+          An audit configuration that enforces additional regulatory
+          requirements, such as explicit random seeds, production preprocessing
+          artifacts, and comprehensive documentation.
+        </div>
+
+        <div class="glossary-term">Unknown Category</div>
+        <div class="glossary-definition">
+          A categorical value in audit data that wasn't seen during
+          preprocessing training. High unknown rates may indicate data
+          distribution shift or model drift.
+        </div>
+      </section>
+
       <!-- Footer -->
       <footer class="footer">
         <hr />
@@ -1704,6 +2604,9 @@
             This report was generated using automated audit tools. Human review
             is recommended for regulatory submissions.
           </p>
+          <div class="page-number" aria-label="Page number">
+            Page <span class="page-num"></span>
+          </div>
         </div>
       </footer>
     </div>

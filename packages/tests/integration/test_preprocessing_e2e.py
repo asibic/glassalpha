@@ -87,11 +87,13 @@ class TestPreprocessingIntegration:
         # Verify preprocessing section is in HTML
         assert "Preprocessing Verification" in html_content, "Missing preprocessing section in HTML"
         assert "Production Artifact Verified" in html_content, "Missing artifact verification banner"
-        assert preprocessing_info["file_hash"] in html_content, "File hash not in HTML"
-        assert preprocessing_info["params_hash"] in html_content, "Params hash not in HTML"
+        # Template strips 'sha256:' prefix for cleaner display
+        assert preprocessing_info["file_hash"].replace("sha256:", "") in html_content, "File hash not in HTML"
+        assert preprocessing_info["params_hash"].replace("sha256:", "") in html_content, "Params hash not in HTML"
 
         # Verify component details are in HTML
-        assert "Preprocessing Components" in html_content, "Missing components section"
+        assert "Component Details" in html_content, "Missing components section"
+        assert "Preprocessing Pipeline" in html_content, "Missing pipeline diagram section"
         for component in manifest["components"]:
             assert component["name"] in html_content, f"Component {component['name']} not in HTML"
 
@@ -108,8 +110,9 @@ class TestPreprocessingIntegration:
 
         # Verify manifest has preprocessing component
         assert "components" in loaded_manifest, "Missing components in manifest"
-        component_names_in_manifest = [c["name"] for c in loaded_manifest.get("components", [])]
-        assert "preprocessing" in component_names_in_manifest, "Preprocessing not tracked in manifest"
+        components = loaded_manifest.get("components", {})
+        assert "preprocessing" in components, "Preprocessing not tracked in manifest"
+        assert components["preprocessing"]["type"] == "artifact", "Expected artifact type in manifest"
 
     def test_auto_mode_warning_in_report(self, tmp_path):
         """Test that auto mode produces clear warnings in report.
@@ -183,8 +186,11 @@ class TestPreprocessingIntegration:
         pipeline = AuditPipeline(config)
 
         # Should fail due to hash mismatch
-        with pytest.raises(ValueError, match="file hash mismatch"):
-            pipeline.run()
+        results = pipeline.run()
+        assert not results.success, "Pipeline should fail with hash mismatch"
+        assert "file hash mismatch" in results.error_message, (
+            f"Expected hash mismatch error, got: {results.error_message}"
+        )
 
     def test_preprocessing_manifest_in_audit_manifest(self, tmp_path):
         """Test that preprocessing details are captured in audit manifest.
@@ -209,11 +215,11 @@ class TestPreprocessingIntegration:
 
         # Verify preprocessing is tracked as a component
         assert "components" in manifest, "Missing components in manifest"
-        preprocessing_components = [c for c in manifest["components"] if c["name"] == "preprocessing"]
-        assert len(preprocessing_components) > 0, "Preprocessing not in manifest components"
+        components = manifest["components"]
+        assert "preprocessing" in components, "Preprocessing not in manifest components"
 
         # Verify component has details
-        prep_component = preprocessing_components[0]
+        prep_component = components["preprocessing"]
         assert "details" in prep_component, "Missing details in preprocessing component"
         details = prep_component["details"]
         assert "artifact_path" in details, "Missing artifact_path"

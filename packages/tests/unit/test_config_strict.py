@@ -43,6 +43,12 @@ def _create_valid_strict_config() -> dict:
             "performance": ["accuracy"],
             "fairness": ["demographic_parity"],
         },
+        "preprocessing": {
+            "mode": "artifact",
+            "artifact_path": "/tmp/preprocessor.joblib",
+            "expected_file_hash": "sha256:test_hash",
+            "expected_params_hash": "sha256:test_params_hash",
+        },
     }
 
 

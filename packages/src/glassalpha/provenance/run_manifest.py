@@ -436,6 +436,18 @@ def _sanitize_config_for_hash(config: dict[str, Any]) -> dict[str, Any]:
 
     clean_config = copy.deepcopy(config)
 
+    # Recursively convert all Path objects to strings
+    def convert_paths(obj):
+        if isinstance(obj, Path):
+            return str(obj)
+        if isinstance(obj, dict):
+            return {k: convert_paths(v) for k, v in obj.items()}
+        if isinstance(obj, list):
+            return [convert_paths(item) for item in obj]
+        return obj
+
+    clean_config = convert_paths(clean_config)
+
     # Remove or sanitize sensitive information
     if "data" in clean_config and "path" in clean_config["data"] and clean_config["data"]["path"] is not None:
         # Keep only filename, not full path

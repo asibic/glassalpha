@@ -115,7 +115,12 @@ class XGBoostWrapper(BaseTabularWrapper):
             from ...utils.features import align_features  # lazy import  # noqa: PLC0415
 
             X = align_features(X, self.feature_names_)
-        return xgb.DMatrix(X, label=y, feature_names=list(X.columns))
+
+        # Sanitize feature names for XGBoost (remove special characters [, ], <, >)
+        feature_names = [
+            str(col).replace("[", "(").replace("]", ")").replace("<", "lt").replace(">", "gt") for col in X.columns
+        ]
+        return xgb.DMatrix(X, label=y, feature_names=feature_names)
 
     def _canonicalize_params(self, kwargs: dict[str, Any]) -> dict[str, Any]:
         """Canonicalize XGBoost parameters to handle aliases and ensure consistency.

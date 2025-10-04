@@ -1103,13 +1103,15 @@ class AuditPipeline:
         """
         logger.info("Finalizing audit results and manifest")
 
-        # Store execution information
-        self.results.execution_info = {
-            "config_hash": self.manifest_generator.manifest.config_hash,
-            "audit_profile": self.config.audit_profile,
-            "strict_mode": self.config.strict_mode,
-            "components_used": len(self.manifest_generator.manifest.selected_components),
-        }
+        # Store execution information (update existing dict to preserve preprocessing info)
+        self.results.execution_info.update(
+            {
+                "config_hash": self.manifest_generator.manifest.config_hash,
+                "audit_profile": self.config.audit_profile,
+                "strict_mode": self.config.strict_mode,
+                "components_used": len(self.manifest_generator.manifest.selected_components),
+            },
+        )
 
         # Add result hashes to manifest
         from glassalpha.utils import hash_object  # noqa: PLC0415
@@ -1139,7 +1141,10 @@ class AuditPipeline:
 
         # Finalize manifest
         final_manifest = self.manifest_generator.finalize()
-        self.results.manifest = final_manifest.model_dump() if hasattr(final_manifest, "model_dump") else final_manifest
+        # Use mode='json' to properly serialize datetime objects
+        self.results.manifest = (
+            final_manifest.model_dump(mode="json") if hasattr(final_manifest, "model_dump") else final_manifest
+        )
 
         logger.info("Audit results finalized")
 
@@ -1242,7 +1247,6 @@ class AuditPipeline:
             extract_sklearn_manifest,
             load_artifact,
             validate_classes,
-            validate_output_shape,
             validate_sparsity,
         )
 
@@ -1296,13 +1300,11 @@ class AuditPipeline:
         try:
             assert_runtime_versions(
                 manifest,
-                policy_sklearn=config.version_policy.sklearn,
-                policy_numpy=config.version_policy.numpy,
-                policy_scipy=config.version_policy.scipy,
                 strict=self.config.strict_mode,
+                allow_minor=config.version_policy.allow_minor_in_strict,
             )
             logger.debug("Runtime version validation passed")
-        except ValueError as e:
+        except (ValueError, RuntimeError) as e:
             logger.error(f"Runtime version mismatch: {e}")
             raise
 
@@ -1333,18 +1335,17 @@ class AuditPipeline:
         logger.info("Transforming data with artifact preprocessor...")
         X_transformed = artifact.transform(X)  # noqa: N806
 
-        # Validate output shape
-        try:
-            validate_output_shape(artifact, X, X_transformed)
-            logger.debug("Output shape validation passed")
-        except ValueError as e:
-            logger.error(f"Output shape validation failed: {e}")
-            raise
+        # Note: Output shape validation against model is deferred until after model loading
+        # (validate_output_shape requires the model's n_features_in_ and feature_names_in_)
 
         # Validate sparsity if expected
         if config.expected_sparse is not None:
             try:
-                validate_sparsity(X_transformed, config.expected_sparse)
+                # Check if output is sparse
+                from scipy.sparse import issparse
+
+                actual_sparse = issparse(X_transformed)
+                validate_sparsity(actual_sparse, config.expected_sparse, config.artifact_path)
                 logger.debug(f"Sparsity validation passed (expected_sparse={config.expected_sparse})")
             except ValueError as e:
                 logger.error(f"Sparsity validation failed: {e}")

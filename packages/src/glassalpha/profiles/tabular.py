@@ -94,7 +94,7 @@ class TabularComplianceProfile:
             )
 
         # Check for schema (needed for determinism) - warn if missing but don't fail
-        if "schema_path" not in data_config and "schema" not in data_config:
+        if "schema_path" not in data_config and "data_schema" not in data_config:
             logger.warning("Profile 'tabular_compliance' recommends data schema for deterministic validation")
 
         # Check explainer configuration
