@@ -74,7 +74,51 @@ def train_from_config(cfg: Any, X: pd.DataFrame, y: Any) -> Any:
     calibration_config = getattr(cfg.model, "calibration", None)
     require_proba = bool(calibration_config and calibration_config.method)
 
-    model.fit(X, y, require_proba=require_proba, **params)
+    try:
+        model.fit(X, y, require_proba=require_proba, **params)
+    except ValueError as e:
+        # Provide helpful error messages for common issues
+        error_msg = str(e)
+
+        # Check for missing value errors
+        if "NaN" in error_msg or "missing" in error_msg.lower():
+            # Detect which columns have missing values
+            import pandas as pd  # noqa: PLC0415
+
+            missing_info = {}
+            if isinstance(X, pd.DataFrame):
+                missing_cols = X.columns[X.isna().any()].tolist()
+                missing_info = {
+                    col: (X[col].isna().sum(), (X[col].isna().sum() / len(X)) * 100) for col in missing_cols
+                }
+
+            # Build helpful error message
+            msg = "❌ Model training failed: Your data contains missing values (NaN)\n\n"
+
+            if missing_info:
+                msg += "Missing values detected in:\n"
+                for col, (count, pct) in missing_info.items():
+                    msg += f"  • {col}: {count} missing ({pct:.1f}%)\n"
+                msg += "\n"
+
+            msg += "💡 Quick fixes:\n"
+            msg += "  1. Remove rows with missing values:\n"
+            msg += "     df = df.dropna()\n\n"
+            msg += "  2. Fill with mean/median/mode:\n"
+            msg += "     # For numeric columns\n"
+            msg += "     df[numeric_cols] = df[numeric_cols].fillna(df[numeric_cols].mean())\n"
+            msg += "     # For categorical columns\n"
+            msg += "     df[cat_cols] = df[cat_cols].fillna(df[cat_cols].mode().iloc[0])\n\n"
+            msg += "  3. Use sklearn SimpleImputer (recommended):\n"
+            msg += "     from sklearn.impute import SimpleImputer\n"
+            msg += "     imputer = SimpleImputer(strategy='mean')  # or 'median', 'most_frequent'\n"
+            msg += "     X_imputed = imputer.fit_transform(X)\n\n"
+            msg += "📖 For more help, see: https://scikit-learn.org/stable/modules/impute.html"
+
+            raise ValueError(msg) from e
+
+        # Re-raise original error if not a known case
+        raise
 
     logger.info(f"Model training completed for {model_type}")
 

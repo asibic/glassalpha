@@ -85,6 +85,7 @@ class LightGBMWrapper(BaseTabularWrapper):
         self.feature_names: list | None = None
         self.feature_names_: list | None = None  # For sklearn compatibility
         self.n_classes: int = 2  # Default to binary classification
+        self._feature_name_mapping: dict[str, str] | None = None  # Maps original -> sanitized names
 
         if model_path:
             self.load(model_path)
@@ -97,6 +98,56 @@ class LightGBMWrapper(BaseTabularWrapper):
             logger.info("LightGBMWrapper initialized with model")
         else:
             logger.info("LightGBMWrapper initialized without model")
+
+    @staticmethod
+    def _sanitize_feature_names(feature_names: list[str]) -> tuple[list[str], dict[str, str]]:
+        """Sanitize feature names for LightGBM compatibility.
+
+        LightGBM doesn't accept special JSON characters in feature names.
+        This method replaces problematic characters with safe alternatives.
+
+        Args:
+            feature_names: Original feature names
+
+        Returns:
+            Tuple of (sanitized_names, mapping from original to sanitized)
+
+        """
+        # Characters that need to be replaced
+        replacements = {
+            "=": "_eq_",
+            "<": "_lt_",
+            ">": "_gt_",
+            ".": "_",
+            ":": "_",
+            '"': "_",
+            "[": "_",
+            "]": "_",
+            "{": "_",
+            "}": "_",
+            ",": "_",
+            " ": "_",
+        }
+
+        sanitized = []
+        mapping = {}
+
+        for name in feature_names:
+            sanitized_name = name
+            for char, replacement in replacements.items():
+                sanitized_name = sanitized_name.replace(char, replacement)
+
+            # Remove duplicate underscores
+            while "__" in sanitized_name:
+                sanitized_name = sanitized_name.replace("__", "_")
+
+            # Remove leading/trailing underscores
+            sanitized_name = sanitized_name.strip("_")
+
+            sanitized.append(sanitized_name)
+            mapping[name] = sanitized_name
+
+        return sanitized, mapping
 
     def load(self, path: str | Path) -> "LightGBMWrapper":
         """Load trained LightGBM model from saved file.
@@ -182,8 +233,16 @@ class LightGBMWrapper(BaseTabularWrapper):
             self.feature_names_ = list(X.columns)
             self.feature_names = list(X.columns)  # Also set for compatibility
 
-        # Prepare data for LightGBM
-        X_processed = self._prepare_x(X)  # noqa: N806
+            # Sanitize feature names for LightGBM (it doesn't accept special JSON characters)
+            sanitized_names, self._feature_name_mapping = self._sanitize_feature_names(list(X.columns))
+            X_processed = self._prepare_x(X)  # noqa: N806
+            # Rename columns with sanitized names
+            if hasattr(X_processed, "columns"):
+                X_processed.columns = sanitized_names
+        else:
+            X_processed = self._prepare_x(X)  # noqa: N806
+            self._feature_name_mapping = None
+
         lgb = _import_lightgbm()
         train_data = lgb.Dataset(X_processed, label=y)
 

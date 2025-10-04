@@ -94,19 +94,24 @@ nav:
       - Quick Start: getting-started/quickstart.md
       - Installation: getting-started/installation.md
       - Using Custom Data: getting-started/custom-data.md
-      - Data Sources: getting-started/data-sources.md
       - Configuration: getting-started/configuration.md
+      - Data Sources: getting-started/data-sources.md
       - Datasets: getting-started/datasets.md
+  - Guides:
+      - Model Selection: reference/model-selection.md
+      - Explainer Selection: reference/explainers.md
+      - Model Parameters: reference/model-parameters.md
   - Examples:
       - German Credit Audit: examples/german-credit-audit.md
       - Healthcare Bias Detection: examples/healthcare-bias-detection.md
       - Fraud Detection Audit: examples/fraud-detection-audit.md
   - Reference:
-      - Trust & Deployment: reference/trust-deployment.md
       - CLI Reference: reference/cli.md
+      - Trust & Deployment: reference/trust-deployment.md
       - Troubleshooting: reference/troubleshooting.md
       - FAQ: reference/faq.md
       - Contributing: reference/contributing.md
+      - Trademark: reference/TRADEMARK.md
   - Blog: blog/index.md
   - About: about.md
   - Contact: contact.md

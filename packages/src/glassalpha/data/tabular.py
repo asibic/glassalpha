@@ -120,7 +120,26 @@ class TabularDataLoader(DataInterface):
 
         # Check target column exists
         if schema.target not in data.columns:
-            msg = f"Target column '{schema.target}' not found in data"
+            # Build helpful error message with suggestions
+            available_cols = sorted(data.columns.tolist())
+            available_targets = [
+                col for col in available_cols if col.lower() in ["target", "label", "outcome", "class", "y"]
+            ]
+
+            msg = f"❌ Target column '{schema.target}' not found in data\n\n"
+
+            if available_targets:
+                msg += "💡 Did you mean one of these?\n"
+                for col in available_targets:
+                    msg += f"   • {col}\n"
+                msg += "\nUpdate your config:\n"
+                msg += "  data:\n"
+                msg += f"    target_column: {available_targets[0]}\n"
+            else:
+                msg += f"Available columns: {available_cols[:10]}"
+                if len(available_cols) > 10:
+                    msg += f" (and {len(available_cols) - 10} more)"
+
             raise ValueError(msg)
 
         # Check feature columns exist

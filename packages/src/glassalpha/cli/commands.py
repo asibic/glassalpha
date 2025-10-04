@@ -12,6 +12,7 @@ Do not "fix" this by adding 'from e' - users don't need stack traces.
 import logging
 import sys
 from pathlib import Path
+from typing import Any
 
 import typer
 
@@ -714,6 +715,56 @@ def doctor():  # pragma: no cover
     typer.echo()
 
 
+def _validate_model_params(config: Any) -> list[str]:  # noqa: ANN401
+    """Check model parameters for common issues.
+
+    Args:
+        config: Audit configuration
+
+    Returns:
+        List of warning messages
+
+    """
+    warnings = []
+    model_type = config.model.type
+    params = config.model.params if hasattr(config.model, "params") else {}
+
+    # Check for negative values where they don't make sense
+    negative_checks = {
+        "max_iter": "Maximum iterations",
+        "n_estimators": "Number of estimators",
+        "max_depth": "Maximum depth",
+    }
+
+    for param, desc in negative_checks.items():
+        if param in params and params[param] < 0:
+            # Exception: LightGBM max_depth = -1 is valid (means no limit)
+            if not (model_type == "lightgbm" and param == "max_depth" and params[param] == -1):
+                warnings.append(f"{param}: {params[param]} - {desc} should be positive")
+
+    # Check for C parameter in logistic regression
+    if model_type == "logistic_regression" and "C" in params:
+        if params["C"] <= 0:
+            warnings.append(f"C: {params['C']} - Must be positive (inverse regularization strength)")
+
+    # Check for learning rate
+    if "learning_rate" in params:
+        lr = params["learning_rate"]
+        if lr <= 0:
+            warnings.append(f"learning_rate: {lr} - Must be positive")
+        elif lr > 1:
+            warnings.append(f"learning_rate: {lr} - Typically between 0.01 and 0.3 (unusually high)")
+
+    # Check for subsample/colsample ratios
+    for param in ["subsample", "colsample_bytree"]:
+        if param in params:
+            value = params[param]
+            if value <= 0 or value > 1:
+                warnings.append(f"{param}: {value} - Must be between 0 and 1 (fraction of data)")
+
+    return warnings
+
+
 def validate(  # pragma: no cover
     config: Path = typer.Option(
         ...,
@@ -766,7 +817,23 @@ def validate(  # pragma: no cover
         # Report validation results
         typer.secho(_ascii("\n✓ Configuration is valid"), fg=typer.colors.GREEN)
 
-        # Show warnings if any
+        # Check model parameters
+        param_warnings = _validate_model_params(audit_config)
+        if param_warnings:
+            typer.echo()
+            typer.secho(_ascii("⚠ Parameter warnings:"), fg=typer.colors.YELLOW)
+            for warning in param_warnings:
+                typer.secho(f"  {warning}", fg=typer.colors.YELLOW)
+            typer.echo()
+
+            # Add direct link to relevant section
+            model_type = audit_config.model.type.replace("_", "-")
+            doc_url = f"https://glassalpha.com/docs/reference/model-parameters/#{model_type}"
+            typer.echo(_ascii("💡 See parameter reference:"))
+            typer.echo(f"   {doc_url}")
+            typer.echo("   Or run: glassalpha docs model-parameters")
+
+        # Show other warnings
         if not audit_config.reproducibility.random_seed:
             typer.secho("Warning: No random seed specified - results may vary", fg=typer.colors.YELLOW)
 
@@ -788,6 +855,63 @@ def validate(  # pragma: no cover
         typer.secho(f"Unexpected error: {e}", fg=typer.colors.RED, err=True)
         # Design choice: Hide implementation details from end users
         raise typer.Exit(1) from None
+
+
+def docs(  # pragma: no cover
+    topic: str | None = typer.Argument(
+        None,
+        help="Documentation topic (e.g., 'model-parameters', 'quickstart', 'cli')",
+    ),
+    open_browser: bool = typer.Option(
+        True,
+        "--open/--no-open",
+        help="Open in browser",
+    ),
+):
+    """Open documentation in browser.
+
+    Opens the GlassAlpha documentation website. You can optionally specify
+    a topic to jump directly to that section.
+
+    Examples:
+        # Open docs home
+        glassalpha docs
+
+        # Open specific topic
+        glassalpha docs model-parameters
+
+        # Just print URL without opening
+        glassalpha docs quickstart --no-open
+
+    """
+    import webbrowser
+
+    base_url = "https://glassalpha.com/docs"
+
+    # Build URL based on topic
+    if topic:
+        # Normalize topic (replace underscores with hyphens)
+        topic_normalized = topic.replace("_", "-")
+        url = f"{base_url}/reference/{topic_normalized}/"
+
+        # Special cases for common topics
+        if topic_normalized in ["quickstart", "installation"]:
+            url = f"{base_url}/getting-started/{topic_normalized}/"
+        elif topic_normalized in ["cli", "troubleshooting", "faq"]:
+            url = f"{base_url}/reference/{topic_normalized}/"
+    else:
+        url = base_url
+
+    # Open in browser or just print URL
+    if open_browser:
+        try:
+            webbrowser.open(url)
+            typer.echo(f"📖 Opening documentation: {url}")
+        except Exception as e:
+            typer.secho(f"Could not open browser: {e}", fg=typer.colors.YELLOW)
+            typer.echo(f"Documentation URL: {url}")
+    else:
+        typer.echo(f"Documentation URL: {url}")
 
 
 def list_components_cmd(  # pragma: no cover

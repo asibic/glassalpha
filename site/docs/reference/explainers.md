@@ -2,6 +2,8 @@
 
 Choose the right explainer to understand what drives your model's predictions.
 
+!!! info "Quick Links" - **Haven't chosen a model yet?** → Start with [Model Selection Guide](model-selection.md) - **Ready to configure?** → See [Configuration Guide](../getting-started/configuration.md) for explainer YAML setup - **Getting started?** → Try the [Quick Start Guide](../getting-started/quickstart.md) first
+
 ## Quick Decision Tree
 
 ```

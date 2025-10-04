@@ -134,13 +134,14 @@ app.add_typer(dashboard_app, name="dashboard")
 app.add_typer(monitor_app, name="monitor")
 
 # Import and register commands
-from .commands import audit, doctor, list_components_cmd, validate
+from .commands import audit, docs, doctor, list_components_cmd, validate
 
 # Register main commands
 app.command()(audit)
 app.command("validate")(validate)
 app.command("list", help="List available components")(list_components_cmd)
 app.command("doctor", help="Check environment and optional features")(doctor)
+app.command("docs", help="Open documentation in browser")(docs)
 
 # Register datasets commands with lazy loading (Phase 2 performance optimization)
 # These import the datasets module only when the command is actually invoked,

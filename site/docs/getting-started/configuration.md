@@ -2,6 +2,9 @@
 
 Complete guide to configuring GlassAlpha for different use cases, models, and compliance requirements.
 
+!!! tip "New to GlassAlpha?"
+Start with the [Quick Start Guide](quickstart.md) to generate your first audit, then return here for detailed configuration options.
+
 ## Overview
 
 GlassAlpha uses YAML configuration files to define every aspect of the audit process. Configuration files are policy-as-code, enabling version control, review processes, and reproducible audits.
@@ -192,6 +195,8 @@ explainers:
 
 - `treeshap` - Exact SHAP values for tree models (XGBoost, LightGBM)
 - `kernelshap` - Model-agnostic SHAP approximation
+- `coefficients` - Direct coefficients for linear models (LogisticRegression)
+- `permutation` - Feature importance via permutation (any model)
 - `noop` - No-op placeholder (for testing)
 
 **Selection Strategies:**
@@ -199,7 +204,13 @@ explainers:
 - `first_compatible` - Use first explainer compatible with model
 - `best_available` - Select highest-priority compatible explainer
 
-**Need help choosing an explainer?** See the [Explainer Deep Dive](../reference/explainers.md) for decision trees, performance comparisons, and configuration recommendations.
+!!! tip "Choosing an Explainer"
+Not sure which explainer to use? The [Explainer Selection Guide](../reference/explainers.md) provides:
+
+    - Decision trees to choose the right explainer
+    - Performance benchmarks and timing comparisons
+    - Detailed configuration examples
+    - Model compatibility matrix
 
 ## Metrics configuration
 

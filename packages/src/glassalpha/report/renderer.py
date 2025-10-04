@@ -32,6 +32,42 @@ from .plots import AuditPlotter, create_fairness_plots, create_performance_plots
 logger = logging.getLogger(__name__)
 
 
+def validate_output_path(output_path: Path) -> None:
+    """Validate output path before attempting to save.
+
+    Args:
+        output_path: Path to validate
+
+    Raises:
+        ValueError: If path is invalid or too long
+
+    """
+    path_str = str(output_path.resolve())
+    filename = output_path.name
+
+    # Check filename length (most filesystems have 255 char limit)
+    if len(filename) > 255:
+        raise ValueError(
+            f"❌ Filename too long: {len(filename)} characters (limit: 255)\n\n"
+            f"Current filename: {filename[:50]}...\n\n"
+            f"💡 Use a shorter filename:\n"
+            f"   --output audit_report.html\n"
+            f"   --output report_20251004.html",
+        )
+
+    # Check full path length (be conservative for Windows compatibility)
+    # Windows typically has 260 char limit, Linux/Mac ~4096
+    if len(path_str) > 4000:  # Leave some margin
+        raise ValueError(
+            f"❌ Path too long: {len(path_str)} characters\n\n"
+            f"System limit: ~4096 characters (varies by OS)\n"
+            f"Windows limit: 260 characters (unless long paths enabled)\n\n"
+            f"💡 Use a shorter path:\n"
+            f"   --output ~/audit.html\n"
+            f"   --output /tmp/report.html",
+        )
+
+
 class AuditReportRenderer:
     """Professional template renderer for audit reports."""
 
@@ -118,6 +154,7 @@ class AuditReportRenderer:
         # Save to file if requested
         if output_path:
             output_path = Path(output_path)
+            validate_output_path(output_path)  # Validate before attempting to save
             output_path.parent.mkdir(parents=True, exist_ok=True)
 
             with output_path.open("w", encoding="utf-8") as f:

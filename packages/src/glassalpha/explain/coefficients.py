@@ -6,11 +6,14 @@ feature attributions for linear and logistic regression models.
 
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 import numpy as np
 
 from glassalpha.explain.base import ExplainerBase
+
+logger = logging.getLogger(__name__)
 
 
 class CoefficientsExplainer(ExplainerBase):
@@ -118,15 +121,28 @@ class CoefficientsExplainer(ExplainerBase):
         if coef_ is None or (hasattr(coef_, "size") and coef_.size == 0):
             raise RuntimeError("Model does not have coefficients (coef_)")
 
-        # Handle 2D coefficient arrays (e.g., from sklearn LogisticRegression)
-        if coef_.ndim > 1:
+        # Handle 2D coefficient arrays (e.g., from sklearn LogisticRegression with multiclass)
+        # For multiclass, coef_ has shape (n_classes, n_features)
+        # We'll average the coefficients across classes for global importance
+        is_multiclass = coef_.ndim > 1 and coef_.shape[0] > 1
+        if is_multiclass:
+            # Average across classes for global importance
+            coef_ = np.mean(np.abs(coef_), axis=0)
+            logger.debug(
+                f"Multiclass model detected, using mean absolute coefficients across {underlying_model.coef_.shape[0]} classes"
+            )
+        elif coef_.ndim > 1:
+            # Single-row 2D array (binary classification in some frameworks)
             coef_ = coef_.flatten()
 
         # Handle intercept (could be scalar or array)
         if intercept_ is None:
             intercept_ = 0.0
         elif hasattr(intercept_, "__len__"):
-            intercept_ = intercept_[0]  # Take first element if array
+            # For multiclass, average intercepts
+            intercept_ = np.mean(intercept_)
+        else:
+            intercept_ = float(intercept_)
 
         # Ensure X is 2D
         if X.ndim == 1:

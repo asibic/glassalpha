@@ -87,8 +87,13 @@ class AuditPDFRenderer:
         """
         logger.info(f"Rendering audit PDF to: {output_path}")
 
-        # Ensure output directory exists
+        # Validate output path before proceeding
+        from ..renderer import validate_output_path
+
         output_path = Path(output_path)
+        validate_output_path(output_path)
+
+        # Ensure output directory exists
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
         try:
