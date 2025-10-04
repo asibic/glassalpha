@@ -44,6 +44,9 @@ datasets_app = typer.Typer(
     no_args_is_help=True,
 )
 
+# Preprocessing artifact management (OSS)
+from .prep import prep_app
+
 # Future command groups (for Phase 2+)
 # These are stubbed now to establish the structure
 dashboard_app = typer.Typer(
@@ -128,6 +131,7 @@ def main_callback(
 # Add command groups to main app
 # Core functionality (OSS)
 app.add_typer(datasets_app, name="datasets")
+app.add_typer(prep_app, name="prep")
 
 # Enterprise features - these will check for license
 app.add_typer(dashboard_app, name="dashboard")
