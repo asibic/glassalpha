@@ -310,21 +310,86 @@ report:
 
 ### Strict mode
 
-Enforces additional regulatory compliance requirements.
+Enforces additional regulatory compliance requirements for production and regulatory use.
 
-```yaml
-# Enable via CLI: --strict
-# Or in configuration:
-strict_mode: true
+```bash
+# Enable strict mode via CLI flag (recommended)
+glassalpha audit --config my_config.yaml --output audit.pdf --strict
 ```
 
 **Strict Mode Requirements:**
 
-- Explicit random seeds (no defaults)
-- Complete data schema specification
-- Full manifest generation
-- Deterministic component selection
-- All optional validations enabled
+When strict mode is enabled, the following fields become **required**:
+
+1. **Data path must be explicit**
+
+   ```yaml
+   data:
+     path: /absolute/path/to/data.csv # Required in strict mode
+     # dataset: german_credit won't work in strict mode
+   ```
+
+2. **Data schema must be specified**
+
+   ```yaml
+   data:
+     schema_path: /path/to/schema.yaml # Path to schema file
+     # OR provide inline schema (future feature)
+   ```
+
+3. **Model path must be specified**
+
+   ```yaml
+   model:
+     path: /path/to/trained_model.pkl # Pre-trained model required
+     # Training from params not allowed in strict mode
+   ```
+
+4. **Explicit random seeds (no defaults)**
+   ```yaml
+   reproducibility:
+     random_seed: 42 # Must be explicitly set
+   ```
+
+**When to use strict mode:**
+
+- Regulatory submissions (FDA, ECOA, GDPR)
+- Production deployments
+- Audit documentation for compliance
+- When byte-identical reproducibility is critical
+
+**Example strict mode configuration:**
+
+```yaml
+audit_profile: tabular_compliance
+
+reproducibility:
+  random_seed: 42
+
+data:
+  path: /var/data/production_dataset.csv
+  schema_path: /var/schemas/data_schema.yaml
+  target_column: outcome
+  protected_attributes:
+    - gender
+    - race
+
+model:
+  type: xgboost
+  path: /var/models/prod_model_v1.2.pkl
+
+explainers:
+  strategy: first_compatible
+  priority: [treeshap]
+
+metrics:
+  performance:
+    metrics: [accuracy, precision, recall, f1, auc_roc]
+  fairness:
+    metrics: [demographic_parity, equal_opportunity]
+```
+
+**Note:** Strict mode is designed for production use where all artifacts (data, models, schemas) are pre-validated and versioned. For development and testing, use standard mode without the `--strict` flag.
 
 ### Manifest configuration
 

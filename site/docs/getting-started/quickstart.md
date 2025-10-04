@@ -100,21 +100,23 @@ GlassAlpha comes with a ready-to-use German Credit dataset example that demonstr
 
 ### Run the audit command
 
-Generate audit PDF (takes ~3 seconds):
+Generate audit report (takes ~3 seconds):
 
 ```bash
 glassalpha audit \
   --config configs/german_credit_simple.yaml \
-  --output my_first_audit.pdf
+  --output my_first_audit.html
 ```
+
+**Note:** The simple configuration uses `logistic_regression` model (always available). For advanced models like XGBoost or LightGBM, install with `pip install 'glassalpha[explain]'`.
 
 ### What happens
 
 1. **Automatic Dataset Resolution**: Uses built-in German Credit dataset from registry
-2. **Model Training**: Trains XGBoost classifier with optimal parameters
-3. **Explanations**: Generates TreeSHAP feature importance analysis
+2. **Model Training**: Trains LogisticRegression classifier (baseline model)
+3. **Explanations**: Generates coefficient-based feature importance
 4. **Fairness Analysis**: Computes bias metrics for protected attributes (gender, age)
-5. **PDF Generation**: Creates professional audit report with visualizations
+5. **Report Generation**: Creates professional HTML audit report with visualizations
 
 ### Expected output
 
@@ -220,11 +222,16 @@ Model configuration:
 
 ```yaml
 model:
-  type: xgboost
+  type: logistic_regression # Baseline model (always available)
   params:
-    objective: binary:logistic
-    n_estimators: 100
-    max_depth: 5
+    random_state: 42
+    max_iter: 1000
+# For advanced models (requires pip install 'glassalpha[explain]'):
+# type: xgboost
+# params:
+#   objective: binary:logistic
+#   n_estimators: 100
+#   max_depth: 5
 ```
 
 Explainer selection:
@@ -233,8 +240,8 @@ Explainer selection:
 explainers:
   strategy: first_compatible
   priority:
-    - treeshap # Primary choice for tree models
-    - kernelshap # Fallback for any model type
+    - treeshap # Best for tree models (XGBoost, LightGBM)
+    # For logistic_regression, will automatically use coefficients
 ```
 
 Metrics to compute:

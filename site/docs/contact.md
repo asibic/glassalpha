@@ -1,6 +1,6 @@
 # Contact GlassAlpha
 
-Use the links below for questions or help regarding the ClassAlpham open source project:
+Use the links below for questions or help regarding the GlassAlpha open source project:
 
 - **Questions**: [GitHub Discussions](https://github.com/GlassAlpha/glassalpha/discussions)
 - **Bugs**: [GitHub Issues](https://github.com/GlassAlpha/glassalpha/issues)

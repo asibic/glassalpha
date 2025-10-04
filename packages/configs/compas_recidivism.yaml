@@ -121,10 +121,8 @@ metrics:
         threshold: 0.05 # Equal error rates
 
 # Preprocessing configuration
-preprocessing:
-  handle_missing: true
-  missing_strategy: mode # For categorical features
-  categorical_encoding: label
+# Note: Preprocessing options are coming in a future release
+# GlassAlpha currently handles preprocessing automatically
 
 # Report configuration
 report:
@@ -142,14 +140,9 @@ report:
     - fairness_analysis
     - audit_manifest
     - regulatory_compliance
-
 # Manifest configuration
-manifest:
-  enabled: true
-  include_git_sha: true
-  include_config_hash: true
-  include_data_hash: true
-  track_component_selection: true
+# Note: Manifest is automatically generated with each audit
+# Custom manifest options are coming in a future release
 # ==============================================================================
 # Usage:
 #   glassalpha audit --config compas_recidivism.yaml --output compas_audit.pdf --strict

@@ -730,15 +730,6 @@ df.to_csv('data_with_bins.csv', index=False)
 
 ## Next steps
 
-Now that you can use custom data:
-
-1. **Explore model types**: Try different models on your data
-2. **Tune hyperparameters**: Optimize model configuration
-3. **Deep dive into metrics**: Understand fairness measures
-4. **Compare datasets**: Benchmark against public datasets
-
-## Next Steps
-
 You're now ready to audit your own models! Here's what to do:
 
 1. **✅ Try it**: Run your first custom data audit using the [quick start](#quick-start) above

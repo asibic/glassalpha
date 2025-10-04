@@ -30,14 +30,14 @@ Complete installation instructions for GlassAlpha on different platforms and env
 
 Choose your installation based on your needs:
 
-| Goal                          | Command                                                                                                      | What's Included                                            | Use Case                                          |
-| ----------------------------- | ------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------- | ------------------------------------------------- |
-| **Minimal quickstart (HTML)** | `pip install glassalpha` then `glassalpha audit --config configs/quickstart.yaml --output audit.html`        | Core functionality, LogisticRegression model, HTML reports | Quick audits, development, lightweight deployment |
-| **Generate PDFs**             | `pip install "glassalpha[docs]"` then `glassalpha audit --config configs/quickstart.yaml --output audit.pdf` | PDF report generation (`jinja2`, `weasyprint`)             | Professional reports, regulatory submissions      |
-| **SHAP + tree models**        | `pip install "glassalpha[explain]"`                                                                          | SHAP + XGBoost + LightGBM models                           | Production ML systems, complex models             |
-| **Visualization**             | `pip install "glassalpha[viz]"`                                                                              | Matplotlib + Seaborn for enhanced plots                    | Better visualizations in reports                  |
-| **Full installation**         | `pip install "glassalpha[all]"`                                                                              | All optional features and models                           | Complete toolkit, maximum compatibility           |
-| **Development**               | `pip install "glassalpha[dev,all]"`                                                                          | Testing, linting, documentation tools + all features       | Contributors, CI/CD environments                  |
+| Goal                          | Command                             | What's Included                                            | Use Case                                          |
+| ----------------------------- | ----------------------------------- | ---------------------------------------------------------- | ------------------------------------------------- |
+| **Minimal quickstart (HTML)** | `pip install glassalpha`            | Core functionality, LogisticRegression model, HTML reports | Quick audits, development, lightweight deployment |
+| **Generate PDFs**             | `pip install "glassalpha[docs]"`    | PDF report generation (`jinja2`, `weasyprint`)             | Professional reports, regulatory submissions      |
+| **SHAP + tree models**        | `pip install "glassalpha[explain]"` | SHAP + XGBoost + LightGBM models                           | Production ML systems, complex models             |
+| **Visualization**             | `pip install "glassalpha[viz]"`     | Matplotlib + Seaborn for enhanced plots                    | Better visualizations in reports                  |
+| **Full installation**         | `pip install "glassalpha[all]"`     | All optional features and models                           | Complete toolkit, maximum compatibility           |
+| **Development**               | `pip install "glassalpha[dev,all]"` | Testing, linting, documentation tools + all features       | Contributors, CI/CD environments                  |
 
 **Tip:** Run `glassalpha doctor` after installation to check your environment and see what features are available.
 

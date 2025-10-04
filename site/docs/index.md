@@ -20,13 +20,15 @@ cd glassalpha/packages
 pip install -e .
 ```
 
-#### Generate an audit PDF (uses included German Credit example)
+#### Generate an audit report (uses included German Credit example)
 
 ```bash
-glassalpha audit --config configs/german_credit_simple.yaml --output audit.pdf
+glassalpha audit --config configs/german_credit_simple.yaml --output audit.html
 ```
 
-That's it. You now have a complete audit report with model performance, SHAP explanations, and fairness metrics.
+That's it. You now have a complete audit report with model performance, explanations, and fairness metrics.
+
+**Note:** To generate PDF reports instead of HTML, install with `pip install 'glassalpha[docs]'`.
 
 See [**more setup documentation here**](getting-started/quickstart.md).
 
@@ -40,15 +42,15 @@ git clone https://github.com/GlassAlpha/glassalpha
 cd glassalpha/packages && pip install -e .
 
 # 2. Generate audit (30 seconds)
-glassalpha audit --config configs/german_credit_simple.yaml --output audit.pdf
+glassalpha audit --config configs/german_credit_simple.yaml --output audit.html
 
-# 3. Done! Open your professional PDF
-open audit.pdf  # macOS
-# xdg-open audit.pdf  # Linux
-# start audit.pdf  # Windows
+# 3. Done! Open your professional report
+open audit.html  # macOS
+# xdg-open audit.html  # Linux
+# start audit.html  # Windows
 ```
 
-**Result**: A 10-page professional audit PDF with:
+**Result**: A professional audit report with:
 
 - ✅ Model performance metrics (accuracy, precision, recall, F1, AUC)
 - ✅ Fairness analysis (bias detection across demographic groups)

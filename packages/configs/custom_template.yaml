@@ -47,18 +47,8 @@ reproducibility:
   # Same seed = byte-identical PDF reports
   random_seed: 42
 
-  # Configuration hash to track exact settings used
-  # Options:
-  #   - auto: Compute hash automatically (recommended)
-  #   - <string>: Manually specify hash (advanced use only)
-  config_hash: auto
-
-  # Git commit to track code version
-  # Options:
-  #   - auto: Detect from repository (recommended)
-  #   - <string>: Manually specify commit SHA
-  #   - null: Skip git tracking (not recommended for production)
-  git_commit: auto
+  # Configuration hash and git tracking
+  # Note: These are automatically captured in the audit manifest
 
 # ----------------------------------------------------------------------------
 # DATA CONFIGURATION (Required)
@@ -78,12 +68,10 @@ reproducibility:
 # ----------------------------------------------------------------------------
 
 data:
-  # Data source type
-  # Options:
-  #   - custom: Your own dataset (specify path below)
-  #   - german_credit: Built-in dataset (no path needed)
-  #   - adult_income: Built-in dataset (future)
-  source: custom
+  # Data source specification
+  # For custom data, specify dataset: custom and path below
+  # For built-in datasets, use dataset: german_credit
+  dataset: custom
 
   # Path to your dataset file (required for custom data)
   # IMPORTANT: Use absolute paths or ~ for home directory
@@ -115,18 +103,15 @@ data:
     - age
 
   # Feature columns (optional)
-  # Options:
-  #   - auto: Use all columns except target (recommended)
-  #   - [list]: Explicitly specify which columns to use
+  # If not specified, uses all columns except target and protected attributes
   #
-  # Explicit example:
+  # Explicit example (uncomment to use):
   # feature_columns:
   #   - age
   #   - income
   #   - education_level
   #   - years_employed
   #   - credit_score
-  feature_columns: auto
 
   # Dataset fetching and caching (for built-in datasets only)
   # Ignored when using custom data

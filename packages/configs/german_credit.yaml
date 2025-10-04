@@ -153,21 +153,9 @@ reproducibility:
 # AUDIT MANIFEST CONFIGURATION
 # =============================================================================
 
-manifest:
-  # Enable comprehensive audit trail generation
-  enabled: true
-
-  # Include Git repository information
-  include_git_sha: true
-
-  # Include configuration hash for integrity verification
-  include_config_hash: true
-
-  # Include dataset hash for data integrity verification
-  include_data_hash: true
-
-  # Include selected component information
-  track_component_selection: true
+# Manifest configuration
+# Note: Manifest is automatically generated with each audit
+# Custom manifest options are coming in a future release
 
   # Include execution timing and environment
   include_execution_info: true
@@ -257,22 +245,9 @@ recourse:
 # =============================================================================
 
 # Data preprocessing options
-preprocessing:
-  # Handle missing values
-  handle_missing: true
-  missing_strategy: "median"  # For numerical: median, for categorical: mode
 
-  # Feature scaling (important for some explainers)
-  scale_features: false  # XGBoost handles raw features well
-  scaling_method: "standard"  # standard, minmax, robust
 
-  # Categorical encoding
-  categorical_encoding: "label"  # label, onehot, target
 
-  # Feature selection
-  feature_selection: false
-  selection_method: "mutual_info"
-  max_features: 20
 
 # Validation configuration
 validation:
