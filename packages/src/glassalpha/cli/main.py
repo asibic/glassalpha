@@ -234,7 +234,7 @@ def models():
     """Show available models and installation options."""
     # Import models to trigger registration
 
-    from ..core.plugin_registry import ModelRegistry
+    from ..core import ModelRegistry
 
     typer.echo("Available Models:")
     typer.echo("=" * 50)

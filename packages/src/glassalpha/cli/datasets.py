@@ -87,41 +87,45 @@ def fetch_dataset(
         typer.echo(f"Available datasets: {', '.join(REGISTRY.keys())}")
         raise typer.Exit(code=1)
 
-    # Import here to avoid circular imports
-    from ..pipeline.audit import _ensure_dataset_availability
+    # Fetch the dataset directly using the spec
+    from ..utils.cache_dirs import resolve_data_root
 
-    # Create a minimal config object for the fetch operation
-    class ConfigData:
-        def __init__(self):
-            self.dataset = dataset
-            self.path = str(dest) if dest else None
-            self.fetch = "always" if force else "if_missing"
-            self.offline = False
+    cache_root = resolve_data_root()
+    target_path = dest if dest else (cache_root / spec.default_relpath)
+    target_path = Path(target_path).resolve()
 
-    config = type("Config", (), {"data": ConfigData()})()
+    # Create parent directory if needed
+    target_path.parent.mkdir(parents=True, exist_ok=True)
+
+    # Check if file exists and force flag
+    if target_path.exists() and not force:
+        typer.echo(f"✅ Dataset '{dataset}' already cached")
+        typer.echo(f"📁 Location: {target_path}")
+        typer.echo("💡 Use --force to re-download")
+        return
 
     try:
-        # Use the same logic as the audit pipeline
-        requested = _resolve_requested_path(config)
-        final_path = _ensure_dataset_availability(config, requested)
+        # Fetch the dataset
+        typer.echo(f"📥 Fetching dataset '{dataset}'...")
+
+        # Call the fetch function (returns path where data was saved)
+        fetched_path = spec.fetch_fn()
+
+        # If dest was specified and different from where it was fetched, move it
+        if dest and fetched_path != target_path:
+            import shutil
+
+            shutil.copy2(fetched_path, target_path)
+            final_path = target_path
+        else:
+            final_path = fetched_path
+
+        if not final_path.exists():
+            raise FileNotFoundError("Fetch function did not create file at expected location")
+
         typer.echo(f"✅ Dataset '{dataset}' fetched successfully")
         typer.echo(f"📁 Location: {final_path}")
 
     except Exception as e:
         typer.echo(f"❌ Failed to fetch dataset '{dataset}': {e}")
         raise typer.Exit(code=1)
-
-
-# Helper function (will be moved to audit.py)
-def _resolve_requested_path(cfg) -> Path:
-    """Resolve the requested data path from config."""
-    from ..utils.cache_dirs import resolve_data_root
-
-    if cfg.data.path:
-        return Path(str(cfg.data.path)).expanduser().resolve()
-
-    if cfg.data.dataset and cfg.data.dataset in REGISTRY:
-        cache_root = resolve_data_root()
-        return (cache_root / REGISTRY[cfg.data.dataset].default_relpath).resolve()
-
-    raise FileNotFoundError("No data.path or data.dataset provided")

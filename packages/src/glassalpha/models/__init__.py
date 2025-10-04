@@ -10,4 +10,21 @@ from .passthrough import PassThroughModel  # noqa: E402
 
 ModelRegistry.register("passthrough", PassThroughModel)
 
+# Import tabular models to trigger their registration (they register themselves)
+# These imports are conditional - they only succeed if dependencies are installed
+try:
+    from .tabular.lightgbm import LightGBMWrapper  # noqa: F401
+except ImportError:
+    pass
+
+try:
+    from .tabular.xgboost import XGBoostWrapper  # noqa: F401
+except ImportError:
+    pass
+
+try:
+    from .tabular.sklearn import LogisticRegressionWrapper, SklearnGenericWrapper  # noqa: F401
+except ImportError:
+    pass
+
 __all__ = ["ModelRegistry", "PassThroughModel"]

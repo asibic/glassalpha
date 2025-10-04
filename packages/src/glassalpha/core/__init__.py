@@ -4,6 +4,10 @@ This module provides the foundational interfaces, registries, and
 feature management system that enable the plugin architecture.
 """
 
+# Import models package to trigger registration of available models
+# This ensures models are registered when core is imported
+import glassalpha.models  # noqa: F401
+
 from .features import (
     FeatureNotAvailable,
     check_feature,
