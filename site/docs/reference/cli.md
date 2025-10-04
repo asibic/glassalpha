@@ -2,7 +2,10 @@
 
 Complete reference for all GlassAlpha command-line interface commands and options.
 
-!!! tip "Quick Links" - **New to GlassAlpha?** → Start with [Quick Start Guide](../getting-started/quickstart.md) - **Need config help?** → See [Configuration Guide](../getting-started/configuration.md) - **Choosing models/explainers?** → Check [Model Selection](model-selection.md) and [Explainer Selection](explainers.md)
+!!! tip "Quick Links"
+- **New to GlassAlpha?** → Start with [Quick Start Guide](../getting-started/quickstart.md)
+- **Need config help?** → See [Configuration Guide](../getting-started/configuration.md)
+- **Choosing models/explainers?** → Check [Model Selection](model-selection.md) and [Explainer Selection](explainers.md)
 
 ## Global options
 

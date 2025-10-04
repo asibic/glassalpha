@@ -2,7 +2,7 @@
 
 ## Trademark notice
 
-"GlassAlpha" and "GlassAlpha" are trademarks of Gabriel Mays. The GlassAlpha logo and associated brand assets are proprietary and protected by trademark law.
+"GlassAlpha" and "Glass Alpha" are trademarks of Gabriel Mays. The GlassAlpha logo and associated brand assets are proprietary and protected by trademark law.
 
 ## What this means
 

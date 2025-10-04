@@ -2,7 +2,10 @@
 
 Choose the right model for your ML audit based on your data, requirements, and constraints.
 
-!!! info "Quick Links" - **Already chosen a model?** → [Model Parameters Reference](model-parameters.md) for detailed parameter documentation - **Need explainer info?** → [Explainer Selection Guide](explainers.md) to pair your model with the right explainer - **Ready to configure?** → [Configuration Guide](../getting-started/configuration.md) for YAML setup
+!!! info "Quick Links"
+- **Already chosen a model?** → [Model Parameters Reference](model-parameters.md) for detailed parameter documentation
+- **Need explainer info?** → [Explainer Selection Guide](explainers.md) to pair your model with the right explainer
+- **Ready to configure?** → [Configuration Guide](../getting-started/configuration.md) for YAML setup
 
 ## Quick Decision Tree
 
