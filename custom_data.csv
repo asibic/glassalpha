@@ -1,0 +1,11 @@
+age,income,education,loan_amount,default
+25,50000,bachelor,10000,0
+30,75000,master,15000,0
+35,60000,high_school,8000,1
+28,45000,bachelor,12000,0
+40,80000,master,20000,0
+22,30000,high_school,5000,1
+45,90000,phd,25000,0
+32,55000,bachelor,11000,0
+38,70000,master,18000,0
+26,40000,high_school,7000,1

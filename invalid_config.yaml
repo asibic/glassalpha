@@ -1,0 +1,9 @@
+audit_profile: tabular_compliance
+
+model:
+  type: nonexistent_model
+  params:
+    random_state: 42
+
+data:
+  dataset: german_credit

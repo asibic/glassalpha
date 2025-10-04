@@ -147,8 +147,23 @@ def _run_audit_pipeline(config, output_path: Path, selected_explainer: str | Non
 
     start_time = time.time()
 
-    # Determine output format from config
+    # Determine output format from config and check PDF availability
     output_format = getattr(config.report, "output_format", "pdf") if hasattr(config, "report") else "pdf"
+
+    # Check if PDF backend is available
+    try:
+        from ..report import _PDF_AVAILABLE
+    except ImportError:
+        _PDF_AVAILABLE = False
+
+    # Fallback to HTML if PDF requested but not available
+    if output_format == "pdf" and not _PDF_AVAILABLE:
+        typer.echo("⚠️  PDF backend not available. Generating HTML report instead.")
+        typer.echo("💡 To enable PDF reports: pip install 'glassalpha[docs]'\n")
+        output_format = "html"
+        # Update output path extension if needed
+        if output_path.suffix.lower() == ".pdf":
+            output_path = output_path.with_suffix(".html")
 
     try:
         # Step 1: Run audit pipeline

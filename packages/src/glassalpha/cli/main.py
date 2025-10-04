@@ -238,6 +238,7 @@ def models():
 
     typer.echo("Available Models:")
     typer.echo("=" * 50)
+    typer.echo()
 
     available_models = ModelRegistry.available_plugins()
 
@@ -245,24 +246,61 @@ def models():
         typer.secho("No models available. Install with: pip install 'glassalpha[tabular]'", fg=typer.colors.YELLOW)
         return
 
+    # Group models by category
+    core_models = []
+    tree_models = []
+    other_models = []
+
     for model, available in available_models.items():
         status = "✅" if available else "❌"
-        extra_info = ""
 
-        if model in ["xgboost", "lightgbm"] and not available:
-            extra_info = " (install with: pip install 'glassalpha[explain]')"
-        elif model in ["logistic_regression", "sklearn_generic"] and available:
-            extra_info = " (included in base install)"
+        if model in ["logistic_regression", "sklearn_generic"]:
+            core_models.append((model, status, available))
+        elif model in ["xgboost", "lightgbm"]:
+            tree_models.append((model, status, available))
+        elif model != "passthrough":  # Skip internal passthrough model
+            other_models.append((model, status, available))
 
-        typer.echo(f"  {status} {model}{extra_info}")
-
+    # Display core models
+    if core_models:
+        typer.echo("Core Models (always available):")
+        for model, status, available in core_models:
+            typer.echo(f"  {status} {model}")
         typer.echo()
-        typer.echo("Installation Options:")
-        typer.echo("  Minimal install: pip install glassalpha                  # LogisticRegression + basic explainers")
-        typer.echo("  SHAP + trees:    pip install 'glassalpha[explain]'       # SHAP + XGBoost + LightGBM")
-        typer.echo("  Visualization:   pip install 'glassalpha[viz]'           # Matplotlib + Seaborn")
-        typer.echo("  PDF reports:     pip install 'glassalpha[docs]'          # PDF generation")
-        typer.echo("  Everything:      pip install 'glassalpha[all]'           # All optional features")
+
+    # Display tree models
+    if tree_models:
+        available_tree = all(avail for _, _, avail in tree_models)
+        req_text = "" if available_tree else " (requires: pip install 'glassalpha[explain]')"
+        typer.echo(f"Tree Models{req_text}:")
+        for model, status, available in tree_models:
+            typer.echo(f"  {status} {model}")
+        typer.echo()
+
+    # Display other models if any
+    if other_models:
+        typer.echo("Other Models:")
+        for model, status, available in other_models:
+            typer.echo(f"  {status} {model}")
+        typer.echo()
+
+    # Show installation options once at the end
+    typer.echo("Installation Options:")
+    typer.echo("=" * 50)
+    typer.echo("  Minimal:         pip install glassalpha")
+    typer.echo("                   → LogisticRegression + basic explainers")
+    typer.echo()
+    typer.echo("  With trees:      pip install 'glassalpha[explain]'")
+    typer.echo("                   → SHAP + XGBoost + LightGBM")
+    typer.echo()
+    typer.echo("  Visualization:   pip install 'glassalpha[viz]'")
+    typer.echo("                   → Matplotlib + Seaborn")
+    typer.echo()
+    typer.echo("  PDF reports:     pip install 'glassalpha[docs]'")
+    typer.echo("                   → PDF generation with WeasyPrint")
+    typer.echo()
+    typer.echo("  Everything:      pip install 'glassalpha[all]'")
+    typer.echo("                   → All optional features")
 
 
 if __name__ == "__main__":  # pragma: no cover
