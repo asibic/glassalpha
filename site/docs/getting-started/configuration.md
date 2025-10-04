@@ -265,6 +265,78 @@ metrics:
 - `equalized_odds` - Equal TPR and FPR across groups
 - `predictive_parity` - Equal precision across groups
 
+## Preprocessing configuration
+
+Verifies production preprocessing artifacts for regulatory compliance. See the [Preprocessing Verification Guide](../guides/preprocessing.md) for complete details.
+
+```yaml
+preprocessing:
+  # Preprocessing mode: 'artifact' (production) or 'auto' (demo only)
+  mode: artifact
+
+  # Path to preprocessing artifact (.joblib file)
+  artifact_path: artifacts/preprocessor.joblib
+
+  # Expected file hash for integrity verification
+  expected_file_hash: "sha256:9373ae67dbcd5c1558fa4ba7a727e05575f9421358a8604a1d0eb0da80385a26"
+
+  # Expected params hash for learned parameters verification
+  expected_params_hash: "sha256:cf5e71ee7e1733ca6d857b7f21df94a41f29ebeaaec9c6d46783336757cfcf37"
+
+  # Expected output format (sparse or dense)
+  expected_sparse: false
+
+  # Fail on hash mismatch (strict mode)
+  fail_on_mismatch: true
+
+  # Version compatibility policy
+  version_policy:
+    sklearn: exact # exact, patch, or minor
+    numpy: patch
+    scipy: patch
+
+  # Unknown category detection thresholds
+  thresholds:
+    warn_unknown_rate: 0.01 # Warn if >1% unknown
+    fail_unknown_rate: 0.10 # Fail if >10% unknown
+```
+
+!!! warning "Compliance Requirement"
+For regulatory audits, always use `mode: artifact` with verified preprocessing artifacts from production. Auto mode is for development/demo only and produces prominent warnings in reports.
+
+!!! tip "Quick Commands"
+Generate hashes for your preprocessing artifact:
+
+    ```bash
+    glassalpha prep hash artifacts/preprocessor.joblib --params
+    ```
+
+    Validate an artifact before use:
+
+    ```bash
+    glassalpha prep validate artifacts/preprocessor.joblib \
+      --file-hash sha256:abc... \
+      --params-hash sha256:def...
+    ```
+
+**Preprocessing Modes:**
+
+- `artifact` - Uses verified production artifact (required for compliance)
+- `auto` - Automatically fits preprocessing to audit data (demo only, not compliant)
+
+**Key Features:**
+
+- Dual hash verification (file integrity + learned parameters)
+- Security class allowlisting (prevents pickle exploits)
+- Runtime version compatibility checking
+- Unknown category detection and reporting
+- Full documentation in audit reports
+
+**See Also:**
+
+- [Preprocessing Verification Guide](../guides/preprocessing.md) - Complete documentation
+- [CLI Reference](../reference/cli.md#prep) - Command-line tools
+
 ## Report configuration
 
 Controls the format and content of generated audit reports.
@@ -281,6 +353,7 @@ report:
   include_sections:
     - executive_summary
     - data_overview
+    - preprocessing_verification # NEW: Preprocessing artifact details
     - model_performance
     - global_explanations
     - local_explanations

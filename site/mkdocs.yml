@@ -101,6 +101,7 @@ nav:
       - Model Selection: reference/model-selection.md
       - Explainer Selection: reference/explainers.md
       - Model Parameters: reference/model-parameters.md
+      - Preprocessing Verification: guides/preprocessing.md
   - Examples:
       - German Credit Audit: examples/german-credit-audit.md
       - Healthcare Bias Detection: examples/healthcare-bias-detection.md

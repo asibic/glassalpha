@@ -24,11 +24,13 @@ open audit.pdf  # macOS
 - ✅ Fairness analysis (bias detection across demographic groups)
 - ✅ Feature importance (SHAP values showing what drives predictions)
 - ✅ Individual explanations (why specific decisions were made)
+- ✅ Preprocessing verification (optional, for production artifact validation)
 - ✅ Complete audit trail (reproducibility manifest with all seeds and hashes)
 
 **Next steps**:
 
 - [Use your own data](custom-data.md)
+- [Verify preprocessing artifacts](../guides/preprocessing.md) (for production audits)
 - [Try other datasets](data-sources.md)
 - [Understand the configuration](configuration.md)
 
@@ -343,6 +345,7 @@ For detailed customization options, see the [Configuration Guide](configuration.
 - **Documentation**: [Complete Guide](../index.md)
 - **Guides**:
   - [Using Custom Data](custom-data.md) - Audit your own models
+  - [Preprocessing Verification](../guides/preprocessing.md) - Verify production artifacts
   - [Freely Available Data Sources](data-sources.md) - Public datasets for testing
   - [Configuration Reference](configuration.md) - All configuration options
   - [Model Selection Guide](../reference/model-selection.md) - Choose the right model

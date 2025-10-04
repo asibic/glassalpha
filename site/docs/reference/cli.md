@@ -3,6 +3,7 @@
 Complete reference for all GlassAlpha command-line interface commands and options.
 
 !!! tip "Quick Links"
+
 - **New to GlassAlpha?** → Start with [Quick Start Guide](../getting-started/quickstart.md)
 - **Need config help?** → See [Configuration Guide](../getting-started/configuration.md)
 - **Choosing models/explainers?** → Check [Model Selection](model-selection.md) and [Explainer Selection](explainers.md)
@@ -376,6 +377,192 @@ METRICS:
 PROFILES:
   - german_credit_default
   - tabular_compliance
+```
+
+## Preprocessing commands
+
+The `prep` command group provides tools for managing and validating preprocessing artifacts. See the [Preprocessing Verification Guide](../guides/preprocessing.md) for complete documentation.
+
+### prep hash
+
+Compute verification hashes for a preprocessing artifact.
+
+```bash
+glassalpha prep hash ARTIFACT_PATH [OPTIONS]
+```
+
+#### Required arguments
+
+| Argument        | Type | Description                         |
+| --------------- | ---- | ----------------------------------- |
+| `ARTIFACT_PATH` | Path | Path to preprocessing artifact file |
+
+#### Optional arguments
+
+| Argument         | Type | Default | Description                                      |
+| ---------------- | ---- | ------- | ------------------------------------------------ |
+| `--params`, `-p` | Flag | False   | Also compute params hash and show config snippet |
+| `--output`, `-o` | Path | None    | Save hashes to JSON file                         |
+
+#### Examples
+
+```bash
+# Compute file hash only
+glassalpha prep hash artifacts/preprocessor.joblib
+
+# Compute both hashes with config snippet
+glassalpha prep hash artifacts/preprocessor.joblib --params
+
+# Save hashes to file
+glassalpha prep hash artifacts/preprocessor.joblib --params --output hashes.json
+```
+
+#### Output Example
+
+```
+✓ File hash:   sha256:9373ae67dbcd5c1558fa4ba7a727e05575f9421358a8604a1d0eb0da80385a26
+✓ Params hash: sha256:cf5e71ee7e1733ca6d857b7f21df94a41f29ebeaaec9c6d46783336757cfcf37
+
+Config snippet (copy to your audit config):
+preprocessing:
+  mode: artifact
+  artifact_path: artifacts/preprocessor.joblib
+  expected_file_hash: "sha256:9373ae67..."
+  expected_params_hash: "sha256:cf5e71ee..."
+  expected_sparse: false
+  fail_on_mismatch: true
+```
+
+### prep inspect
+
+Inspect a preprocessing artifact and display its manifest.
+
+```bash
+glassalpha prep inspect ARTIFACT_PATH [OPTIONS]
+```
+
+#### Required arguments
+
+| Argument        | Type | Description                         |
+| --------------- | ---- | ----------------------------------- |
+| `ARTIFACT_PATH` | Path | Path to preprocessing artifact file |
+
+#### Optional arguments
+
+| Argument          | Type | Default | Description                        |
+| ----------------- | ---- | ------- | ---------------------------------- |
+| `--verbose`, `-v` | Flag | False   | Show detailed component parameters |
+| `--output`, `-o`  | Path | None    | Save manifest to JSON file         |
+
+#### Examples
+
+```bash
+# Basic inspection
+glassalpha prep inspect artifacts/preprocessor.joblib
+
+# Detailed inspection with all parameters
+glassalpha prep inspect artifacts/preprocessor.joblib --verbose
+
+# Save manifest to file
+glassalpha prep inspect artifacts/preprocessor.joblib --output manifest.json
+```
+
+#### Output Example
+
+```
+Preprocessing Artifact Manifest
+================================================================================
+
+Artifact Information:
+  Path: artifacts/german_credit_preprocessor.joblib
+  Type: sklearn.compose._column_transformer.ColumnTransformer
+  Components: 2
+
+Component 1: numeric_features
+  Class: sklearn.preprocessing._data.StandardScaler
+  Columns: 7 numeric features
+  Learned Parameters:
+    - mean_: [38.2, 2973.5, ...]
+    - scale_: [11.1, 2938.6, ...]
+
+Component 2: categorical_features
+  Class: sklearn.preprocessing._encoders.OneHotEncoder
+  Columns: 13 categorical features
+  Settings:
+    - handle_unknown: ignore
+    - drop: first
+    - sparse_output: False
+  Categories: 62 unique values across all columns
+```
+
+### prep validate
+
+Validate a preprocessing artifact against expected properties.
+
+```bash
+glassalpha prep validate ARTIFACT_PATH [OPTIONS]
+```
+
+#### Required arguments
+
+| Argument        | Type | Description                         |
+| --------------- | ---- | ----------------------------------- |
+| `ARTIFACT_PATH` | Path | Path to preprocessing artifact file |
+
+#### Optional arguments
+
+| Argument              | Type    | Default | Description                            |
+| --------------------- | ------- | ------- | -------------------------------------- |
+| `--file-hash`, `-f`   | String  | None    | Expected file hash for verification    |
+| `--params-hash`, `-p` | String  | None    | Expected params hash for verification  |
+| `--check-classes`     | Flag    | True    | Validate allowed transformer classes   |
+| `--check-versions`    | Flag    | True    | Validate runtime version compatibility |
+| `--check-sparsity`    | Flag    | False   | Validate expected output sparsity      |
+| `--expected-sparse`   | Boolean | None    | Expected sparsity (True/False)         |
+
+#### Examples
+
+```bash
+# Full validation with expected hashes
+glassalpha prep validate artifacts/preprocessor.joblib \
+  --file-hash sha256:9373ae67... \
+  --params-hash sha256:cf5e71ee...
+
+# Quick validation (classes + versions only)
+glassalpha prep validate artifacts/preprocessor.joblib
+
+# Skip version checking
+glassalpha prep validate artifacts/preprocessor.joblib --no-check-versions
+
+# Validate sparsity
+glassalpha prep validate artifacts/preprocessor.joblib \
+  --check-sparsity \
+  --expected-sparse false
+```
+
+#### Output Example
+
+```
+Validating artifact: artifacts/preprocessor.joblib
+
+1. Verifying file hash...
+   ✓ File hash matches
+
+2. Loading artifact...
+   ✓ Artifact loaded successfully
+
+3. Validating transformer classes...
+   ✓ All classes are allowed
+
+4. Verifying params hash...
+   ✓ Params hash matches
+
+5. Checking runtime version compatibility...
+   ✓ Runtime versions compatible
+
+============================================================
+✓ VALIDATION PASSED
+============================================================
 ```
 
 ## Enterprise commands
