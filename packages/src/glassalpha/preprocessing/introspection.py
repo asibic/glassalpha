@@ -43,19 +43,9 @@ def extract_sklearn_manifest(artifact: Any) -> dict[str, Any]:
         pass
 
     # Extract components
-    from sklearn.compose import ColumnTransformer
-    from sklearn.pipeline import Pipeline
 
-    if isinstance(artifact, Pipeline):
-        for name, step in artifact.steps:
-            manifest["components"].append(_extract_component(name, step))
-    elif isinstance(artifact, ColumnTransformer):
-        for name, transformer, columns in artifact.transformers:
-            component = _extract_component(name, transformer)
-            component["columns"] = list(columns) if columns is not None else None
-            manifest["components"].append(component)
-    else:
-        manifest["components"].append(_extract_component("transformer", artifact))
+    # Use recursive extraction for all artifact types
+    manifest["components"].extend(_extract_components_recursive("", artifact))
 
     # Detect output dtype and sparsity (requires sample transform)
     manifest["output_dtype"] = "unknown"  # Will be set during transform
@@ -63,10 +53,41 @@ def extract_sklearn_manifest(artifact: Any) -> dict[str, Any]:
     return manifest
 
 
-def _extract_component(name: str, transformer: Any) -> dict[str, Any]:
-    """Extract parameters from a single transformer."""
+def _extract_components_recursive(name: str, transformer: Any) -> list[dict[str, Any]]:
+    """Recursively extract all leaf components from transformer (flattens nested structures)."""
+    from sklearn.compose import ColumnTransformer
     from sklearn.pipeline import Pipeline
 
+    components = []
+
+    if isinstance(transformer, Pipeline):
+        # Recurse into pipeline steps
+        # Use .steps which contains fitted transformers
+        for step_name, step in transformer.steps:
+            components.extend(_extract_components_recursive(f"{name}.{step_name}", step))
+    elif isinstance(transformer, ColumnTransformer):
+        # Recurse into column transformer transformers
+        # IMPORTANT: Use transformers_ (with underscore) to get FITTED transformers
+        transformers_to_use = (
+            transformer.transformers_ if hasattr(transformer, "transformers_") else transformer.transformers
+        )
+        for trans_name, trans, columns in transformers_to_use:
+            sub_components = _extract_components_recursive(f"{name}.{trans_name}", trans)
+            # Attach column info
+            for comp in sub_components:
+                if "columns" not in comp:
+                    comp["columns"] = list(columns) if columns is not None else None
+            components.extend(sub_components)
+    else:
+        # Leaf transformer - extract its info
+        comp = _extract_component(name, transformer)
+        components.append(comp)
+
+    return components
+
+
+def _extract_component(name: str, transformer: Any) -> dict[str, Any]:
+    """Extract parameters from a single transformer."""
     from glassalpha.preprocessing.validation import fqcn
 
     component: dict[str, Any] = {
@@ -110,10 +131,6 @@ def _extract_component(name: str, transformer: Any) -> dict[str, Any]:
             component["center"] = transformer.center_.tolist()
         if hasattr(transformer, "scale_"):
             component["scale"] = transformer.scale_.tolist()
-
-    # Recursively handle nested transformers
-    if isinstance(transformer, Pipeline):
-        component["steps"] = [_extract_component(step_name, step) for step_name, step in transformer.steps]
 
     return component
 
@@ -163,7 +180,7 @@ def compute_unknown_rates(artifact: Any, X: pd.DataFrame) -> dict[str, dict[str,
     return unknown_rates
 
 
-def _find_encoders(artifact: Any) -> list[dict[str, Any]]:
+def _find_encoders(artifact: Any, columns: list[str] | None = None) -> list[dict[str, Any]]:
     """Find all OneHotEncoders in artifact with their columns."""
     from sklearn.compose import ColumnTransformer
     from sklearn.pipeline import Pipeline
@@ -172,20 +189,18 @@ def _find_encoders(artifact: Any) -> list[dict[str, Any]]:
     encoders = []
 
     if isinstance(artifact, OneHotEncoder):
-        encoders.append({"encoder": artifact, "columns": []})
+        encoders.append({"encoder": artifact, "columns": columns or []})
 
     elif isinstance(artifact, Pipeline):
+        # Propagate columns through pipeline
         for _, step in artifact.steps:
-            encoders.extend(_find_encoders(step))
+            encoders.extend(_find_encoders(step, columns))
 
     elif isinstance(artifact, ColumnTransformer):
-        for _, transformer, columns in artifact.transformers:
-            if isinstance(transformer, OneHotEncoder):
-                encoders.append({"encoder": transformer, "columns": columns})
-            elif isinstance(transformer, Pipeline):
-                # Find encoder in nested pipeline
-                for _, step in transformer.steps:
-                    if isinstance(step, OneHotEncoder):
-                        encoders.append({"encoder": step, "columns": columns})
+        # Each transformer gets its own column mapping
+        # IMPORTANT: Use transformers_ (with underscore) to get FITTED transformers
+        transformers_to_use = artifact.transformers_ if hasattr(artifact, "transformers_") else artifact.transformers
+        for _, transformer, trans_columns in transformers_to_use:
+            encoders.extend(_find_encoders(transformer, trans_columns))
 
     return encoders

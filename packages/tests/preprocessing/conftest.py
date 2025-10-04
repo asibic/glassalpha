@@ -20,7 +20,7 @@ def toy_df() -> pd.DataFrame:
             "credit_amount": [1000, 2000, 3000, 1500, 2500],
             "employment": ["skilled", "unskilled", "skilled", "management", "skilled"],
             "housing": ["own", "rent", "own", "own", "rent"],
-        }
+        },
     )
 
 
@@ -34,13 +34,13 @@ def sklearn_artifact(tmp_path: Path, toy_df: pd.DataFrame):
         steps=[
             ("imputer", SimpleImputer(strategy="median")),
             ("scaler", StandardScaler()),
-        ]
+        ],
     )
 
     categorical_transformer = Pipeline(
         steps=[
             ("encoder", OneHotEncoder(drop="first", sparse_output=True, handle_unknown="ignore")),
-        ]
+        ],
     )
 
     preprocessor = ColumnTransformer(
@@ -98,28 +98,22 @@ def toy_df_with_unknowns(toy_df: pd.DataFrame) -> pd.DataFrame:
 @pytest.fixture
 def sparse_artifact(tmp_path: Path, toy_df: pd.DataFrame):
     """Creates artifact with explicit sparse_output=True."""
-    preprocessor = ColumnTransformer(
-        transformers=[
-            ("cat", OneHotEncoder(sparse_output=True), ["employment", "housing"]),
-        ],
-    )
-    preprocessor.fit(toy_df)
+    # Use OneHotEncoder directly to ensure sparse output
+    encoder = OneHotEncoder(sparse_output=True)
+    encoder.fit(toy_df[["employment", "housing"]])
 
     artifact_path = tmp_path / "sparse_preprocessor.pkl"
-    joblib.dump(preprocessor, artifact_path)
+    joblib.dump(encoder, artifact_path)
     return artifact_path
 
 
 @pytest.fixture
 def dense_artifact(tmp_path: Path, toy_df: pd.DataFrame):
     """Creates artifact with explicit sparse_output=False."""
-    preprocessor = ColumnTransformer(
-        transformers=[
-            ("cat", OneHotEncoder(sparse_output=False), ["employment", "housing"]),
-        ],
-    )
-    preprocessor.fit(toy_df)
+    # Use OneHotEncoder directly to ensure dense output
+    encoder = OneHotEncoder(sparse_output=False)
+    encoder.fit(toy_df[["employment", "housing"]])
 
     artifact_path = tmp_path / "dense_preprocessor.pkl"
-    joblib.dump(preprocessor, artifact_path)
+    joblib.dump(encoder, artifact_path)
     return artifact_path

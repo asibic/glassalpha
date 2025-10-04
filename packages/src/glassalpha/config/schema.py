@@ -326,6 +326,92 @@ class ManifestConfig(BaseModel):
     output_path: Path | None = Field(None, description="Path to save manifest (default: alongside report)")
 
 
+class VersionPolicy(BaseModel):
+    """Version compatibility policy for preprocessing artifacts."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    require_exact_in_strict: bool = Field(
+        True,
+        description="Require exact version match (==) in strict mode",
+    )
+    allow_patch_non_strict: bool = Field(
+        True,
+        description="Allow patch version drift (e.g., 1.3.2 → 1.3.5) in non-strict mode",
+    )
+    allow_minor_in_strict: bool = Field(
+        False,
+        description="Allow minor version drift (e.g., 1.3.x → 1.5.x) in strict mode (risky)",
+    )
+
+
+class UnknownThresholds(BaseModel):
+    """Thresholds for unknown category detection."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    notice: float = Field(0.001, description="Notice threshold (>0.1% unknown categories)")
+    warn: float = Field(0.01, description="Warning threshold (≥1% unknown categories)")
+    fail: float = Field(0.05, description="Failure threshold (≥5% unknown categories in strict mode)")
+
+    @field_validator("notice", "warn", "fail")
+    @classmethod
+    def validate_threshold(cls, v: float) -> float:
+        """Validate threshold is between 0 and 1."""
+        if not (0.0 <= v <= 1.0):
+            raise ValueError(f"Threshold must be in [0, 1], got: {v}")
+        return v
+
+
+class PreprocessingConfig(BaseModel):
+    """Preprocessing artifact verification configuration."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    mode: str = Field(
+        "auto",
+        description="Preprocessing mode: 'artifact' (use production preprocessing) or 'auto' (automatic preprocessing)",
+    )
+    artifact_path: Path | None = Field(None, description="Path to preprocessing artifact (joblib-serialized)")
+    expected_file_hash: str | None = Field(
+        None,
+        description="Expected file hash (SHA256 or BLAKE2b) for integrity verification",
+    )
+    expected_params_hash: str | None = Field(
+        None,
+        description="Expected params hash (SHA256) for logical equivalence verification",
+    )
+    expected_sparse: bool | None = Field(
+        None,
+        description="Expected output sparsity (True for sparse matrices, False for dense)",
+    )
+    fail_on_mismatch: bool = Field(True, description="Fail if hash mismatch detected")
+    version_policy: VersionPolicy = Field(
+        default_factory=VersionPolicy,
+        description="Version compatibility policy for sklearn/numpy/scipy",
+    )
+    thresholds: UnknownThresholds = Field(
+        default_factory=UnknownThresholds,
+        description="Thresholds for unknown category detection",
+    )
+
+    @field_validator("mode")
+    @classmethod
+    def validate_mode(cls, v: str) -> str:
+        """Validate preprocessing mode."""
+        v = v.lower()
+        if v not in {"artifact", "auto"}:
+            raise ValueError(f"Preprocessing mode must be 'artifact' or 'auto', got: {v}")
+        return v
+
+    @model_validator(mode="after")
+    def validate_artifact_requirements(self) -> "PreprocessingConfig":
+        """Validate artifact mode requires artifact_path."""
+        if self.mode == "artifact" and self.artifact_path is None:
+            raise ValueError("Preprocessing mode 'artifact' requires artifact_path to be specified")
+        return self
+
+
 class SecurityConfig(BaseModel):
     """Security configuration."""
 
@@ -387,6 +473,10 @@ class AuditConfig(BaseModel):
     )
     manifest: ManifestConfig = Field(default_factory=ManifestConfig, description="Manifest configuration")
     security: SecurityConfig = Field(default_factory=SecurityConfig, description="Security configuration")
+    preprocessing: PreprocessingConfig = Field(
+        default_factory=PreprocessingConfig,
+        description="Preprocessing artifact verification configuration",
+    )
 
     # Mode flags
     strict_mode: bool = Field(False, description="Enable strict mode for regulatory compliance")

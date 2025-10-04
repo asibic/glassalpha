@@ -7,6 +7,13 @@ import pytest
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import FunctionTransformer
 
+
+# Module-level function for FunctionTransformer test (must be picklable)
+def identity_transform(X):
+    """Identity function for testing FunctionTransformer."""
+    return X
+
+
 # Import stubs
 try:
     from glassalpha.preprocessing.loader import load_artifact
@@ -24,14 +31,11 @@ def test_rejects_unknown_transformer_class(tmp_path: Path, toy_df: pd.DataFrame)
     """Create a Pipeline with FunctionTransformer. Load must raise ValueError citing FQCN."""
     import joblib
 
-    # Create pipeline with disallowed transformer
-    def identity(x):
-        return x
-
+    # Create pipeline with disallowed transformer (use module-level function so it's picklable)
     disallowed_pipeline = Pipeline(
         steps=[
-            ("func", FunctionTransformer(identity)),  # Not in allowlist
-        ]
+            ("func", FunctionTransformer(identity_transform)),  # Not in allowlist
+        ],
     )
     disallowed_pipeline.fit(toy_df[["age"]])
 
@@ -54,12 +58,17 @@ def test_sparse_flag_detected_and_enforced(sparse_artifact: Path, dense_artifact
     """Build encoder with sparse_output=True. Adapter must record output_is_sparse=True.
     Validation must fail if config says expected_sparse=False.
     """
+    import scipy.sparse
+
+    # Extract only categorical columns (encoder was fitted on these)
+    cat_cols = toy_df[["employment", "housing"]]
+
     # Load sparse artifact
     sparse_prep = load_artifact(sparse_artifact)
-    X_sparse = sparse_prep.transform(toy_df)
+    X_sparse = sparse_prep.transform(cat_cols)
 
     # Detect sparsity
-    is_sparse = hasattr(X_sparse, "toarray")
+    is_sparse = scipy.sparse.issparse(X_sparse)
     assert is_sparse is True, "Sparse artifact should produce sparse output"
 
     # Validation should fail if expected_sparse=False but actual is True
@@ -74,11 +83,11 @@ def test_sparse_flag_detected_and_enforced(sparse_artifact: Path, dense_artifact
 
     # Load dense artifact
     dense_prep = load_artifact(dense_artifact)
-    X_dense = dense_prep.transform(toy_df)
+    X_dense = dense_prep.transform(cat_cols)
 
     # Detect non-sparsity
-    is_sparse = hasattr(X_dense, "toarray")
-    assert is_sparse is False, "Dense artifact should produce dense output"
+    is_dense = not scipy.sparse.issparse(X_dense)
+    assert is_dense is True, "Dense artifact should produce dense output"
 
 
 def test_feature_count_and_names_match_model(sklearn_artifact: Path, toy_df: pd.DataFrame):

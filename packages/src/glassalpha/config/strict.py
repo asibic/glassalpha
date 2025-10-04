@@ -109,6 +109,23 @@ def validate_strict_mode(config: AuditConfig) -> None:
     if config.recourse.enabled and not config.recourse.immutable_features:
         errors.append("Immutable features must be specified when recourse is enabled in strict mode")
 
+    # Check preprocessing configuration
+    if config.preprocessing.mode != "artifact":
+        errors.append(
+            "Preprocessing mode must be 'artifact' in strict mode. "
+            "Auto preprocessing is not valid for regulatory compliance."
+        )
+
+    if config.preprocessing.mode == "artifact":
+        if not config.preprocessing.artifact_path:
+            errors.append("Preprocessing artifact_path must be specified when mode='artifact' in strict mode")
+
+        if not config.preprocessing.expected_file_hash:
+            errors.append("Preprocessing expected_file_hash must be specified in strict mode")
+
+        if not config.preprocessing.expected_params_hash:
+            errors.append("Preprocessing expected_params_hash must be specified in strict mode")
+
     # Convert warnings to errors
     warnings.simplefilter("error")
 
