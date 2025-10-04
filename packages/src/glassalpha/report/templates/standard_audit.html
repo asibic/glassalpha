@@ -333,6 +333,41 @@
         border-left: 4px solid var(--error-color);
       }
 
+      .callout-error {
+        background-color: #ffebee;
+        border-left: 4px solid var(--error-color);
+      }
+
+      /* Component card */
+      .component-card {
+        background-color: var(--light-gray);
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        padding: 1rem;
+        margin: 1rem 0;
+      }
+
+      .component-card h4 {
+        margin-top: 0;
+        color: var(--secondary-color);
+        font-size: 12pt;
+      }
+
+      .info-section {
+        margin-top: 0.75rem;
+        padding-top: 0.75rem;
+        border-top: 1px solid var(--border-color);
+      }
+
+      .compact-table {
+        font-size: 9pt;
+      }
+
+      .compact-table th,
+      .compact-table td {
+        padding: 0.4rem;
+      }
+
       /* Two-column layout */
       .two-column {
         display: grid;
@@ -635,6 +670,339 @@
         </div>
         {% endif %}
       </section>
+
+      <!-- Preprocessing -->
+      {% if preprocessing_info %}
+      <div class="page-break"></div>
+      <section class="section">
+        <h2>Preprocessing Verification</h2>
+
+        {% if preprocessing_info.mode == 'auto' %}
+        <div class="callout callout-error">
+          <h4>⚠️ WARNING: Non-Compliant Preprocessing Mode</h4>
+          <p>
+            This audit used <strong>AUTO preprocessing mode</strong>, which is
+            <strong>NOT suitable for regulatory compliance</strong>. Auto mode
+            dynamically fits preprocessing transformers to the audit data,
+            creating a different preprocessing pipeline than production.
+          </p>
+          <p><strong>For compliance-grade audits:</strong></p>
+          <ul>
+            <li>Use <code>mode: artifact</code> in preprocessing config</li>
+            <li>Provide the exact preprocessing artifact used in production</li>
+            <li>
+              Include both <code>expected_file_hash</code> and
+              <code>expected_params_hash</code>
+            </li>
+          </ul>
+          <p class="text-muted">
+            <small>
+              See documentation: <code>docs/preprocessing.md</code>
+            </small>
+          </p>
+        </div>
+        {% elif preprocessing_info.mode == 'artifact' %}
+        <div class="callout callout-success">
+          <h4>✓ Production Artifact Verified</h4>
+          <p>
+            This audit used a
+            <strong>verified preprocessing artifact</strong> from production,
+            ensuring the model was evaluated with the exact same transformations
+            used in deployment.
+          </p>
+        </div>
+        {% endif %}
+
+        <h3>Preprocessing Summary</h3>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Property</th>
+                <th>Value</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Mode</strong></td>
+                <td>
+                  <code>{{ preprocessing_info.mode }}</code>
+                </td>
+                <td>
+                  {% if preprocessing_info.mode == 'artifact' %}
+                  <span class="status-indicator status-pass">Compliant</span>
+                  {% else %}
+                  <span class="status-indicator status-fail"
+                    >Non-Compliant</span
+                  >
+                  {% endif %}
+                </td>
+              </tr>
+              {% if preprocessing_info.artifact_path %}
+              <tr>
+                <td><strong>Artifact Path</strong></td>
+                <td>
+                  <code class="text-small"
+                    >{{ preprocessing_info.artifact_path }}</code
+                  >
+                </td>
+                <td>—</td>
+              </tr>
+              {% endif %} {% if preprocessing_info.file_hash %}
+              <tr>
+                <td><strong>File Hash (SHA256)</strong></td>
+                <td>
+                  <code class="text-small"
+                    >{{ preprocessing_info.file_hash | replace('sha256:', '')
+                    }}</code
+                  >
+                </td>
+                <td>
+                  <span class="status-indicator status-pass">Verified</span>
+                </td>
+              </tr>
+              {% endif %} {% if preprocessing_info.params_hash %}
+              <tr>
+                <td><strong>Params Hash (SHA256)</strong></td>
+                <td>
+                  <code class="text-small"
+                    >{{ preprocessing_info.params_hash | replace('sha256:', '')
+                    }}</code
+                  >
+                </td>
+                <td>
+                  <span class="status-indicator status-pass">Verified</span>
+                </td>
+              </tr>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+
+        {% if preprocessing_info.manifest and
+        preprocessing_info.manifest.components %}
+        <h3>Preprocessing Components</h3>
+        <p class="text-muted">
+          Learned parameters extracted from the preprocessing artifact. These
+          values were fitted on production training data and applied to audit
+          data.
+        </p>
+
+        {% for component in preprocessing_info.manifest.components %}
+        <div class="component-card">
+          <h4>{{ component.name }}</h4>
+          <div class="info-grid">
+            <span class="info-label">Class:</span>
+            <span class="info-value">
+              <code class="text-small">{{ component.class }}</code>
+            </span>
+
+            {% if component.strategy %}
+            <span class="info-label">Strategy:</span>
+            <span class="info-value">{{ component.strategy }}</span>
+            {% endif %} {% if component.handle_unknown %}
+            <span class="info-label">Handle Unknown:</span>
+            <span class="info-value">{{ component.handle_unknown }}</span>
+            {% endif %} {% if component.drop %}
+            <span class="info-label">Drop:</span>
+            <span class="info-value">{{ component.drop }}</span>
+            {% endif %} {% if component.sparse_output is not none %}
+            <span class="info-label">Sparse Output:</span>
+            <span class="info-value">{{ component.sparse_output }}</span>
+            {% endif %}
+          </div>
+
+          {% if component.columns %}
+          <div class="info-section">
+            <strong
+              >Applied to columns ({{ component.columns | length }}):</strong
+            >
+            <div class="text-small text-muted">
+              {{ component.columns | join(", ") }}
+            </div>
+          </div>
+          {% endif %} {% if component.learned_stats %}
+          <div class="info-section">
+            <strong>Learned Statistics:</strong>
+            <div class="table-container">
+              <table class="compact-table">
+                <thead>
+                  <tr>
+                    <th>Column</th>
+                    <th>Value</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for i in range(component.learned_stats | length) %}
+                  <tr>
+                    <td class="text-small">
+                      {{ component.columns[i] if component.columns and i <
+                      (component.columns | length) else ("Column " + (i |
+                      string)) }}
+                    </td>
+                    <td class="text-small">
+                      {% set val = component.learned_stats[i] %} {% if val is
+                      number %} {{ "%.4f" | format(val) }} {% else %} {{ val }}
+                      {% endif %}
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          {% endif %} {% if component.mean or component.scale %}
+          <div class="info-section">
+            <strong>Scaling Parameters:</strong>
+            <div class="table-container">
+              <table class="compact-table">
+                <thead>
+                  <tr>
+                    <th>Column</th>
+                    {% if component.mean %}
+                    <th>Mean</th>
+                    {% endif %} {% if component.scale %}
+                    <th>Scale</th>
+                    {% endif %}
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for i in range((component.mean | length) if component.mean
+                  else (component.scale | length)) %}
+                  <tr>
+                    <td class="text-small">
+                      {{ component.columns[i] if component.columns and i <
+                      (component.columns | length) else ("Column " + (i |
+                      string)) }}
+                    </td>
+                    {% if component.mean %}
+                    <td class="text-small">
+                      {{ "%.4f" | format(component.mean[i]) }}
+                    </td>
+                    {% endif %} {% if component.scale %}
+                    <td class="text-small">
+                      {{ "%.4f" | format(component.scale[i]) }}
+                    </td>
+                    {% endif %}
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          {% endif %} {% if component.categories %}
+          <div class="info-section">
+            <strong>Encoder Categories (showing up to 10 per column):</strong>
+            <div class="table-container">
+              <table class="compact-table">
+                <thead>
+                  <tr>
+                    <th>Column</th>
+                    <th>Categories</th>
+                    <th>Count</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for i in range(component.categories | length) %}
+                  <tr>
+                    <td class="text-small">
+                      {{ component.columns[i] if component.columns and i <
+                      (component.columns | length) else ("Column " + (i |
+                      string)) }}
+                    </td>
+                    <td class="text-small">
+                      {% set cats = component.categories[i] %} {% if cats |
+                      length > 10 %} {{ cats[:10] | join(", ") }}, ... ({{ cats
+                      | length - 10 }} more) {% else %} {{ cats | join(", ") }}
+                      {% endif %}
+                    </td>
+                    <td class="text-small">
+                      {{ component.categories[i] | length }}
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          {% endif %}
+        </div>
+        {% endfor %} {% endif %} {% if preprocessing_info.manifest and
+        preprocessing_info.manifest.artifact_runtime_versions %}
+        <h3>Runtime Version Information</h3>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Library</th>
+                <th>Artifact Version</th>
+                <th>Audit Version</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for lib, artifact_ver in
+              preprocessing_info.manifest.artifact_runtime_versions.items() %}
+              {% set audit_ver =
+              preprocessing_info.manifest.audit_runtime_versions[lib] if
+              preprocessing_info.manifest.audit_runtime_versions else "N/A" %}
+              <tr>
+                <td><strong>{{ lib }}</strong></td>
+                <td><code>{{ artifact_ver }}</code></td>
+                <td><code>{{ audit_ver }}</code></td>
+                <td>
+                  {% if artifact_ver == audit_ver %}
+                  <span class="status-indicator status-pass">Match</span>
+                  {% else %}
+                  <span class="status-indicator status-warning">Mismatch</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% endif %} {% if preprocessing_unknown_rates %}
+        <h3>Unknown Category Detection</h3>
+        <p class="text-muted">
+          Unknown categories are values in the audit data that were not seen
+          during the training of the preprocessing artifact. High unknown rates
+          may indicate distribution shift or data quality issues.
+        </p>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Column</th>
+                <th>Unknown Rate</th>
+                <th>Assessment</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for col, rate in preprocessing_unknown_rates.items() %}
+              <tr>
+                <td><strong>{{ col }}</strong></td>
+                <td class="metric-value">
+                  {{ "%.2f%%" | format(rate * 100) }}
+                </td>
+                <td>
+                  {% if rate > 0.10 %}
+                  <span class="status-indicator status-fail">High</span>
+                  {% elif rate > 0.01 %}
+                  <span class="status-indicator status-warning">Moderate</span>
+                  {% else %}
+                  <span class="status-indicator status-pass">Low</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% endif %}
+      </section>
+      {% endif %}
 
       <!-- Model Performance -->
       <section class="section">

@@ -262,6 +262,8 @@ class AuditReportRenderer:
                     "audit_id": audit_results.execution_info.get("audit_id"),
                     "audit_profile": audit_results.execution_info.get("audit_profile"),
                     "strict_mode": audit_results.execution_info.get("strict_mode", False),
+                    "preprocessing_info": audit_results.execution_info.get("preprocessing"),
+                    "preprocessing_unknown_rates": audit_results.execution_info.get("preprocessing_unknown_rates"),
                 },
             )
 
