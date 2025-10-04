@@ -1203,8 +1203,194 @@ class AuditPipeline:
 
         logger.debug(f"Progress: {progress}% - {message}")
 
-    def _preprocess_for_training(self, X: pd.DataFrame) -> pd.DataFrame:  # noqa: N803, C901  # noqa: N803 -> pd.DataFrame:
-        """Preprocess features for model training using ColumnTransformer per friend's spec.
+    def _preprocess_for_training(self, X: pd.DataFrame) -> pd.DataFrame:  # noqa: N803  # noqa: N803 -> pd.DataFrame:
+        """Preprocess features for model training.
+
+        Uses artifact-based preprocessing if configured, otherwise falls back to
+        automatic OneHotEncoder-based preprocessing.
+
+        Args:
+            X: Raw features DataFrame
+
+        Returns:
+            Processed features DataFrame suitable for training
+
+        """
+        # Check if preprocessing artifact is configured
+        if hasattr(self.config, "preprocessing") and self.config.preprocessing.mode == "artifact":
+            return self._preprocess_with_artifact(X)
+        return self._preprocess_auto(X)
+
+    def _preprocess_with_artifact(self, X: pd.DataFrame) -> pd.DataFrame:  # noqa: N803
+        """Preprocess using production artifact (artifact mode).
+
+        Args:
+            X: Raw features DataFrame
+
+        Returns:
+            Transformed features using artifact preprocessing
+
+        Raises:
+            ValueError: If artifact validation fails
+
+        """
+        from glassalpha.preprocessing import (  # noqa: PLC0415
+            assert_runtime_versions,
+            compute_file_hash,
+            compute_params_hash,
+            compute_unknown_rates,
+            extract_sklearn_manifest,
+            load_artifact,
+            validate_classes,
+            validate_output_shape,
+            validate_sparsity,
+        )
+
+        config = self.config.preprocessing
+        logger.info(f"Loading preprocessing artifact from {config.artifact_path}")
+
+        # Load artifact
+        artifact = load_artifact(config.artifact_path)
+
+        # Compute actual hashes
+        actual_file_hash = compute_file_hash(config.artifact_path)
+        manifest = extract_sklearn_manifest(artifact)
+        actual_params_hash = compute_params_hash(manifest)
+
+        # Verify file hash
+        if config.expected_file_hash:
+            if actual_file_hash != config.expected_file_hash:
+                msg = (
+                    f"Preprocessing artifact file hash mismatch!\n"
+                    f"  Expected: {config.expected_file_hash}\n"
+                    f"  Actual:   {actual_file_hash}\n"
+                    f"  File:     {config.artifact_path}\n"
+                    f"This indicates the artifact file has been modified or corrupted."
+                )
+                if config.fail_on_mismatch:
+                    raise ValueError(msg)
+                logger.warning(msg)
+
+        # Verify params hash
+        if config.expected_params_hash:
+            if actual_params_hash != config.expected_params_hash:
+                msg = (
+                    f"Preprocessing artifact params hash mismatch!\n"
+                    f"  Expected: {config.expected_params_hash}\n"
+                    f"  Actual:   {actual_params_hash}\n"
+                    f"This indicates the learned parameters (encoders, scalers) have changed."
+                )
+                if config.fail_on_mismatch:
+                    raise ValueError(msg)
+                logger.warning(msg)
+
+        # Validate artifact classes
+        try:
+            validate_classes(artifact)
+            logger.debug("Artifact class allowlist validation passed")
+        except ValueError as e:
+            logger.error(f"Artifact contains unsupported transformer class: {e}")
+            raise
+
+        # Validate runtime versions
+        try:
+            assert_runtime_versions(
+                manifest,
+                policy_sklearn=config.version_policy.sklearn,
+                policy_numpy=config.version_policy.numpy,
+                policy_scipy=config.version_policy.scipy,
+                strict=self.config.strict_mode,
+            )
+            logger.debug("Runtime version validation passed")
+        except ValueError as e:
+            logger.error(f"Runtime version mismatch: {e}")
+            raise
+
+        # Compute unknown category rates
+        try:
+            unknown_rates = compute_unknown_rates(artifact, X)
+            if unknown_rates:
+                # Check thresholds
+                for col, rate in unknown_rates.items():
+                    if rate > config.thresholds.fail_unknown_rate:
+                        msg = (
+                            f"Column '{col}' has {rate:.1%} unknown categories "
+                            f"(threshold: {config.thresholds.fail_unknown_rate:.1%})"
+                        )
+                        logger.error(msg)
+                        raise ValueError(msg)
+                    if rate > config.thresholds.warn_unknown_rate:
+                        logger.warning(
+                            f"Column '{col}' has {rate:.1%} unknown categories "
+                            f"(threshold: {config.thresholds.warn_unknown_rate:.1%})",
+                        )
+                # Store for manifest
+                self.results.execution_info["preprocessing_unknown_rates"] = unknown_rates
+        except Exception as e:
+            logger.warning(f"Failed to compute unknown rates: {e}")
+
+        # Transform the data
+        logger.info("Transforming data with artifact preprocessor...")
+        X_transformed = artifact.transform(X)  # noqa: N806
+
+        # Validate output shape
+        try:
+            validate_output_shape(artifact, X, X_transformed)
+            logger.debug("Output shape validation passed")
+        except ValueError as e:
+            logger.error(f"Output shape validation failed: {e}")
+            raise
+
+        # Validate sparsity if expected
+        if config.expected_sparse is not None:
+            try:
+                validate_sparsity(X_transformed, config.expected_sparse)
+                logger.debug(f"Sparsity validation passed (expected_sparse={config.expected_sparse})")
+            except ValueError as e:
+                logger.error(f"Sparsity validation failed: {e}")
+                raise
+
+        # Store preprocessing info in results
+        self.results.execution_info["preprocessing"] = {
+            "mode": "artifact",
+            "artifact_path": str(config.artifact_path),
+            "file_hash": actual_file_hash,
+            "params_hash": actual_params_hash,
+            "manifest": manifest,
+        }
+
+        # Add to manifest
+        self.manifest_generator.add_component(
+            "preprocessing",
+            "artifact",
+            artifact,
+            details={
+                "artifact_path": str(config.artifact_path),
+                "file_hash": actual_file_hash,
+                "params_hash": actual_params_hash,
+            },
+        )
+
+        # Convert to DataFrame if needed
+        if not isinstance(X_transformed, pd.DataFrame):
+            # Get feature names from artifact
+            feature_names = None
+            if hasattr(artifact, "get_feature_names_out"):
+                try:
+                    feature_names = artifact.get_feature_names_out()
+                except Exception:  # noqa: S110, BLE001
+                    pass
+
+            if feature_names is None:
+                feature_names = [f"feature_{i}" for i in range(X_transformed.shape[1])]
+
+            X_transformed = pd.DataFrame(X_transformed, columns=feature_names, index=X.index)
+
+        logger.info(f"Artifact preprocessing complete: {X_transformed.shape}")
+        return X_transformed
+
+    def _preprocess_auto(self, X: pd.DataFrame) -> pd.DataFrame:  # noqa: N803
+        """Auto preprocessing (fallback mode - NOT compliant for production).
 
         Handles categorical features (like German Credit strings "< 0 DM") with OneHotEncoder
         to prevent ValueError: could not convert string to float during training.
@@ -1219,6 +1405,11 @@ class AuditPipeline:
         from sklearn.compose import ColumnTransformer  # noqa: PLC0415
         from sklearn.preprocessing import OneHotEncoder  # noqa: PLC0415
 
+        logger.warning(
+            "Using AUTO preprocessing mode - this is NOT compliant for regulatory audits. "
+            "Use mode='artifact' with a verified preprocessing artifact for production.",
+        )
+
         # Identify categorical and numeric columns
         categorical_cols = list(X.select_dtypes(include=["object"]).columns)
         numeric_cols = list(X.select_dtypes(exclude=["object"]).columns)
@@ -1229,6 +1420,8 @@ class AuditPipeline:
         if not categorical_cols:
             # No categorical columns, return as-is
             logger.debug("No categorical columns detected, returning original DataFrame")
+            # Still mark as auto preprocessing
+            self.results.execution_info["preprocessing"] = {"mode": "auto", "warning": "not_compliant"}
             return X
 
         # Build ColumnTransformer with OneHotEncoder for categorical features
@@ -1296,6 +1489,14 @@ class AuditPipeline:
             logger.info(f"Preprocessed {len(categorical_cols)} categorical columns with OneHotEncoder")
             logger.info(f"Final feature count: {len(sanitized_feature_names)} (from {len(X.columns)} original)")
             logger.debug(f"Sanitized feature names: {sanitized_feature_names[:5]}...")
+
+            # Store preprocessing info
+            self.results.execution_info["preprocessing"] = {
+                "mode": "auto",
+                "warning": "not_compliant",
+                "categorical_cols": categorical_cols,
+                "numeric_cols": numeric_cols,
+            }
 
             return X_processed  # noqa: TRY300
 

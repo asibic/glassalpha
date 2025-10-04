@@ -73,9 +73,41 @@ data:
   # Protected attributes for fairness analysis
   # These are sensitive demographic characteristics that should not lead to discrimination
   protected_attributes:
-    - "gender"           # Gender (extracted from personal_status_sex)
-    - "age_group"        # Age groups (young, middle_young, middle_aged, senior)
-    - "foreign_worker"   # Nationality/residency status
+    - "gender" # Gender (extracted from personal_status_sex)
+    - "age_group" # Age groups (young, middle_young, middle_aged, senior)
+    - "foreign_worker" # Nationality/residency status
+
+# =============================================================================
+# PREPROCESSING CONFIGURATION
+# =============================================================================
+
+preprocessing:
+  # Use artifact-based preprocessing (production mode)
+  mode: artifact
+
+  # Path to preprocessing artifact
+  artifact_path: artifacts/german_credit_preprocessor.joblib
+
+  # Expected hashes for verification (computed by create_preprocessing_artifacts.py)
+  expected_file_hash: "sha256:9373ae67dbcd5c1558fa4ba7a727e05575f9421358a8604a1d0eb0da80385a26"
+  expected_params_hash: "sha256:cf5e71ee7e1733ca6d857b7f21df94a41f29ebeaaec9c6d46783336757cfcf37"
+
+  # Expected output format
+  expected_sparse: false
+
+  # Fail on any mismatch (strict mode)
+  fail_on_mismatch: true
+
+  # Version compatibility policy
+  version_policy:
+    sklearn: exact # Require exact sklearn version match
+    numpy: patch # Allow patch version differences
+    scipy: patch # Allow patch version differences
+
+  # Unknown category detection thresholds
+  thresholds:
+    warn_unknown_rate: 0.01 # Warn if >1% of values are unknown categories
+    fail_unknown_rate: 0.10 # Fail if >10% of values are unknown categories
 
 # =============================================================================
 # EXPLAINER CONFIGURATION
@@ -87,9 +119,9 @@ explainers:
 
   # Priority order - first compatible explainer will be selected
   priority:
-    - "treeshap"      # TreeSHAP - exact SHAP values for tree models (preferred)
-    - "kernelshap"    # KernelSHAP - model-agnostic fallback
-    - "noop"          # No-op fallback (should not be reached)
+    - "treeshap" # TreeSHAP - exact SHAP values for tree models (preferred)
+    - "kernelshap" # KernelSHAP - model-agnostic fallback
+    - "noop" # No-op fallback (should not be reached)
 
   # Explainer-specific configuration
   config:
@@ -112,25 +144,25 @@ explainers:
 metrics:
   # Performance metrics for model evaluation
   performance:
-    - "accuracy"              # Overall classification accuracy
-    - "precision"             # Positive predictive value
-    - "recall"                # Sensitivity/true positive rate
-    - "f1"                    # Harmonic mean of precision and recall
-    - "auc_roc"               # Area under ROC curve
+    - "accuracy" # Overall classification accuracy
+    - "precision" # Positive predictive value
+    - "recall" # Sensitivity/true positive rate
+    - "f1" # Harmonic mean of precision and recall
+    - "auc_roc" # Area under ROC curve
     - "classification_report" # Comprehensive classification metrics
 
   # Fairness metrics for bias detection
   fairness:
-    - "demographic_parity"    # Statistical parity across demographic groups
-    - "equal_opportunity"     # Equal true positive rates across groups
-    - "equalized_odds"        # Equal TPR and FPR across groups
-    - "predictive_parity"     # Equal precision across demographic groups
+    - "demographic_parity" # Statistical parity across demographic groups
+    - "equal_opportunity" # Equal true positive rates across groups
+    - "equalized_odds" # Equal TPR and FPR across groups
+    - "predictive_parity" # Equal precision across demographic groups
 
   # Drift metrics for model stability (requires reference data)
   drift:
-    - "population_stability_index"  # PSI for distribution shift detection
-    - "kl_divergence"              # KL divergence between distributions
-    - "kolmogorov_smirnov"         # Two-sample test for distribution changes
+    - "population_stability_index" # PSI for distribution shift detection
+    - "kl_divergence" # KL divergence between distributions
+    - "kolmogorov_smirnov" # Two-sample test for distribution changes
 
 # =============================================================================
 # REPRODUCIBILITY CONFIGURATION
@@ -149,13 +181,13 @@ reproducibility:
   # Validate deterministic execution
   validate_determinism: true
 
-# =============================================================================
-# AUDIT MANIFEST CONFIGURATION
-# =============================================================================
+  # =============================================================================
+  # AUDIT MANIFEST CONFIGURATION
+  # =============================================================================
 
-# Manifest configuration
-# Note: Manifest is automatically generated with each audit
-# Custom manifest options are coming in a future release
+  # Manifest configuration
+  # Note: Manifest is automatically generated with each audit
+  # Custom manifest options are coming in a future release
 
   # Include execution timing and environment
   include_execution_info: true
@@ -173,15 +205,15 @@ report:
 
   # Report sections to include
   include_sections:
-    - "executive_summary"      # High-level findings and risk assessment
-    - "data_overview"          # Dataset characteristics and quality
-    - "model_performance"      # Performance metrics and validation
-    - "global_explanations"    # Feature importance and model behavior
-    - "local_explanations"     # Individual prediction explanations
-    - "fairness_analysis"      # Bias detection and demographic analysis
-    - "drift_detection"        # Model stability and data shift analysis
-    - "audit_manifest"         # Complete reproducibility information
-    - "regulatory_compliance"  # Compliance checklist and recommendations
+    - "executive_summary" # High-level findings and risk assessment
+    - "data_overview" # Dataset characteristics and quality
+    - "model_performance" # Performance metrics and validation
+    - "global_explanations" # Feature importance and model behavior
+    - "local_explanations" # Individual prediction explanations
+    - "fairness_analysis" # Bias detection and demographic analysis
+    - "drift_detection" # Model stability and data shift analysis
+    - "audit_manifest" # Complete reproducibility information
+    - "regulatory_compliance" # Compliance checklist and recommendations
 
   # Report styling and formatting
   styling:
@@ -208,31 +240,31 @@ recourse:
 
   # Features that cannot be changed (immutable constraints)
   immutable_features:
-    - "age_years"            # Age cannot be changed
-    - "gender"               # Gender is protected characteristic
-    - "personal_status_sex"  # Personal status is largely fixed
-    - "foreign_worker"       # Nationality/residency status
+    - "age_years" # Age cannot be changed
+    - "gender" # Gender is protected characteristic
+    - "personal_status_sex" # Personal status is largely fixed
+    - "foreign_worker" # Nationality/residency status
 
   # Directional constraints (features that can only improve)
   monotonic_constraints:
-    credit_amount: "decrease_preferred"      # Lower loan amount is safer
-    duration_months: "decrease_preferred"    # Shorter duration is safer
-    savings_account: "increase_only"         # More savings is always better
-    employment_duration: "increase_only"     # Longer employment is better
-    existing_credits_count: "decrease_only"  # Fewer existing credits is better
+    credit_amount: "decrease_preferred" # Lower loan amount is safer
+    duration_months: "decrease_preferred" # Shorter duration is safer
+    savings_account: "increase_only" # More savings is always better
+    employment_duration: "increase_only" # Longer employment is better
+    existing_credits_count: "decrease_only" # Fewer existing credits is better
 
   # Cost function for feature changes (L1 weighted distance)
   cost_function: "weighted_l1"
 
   # Feature change costs (higher cost = harder to change)
   feature_costs:
-    checking_account_status: 0.8    # Moderate effort to improve account status
-    credit_history: 0.9             # Very hard to change credit history
-    savings_account: 0.7            # Moderate effort to increase savings
-    employment_duration: 0.9        # Hard to change employment quickly
-    job: 0.8                        # Moderate effort to change job category
-    housing: 0.6                    # Possible to change housing situation
-    telephone: 0.1                  # Easy to get telephone
+    checking_account_status: 0.8 # Moderate effort to improve account status
+    credit_history: 0.9 # Very hard to change credit history
+    savings_account: 0.7 # Moderate effort to increase savings
+    employment_duration: 0.9 # Hard to change employment quickly
+    job: 0.8 # Moderate effort to change job category
+    housing: 0.6 # Possible to change housing situation
+    telephone: 0.1 # Easy to get telephone
 
   # Maximum number of recourse examples to generate
   max_recourse_examples: 10
@@ -245,9 +277,6 @@ recourse:
 # =============================================================================
 
 # Data preprocessing options
-
-
-
 
 # Validation configuration
 validation:
@@ -266,7 +295,7 @@ validation:
 # Performance optimization
 performance:
   # Parallel processing
-  n_jobs: -1  # Use all available cores
+  n_jobs: -1 # Use all available cores
 
   # Memory optimization
   low_memory_mode: false
@@ -282,27 +311,27 @@ performance:
 compliance:
   # Regulatory frameworks to check against
   frameworks:
-    - "gdpr"           # EU General Data Protection Regulation
-    - "ecoa"           # US Equal Credit Opportunity Act
-    - "fcra"           # US Fair Credit Reporting Act
-    - "eu_ai_act"      # EU AI Act (proposed)
+    - "gdpr" # EU General Data Protection Regulation
+    - "ecoa" # US Equal Credit Opportunity Act
+    - "fcra" # US Fair Credit Reporting Act
+    - "eu_ai_act" # EU AI Act (proposed)
 
   # Bias tolerance thresholds (stricter for regulated use cases)
   fairness_thresholds:
-    demographic_parity: 0.05      # 5% maximum difference between groups
-    equal_opportunity: 0.05       # 5% maximum TPR difference
-    equalized_odds: 0.05          # 5% maximum TPR/FPR difference
-    predictive_parity: 0.05       # 5% maximum precision difference
+    demographic_parity: 0.05 # 5% maximum difference between groups
+    equal_opportunity: 0.05 # 5% maximum TPR difference
+    equalized_odds: 0.05 # 5% maximum TPR/FPR difference
+    predictive_parity: 0.05 # 5% maximum precision difference
 
   # Documentation requirements
   documentation:
-    model_cards: true             # Generate model cards
-    dataset_cards: true           # Generate dataset documentation
-    audit_reports: true           # Generate compliance audit reports
-    risk_assessments: true        # Generate algorithmic risk assessments
+    model_cards: true # Generate model cards
+    dataset_cards: true # Generate dataset documentation
+    audit_reports: true # Generate compliance audit reports
+    risk_assessments: true # Generate algorithmic risk assessments
 
   # Approval workflows (for production deployment)
-  approval_required: false        # Set to true for production
+  approval_required: false # Set to true for production
   approver_roles:
     - "model_validator"
     - "compliance_officer"
