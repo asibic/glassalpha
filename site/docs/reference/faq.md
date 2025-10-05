@@ -10,6 +10,7 @@ GlassAlpha is an open-source AI compliance toolkit that generates comprehensive 
 
 - **Automated bias detection** and fairness analysis
 - **Model explanations** using SHAP and other interpretability methods
+- **Reason codes** for ECOA-compliant adverse action notices
 - **Professional PDF reports** suitable for regulatory review
 - **Complete reproducibility** with audit trails and manifests
 - **Regulatory compliance** support for GDPR, ECOA, FCRA, and other frameworks
@@ -268,7 +269,7 @@ GlassAlpha currently focuses on **tabular data** for classification tasks. Addit
 **Directly Supported:**
 
 - **GDPR** (EU) - Right to explanation, automated decision-making
-- **ECOA** (US) - Fair lending, non-discrimination in credit
+- **ECOA** (US) - Fair lending, non-discrimination in credit (including reason codes for adverse actions)
 - **FCRA** (US) - Accuracy and fairness in credit reporting
 - **EU AI Act** - High-risk AI system requirements
 
@@ -276,6 +277,61 @@ GlassAlpha currently focuses on **tabular data** for classification tasks. Addit
 
 - **Fair Housing Act** (US) - Housing discrimination
 - **Employment Standards** (EEOC, various) - Hiring discrimination
+
+### How do I generate ECOA-compliant reason codes?
+
+For credit decisions, ECOA requires providing specific reasons for adverse actions. GlassAlpha provides the `reasons` command:
+
+```bash
+glassalpha reasons \
+  --model models/credit_model.pkl \
+  --data data/test.csv \
+  --instance 42 \
+  --output notices/instance_42.txt
+```
+
+**What you get:**
+
+- Top-N negative feature contributions (ECOA typical: 4 reasons)
+- Automatic exclusion of protected attributes (age, gender, race)
+- ECOA-compliant adverse action notice template
+- Deterministic, reproducible output
+
+**Example output:**
+
+```
+ADVERSE ACTION NOTICE
+DECISION: DENIED
+
+PRINCIPAL REASONS FOR ADVERSE ACTION:
+1. Debt: Value of 5000 negatively impacted the decision
+2. Duration: Value of 24 negatively impacted the decision
+3. Credit History: Value of 2 negatively impacted the decision
+4. Savings: Value of 1000 negatively impacted the decision
+
+IMPORTANT RIGHTS UNDER FEDERAL LAW:
+[ECOA disclosure text...]
+```
+
+See the [Reason Codes Guide](../guides/reason-codes.md) for complete documentation.
+
+### What's the difference between audit reports and reason codes?
+
+**Audit Reports** (`glassalpha audit`):
+
+- Comprehensive PDF reports for model validation
+- Performance metrics, fairness analysis, feature importance
+- Used for internal compliance and regulatory submission
+- Analyzes the entire model's behavior
+
+**Reason Codes** (`glassalpha reasons`):
+
+- Individual explanations for specific decisions
+- ECOA-compliant adverse action notices
+- Sent to applicants who were denied
+- Explains one instance at a time
+
+Use **audit reports** for model governance and **reason codes** for applicant communication.
 
 See the [Trust & Deployment Guide](../reference/trust-deployment.md) for compliance framework information.
 

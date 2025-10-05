@@ -7,6 +7,7 @@ GlassAlpha makes **deterministic, regulator-ready PDF audit reports** for tabula
 - [**Quick start guide**](getting-started/quickstart.md): Run an audit in 60 seconds.
 - [**Using your own data**](getting-started/custom-data.md): Audit your models with custom CSV files.
 - [**Preprocessing verification**](guides/preprocessing.md): Verify production preprocessing artifacts for compliance.
+- [**Reason codes**](guides/reason-codes.md): Generate ECOA-compliant adverse action notices.
 - [**Public datasets**](getting-started/data-sources.md): Test with 10+ curated benchmark datasets.
 - [**Examples**](examples/german-credit-audit.md): Walkthrough ML audits on credit, healthcare bias and fraud detection.
 - [**Trust & deployment**](reference/trust-deployment.md): Architecture, licensing, security, and compliance.
@@ -57,6 +58,7 @@ open audit.html  # macOS
 - ✅ Fairness analysis (bias detection across demographic groups)
 - ✅ Feature importance (coefficient-based explanations for linear models, SHAP for tree models)
 - ✅ Individual explanations (why specific decisions were made)
+- ✅ Reason codes (ECOA-compliant adverse action notices for credit decisions)
 - ✅ Preprocessing verification (production artifact validation)
 - ✅ Complete audit trail (reproducibility manifest with all seeds and hashes)
 
@@ -132,7 +134,14 @@ Audit reports include:
 - Disparate impact calculations
 - Group parity metrics
 
-### 4. Reproducibility manifest
+### 4. Reason codes (ECOA compliance)
+
+- Top-N negative feature contributions
+- ECOA-compliant adverse action notices
+- Protected attribute exclusion
+- Deterministic ranking
+
+### 5. Reproducibility manifest
 
 - Complete configuration hash
 - Dataset fingerprint
@@ -246,6 +255,7 @@ _Comprehensive examples with real datasets and regulatory interpretations._
 - [Quick start guide](getting-started/quickstart.md) - Installation and first audit
 - [Using custom data](getting-started/custom-data.md) - Audit your own models
 - [Preprocessing verification](guides/preprocessing.md) - Verify production preprocessing artifacts
+- [Reason codes](guides/reason-codes.md) - ECOA-compliant adverse action notices
 - [Public datasets](getting-started/data-sources.md) - 10+ curated benchmark datasets
 - [Configuration guide](getting-started/configuration.md) - YAML configuration reference
 - [Trust & deployment](reference/trust-deployment.md) - Architecture, licensing, security, and compliance

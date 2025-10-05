@@ -509,8 +509,8 @@ glassalpha reasons \
 
 - **[Configuration Guide](../getting-started/configuration.md)** - Full config options
 - **[CLI Reference](../reference/cli.md)** - All CLI commands
-- **[Audit Guide](./audit.md)** - Full audit pipeline
-- **[Recourse Guide](./recourse.md)** - Actionable recommendations (E2.5)
+- **[Quick Start Guide](../getting-started/quickstart.md)** - Generate your first audit
+- **Recourse Guide** - Actionable recommendations (coming in E2.5)
 
 ## Support
 

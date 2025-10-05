@@ -12,23 +12,13 @@
 #     --config configs/reason_codes_german_credit.yaml \
 #     --output notices/instance_42.txt
 
-# Reason codes configuration
-reason_codes:
-  # Number of reason codes to generate (ECOA typical: 2-4)
-  top_n: 4
+# Audit profile (required)
+audit_profile: "tabular_compliance"
 
-  # Decision threshold for approved/denied classification
-  threshold: 0.5
-
-  # Organization information for adverse action notice
-  organization: "Example Financial Institution"
-  contact_info: "1-800-555-0199 or compliance@example.com"
-
-  # Output format: 'text' (ECOA notice) or 'json' (structured data)
-  format: text
-
-  # Optional: Custom template path for adverse action notice
-  # template: "templates/custom_aan.txt"
+# Model configuration
+model:
+  type: "xgboost"
+  path: "artifacts/german_credit_model.pkl"
 
 # Data configuration
 data:
@@ -49,12 +39,15 @@ data:
   # feature_columns: [...]
 
 # Explainer configuration
-explainer:
-  # Type of explainer to use (must be SHAP-compatible)
-  type: "treeshap"
-
-  # Max samples for background data (TreeSHAP efficiency)
-  max_samples: 1000
+explainers:
+  strategy: "first_compatible"
+  priority:
+    - "treeshap"
+    - "kernelshap"
+    - "noop"
+  config:
+    treeshap:
+      max_samples: 1000
 
 # Reproducibility
 reproducibility:
@@ -66,6 +59,3 @@ reproducibility:
 
 # Strict mode (optional - enforces all requirements)
 strict_mode: false
-
-# Audit profile (optional)
-audit_profile: "tabular_compliance"
