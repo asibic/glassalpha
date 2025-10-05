@@ -540,15 +540,3 @@ class XGBoostWrapper(BaseTabularWrapper):
         """String representation of the wrapper."""
         status = "loaded" if self.model else "not loaded"
         return f"XGBoostWrapper(status={status}, n_classes={self.n_classes}, version={self.version})"
-
-
-# Manual registration after class definition
-def _register_xgboost():
-    """Register XGBoost model with the plugin registry."""
-    from glassalpha.core.registry import ModelRegistry
-
-    ModelRegistry.register("xgboost", XGBoostWrapper)
-
-
-# Register XGBoost when module is imported
-_register_xgboost()

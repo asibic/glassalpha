@@ -74,14 +74,14 @@ def test_noop_metric_works():
 
 
 def test_registry_registration():
-    """Test components are registered."""
-    # Import models to trigger registration
-    from glassalpha.models import PassThroughModel as RegisteredPassThrough
+    """Test components are registered via entry points."""
+    # Import PassThroughModel from its actual location
+    from glassalpha.core.noop_components import PassThroughModel
 
-    # Check PassThrough model is registered
+    # Check PassThrough model is registered via entry point
     model_cls = ModelRegistry.get("passthrough")
     assert model_cls is not None
-    assert model_cls == RegisteredPassThrough
+    assert model_cls == PassThroughModel
 
 
 def test_deterministic_explainer_selection():

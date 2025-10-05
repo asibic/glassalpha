@@ -133,25 +133,3 @@ class NoOpMetric:
     def requires_sensitive_features(self) -> bool:
         """No sensitive features required."""
         return False
-
-
-# Auto-register on import
-def _register_noop_components():
-    """Register NoOp components with their respective registries."""
-    try:
-        from .registry import ExplainerRegistry, MetricRegistry, ModelRegistry
-
-        # Register PassThrough model
-        ModelRegistry.register("passthrough", PassThroughModel)
-
-        # Note: NoOp explainer is registered by the explainer module
-
-        # Register NoOp metric
-        MetricRegistry.register("noop", NoOpMetric)
-
-        logger.debug("NoOp components registered")
-    except ImportError:
-        logger.debug("NoOp components registration skipped - registries not available")
-
-
-_register_noop_components()

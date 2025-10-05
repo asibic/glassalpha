@@ -6,4 +6,7 @@ including performance metrics, fairness metrics, and drift metrics.
 
 from .registry import MetricRegistry
 
+# Discover metrics from entry points
+MetricRegistry.discover()
+
 __all__ = ["MetricRegistry"]

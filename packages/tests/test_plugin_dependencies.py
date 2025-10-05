@@ -81,16 +81,15 @@ class TestPluginDependencies:
         assert hint is None  # No hint needed for always-available model
 
     def test_registry_get_method(self):
-        """Test the get method returns registered objects."""
-        # Import models to trigger registration
-        from glassalpha.models import PassThroughModel as RegisteredPassThrough
+        """Test the get method returns registered objects via entry points."""
+        # Import PassThroughModel from its actual location
+        from glassalpha.core.noop_components import PassThroughModel
 
-        # Test getting passthrough model
+        # Test getting passthrough model (loaded via entry point)
         model_cls = ModelRegistry.get("passthrough")
-        assert model_cls == RegisteredPassThrough
+        assert model_cls == PassThroughModel
 
-        # Test that get works with lazy loading
-        # This should work even if entry points aren't available
+        # Test that get works with lazy loading from entry points
         assert callable(model_cls)
 
     def test_plugin_loading_with_missing_dependency(self):
