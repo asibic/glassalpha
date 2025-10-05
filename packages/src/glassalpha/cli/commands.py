@@ -915,7 +915,7 @@ def doctor():  # pragma: no cover
 
 
 def _validate_model_params(config: Any) -> list[str]:  # noqa: ANN401
-    """Check model parameters for common issues.
+    """Check model parameters for common issues using capability-based validation.
 
     Args:
         config: Audit configuration
@@ -928,38 +928,74 @@ def _validate_model_params(config: Any) -> list[str]:  # noqa: ANN401
     model_type = config.model.type
     params = config.model.params if hasattr(config.model, "params") else {}
 
-    # Check for negative values where they don't make sense
-    negative_checks = {
-        "max_iter": "Maximum iterations",
-        "n_estimators": "Number of estimators",
-        "max_depth": "Maximum depth",
-    }
+    # Get model class to access its capabilities
+    from glassalpha.core.registry import ModelRegistry  # noqa: PLC0415
 
-    for param, desc in negative_checks.items():
-        if param in params and params[param] < 0:
-            # Exception: LightGBM max_depth = -1 is valid (means no limit)
-            if not (model_type == "lightgbm" and param == "max_depth" and params[param] == -1):
-                warnings.append(f"{param}: {params[param]} - {desc} should be positive")
+    try:
+        model_class = ModelRegistry.get(model_type)
+        if not model_class:
+            return warnings
 
-    # Check for C parameter in logistic regression
-    if model_type == "logistic_regression" and "C" in params:
-        if params["C"] <= 0:
-            warnings.append(f"C: {params['C']} - Must be positive (inverse regularization strength)")
+        # Get parameter rules from model capabilities
+        capabilities = getattr(model_class, "capabilities", {})
+        param_rules = capabilities.get("parameter_rules", {})
 
-    # Check for learning rate
-    if "learning_rate" in params:
-        lr = params["learning_rate"]
-        if lr <= 0:
-            warnings.append(f"learning_rate: {lr} - Must be positive")
-        elif lr > 1:
-            warnings.append(f"learning_rate: {lr} - Typically between 0.01 and 0.3 (unusually high)")
+        # Validate each parameter against its rules
+        for param_name, param_value in params.items():
+            if param_name not in param_rules:
+                continue
 
-    # Check for subsample/colsample ratios
-    for param in ["subsample", "colsample_bytree"]:
-        if param in params:
-            value = params[param]
-            if value <= 0 or value > 1:
-                warnings.append(f"{param}: {value} - Must be between 0 and 1 (fraction of data)")
+            rule = param_rules[param_name]
+            param_type = rule.get("type")
+            description = rule.get("description", param_name)
+
+            # Check special values (e.g., LightGBM max_depth=-1)
+            special_values = rule.get("special_values", {})
+            if param_value in special_values:
+                # This is a valid special value, skip other checks
+                continue
+
+            # Type validation
+            if param_type == "int" and not isinstance(param_value, int):
+                warnings.append(f"{param_name}: {param_value} - {description} must be an integer")
+                continue
+            if param_type == "float" and not isinstance(param_value, (int, float)):
+                warnings.append(f"{param_name}: {param_value} - {description} must be a number")
+                continue
+
+            # Range validation
+            if "min" in rule:
+                min_val = rule["min"]
+                exclusive_min = rule.get("exclusive_min", False)
+                if exclusive_min:
+                    if param_value <= min_val:
+                        warnings.append(f"{param_name}: {param_value} - {description} must be > {min_val}")
+                else:
+                    if param_value < min_val:
+                        warnings.append(f"{param_name}: {param_value} - {description} must be >= {min_val}")
+
+            if "max" in rule:
+                max_val = rule["max"]
+                exclusive_max = rule.get("exclusive_max", False)
+                if exclusive_max:
+                    if param_value >= max_val:
+                        warnings.append(f"{param_name}: {param_value} - {description} must be < {max_val}")
+                else:
+                    if param_value > max_val:
+                        warnings.append(f"{param_name}: {param_value} - {description} must be <= {max_val}")
+
+            # Typical range warnings (not errors)
+            if "typical_range" in rule:
+                typical_min, typical_max = rule["typical_range"]
+                if param_value < typical_min or param_value > typical_max:
+                    warnings.append(
+                        f"{param_name}: {param_value} - Typically between {typical_min} and {typical_max} (unusual value)",
+                    )
+
+    except (KeyError, ImportError, AttributeError):
+        # If model class can't be loaded, skip validation
+        # This handles cases where dependencies aren't installed
+        pass
 
     return warnings
 

@@ -280,6 +280,61 @@ class PluginRegistry:
 ModelRegistry = PluginRegistry("glassalpha.models")
 DataRegistry = PluginRegistry("glassalpha.data_handlers")
 
+# Model type to module mapping for auto-import
+# Maps model type names to their implementation modules
+_MODEL_MODULE_MAP = {
+    "xgboost": "glassalpha.models.tabular.xgboost",
+    "lightgbm": "glassalpha.models.tabular.lightgbm",
+    "logistic_regression": "glassalpha.models.tabular.sklearn",
+    "sklearn_generic": "glassalpha.models.tabular.sklearn",
+    "linear_regression": "glassalpha.models.tabular.sklearn",
+    "random_forest": "glassalpha.models.tabular.sklearn",
+}
+
+
+def _auto_import_model(name: str) -> None:
+    """Auto-import model module if it's in the known map.
+    
+    Args:
+        name: Model type name (e.g., 'xgboost', 'lightgbm')
+    """
+    if name in _MODEL_MODULE_MAP:
+        try:
+            import importlib
+            importlib.import_module(_MODEL_MODULE_MAP[name])
+        except ImportError:
+            # Module doesn't exist or has missing dependencies
+            # Let the normal error handling deal with it
+            pass
+
+
+# Wrap ModelRegistry with auto-import capability
+class _ModelRegistryWithAutoImport:
+    """Wrapper that adds auto-import to ModelRegistry."""
+
+    def __init__(self, registry: PluginRegistry):
+        self._registry = registry
+
+    def get(self, name: str) -> Any:
+        """Enhanced get that auto-imports known models before lookup."""
+        # Try normal lookup first
+        try:
+            return self._registry.get(name)
+        except KeyError:
+            # If not found, try auto-importing
+            _auto_import_model(name)
+            # Try again after import
+            return self._registry.get(name)
+
+    def __getattr__(self, attr: str) -> Any:
+        """Delegate all other attributes to underlying registry."""
+        return getattr(self._registry, attr)
+
+
+# Replace ModelRegistry with wrapped version
+_original_model_registry = ModelRegistry
+ModelRegistry = _ModelRegistryWithAutoImport(_original_model_registry)  # type: ignore[assignment]
+
 # Discover plugins on import
 ModelRegistry.discover()
 DataRegistry.discover()

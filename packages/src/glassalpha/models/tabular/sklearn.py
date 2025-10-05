@@ -221,6 +221,19 @@ if SKLEARN_AVAILABLE:
             "supports_proba": True,
             "data_modality": "tabular",
             "feature_names": True,
+            "parameter_rules": {
+                "C": {
+                    "type": "float",
+                    "min": 0.0,
+                    "exclusive_min": True,
+                    "description": "Inverse of regularization strength (must be positive)",
+                },
+                "max_iter": {
+                    "type": "int",
+                    "min": 1,
+                    "description": "Maximum number of iterations",
+                },
+            },
         }
         version = "1.0.0"
         model_type = "logistic_regression"
