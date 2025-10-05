@@ -39,19 +39,77 @@ REQUIRES: dict[str, list[str]] = {
     "treeshap": ["shap"],
     "coefficients": [],
     "permutation": [],
+    "noop": [],
 }
 
 
 def _available(name: str) -> bool:
-    if name not in REQUIRES:
-        return False
-    return all(_has(m) for m in REQUIRES[name])
+    # If it's a built-in explainer with known dependencies, check those
+    if name in REQUIRES:
+        return all(_has(m) for m in REQUIRES[name])
+
+    # Otherwise, check if it's registered in the registry (for dynamic registrations)
+    # We need to access the global ExplainerRegistry which is defined later in this module
+    import sys
+
+    if "glassalpha.explain.registry" in sys.modules:
+        registry = sys.modules["glassalpha.explain.registry"]
+        if hasattr(registry, "ExplainerRegistry"):
+            return registry.ExplainerRegistry.has(name)
+
+    return False
 
 
 def _first_available(candidates: Iterable[str]) -> str | None:
     for c in candidates:
         if _available(c):
             return c
+    return None
+
+
+def _first_compatible(candidates: Iterable[str], model_type: str) -> str | None:
+    """Find first explainer that is both available and compatible with model type.
+
+    Also respects enterprise licensing - enterprise components are skipped unless
+    a valid license is present.
+
+    Args:
+        candidates: List of explainer names to check
+        model_type: Model type to check compatibility against
+
+    Returns:
+        First compatible explainer name, or None if none found
+
+    """
+    import sys
+
+    # Get registry if available
+    registry = None
+    if "glassalpha.explain.registry" in sys.modules:
+        registry_module = sys.modules["glassalpha.explain.registry"]
+        if hasattr(registry_module, "ExplainerRegistry"):
+            registry = registry_module.ExplainerRegistry
+
+    # Check if enterprise features are enabled
+    from glassalpha.core.features import is_enterprise as has_license  # noqa: PLC0415
+
+    for c in candidates:
+        # First check if available (registered and dependencies met)
+        if not _available(c):
+            continue
+
+        # Skip enterprise components without license
+        if registry is not None and registry.is_enterprise(c) and not has_license():
+            continue
+
+        # If registry is available, check compatibility
+        if registry is not None:
+            if registry.is_compatible(c, model_type):
+                return c
+        else:
+            # Fallback: if we can't check compatibility, assume available means compatible
+            return c
+
     return None
 
 
@@ -74,7 +132,7 @@ def select_explainer(model_type: str, requested_priority: list[str] | None = Non
 
     # explicit user priority → strict but helpful
     if requested_priority:
-        chosen = _first_available(requested_priority)
+        chosen = _first_compatible(requested_priority, model_type)
         if chosen:
             return chosen
 
