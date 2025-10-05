@@ -374,6 +374,35 @@ ExplainerRegistry.register(
     supports=["logistic_regression", "linear_regression", "sklearn-linear"],
 )
 
+# Register aliases for coefficients
+ExplainerRegistry.alias("coef", "coefficients")
+ExplainerRegistry.alias("coeff", "coefficients")
+
+# Register permutation explainer (no dependencies except sklearn)
+from .permutation import PermutationExplainer
+
+ExplainerRegistry.register(
+    "permutation",
+    PermutationExplainer,
+    priority=5,
+    supports=[
+        "xgboost",
+        "lightgbm",
+        "random_forest",
+        "extra_trees",
+        "decision_tree",
+        "gradient_boosting",
+        "logistic_regression",
+        "linear_regression",
+        "linear_model",
+        "sklearn-linear",
+    ],
+)
+
+# Register aliases for permutation
+ExplainerRegistry.alias("permutation_importance", "permutation")
+ExplainerRegistry.alias("perm", "permutation")
+
 # Register SHAP explainers if SHAP is available
 try:
     import shap  # noqa: F401
@@ -464,6 +493,5 @@ __all__ = [
     "ExplainerRegistryCompat",
     "_available",
     "_first_available",
-    "is_available",
     "select_explainer",
 ]
