@@ -123,11 +123,11 @@ def _bootstrap_components() -> None:
     """
     logger.debug("Bootstrapping basic built-in components")
 
-    # Import basic models that should always be available
+    # Import core to ensure PassThroughModel is registered (via noop_components)
     try:
-        from ..models import passthrough  # noqa: F401 - registers PassThroughModel
+        from ..core import PassThroughModel  # noqa: F401 - auto-registered by noop_components
 
-        logger.debug("PassThroughModel imported")
+        logger.debug("PassThroughModel available")
     except ImportError as e:
         logger.error(f"Failed to import PassThroughModel: {e}")
         raise typer.Exit(ExitCode.SYSTEM_ERROR) from e

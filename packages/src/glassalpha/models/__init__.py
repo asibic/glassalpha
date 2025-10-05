@@ -5,10 +5,8 @@ from glassalpha.core.registry import ModelRegistry
 # Ensure entry points are visible to the registry
 ModelRegistry.discover()
 
-# Register built-ins that should always exist for tests and quickstart flows
-from .passthrough import PassThroughModel  # noqa: E402
-
-ModelRegistry.register("passthrough", PassThroughModel)
+# Import PassThroughModel from core (it's already registered by noop_components)
+from glassalpha.core.noop_components import PassThroughModel  # noqa: E402
 
 # Import tabular models to trigger their registration (they register themselves)
 # These imports are conditional - they only succeed if dependencies are installed

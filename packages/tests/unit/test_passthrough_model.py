@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from glassalpha.models.passthrough import PassThroughModel
+from glassalpha.core.noop_components import PassThroughModel
 
 
 def test_passthrough_predict_and_proba():

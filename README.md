@@ -79,6 +79,7 @@ glassalpha --json-errors audit --config audit.yaml
 **Environment variable**: Set `GLASSALPHA_JSON_ERRORS=1` to enable JSON output.
 
 Example JSON error output:
+
 ```json
 {
   "status": "error",
@@ -87,7 +88,7 @@ Example JSON error output:
     "type": "CONFIG",
     "message": "File 'config.yaml' does not exist",
     "details": {},
-    "context": {"config_path": "config.yaml"}
+    "context": { "config_path": "config.yaml" }
   },
   "timestamp": "2025-10-05T12:00:00Z"
 }

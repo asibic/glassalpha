@@ -62,13 +62,12 @@ class TestPluginDependencies:
             config = SimpleNamespace()
             config.model = SimpleNamespace()
             config.model.type = "xgboost"
-            config.model.allow_fallback = False
 
             # Should exit with error
             import typer
 
             with pytest.raises(typer.Exit):
-                preflight_check_model(config)
+                preflight_check_model(config, allow_fallback=False)
 
     def test_install_hint_generation(self):
         """Test that install hints are generated correctly."""

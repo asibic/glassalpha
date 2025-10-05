@@ -23,15 +23,33 @@ class PassThroughModel:
     }
     version = "1.0.0"
 
-    def __init__(self, default_value: float = 0.5):
+    def __init__(self, default_value: float = 0.5, **kwargs):
         """Initialize with default prediction value.
 
         Args:
             default_value: Value to return for all predictions
+            **kwargs: Ignored (for compatibility with sklearn-style API)
 
         """
         self.default_value = default_value
+        self.is_fitted = False
         logger.info("PassThroughModel initialized")
+
+    def fit(self, X, y=None, **kwargs):
+        """Fit the model (no-op, just marks as fitted).
+
+        Args:
+            X: Training features (ignored)
+            y: Training labels (ignored)
+            **kwargs: Additional arguments (ignored)
+
+        Returns:
+            self: Returns self for sklearn compatibility
+
+        """
+        self.is_fitted = True
+        logger.debug("PassThroughModel fit() called (no-op)")
+        return self
 
     def predict(self, X: pd.DataFrame) -> np.ndarray:
         """Return constant predictions.
