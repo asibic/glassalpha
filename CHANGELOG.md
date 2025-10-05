@@ -21,6 +21,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Complete audit trail (instance ID, timestamp, model hash, seed)
   - User guide: [Reason Codes Guide](https://glassalpha.com/guides/reason-codes/)
   - Example config: `configs/reason_codes_german_credit.yaml`
+  - **Foundation for E2.5 (Recourse)**: Shared policy module and integration points
+    - `explain/policy.py` - Shared constraint validation (immutables, monotonic, costs, bounds)
+    - `PolicyConstraints` dataclass for unified policy enforcement
+    - Exported reason codes components for recourse integration
+    - 23 policy contract tests passing
+    - Integration guide: `explain/E2_5_RECOURSE_INTEGRATION.md`
 
 - **Improved Explainer Selection Error Messages**: Better guidance when requested explainers are unavailable
   - Helpful error messages list missing dependencies (e.g., "Missing dependencies: ['shap']")

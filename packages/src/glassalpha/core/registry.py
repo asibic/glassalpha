@@ -294,13 +294,15 @@ _MODEL_MODULE_MAP = {
 
 def _auto_import_model(name: str) -> None:
     """Auto-import model module if it's in the known map.
-    
+
     Args:
         name: Model type name (e.g., 'xgboost', 'lightgbm')
+
     """
     if name in _MODEL_MODULE_MAP:
         try:
             import importlib
+
             importlib.import_module(_MODEL_MODULE_MAP[name])
         except ImportError:
             # Module doesn't exist or has missing dependencies

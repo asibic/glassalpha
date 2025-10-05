@@ -970,9 +970,8 @@ def _validate_model_params(config: Any) -> list[str]:  # noqa: ANN401
                 if exclusive_min:
                     if param_value <= min_val:
                         warnings.append(f"{param_name}: {param_value} - {description} must be > {min_val}")
-                else:
-                    if param_value < min_val:
-                        warnings.append(f"{param_name}: {param_value} - {description} must be >= {min_val}")
+                elif param_value < min_val:
+                    warnings.append(f"{param_name}: {param_value} - {description} must be >= {min_val}")
 
             if "max" in rule:
                 max_val = rule["max"]
@@ -980,9 +979,8 @@ def _validate_model_params(config: Any) -> list[str]:  # noqa: ANN401
                 if exclusive_max:
                     if param_value >= max_val:
                         warnings.append(f"{param_name}: {param_value} - {description} must be < {max_val}")
-                else:
-                    if param_value > max_val:
-                        warnings.append(f"{param_name}: {param_value} - {description} must be <= {max_val}")
+                elif param_value > max_val:
+                    warnings.append(f"{param_name}: {param_value} - {description} must be <= {max_val}")
 
             # Typical range warnings (not errors)
             if "typical_range" in rule:

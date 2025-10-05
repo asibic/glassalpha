@@ -105,4 +105,3 @@ class TestModelRegistryAutoImport:
         # C must be positive (exclusive_min=True means > 0, not >= 0)
         assert c_rule.get("min") == 0.0
         assert c_rule.get("exclusive_min") is True
-

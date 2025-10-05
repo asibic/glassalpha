@@ -213,4 +213,3 @@ class TestCapabilityBasedValidation:
         # Now verify validation uses it
         warnings = _validate_model_params(config)
         assert len(warnings) == 0  # Should use capability, not string match
-
