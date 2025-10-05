@@ -422,13 +422,30 @@ class ModelInterface(Protocol):
 
 ### 2. Registry pattern
 
-Components self-register for dynamic loading:
+Components self-register for dynamic loading. Each registry is defined in its canonical location:
 
 ```python
+# In models/tabular/xgboost.py
+from glassalpha.core.registry import ModelRegistry
+
 @ModelRegistry.register("xgboost")
 class XGBoostWrapper(ModelInterface):
     capabilities = {"supports_shap": True, "data_modality": "tabular"}
+
+# In explain/registry.py
+from glassalpha.core.decor_registry import DecoratorFriendlyRegistry
+
+ExplainerRegistry = ExplainerRegistryClass("glassalpha.explainers")
 ```
+
+**Registry locations:**
+
+- `ModelRegistry` - defined in `core/registry.py`
+- `ExplainerRegistry` - defined in `explain/registry.py`
+- `MetricRegistry` - defined in `metrics/registry.py`
+- `ProfileRegistry` - defined in `profiles/registry.py`
+
+All registries are re-exported through `glassalpha.core` for convenience.
 
 **Selection process:**
 

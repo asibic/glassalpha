@@ -160,7 +160,10 @@ def _bootstrap_components() -> None:
         logger.warning(f"Failed to import basic metrics: {e}")
 
     # Call discover() to ensure entry points are also registered
-    from ..core.registry import ExplainerRegistry, MetricRegistry, ModelRegistry, ProfileRegistry
+    from ..core.registry import ModelRegistry
+    from ..explain.registry import ExplainerRegistry
+    from ..metrics.registry import MetricRegistry
+    from ..profiles.registry import ProfileRegistry
 
     ModelRegistry.discover()
     ExplainerRegistry.discover()
@@ -1008,7 +1011,7 @@ def validate(  # pragma: no cover
     """
     try:
         from ..config import load_config_from_file
-        from ..core.registry import ModelRegistry
+        from ..core.registry import ModelRegistry  # Already correct location
         from ..explain.registry import ExplainerRegistry
 
         typer.echo(f"Validating configuration: {config}")

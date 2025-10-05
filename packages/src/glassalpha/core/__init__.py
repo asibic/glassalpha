@@ -28,14 +28,30 @@ from .noop_components import (
 )
 from .registry import (
     DataRegistry,
-    ExplainerRegistry,  # This will be the lazy proxy
-    MetricRegistry,
     ModelRegistry,
-    ProfileRegistry,
     instantiate_explainer,
     list_components,
     select_explainer,
 )
+
+
+# Lazy imports to avoid circular dependencies
+def __getattr__(name: str):
+    """Lazy import registries from their canonical locations."""
+    if name == "ExplainerRegistry":
+        from ..explain.registry import ExplainerRegistry
+
+        return ExplainerRegistry
+    if name == "MetricRegistry":
+        from ..metrics.registry import MetricRegistry
+
+        return MetricRegistry
+    if name == "ProfileRegistry":
+        from ..profiles.registry import ProfileRegistry
+
+        return ProfileRegistry
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
 
 __all__ = [
     # Interfaces
