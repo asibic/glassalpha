@@ -2,7 +2,7 @@
 
 ## What
 
-GlassAlpha makes **deterministic, regulator-ready PDF audit reports** for tabular ML models. It's an open-source ([Apache 2.0](reference/trust-deployment/#licensing-dependencies)) toolkit for teams who need reproducible, audit-ready model documentation.
+GlassAlpha makes **deterministic, regulator-ready PDF audit reports** for tabular ML models. It's an open-source ([Apache 2.0](reference/trust-deployment.md#licensing-dependencies)) toolkit for teams who need reproducible, audit-ready model documentation.
 
 Ever tried explaining your ML model to a regulator? It's painful. They want proof your model isn't biased, documentation that's reproducible, and explanations they can actually verify. Most tools either don't cut it for compliance or lock you into expensive platforms you can't inspect.
 

@@ -729,8 +729,6 @@ glassalpha recourse \
 ## Related Documentation
 
 - [Reason Codes Guide](reason-codes.md) - E2 feature for adverse action notices
-- [Policy Configuration](../reference/policy.md) - Detailed policy constraint reference
-- [ECOA Compliance](../reference/ecoa.md) - Full ECOA requirements
 - [CLI Reference](../reference/cli.md) - Complete CLI documentation
 
 ## Support

@@ -640,11 +640,9 @@ The actual transformation time is the same as without verification.
 
 ## Related Documentation
 
-- [Configuration Reference](/reference/configuration/)
-- [CLI Commands](/reference/cli/)
-- [Audit Reports](/guides/reports/)
-- [Strict Mode](/guides/strict-mode/)
-- [Troubleshooting](/reference/troubleshooting/)
+- [Configuration Reference](../getting-started/configuration.md)
+- [CLI Commands](../reference/cli.md)
+- [Troubleshooting](../reference/troubleshooting.md)
 
 ## Support
 

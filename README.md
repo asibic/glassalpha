@@ -2,6 +2,8 @@
 
 An ([open source](https://glassalpha.com/reference/trust-deployment/#licensing-dependencies)) toolkit to generate deterministic, regulator-ready PDF audit reports for tabular ML models.
 
+_Note: GlassAlpha is currently pre-alpha while I’m still making significant changes. I’ll cut the first official release and publish it on PyPI once things stabilize. The audits do run and the package works, so feel free to try it out, feedback welcome!_
+
 ## Get started
 
 ### Run your first audit in 30 seconds

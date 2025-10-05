@@ -335,7 +335,7 @@ Generate hashes for your preprocessing artifact:
 **See Also:**
 
 - [Preprocessing Verification Guide](../guides/preprocessing.md) - Complete documentation
-- [CLI Reference](../reference/cli.md#prep) - Command-line tools
+- [CLI Reference](../reference/cli.md#preprocessing-commands) - Command-line tools
 
 ## Report configuration
 
