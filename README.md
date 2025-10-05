@@ -4,7 +4,7 @@ An ([open source](https://glassalpha.com/reference/trust-deployment/#licensing-d
 
 ## Get started
 
-### Run your first audit in 60 seconds
+### Run your first audit in 30 seconds
 
 Clone and install
 
@@ -14,16 +14,16 @@ cd glassalpha/packages
 pip install -e ".[all]"  # Install with all optional features
 ```
 
-Check your environment
+Create a configuration (interactive wizard)
 
 ```bash
-glassalpha doctor
+glassalpha init
 ```
 
-Generate an audit PDF (uses included German Credit example)
+Generate an audit report
 
 ```bash
-glassalpha audit --config configs/german_credit_simple.yaml --output audit.pdf
+glassalpha audit  # Uses smart defaults - no flags needed!
 ```
 
 That's it. You now have a complete audit report with model performance, SHAP explanations, and fairness metrics.
@@ -45,10 +45,53 @@ Right now, GlassAlpha handles:
 - **Models**: XGBoost, LightGBM, Logistic Regression (more coming)
 - **Explanations**: TreeSHAP feature importance with individual prediction breakdowns
 - **Fairness**: Demographic parity, equal opportunity, bias detection
-- **Output**: Professional PDFs that are byte-identical on repeat runs
+- **Output**: Professional PDFs and HTML reports that are byte-identical on repeat runs
 - **Everything runs locally** - your data never leaves your machine
+- **CI/CD Ready**: JSON error output and standardized exit codes for automation
 
 All Apache 2.0 licensed.
+
+### Quick Features
+
+- **30-second setup**: Interactive `glassalpha init` wizard
+- **Smart defaults**: Auto-detects config files, infers output paths
+- **Built-in datasets**: German Credit and Adult Income for quick testing
+- **Self-diagnosable errors**: Clear What/Why/Fix error messages
+- **Automation support**: `--json-errors` flag for CI/CD pipelines
+
+## CI/CD Integration
+
+GlassAlpha is designed for automation with standardized exit codes and JSON error output:
+
+```bash
+# Get machine-readable errors for CI/CD
+glassalpha --json-errors audit --config audit.yaml
+
+# Exit codes for scripting
+# 0 = Success
+# 1 = User error (bad config, missing files)
+# 2 = System error (permissions, resources)
+# 3 = Validation error (compliance failures)
+```
+
+**Auto-detection**: JSON errors automatically enable in GitHub Actions, GitLab CI, CircleCI, Jenkins, and Travis.
+
+**Environment variable**: Set `GLASSALPHA_JSON_ERRORS=1` to enable JSON output.
+
+Example JSON error output:
+```json
+{
+  "status": "error",
+  "exit_code": 1,
+  "error": {
+    "type": "CONFIG",
+    "message": "File 'config.yaml' does not exist",
+    "details": {},
+    "context": {"config_path": "config.yaml"}
+  },
+  "timestamp": "2025-10-05T12:00:00Z"
+}
+```
 
 ## Learn more
 
