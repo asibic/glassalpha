@@ -32,7 +32,8 @@ except ImportError as e:
 
 # Skip marker for tests that need sklearn
 skip_if_no_sklearn = pytest.mark.skipif(
-    not SKLEARN_AVAILABLE, reason=SKLEARN_SKIP_REASON or "sklearn/scipy not available"
+    not SKLEARN_AVAILABLE,
+    reason=SKLEARN_SKIP_REASON or "sklearn/scipy not available",
 )
 
 
@@ -51,7 +52,7 @@ def test_sklearn_basic_functionality():
     # Simple test that sklearn works
     X, y = make_classification(n_samples=100, n_features=4, random_state=42)
 
-    model = LogisticRegression(random_state=42)
+    model = LogisticRegression(random_state=42, max_iter=1000)
     model.fit(X, y)
 
     predictions = model.predict(X)

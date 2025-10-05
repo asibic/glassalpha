@@ -18,7 +18,7 @@ def _create_test_data_multiclass():
             "feature1": np.random.randn(100),
             "feature2": np.random.randn(100),
             "feature3": np.random.randn(100),
-        }
+        },
     )
     # 3-class classification
     y = np.random.choice([0, 1, 2], size=100)
@@ -32,7 +32,7 @@ def _create_test_data_binary():
             "feature1": np.random.randn(50),
             "feature2": np.random.randn(50),
             "feature3": np.random.randn(50),
-        }
+        },
     )
     y = np.random.choice([0, 1], size=50)
     return X, y
@@ -49,7 +49,7 @@ class TestSklearnMulticlassSupport:
         X, y = _create_test_data_multiclass()
 
         # Train base sklearn model
-        base_model = LogisticRegression(random_state=42, multi_class="ovr")
+        base_model = LogisticRegression(random_state=42, max_iter=1000)
         base_model.fit(X, y)
 
         # Wrap with our wrapper
@@ -76,7 +76,7 @@ class TestSklearnMulticlassSupport:
         X, y = _create_test_data_multiclass()
 
         # Train base sklearn model with multinomial
-        base_model = LogisticRegression(random_state=42, multi_class="multinomial", solver="lbfgs")
+        base_model = LogisticRegression(random_state=42, solver="lbfgs", max_iter=1000)
         base_model.fit(X, y)
 
         # Wrap with our wrapper
@@ -95,7 +95,7 @@ class TestSklearnMulticlassSupport:
         from sklearn.linear_model import LogisticRegression
 
         X, y = _create_test_data_multiclass()
-        base_model = LogisticRegression(random_state=42, multi_class="ovr")
+        base_model = LogisticRegression(random_state=42, max_iter=1000)
         base_model.fit(X, y)
 
         wrapper = SklearnGenericWrapper(base_model)
@@ -161,7 +161,7 @@ class TestSklearnFeatureImportance:
                 "important_feature": [1, 2, 3, 4, 5],
                 "less_important": [5, 4, 3, 2, 1],
                 "noise": [0.1, 0.2, 0.3, 0.4, 0.5],
-            }
+            },
         )
         y = [0, 0, 1, 1, 1]  # important_feature should be most important
 
@@ -225,8 +225,8 @@ class TestSklearnSaveLoadWithPreprocessing:
         preprocessing_pipeline = Pipeline(
             [
                 ("scaler", StandardScaler()),
-                ("classifier", LogisticRegression(random_state=42)),
-            ]
+                ("classifier", LogisticRegression(random_state=42, max_iter=1000)),
+            ],
         )
 
         preprocessing_pipeline.fit(X, y)
@@ -341,7 +341,7 @@ class TestSklearnWrapperAdvancedFeatures:
         X, y = _create_test_data_binary()
 
         wrapper = LogisticRegressionWrapper()
-        base_model = LogisticRegression(random_state=42)
+        base_model = LogisticRegression(random_state=42, max_iter=1000)
         base_model.fit(X, y)
         wrapper.model = base_model
 
@@ -349,7 +349,7 @@ class TestSklearnWrapperAdvancedFeatures:
         wrong_features = pd.DataFrame(
             {
                 "wrong_feature": [1, 2, 3],
-            }
+            },
         )
 
         with pytest.raises((ValueError, Exception)):
@@ -366,13 +366,13 @@ class TestSklearnWrapperAdvancedFeatures:
         from sklearn.pipeline import Pipeline
 
         feature_selector = SelectKBest(f_classif, k=2)
-        classifier = LogisticRegression(random_state=42)
+        classifier = LogisticRegression(random_state=42, max_iter=1000)
 
         pipeline = Pipeline(
             [
                 ("feature_selection", feature_selector),
                 ("classification", classifier),
-            ]
+            ],
         )
 
         pipeline.fit(X, y)
@@ -395,7 +395,7 @@ class TestSklearnWrapperAdvancedFeatures:
         X, y = _create_test_data_binary()
 
         wrapper = LogisticRegressionWrapper()
-        base_model = LogisticRegression(random_state=42)
+        base_model = LogisticRegression(random_state=42, max_iter=1000)
         base_model.fit(X, y)
         wrapper.model = base_model
 
@@ -417,7 +417,7 @@ class TestSklearnWrapperAdvancedFeatures:
         X, y = _create_test_data_multiclass()
 
         wrapper = LogisticRegressionWrapper()
-        base_model = LogisticRegression(random_state=42, multi_class="ovr")
+        base_model = LogisticRegression(random_state=42, max_iter=1000)
         base_model.fit(X, y)
         wrapper.model = base_model
 
@@ -455,7 +455,7 @@ class TestSklearnWrapperAdvancedFeatures:
                 return self.fit(X, y).transform(X)
 
         preprocessor = CustomPreprocessor()
-        classifier = LogisticRegression(random_state=42)
+        classifier = LogisticRegression(random_state=42, max_iter=1000)
 
         # Use custom preprocessing
         X_processed = preprocessor.fit_transform(X)
@@ -475,7 +475,7 @@ class TestSklearnWrapperAdvancedFeatures:
         X, y = _create_test_data_binary()
 
         wrapper = LogisticRegressionWrapper()
-        base_model = LogisticRegression(random_state=42)
+        base_model = LogisticRegression(random_state=42, max_iter=1000)
         base_model.fit(X, y)
         wrapper.model = base_model
 

@@ -62,7 +62,7 @@ def trained_logistic_model(sample_classification_data):
     """Create a trained LogisticRegression model for testing."""
     X_df, y, feature_names = sample_classification_data
 
-    model = LogisticRegression(random_state=42)
+    model = LogisticRegression(random_state=42, max_iter=1000)
     model.fit(X_df, y)
 
     return model, X_df, y, feature_names
@@ -268,7 +268,7 @@ class TestLogisticRegressionWrapper:
         X_df, y, feature_names = sample_multiclass_data
 
         # Train multiclass model
-        model = LogisticRegression(random_state=42, multi_class="ovr")
+        model = LogisticRegression(random_state=42, max_iter=1000)
         model.fit(X_df, y)
 
         wrapper = LogisticRegressionWrapper(model=model)

@@ -35,7 +35,6 @@ class TestVersionedSerializationRisk:
                 "intercept_scaling": 1,
                 "l1_ratio": None,
                 "max_iter": 1000,
-                "multi_class": "auto",
                 "n_jobs": None,
                 "penalty": "l2",
                 "random_state": 42,
@@ -77,7 +76,7 @@ class TestVersionedSerializationRisk:
                     {
                         "feature_a": [1.0, -1.0],
                         "feature_b": [0.5, -0.5],
-                    }
+                    },
                 )
                 predictions = wrapper.predict(X_test)
                 assert len(predictions) == 2
@@ -121,7 +120,7 @@ class TestVersionedSerializationRisk:
             {
                 "feature_1": np.random.normal(0, 1, 40),
                 "feature_2": np.random.uniform(-1, 1, 40),
-            }
+            },
         )
         y_train = np.random.binomial(1, 0.5, 40)
 

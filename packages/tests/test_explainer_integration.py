@@ -90,7 +90,7 @@ def trained_model_wrapper(sample_classification_data):
     X_df, y, feature_names = sample_classification_data
 
     # Use LogisticRegression for simplicity (no dependency issues)
-    model = LogisticRegression(random_state=42)
+    model = LogisticRegression(random_state=42, max_iter=1000)
     model.fit(X_df, y)
 
     wrapper = LogisticRegressionWrapper(model=model)
