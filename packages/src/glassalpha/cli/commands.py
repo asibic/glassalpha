@@ -1302,6 +1302,240 @@ def list_components_cmd(  # pragma: no cover
                 else:
                     typer.echo(f"  - {item}")
 
-    if include_enterprise:
-        typer.echo("\n" + "=" * 40)
-        typer.secho("Note: Enterprise components require a valid license key", fg=typer.colors.YELLOW)
+
+def reasons(  # pragma: no cover
+    model: Path = typer.Option(
+        ...,
+        "--model",
+        "-m",
+        help="Path to trained model file (.pkl, .joblib)",
+        exists=True,
+        file_okay=True,
+    ),
+    data: Path = typer.Option(
+        ...,
+        "--data",
+        "-d",
+        help="Path to test data file (CSV)",
+        exists=True,
+        file_okay=True,
+    ),
+    instance: int = typer.Option(
+        ...,
+        "--instance",
+        "-i",
+        help="Row index of instance to explain (0-based)",
+    ),
+    config: Path | None = typer.Option(
+        None,
+        "--config",
+        "-c",
+        help="Path to reason codes configuration YAML",
+        file_okay=True,
+    ),
+    output: Path | None = typer.Option(
+        None,
+        "--output",
+        "-o",
+        help="Path for output notice file (defaults to stdout)",
+    ),
+    threshold: float = typer.Option(
+        0.5,
+        "--threshold",
+        "-t",
+        help="Decision threshold for approved/denied",
+    ),
+    top_n: int = typer.Option(
+        4,
+        "--top-n",
+        "-n",
+        help="Number of reason codes to generate (ECOA typical: 4)",
+    ),
+    format: str = typer.Option(
+        "text",
+        "--format",
+        "-f",
+        help="Output format: 'text' or 'json'",
+    ),
+):
+    """Generate ECOA-compliant reason codes for adverse action notice.
+
+    This command extracts top-N negative feature contributions from a trained model
+    to explain why a specific instance was denied (or approved). Output is formatted
+    as an ECOA-compliant adverse action notice.
+
+    Requirements:
+        - Trained model with SHAP-compatible architecture
+        - Test dataset with same features as training
+        - Instance index to explain
+
+    Examples:
+        # Generate reason codes for instance 42
+        glassalpha reasons \\
+            --model models/german_credit.pkl \\
+            --data data/test.csv \\
+            --instance 42 \\
+            --output notices/instance_42.txt
+
+        # With custom config
+        glassalpha reasons -m model.pkl -d test.csv -i 10 -c config.yaml
+
+        # JSON output
+        glassalpha reasons -m model.pkl -d test.csv -i 5 --format json
+
+        # Custom threshold and top-N
+        glassalpha reasons -m model.pkl -d test.csv -i 0 --threshold 0.6 --top-n 3
+
+    """
+    import json
+    import pickle
+
+    import pandas as pd
+
+    try:
+        # Load configuration if provided
+        protected_attributes = None
+        organization = "[Organization Name]"
+        contact_info = "[Contact Information]"
+        seed = 42
+
+        if config and config.exists():
+            from ..config import load_config_from_file
+
+            cfg = load_config_from_file(config)
+            protected_attributes = getattr(cfg.data, "protected_attributes", None) if hasattr(cfg, "data") else None
+            seed = getattr(cfg.reproducibility, "random_seed", 42) if hasattr(cfg, "reproducibility") else 42
+            # Load organization info from config if available
+            if hasattr(cfg, "reason_codes"):
+                organization = getattr(cfg.reason_codes, "organization", organization)
+                contact_info = getattr(cfg.reason_codes, "contact_info", contact_info)
+
+        typer.echo(f"Loading model from: {model}")
+        with open(model, "rb") as f:
+            model_obj = pickle.load(f)
+
+        typer.echo(f"Loading data from: {data}")
+        df = pd.read_csv(data)
+
+        if instance < 0 or instance >= len(df):
+            typer.secho(
+                f"Error: Instance {instance} out of range (0-{len(df) - 1})",
+                fg=typer.colors.RED,
+                err=True,
+            )
+            raise typer.Exit(ExitCode.USER_ERROR)
+
+        # Get instance
+        X_instance = df.iloc[[instance]].drop(columns=["target"], errors="ignore")
+        feature_names = X_instance.columns.tolist()
+        feature_values = X_instance.iloc[0]
+
+        typer.echo(f"Generating SHAP explanations for instance {instance}...")
+
+        # Get prediction
+        if hasattr(model_obj, "predict_proba"):
+            prediction = float(model_obj.predict_proba(X_instance)[0, 1])
+        else:
+            prediction = float(model_obj.predict(X_instance)[0])
+
+        # Generate SHAP values (use TreeSHAP for tree models)
+        try:
+            import shap
+
+            explainer = shap.TreeExplainer(model_obj)
+            shap_values = explainer.shap_values(X_instance)
+
+            # Handle multi-output case (binary classification)
+            if isinstance(shap_values, list):
+                shap_values = shap_values[1]  # Positive class
+
+            # Flatten to 1D
+            if len(shap_values.shape) > 1:
+                shap_values = shap_values[0]
+
+        except Exception as e:
+            typer.secho(
+                f"Error generating SHAP values: {e}",
+                fg=typer.colors.RED,
+                err=True,
+            )
+            typer.echo("\nTip: Ensure model is TreeSHAP-compatible (XGBoost, LightGBM, RandomForest)")
+            raise typer.Exit(ExitCode.USER_ERROR) from None
+
+        # Extract reason codes
+        from ..explain.reason_codes import extract_reason_codes, format_adverse_action_notice
+
+        typer.echo("Extracting top-N negative contributions...")
+        result = extract_reason_codes(
+            shap_values=shap_values,
+            feature_names=feature_names,
+            feature_values=feature_values,
+            instance_id=instance,
+            prediction=prediction,
+            threshold=threshold,
+            top_n=top_n,
+            protected_attributes=protected_attributes,
+            seed=seed,
+        )
+
+        # Format output
+        if format == "json":
+            output_dict = {
+                "instance_id": result.instance_id,
+                "prediction": result.prediction,
+                "decision": result.decision,
+                "reason_codes": [
+                    {
+                        "rank": code.rank,
+                        "feature": code.feature,
+                        "contribution": code.contribution,
+                        "feature_value": code.feature_value,
+                    }
+                    for code in result.reason_codes
+                ],
+                "excluded_features": result.excluded_features,
+                "timestamp": result.timestamp,
+                "model_hash": result.model_hash,
+                "seed": result.seed,
+            }
+            output_text = json.dumps(output_dict, indent=2)
+        else:
+            # Text format (ECOA notice)
+            output_text = format_adverse_action_notice(
+                result=result,
+                organization=organization,
+                contact_info=contact_info,
+            )
+
+        # Write or print output
+        if output:
+            output.write_text(output_text)
+            typer.secho(
+                "\n✅ Reason codes generated successfully!",
+                fg=typer.colors.GREEN,
+            )
+            typer.echo(f"Output: {output}")
+        else:
+            typer.echo("\n" + "=" * 60)
+            typer.echo(output_text)
+            typer.echo("=" * 60)
+
+        # Show summary
+        typer.echo(f"\nInstance: {result.instance_id}")
+        typer.echo(f"Prediction: {result.prediction:.1%}")
+        typer.echo(f"Decision: {result.decision.upper()}")
+        typer.echo(f"Reason codes: {len(result.reason_codes)}")
+        if result.excluded_features:
+            typer.echo(f"Protected attributes excluded: {len(result.excluded_features)}")
+
+    except FileNotFoundError as e:
+        typer.secho(f"Error: {e}", fg=typer.colors.RED, err=True)
+        raise typer.Exit(ExitCode.USER_ERROR) from None
+    except ValueError as e:
+        typer.secho(f"Error: {e}", fg=typer.colors.RED, err=True)
+        raise typer.Exit(ExitCode.USER_ERROR) from None
+    except Exception as e:
+        if "--verbose" in sys.argv or "-v" in sys.argv:
+            logger.exception("Reason code generation failed")
+        typer.secho(f"Failed: {e}", fg=typer.colors.RED, err=True)
+        raise typer.Exit(ExitCode.USER_ERROR) from None

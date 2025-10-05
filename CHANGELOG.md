@@ -9,6 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Reason Codes (E2)**: ECOA-compliant adverse action notices for regulatory compliance
+
+  - Extract top-N negative feature contributions from SHAP values
+  - Automatic exclusion of protected attributes (age, gender, race, etc.)
+  - Default ECOA-compliant adverse action notice template
+  - Deterministic tie-breaking with seeded random generator
+  - CLI: `glassalpha reasons --model X --data Y --instance Z`
+  - Python API: `extract_reason_codes()` and `format_adverse_action_notice()`
+  - JSON and text output formats
+  - Complete audit trail (instance ID, timestamp, model hash, seed)
+  - User guide: [Reason Codes Guide](https://glassalpha.com/guides/reason-codes/)
+  - Example config: `configs/reason_codes_german_credit.yaml`
+
 - **Improved Explainer Selection Error Messages**: Better guidance when requested explainers are unavailable
   - Helpful error messages list missing dependencies (e.g., "Missing dependencies: ['shap']")
   - Suggests installation command: `pip install 'glassalpha[explain]'`

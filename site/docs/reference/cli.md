@@ -189,6 +189,114 @@ Running audit pipeline...
 The audit report is ready for review and regulatory submission.
 ```
 
+### reasons
+
+Generate ECOA-compliant reason codes for adverse action notices.
+
+```bash
+glassalpha reasons --model MODEL --data DATA --instance INSTANCE [OPTIONS]
+```
+
+#### Required arguments
+
+| Argument     | Short | Type | Description                                |
+| ------------ | ----- | ---- | ------------------------------------------ |
+| `--model`    | `-m`  | Path | Path to trained model file (.pkl, .joblib) |
+| `--data`     | `-d`  | Path | Path to test data file (CSV)               |
+| `--instance` | `-i`  | Int  | Row index of instance to explain (0-based) |
+
+#### Optional arguments
+
+| Argument      | Short | Type   | Default | Description                              |
+| ------------- | ----- | ------ | ------- | ---------------------------------------- |
+| `--config`    | `-c`  | Path   | None    | Path to reason codes configuration YAML  |
+| `--output`    | `-o`  | Path   | stdout  | Path for output notice file              |
+| `--threshold` | `-t`  | Float  | 0.5     | Decision threshold for approved/denied   |
+| `--top-n`     | `-n`  | Int    | 4       | Number of reason codes (ECOA typical: 4) |
+| `--format`    | `-f`  | String | text    | Output format: 'text' (ECOA) or 'json'   |
+
+#### Examples
+
+```bash
+# Generate reason codes for instance 42
+glassalpha reasons \
+  --model models/german_credit.pkl \
+  --data data/test.csv \
+  --instance 42 \
+  --output notices/instance_42.txt
+
+# With custom config
+glassalpha reasons \
+  -m model.pkl \
+  -d test.csv \
+  -i 10 \
+  -c configs/reason_codes.yaml
+
+# JSON output
+glassalpha reasons \
+  --model model.pkl \
+  --data test.csv \
+  --instance 5 \
+  --format json
+
+# Custom threshold and top-N
+glassalpha reasons \
+  --model model.pkl \
+  --data test.csv \
+  --instance 0 \
+  --threshold 0.6 \
+  --top-n 3
+```
+
+#### Output
+
+The reasons command produces:
+
+- **Text Format (default)**: ECOA-compliant adverse action notice with:
+
+  - Instance ID and decision (APPROVED/DENIED)
+  - Predicted score and threshold
+  - Top-N ranked reason codes
+  - ECOA-required rights disclosure
+  - Audit trail (timestamp, model hash, seed)
+
+- **JSON Format** (`--format json`): Structured data with:
+  - All reason code details (rank, feature, contribution, value)
+  - Decision metadata (prediction, threshold, decision)
+  - Excluded protected attributes
+  - Complete audit trail
+
+**Example Text Output:**
+
+```
+ADVERSE ACTION NOTICE
+Equal Credit Opportunity Act (ECOA) Disclosure
+
+Example Financial Institution
+Date: 2025-01-15T10:30:00+00:00
+Application ID: 42
+
+DECISION: DENIED
+Predicted Score: 35.0%
+
+PRINCIPAL REASONS FOR ADVERSE ACTION:
+
+1. Debt: Value of 5000 negatively impacted the decision
+2. Duration: Value of 24 negatively impacted the decision
+3. Credit History: Value of 2 negatively impacted the decision
+4. Savings: Value of 1000 negatively impacted the decision
+
+IMPORTANT RIGHTS UNDER FEDERAL LAW:
+[ECOA disclosure text...]
+```
+
+#### Notes
+
+- Requires TreeSHAP-compatible model (XGBoost, LightGBM, RandomForest)
+- Protected attributes automatically excluded (age, gender, race, etc.)
+- Output is deterministic with fixed seed (reproducible)
+- See [Reason Codes Guide](../guides/reason-codes.md) for details
+
 ### validate
 
 Validate configuration files without running audits.

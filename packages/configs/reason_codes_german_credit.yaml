@@ -1,0 +1,71 @@
+# GlassAlpha Reason Codes Configuration
+# Example: German Credit Dataset
+#
+# This configuration generates ECOA-compliant adverse action notices
+# by extracting top-N negative feature contributions from SHAP values.
+#
+# Usage:
+#   glassalpha reasons \
+#     --model artifacts/german_credit_model.pkl \
+#     --data artifacts/german_credit_test.csv \
+#     --instance 42 \
+#     --config configs/reason_codes_german_credit.yaml \
+#     --output notices/instance_42.txt
+
+# Reason codes configuration
+reason_codes:
+  # Number of reason codes to generate (ECOA typical: 2-4)
+  top_n: 4
+
+  # Decision threshold for approved/denied classification
+  threshold: 0.5
+
+  # Organization information for adverse action notice
+  organization: "Example Financial Institution"
+  contact_info: "1-800-555-0199 or compliance@example.com"
+
+  # Output format: 'text' (ECOA notice) or 'json' (structured data)
+  format: text
+
+  # Optional: Custom template path for adverse action notice
+  # template: "templates/custom_aan.txt"
+
+# Data configuration
+data:
+  # Dataset identifier or path
+  dataset: "german_credit"
+
+  # Protected attributes to exclude from reason codes (ECOA compliance)
+  # These will never appear in adverse action notices
+  protected_attributes:
+    - "age"
+    - "foreign_worker"
+    - "personal_status_sex" # If using one-hot encoded version
+
+  # Target column (for dropping from features)
+  target_column: "target"
+
+  # Feature columns (if needed for validation)
+  # feature_columns: [...]
+
+# Explainer configuration
+explainer:
+  # Type of explainer to use (must be SHAP-compatible)
+  type: "treeshap"
+
+  # Max samples for background data (TreeSHAP efficiency)
+  max_samples: 1000
+
+# Reproducibility
+reproducibility:
+  # Random seed for deterministic tie-breaking
+  random_seed: 42
+
+  # Ensure byte-identical results
+  deterministic: true
+
+# Strict mode (optional - enforces all requirements)
+strict_mode: false
+
+# Audit profile (optional)
+audit_profile: "tabular_compliance"
