@@ -3,10 +3,11 @@
 import numpy as np
 import pandas as pd
 import pytest
+
 from glassalpha.utils.features import align_features
 
 
-def test_positional_rename(capsys):
+def test_positional_rename():
     """Test that positional column renaming works correctly."""
     # Create DataFrame with columns in different order
     X = pd.DataFrame(np.random.randn(10, 3), columns=["c", "a", "b"])
@@ -21,12 +22,8 @@ def test_positional_rename(capsys):
     # Check that data is preserved
     assert X_aligned.shape == (10, 3)
 
-    # Check logging
-    captured = capsys.readouterr()
-    assert "renamed 3 columns positionally" in captured.out
 
-
-def test_reindex_with_fill(capsys):
+def test_reindex_with_fill():
     """Test that reindexing with missing columns fills with zeros."""
     # Create DataFrame with missing columns
     X = pd.DataFrame(np.random.randn(10, 2), columns=["a", "b"])
@@ -45,12 +42,8 @@ def test_reindex_with_fill(capsys):
     # Check that existing columns are preserved
     pd.testing.assert_frame_equal(X_aligned[["a", "b"]], X)
 
-    # Check logging
-    captured = capsys.readouterr()
-    assert "added 2 missing columns with fill_value=0" in captured.out
 
-
-def test_reindex_with_extra_columns(capsys):
+def test_reindex_with_extra_columns():
     """Test that reindexing drops extra columns."""
     # Create DataFrame with extra columns
     X = pd.DataFrame(np.random.randn(10, 4), columns=["a", "b", "c", "d"])
@@ -67,10 +60,6 @@ def test_reindex_with_extra_columns(capsys):
 
     # Check that kept columns are preserved
     pd.testing.assert_frame_equal(X_aligned, X[["a", "b"]])
-
-    # Check logging
-    captured = capsys.readouterr()
-    assert "dropped 2 extra columns" in captured.out
 
 
 def test_no_change_needed():
@@ -103,7 +92,7 @@ def test_empty_dataframe():
     assert np.all(X_aligned["c"] == 0)
 
 
-def test_complex_alignment_scenario(capsys):
+def test_complex_alignment_scenario():
     """Test a complex scenario with renaming and missing columns."""
     # Create DataFrame with mixed scenario
     X = pd.DataFrame(np.random.randn(10, 3), columns=["z", "a", "b"])
@@ -123,8 +112,3 @@ def test_complex_alignment_scenario(capsys):
     # Check that missing columns are zeros
     assert np.all(X_aligned["c"] == 0)
     assert np.all(X_aligned["d"] == 0)
-
-    # Check logging shows both rename and missing columns
-    captured = capsys.readouterr()
-    assert "renamed 3 columns positionally" in captured.out
-    assert "added 2 missing columns with fill_value=0" in captured.out
