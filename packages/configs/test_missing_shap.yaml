@@ -25,13 +25,15 @@ model:
     random_state: 42
     max_iter: 1000
 
+# This config explicitly requests treeshap which requires SHAP
+# Used to test error message quality when SHAP is not installed
 explainers:
   strategy: first_compatible
   priority:
-    - coefficients # Zero-dependency explainer for linear models
+    - treeshap
   config:
-    coefficients:
-      normalize: true
+    treeshap:
+      max_samples: 100
 
 metrics:
   performance:

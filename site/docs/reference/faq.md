@@ -102,16 +102,25 @@ See the [Quick Start Guide](../getting-started/quickstart.md) for detailed instr
 
 ### What dependencies does GlassAlpha require?
 
-**Core Dependencies:**
+**Core Dependencies (base install):**
 
 - pandas, numpy (data processing)
-- scikit-learn (machine learning utilities)
-- XGBoost, LightGBM (gradient boosting models)
-- SHAP (model explanations)
+- scikit-learn (machine learning and LogisticRegression)
 - Matplotlib, Seaborn (visualizations)
-- WeasyPrint (PDF generation)
+- Jinja2, WeasyPrint (HTML/PDF generation)
 
-All dependencies are automatically installed during setup.
+**Optional Dependencies (explain install):**
+
+- XGBoost, LightGBM (gradient boosting models)
+- SHAP (TreeSHAP and KernelSHAP explanations)
+
+Install options:
+
+```bash
+pip install -e .              # Base install (LogisticRegression only)
+pip install -e ".[explain]"   # Adds SHAP, XGBoost, LightGBM
+pip install -e ".[dev]"       # Development tools
+```
 
 ## Usage & configuration
 

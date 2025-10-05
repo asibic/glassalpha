@@ -9,6 +9,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Improved Explainer Selection Error Messages**: Better guidance when requested explainers are unavailable
+  - Helpful error messages list missing dependencies (e.g., "Missing dependencies: ['shap']")
+  - Suggests installation command: `pip install 'glassalpha[explain]'`
+  - Recommends zero-dependency alternatives: `coefficients` or `permutation`
+  - No more silent fallback to unavailable explainers
+
+### Changed
+
+- **Updated `german_credit_simple.yaml` Config**: Now uses zero-dependency `coefficients` explainer
+  - Changed from `treeshap` (requires SHAP) to `coefficients` (no dependencies)
+  - Makes "simple" config truly simple - works with clean install
+  - Aligns with logistic_regression model which works best with coefficients
+- **Improved Fallback Logic for Linear Models**: Zero-dependency explainers prioritized
+  - Linear models now prefer `coefficients` over `kernelshap` in fallback scenarios
+  - Ensures clean installs work without optional dependencies
+
+### Fixed
+
+- **Documentation Accuracy for Clean Installs**: All getting-started docs now correctly describe what works without optional dependencies
+  - Updated `quickstart.md` to mention coefficient-based explanations (not SHAP) for base install
+  - Updated `index.md` to clarify feature availability with base vs explain install
+  - Updated `faq.md` to clearly list core vs optional dependencies
+  - Added comprehensive troubleshooting section for missing SHAP errors in `troubleshooting.md`
+  - All example commands now work with `pip install -e .` (no optional dependencies required)
+
+### Added
+
 - **Standardized Exit Codes**: Consistent exit codes across all CLI commands for reliable scripting
 
   - Exit code 0: Success

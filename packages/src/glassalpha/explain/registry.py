@@ -77,10 +77,28 @@ def select_explainer(model_type: str, requested_priority: list[str] | None = Non
         chosen = _first_available(requested_priority)
         if chosen:
             return chosen
-        raise RuntimeError(
-            f"No explainer from {requested_priority} is available. "
-            "Try installing optional deps, for example: pip install 'glassalpha[explain]'",
-        )
+
+        # Provide helpful error with zero-dependency alternatives
+        zero_dep = ["coefficients", "permutation"]
+        available_alternatives = [e for e in zero_dep if _available(e)]
+
+        error_msg = f"No explainer from {requested_priority} is available. "
+
+        # Check what's missing
+        missing_deps = []
+        for exp in requested_priority:
+            if exp in REQUIRES:
+                missing_deps.extend(REQUIRES[exp])
+
+        if missing_deps:
+            unique_deps = list(set(missing_deps))
+            error_msg += f"Missing dependencies: {unique_deps}. "
+            error_msg += "Install with: pip install 'glassalpha[explain]' "
+
+        if available_alternatives:
+            error_msg += f"OR use zero-dependency explainers: {available_alternatives}"
+
+        raise RuntimeError(error_msg)
 
     # No priority provided → enforce known families
     if model_type not in SUPPORTED_FAMILIES:
@@ -116,8 +134,8 @@ TYPE_TO_EXPLAINERS = {
     "lightgbm": ("treeshap", "kernelshap"),
     "random_forest": ("treeshap", "kernelshap"),
     "decision_tree": ("treeshap", "kernelshap"),
-    "logistic_regression": ("kernelshap", "coefficients"),
-    "linear_model": ("kernelshap", "coefficients"),
+    "logistic_regression": ("coefficients", "kernelshap"),  # coefficients first (no deps)
+    "linear_model": ("coefficients", "kernelshap"),  # coefficients first (no deps)
     "linearregression": ("coefficients",),  # sklearn LinearRegression
     "logisticregression": ("coefficients",),  # sklearn LogisticRegression
 }
@@ -245,7 +263,11 @@ class ExplainerRegistryClass(DecoratorFriendlyRegistry):
             return selected
 
         except RuntimeError as e:
-            # If new logic fails, fall back to old logic for compatibility
+            # If user explicitly specified priority list, don't fall back - raise the helpful error
+            if priority_list:
+                raise
+
+            # Otherwise fall back to old logic for compatibility
             logger.warning(f"New explainer selection failed: {e}, falling back to legacy logic")
             return self._find_compatible_legacy(model, config)
 

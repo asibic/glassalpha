@@ -344,6 +344,84 @@ Model 'xgboost' not available. Falling back to 'logistic_regression'.
      allow_fallback: false
    ```
 
+### Explainer errors (SHAP library required)
+
+**Error messages:**
+
+```
+SHAP library required for KernelSHAP explainer
+```
+
+Or:
+
+```
+No explainer from ['treeshap'] is available. Missing dependencies: ['shap'].
+Install with: pip install 'glassalpha[explain]'
+OR use zero-dependency explainers: ['coefficients', 'permutation']
+```
+
+**Cause:** Your configuration requests a SHAP-based explainer (TreeSHAP or KernelSHAP) but the SHAP library isn't installed in your environment.
+
+**Solutions:**
+
+1. **Use zero-dependency explainers** (recommended for getting started):
+
+   ```yaml
+   # In your config.yaml
+   explainers:
+     priority:
+       - coefficients # Best for LogisticRegression (no dependencies)
+       - permutation # Works with any model (no dependencies)
+   ```
+
+2. **Install SHAP for tree model explanations**:
+
+   ```bash
+   # Install SHAP + XGBoost + LightGBM
+   pip install 'glassalpha[explain]'
+
+   # Verify installation
+   glassalpha doctor
+   ```
+
+3. **Use the quickstart config** which works without SHAP:
+
+   ```bash
+   glassalpha audit --config configs/quickstart.yaml --output audit.html
+   ```
+
+**Which explainer should I use?**
+
+| Model Type         | Best Explainer | Requires SHAP? | Notes                              |
+| ------------------ | -------------- | -------------- | ---------------------------------- |
+| LogisticRegression | `coefficients` | ❌ No          | Zero dependencies, fast            |
+| XGBoost/LightGBM   | `treeshap`     | ✅ Yes         | Most accurate for tree models      |
+| RandomForest       | `treeshap`     | ✅ Yes         | Handles tree ensembles well        |
+| Any model          | `permutation`  | ❌ No          | Universal fallback, model-agnostic |
+
+**Example configs:**
+
+For LogisticRegression (works with base install):
+
+```yaml
+model:
+  type: logistic_regression
+explainers:
+  priority:
+    - coefficients
+```
+
+For XGBoost (requires `pip install 'glassalpha[explain]'`):
+
+```yaml
+model:
+  type: xgboost
+explainers:
+  priority:
+    - treeshap
+    - permutation # Fallback if SHAP fails
+```
+
 ## Data issues
 
 ### Dataset not found

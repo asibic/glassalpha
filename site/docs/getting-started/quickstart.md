@@ -22,10 +22,12 @@ open audit.pdf  # macOS
 
 - ✅ Model performance metrics (accuracy, precision, recall, F1, AUC)
 - ✅ Fairness analysis (bias detection across demographic groups)
-- ✅ Feature importance (SHAP values showing what drives predictions)
+- ✅ Feature importance (coefficient-based explanations showing what drives predictions)
 - ✅ Individual explanations (why specific decisions were made)
 - ✅ Preprocessing verification (optional, for production artifact validation)
 - ✅ Complete audit trail (reproducibility manifest with all seeds and hashes)
+
+**Note:** This quickstart uses LogisticRegression with coefficient-based explanations (zero dependencies). For tree-based models with SHAP explanations, install with `pip install -e ".[explain]"`.
 
 **Next steps**:
 
@@ -170,11 +172,11 @@ Open `my_first_audit.pdf` to see your comprehensive audit report containing:
 - Confusion matrix
 - Performance visualizations
 
-### SHAP explanations
+### Model explanations
 
-- Global feature importance rankings
+- Global feature importance rankings (coefficient-based for linear models, SHAP for tree models)
 - Individual prediction explanations
-- Waterfall plots showing decision factors
+- Clear visualization of what drives predictions
 
 ### Fairness analysis
 
@@ -242,8 +244,14 @@ Explainer selection:
 explainers:
   strategy: first_compatible
   priority:
-    - treeshap # Best for tree models (XGBoost, LightGBM)
-    # For logistic_regression, will automatically use coefficients
+    - coefficients # Zero-dependency explainer for linear models
+  config:
+    coefficients:
+      normalize: true
+# For tree models with SHAP (requires pip install 'glassalpha[explain]'):
+# priority:
+#   - treeshap # Best for XGBoost, LightGBM, RandomForest
+#   - kernelshap # Model-agnostic SHAP fallback
 ```
 
 Metrics to compute:

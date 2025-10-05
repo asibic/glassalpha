@@ -55,10 +55,12 @@ open audit.html  # macOS
 
 - ✅ Model performance metrics (accuracy, precision, recall, F1, AUC)
 - ✅ Fairness analysis (bias detection across demographic groups)
-- ✅ Feature importance (SHAP values showing what drives predictions)
+- ✅ Feature importance (coefficient-based explanations for linear models, SHAP for tree models)
 - ✅ Individual explanations (why specific decisions were made)
 - ✅ Preprocessing verification (production artifact validation)
 - ✅ Complete audit trail (reproducibility manifest with all seeds and hashes)
+
+**Note:** Base install includes LogisticRegression with zero-dependency coefficient explanations. For tree models with SHAP, install with `pip install -e ".[explain]"`.
 
 [See example output](examples/german-credit-audit.md)
 
@@ -118,11 +120,11 @@ Audit reports include:
 - Confusion matrices and performance curves
 - Cross-validation results
 
-### 2. TreeSHAP explanations
+### 2. Model explanations
 
-- Feature importance rankings
+- Feature importance rankings (coefficients for linear, SHAP for tree models)
 - Individual prediction explanations
-- Waterfall plots for key decisions
+- Visual breakdown of key decisions
 
 ### 3. Basic fairness analysis
 
