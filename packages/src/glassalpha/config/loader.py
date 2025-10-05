@@ -290,7 +290,9 @@ def load_config(config_dict: dict[str, Any], profile_name: str | None = None, st
     if audit_config.strict_mode or strict:
         from .strict import validate_strict_mode  # noqa: PLC0415
 
-        validate_strict_mode(audit_config)
+        # Auto-detect quick mode: use if built-in dataset specified
+        quick_mode = bool(audit_config.data.dataset and audit_config.data.dataset != "custom")
+        validate_strict_mode(audit_config, quick_mode=quick_mode)
 
     logger.info("Configuration validated successfully")
     return audit_config

@@ -10,6 +10,7 @@ Do not "fix" this by adding 'from e' - users don't need stack traces.
 """
 
 import logging
+import os
 import sys
 from pathlib import Path
 from typing import Any
@@ -371,15 +372,46 @@ def _display_audit_summary(audit_results) -> None:
         rows, cols = audit_results.data_summary["shape"]
         typer.echo(_ascii(f"  📋 Dataset: {rows:,} samples, {cols} features"))
 
-    # Selected components
+    # Selected components with fallback indication
     if audit_results.selected_components:
         typer.echo(_ascii(f"  🔧 Components: {len(audit_results.selected_components)} selected"))
 
-        # Show model type
-        for _comp_name, comp_info in audit_results.selected_components.items():
-            if comp_info.get("type") == "model":
-                typer.echo(f"     Model: {comp_info.get('name', 'unknown')}")
-                break
+        # Show model (with fallback indication if applicable)
+        model_info = audit_results.selected_components.get("model")
+        if model_info:
+            model_name = model_info.get("name", "unknown")
+            requested_model = model_info.get("requested")
+
+            if requested_model and requested_model != model_name:
+                typer.secho(
+                    f"     Model: {model_name} (fallback from {requested_model})",
+                    fg=typer.colors.YELLOW,
+                )
+            else:
+                typer.echo(f"     Model: {model_name}")
+
+        # Show explainer (with reasoning if available)
+        explainer_info = audit_results.selected_components.get("explainer")
+        if explainer_info:
+            explainer_name = explainer_info.get("name", "unknown")
+            reason = explainer_info.get("reason", "")
+
+            if reason:
+                typer.echo(f"     Explainer: {explainer_name} ({reason})")
+            else:
+                typer.echo(f"     Explainer: {explainer_name}")
+
+        # Show preprocessing mode if available
+        prep_info = audit_results.selected_components.get("preprocessing")
+        if prep_info:
+            prep_mode = prep_info.get("mode", "unknown")
+            if prep_mode == "auto":
+                typer.secho(
+                    f"     Preprocessing: {prep_mode} (not production-ready)",
+                    fg=typer.colors.YELLOW,
+                )
+            else:
+                typer.echo(f"     Preprocessing: {prep_mode}")
 
 
 def audit(  # pragma: no cover
@@ -427,6 +459,11 @@ def audit(  # pragma: no cover
         "--dry-run",
         help="Validate configuration without generating report",
     ),
+    no_fallback: bool = typer.Option(
+        False,
+        "--no-fallback",
+        help="Fail if requested components are unavailable (no automatic fallbacks)",
+    ),
 ):
     """Generate a compliance audit PDF report.
 
@@ -443,6 +480,9 @@ def audit(  # pragma: no cover
         # Override specific settings
         glassalpha audit -c base.yaml --override custom.yaml -o report.pdf
 
+        # Fail if components unavailable (no fallbacks)
+        glassalpha audit --config audit.yaml --output report.pdf --no-fallback
+
     """
     try:
         # Check file existence early with specific error message
@@ -453,6 +493,26 @@ def audit(  # pragma: no cover
         # Check override config if provided
         if override_config and not override_config.exists():
             typer.echo(f"Override file '{override_config}' does not exist.", err=True)
+            raise typer.Exit(1)
+
+        # Validate output directory exists before doing any work
+        output_dir = output.parent if output.parent != Path() else Path.cwd()
+        if not output_dir.exists():
+            typer.secho(
+                f"Error: Output directory does not exist: {output_dir}",
+                fg=typer.colors.RED,
+                err=True,
+            )
+            typer.echo(f"  Create it with: mkdir -p {output_dir}")
+            raise typer.Exit(1)
+
+        # Check if output directory is writable
+        if not os.access(output_dir, os.W_OK):
+            typer.secho(
+                f"Error: Output directory is not writable: {output_dir}",
+                fg=typer.colors.RED,
+                err=True,
+            )
             raise typer.Exit(1)
 
         # Import here to avoid circular imports
@@ -476,8 +536,8 @@ def audit(  # pragma: no cover
 
         audit_config = load_config_from_file(config, override_path=override_config, profile_name=profile, strict=strict)
 
-        # Validate model availability and apply fallbacks
-        audit_config = preflight_check_model(audit_config)
+        # Validate model availability and apply fallbacks (or fail if no_fallback is set)
+        audit_config = preflight_check_model(audit_config, allow_fallback=not no_fallback)
 
         # Determine explainer selection early for consistent display
         from ..explain.registry import ExplainerRegistry
@@ -785,6 +845,11 @@ def validate(  # pragma: no cover
         "--strict",
         help="Validate for strict mode compliance",
     ),
+    strict_validation: bool = typer.Option(
+        False,
+        "--strict-validation",
+        help="Enforce runtime availability checks (recommended for production)",
+    ),
 ):
     """Validate a configuration file.
 
@@ -801,9 +866,14 @@ def validate(  # pragma: no cover
         # Check strict mode compliance
         glassalpha validate -c audit.yaml --strict
 
+        # Enforce runtime checks (production-ready)
+        glassalpha validate -c audit.yaml --strict-validation
+
     """
     try:
         from ..config import load_config_from_file
+        from ..core.registry import ModelRegistry
+        from ..explain.registry import ExplainerRegistry
 
         typer.echo(f"Validating configuration: {config}")
 
@@ -814,8 +884,130 @@ def validate(  # pragma: no cover
         typer.echo(f"Model type: {audit_config.model.type}")
         typer.echo(f"Strict mode: {'valid' if strict else 'not checked'}")
 
+        # Runtime availability validation
+        validation_errors = []
+        validation_warnings = []
+
+        # Check model availability
+        available_models = ModelRegistry.available_plugins()
+        if not available_models.get(audit_config.model.type, False):
+            msg = (
+                f"Model '{audit_config.model.type}' is not available. "
+                f"Install with: pip install 'glassalpha[explain]' (for xgboost/lightgbm)"
+            )
+            if strict_validation:
+                validation_errors.append(msg)
+            else:
+                validation_warnings.append(msg + " (Will fallback to logistic_regression)")
+
+        # Check explainer availability and compatibility
+        if audit_config.explainers.priority:
+            available_explainers = ExplainerRegistry.available_plugins()
+            requested_explainers = audit_config.explainers.priority
+
+            available_requested = [e for e in requested_explainers if available_explainers.get(e, False)]
+
+            if not available_requested:
+                msg = (
+                    f"None of the requested explainers {requested_explainers} are available. "
+                    f"Install with: pip install 'glassalpha[explain]'"
+                )
+                if strict_validation:
+                    validation_errors.append(msg)
+                else:
+                    validation_warnings.append(msg + " (Will fallback to permutation explainer)")
+            else:
+                # Check model/explainer compatibility
+                model_type = audit_config.model.type
+                if "treeshap" in requested_explainers and model_type not in ["xgboost", "lightgbm", "random_forest"]:
+                    validation_warnings.append(
+                        f"TreeSHAP requested but model type '{model_type}' is not a tree model. "
+                        "Consider using 'coefficients' (for linear) or 'permutation' (universal).",
+                    )
+
+        # Check dataset and validate schema if specified
+        if audit_config.data.path and audit_config.data.dataset == "custom":
+            data_path = Path(audit_config.data.path).expanduser()
+            if not data_path.exists():
+                msg = f"Data file not found: {data_path}"
+                if strict_validation:
+                    validation_errors.append(msg)
+                else:
+                    validation_warnings.append(msg)
+            else:
+                # Validate dataset schema if file exists
+                try:
+                    from ..data.tabular import TabularDataLoader, TabularDataSchema
+
+                    # Load data to validate schema
+                    loader = TabularDataLoader()
+                    df = loader.load(data_path)
+
+                    # Build schema from config
+                    schema = TabularDataSchema(
+                        target=audit_config.data.target_column,
+                        features=audit_config.data.feature_columns or [],
+                        sensitive_features=audit_config.data.protected_attributes or [],
+                    )
+
+                    # Validate schema
+                    loader.validate_schema(df, schema)
+                    typer.echo(f"  ✓ Dataset schema validated ({len(df)} rows, {len(df.columns)} columns)")
+
+                except ValueError as e:
+                    msg = f"Dataset schema validation failed: {e}"
+                    if strict_validation:
+                        validation_errors.append(msg)
+                    else:
+                        validation_warnings.append(msg)
+                except Exception as e:
+                    msg = f"Error loading dataset for validation: {e}"
+                    if strict_validation:
+                        validation_errors.append(msg)
+                    else:
+                        validation_warnings.append(msg)
+        elif audit_config.data.dataset and audit_config.data.dataset != "custom":
+            # Built-in dataset - validate feature columns if specified
+            if audit_config.data.feature_columns:
+                try:
+                    from ..data.registry import DatasetRegistry
+
+                    # Try to load dataset info
+                    dataset_info = DatasetRegistry.get(audit_config.data.dataset)
+                    if dataset_info:
+                        # Could validate against known schema here if we store it
+                        typer.echo(f"  ✓ Using built-in dataset: {audit_config.data.dataset}")
+                except Exception:
+                    pass  # Built-in dataset validation is optional
+
+        # Report validation errors
+        if validation_errors:
+            typer.echo()
+            typer.secho(_ascii("✗ Validation failed with errors:"), fg=typer.colors.RED, err=True)
+            for error in validation_errors:
+                typer.secho(f"  • {error}", fg=typer.colors.RED, err=True)
+            typer.echo()
+            typer.secho(
+                "Tip: Run without --strict-validation to see warnings instead of errors",
+                fg=typer.colors.YELLOW,
+            )
+            raise typer.Exit(1)
+
         # Report validation results
         typer.secho(_ascii("\n✓ Configuration is valid"), fg=typer.colors.GREEN)
+
+        # Show runtime warnings
+        if validation_warnings:
+            typer.echo()
+            typer.secho(_ascii("⚠ Runtime warnings:"), fg=typer.colors.YELLOW)
+            for warning in validation_warnings:
+                typer.secho(f"  • {warning}", fg=typer.colors.YELLOW)
+            typer.echo()
+            if not strict_validation:
+                typer.secho(
+                    "Tip: Add --strict-validation to treat warnings as errors (recommended for production)",
+                    fg=typer.colors.CYAN,
+                )
 
         # Check model parameters
         param_warnings = _validate_model_params(audit_config)

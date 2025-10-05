@@ -16,11 +16,12 @@ from ..metrics.registry import MetricRegistry
 logger = logging.getLogger(__name__)
 
 
-def preflight_check_model(config: Any) -> Any:
+def preflight_check_model(config: Any, allow_fallback: bool = True) -> Any:
     """Validate model availability and provide fallbacks.
 
     Args:
         config: Audit configuration object
+        allow_fallback: If False, fail instead of falling back to alternative models
 
     Returns:
         Modified config with fallback model if needed
@@ -41,13 +42,31 @@ def preflight_check_model(config: Any) -> Any:
 
     if not available_models.get(model_type, False):
         # Model not available - check for fallbacks
-        if getattr(config.model, "allow_fallback", True):
+        if allow_fallback:
             fallback_model = _find_fallback_model(model_type, available_models)
             if fallback_model:
-                typer.echo(
-                    f"Model '{model_type}' not available. Falling back to '{fallback_model}'. "
-                    f"To enable '{model_type}', run: pip install 'glassalpha[{model_type}]'",
-                )
+                # Enhanced fallback warning with clear explanation
+                typer.echo()
+                typer.secho("⚠ Model Fallback Activated", fg=typer.colors.YELLOW, bold=True)
+                typer.echo(f"  Requested: {model_type}")
+                typer.echo(f"  Using:     {fallback_model}")
+                typer.echo()
+                typer.echo(f"  Why: '{model_type}' is not installed in your environment")
+                typer.echo()
+
+                # Installation instructions
+                install_hint = ModelRegistry.get_install_hint(model_type)
+                if install_hint:
+                    typer.echo(f"  To use {model_type}:")
+                    typer.echo(f"    {install_hint}")
+                else:
+                    typer.echo(f"  To use {model_type}:")
+                    typer.echo("    pip install 'glassalpha[explain]'")
+
+                typer.echo()
+                typer.secho("  Use --no-fallback to fail instead of falling back", fg=typer.colors.CYAN)
+                typer.echo()
+
                 config.model.type = fallback_model
                 return config
             # No fallback available

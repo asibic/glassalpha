@@ -17,7 +17,7 @@ class StrictModeError(ValueError):
     """Raised when strict mode validation fails."""
 
 
-def validate_strict_mode(config: AuditConfig) -> None:
+def validate_strict_mode(config: AuditConfig, quick_mode: bool = False) -> None:
     """Validate configuration meets strict mode requirements.
 
     Strict mode enforces:
@@ -29,66 +29,81 @@ def validate_strict_mode(config: AuditConfig) -> None:
     - All optional fields become required
     - Warnings become errors
 
+    Quick mode is a relaxed variant that:
+    - Allows built-in datasets (bypasses data.path requirement)
+    - Skips model.path requirement (allows training from config)
+    - Still enforces reproducibility and determinism
+
     Args:
         config: Configuration to validate
+        quick_mode: If True, use relaxed validation for testing/development
 
     Raises:
         StrictModeError: If validation fails
 
     """
-    logger.info("Validating configuration for strict mode compliance")
+    mode_desc = "quick strict mode" if quick_mode else "strict mode"
+    logger.info(f"Validating configuration for {mode_desc} compliance")
     errors: list[str] = []
 
-    # Check reproducibility settings
+    # Check reproducibility settings (always required)
     if config.reproducibility.random_seed is None:
-        errors.append("Explicit random seed is required in strict mode")
+        errors.append(f"Explicit random seed is required in {mode_desc}")
 
     if not config.reproducibility.deterministic:
-        errors.append("Deterministic mode must be enabled in strict mode")
+        errors.append(f"Deterministic mode must be enabled in {mode_desc}")
 
     if not config.reproducibility.capture_environment:
-        errors.append("Environment capture must be enabled in strict mode")
+        errors.append(f"Environment capture must be enabled in {mode_desc}")
 
-    # Check data configuration
-    if not config.data.path:
-        errors.append("Data path must be specified in strict mode")
+    # Check data configuration (relaxed in quick mode for built-in datasets)
+    if not quick_mode:
+        if not config.data.path:
+            errors.append("Data path must be specified in strict mode")
+    # Quick mode: allow built-in datasets
+    elif not config.data.path and not config.data.dataset:
+        errors.append("Data path or dataset must be specified in quick strict mode")
 
     if not config.data.schema_path and not config.data.data_schema:
-        errors.append("Data schema must be specified (either path or inline) in strict mode")
+        # In quick mode, built-in datasets have implicit schemas
+        if not (quick_mode and config.data.dataset and config.data.dataset != "custom"):
+            errors.append(f"Data schema must be specified (either path or inline) in {mode_desc}")
 
     if not config.data.protected_attributes:
-        errors.append("Protected attributes must be specified for fairness analysis in strict mode")
+        errors.append(f"Protected attributes must be specified for fairness analysis in {mode_desc}")
 
     if not config.data.target_column:
-        errors.append("Target column must be explicitly specified in strict mode")
+        errors.append(f"Target column must be explicitly specified in {mode_desc}")
 
-    # Check model configuration
-    if not config.model.path:
-        errors.append("Model path must be specified in strict mode")
+    # Check model configuration (relaxed in quick mode)
+    if not quick_mode:
+        if not config.model.path:
+            errors.append("Model path must be specified in strict mode")
+    # Quick mode allows training from config
 
     # Check explainer configuration
     if not config.explainers.priority:
-        errors.append("Explainer priority list must be specified in strict mode")
+        errors.append(f"Explainer priority list must be specified in {mode_desc}")
 
     if config.explainers.strategy != "first_compatible":
-        errors.append("Explainer strategy must be 'first_compatible' for determinism in strict mode")
+        errors.append(f"Explainer strategy must be 'first_compatible' for determinism in {mode_desc}")
 
     # Check manifest configuration
     if not config.manifest.enabled:
-        errors.append("Manifest generation must be enabled in strict mode")
+        errors.append(f"Manifest generation must be enabled in {mode_desc}")
 
     if not config.manifest.include_git_sha:
-        errors.append("Git SHA must be included in manifest in strict mode")
+        errors.append(f"Git SHA must be included in manifest in {mode_desc}")
 
     if not config.manifest.include_config_hash:
-        errors.append("Config hash must be included in manifest in strict mode")
+        errors.append(f"Config hash must be included in manifest in {mode_desc}")
 
     if not config.manifest.include_data_hash:
-        errors.append("Data hash must be included in manifest in strict mode")
+        errors.append(f"Data hash must be included in manifest in {mode_desc}")
 
     # Check audit profile
     if not config.audit_profile:
-        errors.append("Audit profile must be specified in strict mode")
+        errors.append(f"Audit profile must be specified in {mode_desc}")
 
     # Check metrics are specified (handle both list and MetricCategory)
     performance_metrics = (
@@ -97,45 +112,58 @@ def validate_strict_mode(config: AuditConfig) -> None:
         else config.metrics.performance.metrics
     )
     if not performance_metrics:
-        errors.append("Performance metrics must be specified in strict mode")
+        errors.append(f"Performance metrics must be specified in {mode_desc}")
 
     fairness_metrics = (
         config.metrics.fairness if isinstance(config.metrics.fairness, list) else config.metrics.fairness.metrics
     )
     if not fairness_metrics:
-        errors.append("Fairness metrics must be specified in strict mode")
+        errors.append(f"Fairness metrics must be specified in {mode_desc}")
 
     # Check recourse if enabled
     if config.recourse.enabled and not config.recourse.immutable_features:
-        errors.append("Immutable features must be specified when recourse is enabled in strict mode")
+        errors.append(f"Immutable features must be specified when recourse is enabled in {mode_desc}")
 
-    # Check preprocessing configuration
-    if config.preprocessing.mode != "artifact":
-        errors.append(
-            "Preprocessing mode must be 'artifact' in strict mode. "
-            "Auto preprocessing is not valid for regulatory compliance."
-        )
+    # Check preprocessing configuration (relaxed in quick mode)
+    if not quick_mode:
+        if config.preprocessing.mode != "artifact":
+            errors.append(
+                "Preprocessing mode must be 'artifact' in strict mode. "
+                "Auto preprocessing is not valid for regulatory compliance.",
+            )
 
-    if config.preprocessing.mode == "artifact":
+        if config.preprocessing.mode == "artifact":
+            if not config.preprocessing.artifact_path:
+                errors.append("Preprocessing artifact_path must be specified when mode='artifact' in strict mode")
+
+            if not config.preprocessing.expected_file_hash:
+                errors.append("Preprocessing expected_file_hash must be specified in strict mode")
+
+            if not config.preprocessing.expected_params_hash:
+                errors.append("Preprocessing expected_params_hash must be specified in strict mode")
+    # Quick mode allows auto preprocessing for testing
+    elif config.preprocessing.mode == "artifact":
         if not config.preprocessing.artifact_path:
-            errors.append("Preprocessing artifact_path must be specified when mode='artifact' in strict mode")
+            errors.append("Preprocessing artifact_path must be specified when mode='artifact'")
 
-        if not config.preprocessing.expected_file_hash:
-            errors.append("Preprocessing expected_file_hash must be specified in strict mode")
-
-        if not config.preprocessing.expected_params_hash:
-            errors.append("Preprocessing expected_params_hash must be specified in strict mode")
-
-    # Convert warnings to errors
-    warnings.simplefilter("error")
+    # Convert warnings to errors (only in full strict mode)
+    if not quick_mode:
+        warnings.simplefilter("error")
 
     # Report all errors
     if errors:
-        error_msg = "Strict mode validation failed:\n" + "\n".join(f"  - {e}" for e in errors)
+        error_msg = f"{mode_desc.capitalize()} validation failed:\n" + "\n".join(f"  - {e}" for e in errors)
         logger.error(error_msg)
+
+        if quick_mode:
+            error_msg += "\n\n💡 Tip: Quick strict mode is for testing. Use full strict mode for production."
+
         raise StrictModeError(error_msg)
 
-    logger.info("Strict mode validation passed")
+    logger.info(f"{mode_desc.capitalize()} validation passed")
+
+    if quick_mode:
+        logger.warning("Quick strict mode is enabled - suitable for testing but NOT for production audits")
 
 
 def validate_deterministic_config(config: dict[str, Any]) -> bool:
