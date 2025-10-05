@@ -42,15 +42,16 @@ def __getattr__(name: str):
         from ..explain.registry import ExplainerRegistry
 
         return ExplainerRegistry
-    elif name == "MetricRegistry":
+    if name == "MetricRegistry":
         from ..metrics.registry import MetricRegistry
 
         return MetricRegistry
-    elif name == "ProfileRegistry":
+    if name == "ProfileRegistry":
         from ..profiles.registry import ProfileRegistry
 
         return ProfileRegistry
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
 
 __all__ = [
     # Interfaces

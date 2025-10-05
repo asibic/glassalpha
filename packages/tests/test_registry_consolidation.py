@@ -2,8 +2,6 @@
 
 import sys
 
-import pytest
-
 
 def test_all_registries_importable():
     """Verify all registries can be imported from their canonical locations."""
@@ -209,4 +207,3 @@ def test_registries_have_names_method():
     assert isinstance(MetricRegistry.names(), list)
     assert isinstance(ProfileRegistry.names(), list)
     assert isinstance(DataRegistry.names(), list)
-
