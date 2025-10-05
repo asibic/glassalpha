@@ -16,17 +16,15 @@ audit_profile: tabular_compliance
 
 reproducibility:
   random_seed: 42
-  config_hash: auto
-  git_commit: auto
 
 data:
-  source: /path/to/folktables_income.csv
+  dataset: custom
+  path: /path/to/folktables_income.csv
   target_column: income_binary # 1 if income >$50K, 0 otherwise
   protected_attributes:
     - SEX # 1=Male, 2=Female
     - RAC1P # Race (1=White, 2=Black, 3-9=Other)
     - AGEP # Age in years
-  feature_columns: auto # Or specify: [AGEP, COW, SCHL, MAR, OCCP, POBP, RELP, WKHP, SEX, RAC1P]
 
   # Folktables-specific notes:
   # - ACS data is very large; consider filtering by state

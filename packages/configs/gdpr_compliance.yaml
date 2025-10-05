@@ -13,6 +13,7 @@ reproducibility:
 
 # Dataset configuration
 data:
+  dataset: custom # Use custom dataset with path
   # 🔧 ADAPT THIS: Replace with your dataset path
   path: ~/.glassalpha/data/german_credit_processed.csv
 

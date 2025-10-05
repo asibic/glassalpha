@@ -1,6 +1,7 @@
 audit_profile: "tabular_compliance"
 
 data:
+  dataset: custom
   path: "~/.glassalpha/data/insurance_risk.csv"
   target_column: "claim_outcome"
   feature_columns:
@@ -31,23 +32,26 @@ model:
     cv: 5
 
 explainers:
+  strategy: first_compatible
   priority:
     - "treeshap"
     - "kernelshap"
 
 metrics:
   performance:
-    enabled: true
+    metrics:
+      - accuracy
+      - precision
+      - recall
+      - f1
+      - auc_roc
   fairness:
-    enabled: true
+    metrics:
+      - demographic_parity
+      - equal_opportunity
 
 report:
-  template: "standard_audit.html"
-  output_format: "pdf"
-  threshold:
-    policy: "cost_sensitive"
-    cost_fp: 1.0
-    cost_fn: 5.0  # High cost for false negatives (missing claims)
+  template: "standard_audit"
 
 reproducibility:
   random_seed: 42

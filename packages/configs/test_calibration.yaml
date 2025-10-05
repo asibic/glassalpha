@@ -1,6 +1,7 @@
 audit_profile: "tabular_compliance"
 
 data:
+  dataset: custom
   path: "~/.glassalpha/data/insurance_risk.csv"
   target_column: "claim_outcome"
   feature_columns:
@@ -32,19 +33,26 @@ model:
     ensemble: true
 
 explainers:
+  strategy: first_compatible
   priority:
     - "treeshap"
     - "kernelshap"
 
 metrics:
   performance:
-    enabled: true
+    metrics:
+      - accuracy
+      - precision
+      - recall
+      - f1
+      - auc_roc
   fairness:
-    enabled: true
+    metrics:
+      - demographic_parity
+      - equal_opportunity
 
 report:
-  template: "standard_audit.html"
-  output_format: "pdf"
+  template: "standard_audit"
 
 reproducibility:
   random_seed: 42

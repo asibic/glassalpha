@@ -11,8 +11,9 @@ model:
 
 # Data configuration
 data:
+  dataset: custom
   path: "data/german_credit.csv"
-  schema_path: "schemas/german_credit.yaml"
+  target_column: "credit_risk"
   protected_attributes:
     - age
     - gender

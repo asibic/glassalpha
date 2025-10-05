@@ -164,7 +164,14 @@ For CI/CD or reproducible builds, use the constraints file:
 pip install -c constraints.txt -e ".[dev,all]"
 ```
 
-This locks all dependencies to tested versions.
+**Why use constraints.txt?**
+
+- Locks all dependencies to tested versions
+- Ensures compatibility across different environments
+- Prevents version conflicts (e.g., NumPy/SHAP compatibility)
+- Required for byte-identical audit reproduction
+
+**Recommendation**: Always use constraints.txt for production deployments and CI/CD pipelines.
 
 ### Offline installation
 
@@ -207,11 +214,39 @@ glassalpha audit --config configs/german_credit_simple.yaml --output audit.pdf -
    brew install gcc
    ```
 
+4. **Dependency conflicts**: If you see NumPy/SHAP compatibility errors:
+
+   ```bash
+   # Use constraints.txt for tested versions
+   pip install -c constraints.txt -e ".[all]"
+
+   # Or start fresh with a new virtual environment
+   rm -rf .venv
+   python3 -m venv .venv
+   source .venv/bin/activate
+   pip install -c constraints.txt -e ".[all]"
+   ```
+
+5. **Config validation errors**: If example configs fail validation:
+
+   ```bash
+   # Verify the config is valid
+   glassalpha validate --config your_config.yaml
+
+   # Check that dataset field is present for custom data
+   # data:
+   #   dataset: custom  # Required!
+   #   path: /path/to/data.csv
+   ```
+
 **Verification:**
 
 ```bash
 # Check installation
 glassalpha --help
+
+# Verify all features are available
+glassalpha doctor
 
 # List available components
 glassalpha list
