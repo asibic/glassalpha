@@ -9,6 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Counterfactual Recourse (E2.5)**: ECOA-compliant actionable recommendations for adverse decisions
+
+  - Generates feasible counterfactual recommendations with policy constraints
+  - Greedy search algorithm (deterministic, gradient-free, works with any tabular model)
+  - Policy constraints: immutable features, monotonic constraints, cost weights, feature bounds
+  - Integration with E2 (Reason Codes) for identifying negative contributors
+  - CLI: `glassalpha recourse --model X --data Y --instance Z --config C`
+  - Python API: `generate_recourse()` function with `RecourseResult` and `RecourseRecommendation` data classes
+  - JSON output with ranked recommendations sorted by cost (weighted L1 distance)
+  - Complete audit trail (policy constraints, seed, total/feasible candidates)
+  - User guide: [Recourse Guide](https://glassalpha.com/guides/recourse/)
+  - Example config: `configs/recourse_german_credit.yaml`
+  - **ECOA compliance**: Provides actionable guidance for improving future applications
+  - **SR 11-7 alignment**: "Clear and understandable" recommendations consumers can act upon
+  - **Regulatory value**: Demonstrates good faith by showing paths to favorable outcomes
+  - 20+ contract tests passing (determinism, policy validation, greedy search)
+
 - **Reason Codes (E2)**: ECOA-compliant adverse action notices for regulatory compliance
 
   - Extract top-N negative feature contributions from SHAP values

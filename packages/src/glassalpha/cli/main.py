@@ -151,7 +151,7 @@ app.add_typer(dashboard_app, name="dashboard")
 app.add_typer(monitor_app, name="monitor")
 
 # Import and register commands
-from .commands import audit, docs, doctor, list_components_cmd, reasons, validate
+from .commands import audit, docs, doctor, list_components_cmd, reasons, recourse, validate
 from .init import init
 
 # Register main commands
@@ -162,6 +162,7 @@ app.command("doctor", help="Check environment and optional features")(doctor)
 app.command("docs", help="Open documentation in browser")(docs)
 app.command("init", help="Initialize new audit configuration")(init)
 app.command("reasons", help="Generate ECOA-compliant reason codes")(reasons)
+app.command("recourse", help="Generate counterfactual recourse recommendations")(recourse)
 
 # Register datasets commands with lazy loading (Phase 2 performance optimization)
 # These import the datasets module only when the command is actually invoked,

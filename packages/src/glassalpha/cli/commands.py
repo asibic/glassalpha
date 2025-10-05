@@ -1573,3 +1573,283 @@ def reasons(  # pragma: no cover
             logger.exception("Reason code generation failed")
         typer.secho(f"Failed: {e}", fg=typer.colors.RED, err=True)
         raise typer.Exit(ExitCode.USER_ERROR) from None
+
+
+def recourse(  # pragma: no cover
+    model: Path = typer.Option(
+        ...,
+        "--model",
+        "-m",
+        help="Path to trained model file (.pkl, .joblib)",
+        exists=True,
+        file_okay=True,
+    ),
+    data: Path = typer.Option(
+        ...,
+        "--data",
+        "-d",
+        help="Path to test data file (CSV)",
+        exists=True,
+        file_okay=True,
+    ),
+    instance: int = typer.Option(
+        ...,
+        "--instance",
+        "-i",
+        help="Row index of instance to explain (0-based)",
+    ),
+    config: Path | None = typer.Option(
+        None,
+        "--config",
+        "-c",
+        help="Path to recourse configuration YAML",
+        file_okay=True,
+    ),
+    output: Path | None = typer.Option(
+        None,
+        "--output",
+        "-o",
+        help="Path for output recommendations file (JSON, defaults to stdout)",
+    ),
+    threshold: float = typer.Option(
+        0.5,
+        "--threshold",
+        "-t",
+        help="Decision threshold for approved/denied",
+    ),
+    top_n: int = typer.Option(
+        5,
+        "--top-n",
+        "-n",
+        help="Number of counterfactual recommendations to generate",
+    ),
+):
+    """Generate ECOA-compliant counterfactual recourse recommendations.
+
+    This command generates feasible counterfactual recommendations with policy constraints
+    for individuals receiving adverse decisions. Supports immutable features, monotonic
+    constraints, and cost-weighted optimization.
+
+    Requirements:
+        - Trained model with SHAP-compatible architecture
+        - Test dataset with same features as training
+        - Instance index to explain (must be denied: prediction < threshold)
+        - Configuration file with policy constraints (recommended)
+
+    Examples:
+        # Generate recourse for denied instance
+        glassalpha recourse \\
+            --model models/german_credit.pkl \\
+            --data data/test.csv \\
+            --instance 42 \\
+            --config configs/recourse_german_credit.yaml \\
+            --output recourse/instance_42.json
+
+        # With custom threshold and top-N
+        glassalpha recourse -m model.pkl -d test.csv -i 10 -c config.yaml --top-n 3
+
+        # Output to stdout
+        glassalpha recourse -m model.pkl -d test.csv -i 5 -c config.yaml
+
+    Configuration File:
+        The config file should include:
+        - recourse.immutable_features: list of features that cannot be changed
+        - recourse.monotonic_constraints: directional constraints (increase_only, decrease_only)
+        - recourse.cost_function: cost function for optimization (weighted_l1)
+        - data.protected_attributes: list of protected attributes to exclude
+        - reproducibility.random_seed: seed for deterministic results
+
+    """
+    import json
+    import pickle
+
+    import pandas as pd
+
+    try:
+        # Load configuration
+        immutable_features: list[str] = []
+        monotonic_constraints: dict[str, str] = {}
+        feature_costs: dict[str, float] = {}
+        feature_bounds: dict[str, tuple[float, float]] = {}
+        seed = 42
+
+        if config and config.exists():
+            from ..config import load_config_from_file
+
+            cfg = load_config_from_file(config)
+
+            # Load recourse config
+            if hasattr(cfg, "recourse"):
+                immutable_features = list(getattr(cfg.recourse, "immutable_features", []))
+                raw_constraints = getattr(cfg.recourse, "monotonic_constraints", {})
+                # Convert monotonic constraints to dict[str, str] for API
+                monotonic_constraints = {str(k): str(v) for k, v in raw_constraints.items()}
+
+            # Load seed
+            seed = getattr(cfg.reproducibility, "random_seed", 42) if hasattr(cfg, "reproducibility") else 42
+        else:
+            typer.secho(
+                "Warning: No config provided. Using default policy (no constraints).",
+                fg=typer.colors.YELLOW,
+            )
+
+        typer.echo(f"Loading model from: {model}")
+        with open(model, "rb") as f:
+            model_obj = pickle.load(f)
+
+        typer.echo(f"Loading data from: {data}")
+        df = pd.read_csv(data)
+
+        if instance < 0 or instance >= len(df):
+            typer.secho(
+                f"Error: Instance {instance} out of range (0-{len(df) - 1})",
+                fg=typer.colors.RED,
+                err=True,
+            )
+            raise typer.Exit(ExitCode.USER_ERROR)
+
+        # Get instance
+        X_instance = df.iloc[[instance]].drop(columns=["target"], errors="ignore")
+        feature_names = X_instance.columns.tolist()
+        feature_values_series = X_instance.iloc[0]
+
+        typer.echo(f"Generating SHAP explanations for instance {instance}...")
+
+        # Get prediction
+        if hasattr(model_obj, "predict_proba"):
+            prediction = float(model_obj.predict_proba(X_instance)[0, 1])
+        else:
+            prediction = float(model_obj.predict(X_instance)[0])
+
+        # Check if instance is already approved
+        if prediction >= threshold:
+            typer.secho(
+                f"\nInstance {instance} is already approved (prediction={prediction:.1%} >= threshold={threshold:.1%})",
+                fg=typer.colors.YELLOW,
+            )
+            typer.echo("No recourse needed.")
+            raise typer.Exit(ExitCode.SUCCESS)
+
+        # Generate SHAP values (use TreeSHAP for tree models)
+        try:
+            import shap
+
+            explainer = shap.TreeExplainer(model_obj)
+            shap_values = explainer.shap_values(X_instance)
+
+            # Handle multi-output case (binary classification)
+            if isinstance(shap_values, list):
+                shap_values = shap_values[1]  # Positive class
+
+            # Flatten to 1D
+            if len(shap_values.shape) > 1:
+                shap_values = shap_values[0]
+
+        except Exception as e:
+            typer.secho(
+                f"Warning: SHAP TreeExplainer failed ({e}). Trying KernelSHAP...",
+                fg=typer.colors.YELLOW,
+            )
+            # Fallback to KernelSHAP
+            import shap
+
+            explainer = shap.KernelExplainer(model_obj.predict_proba, shap.sample(X_instance, 100))
+            shap_values = explainer.shap_values(X_instance)[0, :, 1]
+
+        typer.echo("Generating counterfactual recommendations...")
+
+        # Build policy constraints
+        from ..explain.policy import PolicyConstraints
+
+        policy = PolicyConstraints(
+            immutable_features=immutable_features,
+            monotonic_constraints=monotonic_constraints,
+            feature_costs=feature_costs if feature_costs else dict.fromkeys(feature_names, 1.0),
+            feature_bounds=feature_bounds,
+        )
+
+        # Generate recourse
+        from ..explain.recourse import generate_recourse
+
+        result = generate_recourse(
+            model=model_obj,
+            feature_values=feature_values_series,
+            shap_values=shap_values,
+            feature_names=feature_names,
+            instance_id=instance,
+            original_prediction=prediction,
+            threshold=threshold,
+            policy_constraints=policy,
+            top_n=top_n,
+            seed=seed,
+        )
+
+        # Format output as JSON
+        output_dict = {
+            "instance_id": result.instance_id,
+            "original_prediction": result.original_prediction,
+            "threshold": result.threshold,
+            "recommendations": [
+                {
+                    "rank": rec.rank,
+                    "feature_changes": {
+                        feature: {"old": old_val, "new": new_val}
+                        for feature, (old_val, new_val) in rec.feature_changes.items()
+                    },
+                    "total_cost": rec.total_cost,
+                    "predicted_probability": rec.predicted_probability,
+                    "feasible": rec.feasible,
+                }
+                for rec in result.recommendations
+            ],
+            "policy_constraints": {
+                "immutable_features": result.policy_constraints.immutable_features,
+                "monotonic_constraints": result.policy_constraints.monotonic_constraints,
+            },
+            "seed": result.seed,
+            "total_candidates": result.total_candidates,
+            "feasible_candidates": result.feasible_candidates,
+        }
+        output_text = json.dumps(output_dict, indent=2)
+
+        # Write or print output
+        if output:
+            output.write_text(output_text)
+            typer.secho(
+                "\n✅ Recourse recommendations generated successfully!",
+                fg=typer.colors.GREEN,
+            )
+            typer.echo(f"Output: {output}")
+        else:
+            typer.echo("\n" + "=" * 60)
+            typer.echo(output_text)
+            typer.echo("=" * 60)
+
+        # Show summary
+        typer.echo(f"\nInstance: {result.instance_id}")
+        typer.echo(f"Original prediction: {result.original_prediction:.1%}")
+        typer.echo(f"Threshold: {result.threshold:.1%}")
+        typer.echo(f"Recommendations: {len(result.recommendations)}")
+        typer.echo(f"Total candidates evaluated: {result.total_candidates}")
+        typer.echo(f"Feasible candidates: {result.feasible_candidates}")
+
+        if len(result.recommendations) == 0:
+            typer.secho(
+                "\n⚠️  No feasible recourse found. Try:",
+                fg=typer.colors.YELLOW,
+            )
+            typer.echo("  - Relaxing monotonic constraints")
+            typer.echo("  - Reducing immutable features")
+            typer.echo("  - Increasing feature bounds")
+
+    except FileNotFoundError as e:
+        typer.secho(f"Error: {e}", fg=typer.colors.RED, err=True)
+        raise typer.Exit(ExitCode.USER_ERROR) from None
+    except ValueError as e:
+        typer.secho(f"Error: {e}", fg=typer.colors.RED, err=True)
+        raise typer.Exit(ExitCode.USER_ERROR) from None
+    except Exception as e:
+        if "--verbose" in sys.argv or "-v" in sys.argv:
+            logger.exception("Recourse generation failed")
+        typer.secho(f"Failed: {e}", fg=typer.colors.RED, err=True)
+        raise typer.Exit(ExitCode.USER_ERROR) from None

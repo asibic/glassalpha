@@ -10,6 +10,11 @@ from .reason_codes import (
     extract_reason_codes,
     format_adverse_action_notice,
 )
+from .recourse import (
+    RecourseRecommendation,
+    RecourseResult,
+    generate_recourse,
+)
 from .registry import ExplainerRegistry
 
 # Discover explainers from entry points (aliases are registered in registry.py)
@@ -26,4 +31,8 @@ __all__ = [
     "extract_reason_codes",
     "format_adverse_action_notice",
     "DEFAULT_PROTECTED_ATTRIBUTES",
+    # Recourse (E2.5) - counterfactual recommendations
+    "RecourseRecommendation",
+    "RecourseResult",
+    "generate_recourse",
 ]

@@ -103,6 +103,7 @@ nav:
       - Model Parameters: reference/model-parameters.md
       - Preprocessing Verification: guides/preprocessing.md
       - Reason Codes (ECOA): guides/reason-codes.md
+      - Counterfactual Recourse: guides/recourse.md
   - Examples:
       - German Credit Audit: examples/german-credit-audit.md
       - Healthcare Bias Detection: examples/healthcare-bias-detection.md
