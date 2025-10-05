@@ -6,7 +6,7 @@ is_compatible signature to prevent runtime TypeError issues.
 
 import pytest
 
-from glassalpha.core.registry import ExplainerRegistry
+from glassalpha.explain.registry import ExplainerRegistry
 
 
 def test_all_explainers_have_correct_is_compatible_signature():

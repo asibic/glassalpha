@@ -276,104 +276,20 @@ class PluginRegistry:
 
 
 # Global registries for different component types
+# ModelRegistry and DataRegistry are defined here because they don't need decorator support
 ModelRegistry = PluginRegistry("glassalpha.models")
-# ExplainerRegistry and MetricRegistry are now defined in their respective modules
-# to avoid circular imports and support decorator registration
-ProfileRegistry = PluginRegistry("glassalpha.profiles")
 DataRegistry = PluginRegistry("glassalpha.data_handlers")
 
 # Discover plugins on import
 ModelRegistry.discover()
-ProfileRegistry.discover()
 DataRegistry.discover()
 
-
-def _get_explainer_registry():
-    """Lazy getter for ExplainerRegistry to avoid circular imports."""
-    try:
-        from ..explain.registry import ExplainerRegistry
-
-        return ExplainerRegistry
-    except ImportError:
-        # Fallback to basic registry if explain module not available
-        return PluginRegistry("glassalpha.explainers")
+# Note: ExplainerRegistry, MetricRegistry, and ProfileRegistry are defined in their
+# respective modules (explain/registry.py, metrics/registry.py, profiles/registry.py)
+# and re-exported through core/__init__.py for convenience
 
 
-def _get_metric_registry():
-    """Lazy getter for MetricRegistry to avoid circular imports."""
-    try:
-        from ..metrics.registry import MetricRegistry
-
-        return MetricRegistry
-    except ImportError:
-        # Fallback to basic registry if metrics module not available
-        return PluginRegistry("glassalpha.metrics")
-
-
-def _get_profile_registry():
-    """Lazy getter for ProfileRegistry to avoid circular imports."""
-    try:
-        from ..profiles.registry import ProfileRegistry
-
-        return ProfileRegistry
-    except ImportError:
-        # Fallback to basic registry if profiles module not available
-        return PluginRegistry("glassalpha.profiles")
-
-
-# For backward compatibility, provide registries through lazy loading
-class ExplainerRegistryProxy:
-    """Proxy for ExplainerRegistry that loads it lazily."""
-
-    @classmethod
-    def __getattr__(cls, name):
-        # Import the real ExplainerRegistry when first accessed
-        real_registry = _get_explainer_registry()
-        # Replace this proxy with the real registry in the module
-        import sys
-
-        current_module = sys.modules[__name__]
-        current_module.ExplainerRegistry = real_registry
-        return getattr(real_registry, name)
-
-
-class MetricRegistryProxy:
-    """Proxy for MetricRegistry that loads it lazily."""
-
-    @classmethod
-    def __getattr__(cls, name):
-        # Import the real MetricRegistry when first accessed
-        real_registry = _get_metric_registry()
-        # Replace this proxy with the real registry in the module
-        import sys
-
-        current_module = sys.modules[__name__]
-        current_module.MetricRegistry = real_registry
-        return getattr(real_registry, name)
-
-
-class ProfileRegistryProxy:
-    """Proxy for ProfileRegistry that loads it lazily."""
-
-    @classmethod
-    def __getattr__(cls, name):
-        # Import the real ProfileRegistry when first accessed
-        real_registry = _get_profile_registry()
-        # Replace this proxy with the real registry in the module
-        import sys
-
-        current_module = sys.modules[__name__]
-        current_module.ProfileRegistry = real_registry
-        return getattr(real_registry, name)
-
-
-# Initially set registries to proxies
-ExplainerRegistry = ExplainerRegistryProxy()
-MetricRegistry = MetricRegistryProxy()
-ProfileRegistry = ProfileRegistryProxy()
-
-
-def list_components(component_type: str = None, include_enterprise: bool = False) -> dict[str, list[str]]:
+def list_components(component_type: str | None = None, include_enterprise: bool = False) -> dict[str, list[str]]:
     """List all registered components.
 
     Args:
@@ -384,6 +300,11 @@ def list_components(component_type: str = None, include_enterprise: bool = False
         Dictionary mapping component types to lists of names
 
     """
+    # Import registries from their canonical locations
+    from ..explain.registry import ExplainerRegistry
+    from ..metrics.registry import MetricRegistry
+    from ..profiles.registry import ProfileRegistry
+
     registries = {
         "models": ModelRegistry,
         "explainers": ExplainerRegistry,
@@ -418,10 +339,11 @@ def select_explainer(model_type: str, config: dict[str, Any]) -> str | None:
         Selected explainer name or None
 
     """
-    # Get the current ExplainerRegistry instance (handles proxy loading)
-    current_registry = ExplainerRegistry
+    # Import from canonical location
+    from ..explain.registry import ExplainerRegistry
+
     try:
-        return current_registry.find_compatible(model_type, config)
+        return ExplainerRegistry.find_compatible(model_type, config)
     except RuntimeError:
         return None
 
@@ -441,5 +363,8 @@ def instantiate_explainer(name: str, **kwargs: Any) -> Any:
         ImportError: If explainer dependencies not available
 
     """
+    # Import from canonical location
+    from ..explain.registry import ExplainerRegistry
+
     cls = ExplainerRegistry.get(name)
     return cls(**kwargs)

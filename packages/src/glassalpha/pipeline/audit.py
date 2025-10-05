@@ -20,7 +20,8 @@ import pandas as pd
 from glassalpha.config import AuditConfig
 
 # Constants import removed - using f-string directly for logger format
-from glassalpha.core.registry import MetricRegistry, ModelRegistry
+from glassalpha.core.registry import ModelRegistry
+from glassalpha.metrics.registry import MetricRegistry
 from glassalpha.data import TabularDataLoader, TabularDataSchema
 from glassalpha.utils import ManifestGenerator, get_component_seed, set_global_seed
 
