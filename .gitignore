@@ -189,6 +189,7 @@ sample_reports/
 packages/dev/tests/
 packages/dev/demos/*.png
 packages/dev/demos/*.pdf
+pachages/audit.html
 
 # MkDocs build output
 site/site/
