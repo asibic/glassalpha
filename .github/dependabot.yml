@@ -6,25 +6,81 @@ updates:
     directory: "/packages"
     schedule:
       interval: "weekly"
+      day: "monday" # Explicit day for consistency
     open-pull-requests-limit: 5
     reviewers:
-      - "your-github-username"  # Replace with your actual username
+      - "gmays"
     assignees:
-      - "your-github-username"  # Replace with your actual username
+      - "gmays"
     commit-message:
       prefix: "deps"
       include: "scope"
+    labels:
+      - "dependencies"
+      - "python"
+    # Group updates for related packages to reduce PR noise
+    groups:
+      scientific-stack:
+        patterns:
+          - "numpy*"
+          - "pandas*"
+          - "scipy*"
+          - "scikit-learn*"
+      ml-models:
+        patterns:
+          - "xgboost*"
+          - "lightgbm*"
+          - "shap*"
+      dev-tools:
+        patterns:
+          - "pytest*"
+          - "black*"
+          - "ruff*"
+          - "mypy*"
+      build-tools:
+        patterns:
+          - "setuptools*"
+          - "wheel*"
+          - "build*"
 
   # Documentation site dependencies
   - package-ecosystem: "pip"
     directory: "/site"
     schedule:
       interval: "weekly"
+      day: "monday"
     open-pull-requests-limit: 3
     reviewers:
-      - "your-github-username"  # Replace with your actual username
+      - "gmays"
     assignees:
-      - "your-github-username"  # Replace with your actual username
+      - "gmays"
     commit-message:
       prefix: "docs-deps"
       include: "scope"
+    labels:
+      - "dependencies"
+      - "documentation"
+    groups:
+      mkdocs-stack:
+        patterns:
+          - "mkdocs*"
+          - "pymdown-extensions*"
+          - "pygments*"
+
+  # GitHub Actions dependencies
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 3
+    reviewers:
+      - "gmays"
+    assignees:
+      - "gmays"
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "github-actions"
