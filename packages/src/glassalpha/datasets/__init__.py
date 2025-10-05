@@ -22,9 +22,12 @@ register_builtin_datasets()
 
 __all__ = [
     "REGISTRY",
+    "AdultIncomeDataset",
     "DatasetSpec",
     "GermanCreditDataset",
+    "get_adult_income_schema",
     "get_german_credit_schema",
+    "load_adult_income",
     "load_german_credit",
 ]
 
@@ -36,8 +39,22 @@ def __getattr__(name: str) -> Any:
     allowing us to defer expensive imports until they're actually needed.
 
     Registration happens at module import time, but the heavy data loaders
-    (german_credit module with pandas/numpy) are imported lazily.
+    (german_credit, adult_income modules with pandas/numpy) are imported lazily.
     """
+    # Import adult_income components on demand
+    if name == "AdultIncomeDataset":
+        from .adult_income import AdultIncomeDataset
+
+        return AdultIncomeDataset
+    if name == "get_adult_income_schema":
+        from .adult_income import get_adult_income_schema
+
+        return get_adult_income_schema
+    if name == "load_adult_income":
+        from .adult_income import load_adult_income
+
+        return load_adult_income
+
     # Import german_credit components on demand
     if name == "GermanCreditDataset":
         from .german_credit import GermanCreditDataset

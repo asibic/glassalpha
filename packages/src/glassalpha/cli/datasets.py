@@ -10,6 +10,7 @@ import typer
 
 from ..datasets.registry import REGISTRY
 from ..utils.cache_dirs import resolve_data_root
+from .exit_codes import ExitCode
 
 app = typer.Typer(help="Manage built-in datasets")
 
@@ -36,7 +37,7 @@ def dataset_info(dataset: str = typer.Argument(..., help="Dataset key to inspect
     if not spec:
         typer.echo(f"Dataset '{dataset}' not found in registry.")
         typer.echo(f"Available datasets: {', '.join(REGISTRY.keys())}")
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=ExitCode.USER_ERROR)
 
     cache_root = resolve_data_root()
     expected_path = cache_root / spec.default_relpath
@@ -85,7 +86,7 @@ def fetch_dataset(
     if not spec:
         typer.echo(f"Dataset '{dataset}' not found in registry.")
         typer.echo(f"Available datasets: {', '.join(REGISTRY.keys())}")
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=ExitCode.USER_ERROR)
 
     # Fetch the dataset directly using the spec
     from ..utils.cache_dirs import resolve_data_root
@@ -128,4 +129,4 @@ def fetch_dataset(
 
     except Exception as e:
         typer.echo(f"❌ Failed to fetch dataset '{dataset}': {e}")
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=ExitCode.USER_ERROR)

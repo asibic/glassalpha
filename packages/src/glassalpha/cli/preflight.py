@@ -12,6 +12,7 @@ import typer
 from ..core.registry import ModelRegistry
 from ..explain.registry import ExplainerRegistry
 from ..metrics.registry import MetricRegistry
+from .exit_codes import ExitCode
 
 logger = logging.getLogger(__name__)
 
@@ -71,10 +72,10 @@ def preflight_check_model(config: Any, allow_fallback: bool = True) -> Any:
                 return config
             # No fallback available
             _show_installation_error(model_type)
-            raise typer.Exit(1)
+            raise typer.Exit(ExitCode.VALIDATION_ERROR)
         # Fallbacks disabled
         _show_installation_error(model_type)
-        raise typer.Exit(1)
+        raise typer.Exit(ExitCode.VALIDATION_ERROR)
 
     return config
 

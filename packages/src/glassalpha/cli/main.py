@@ -16,6 +16,7 @@ import typer
 from platformdirs import user_data_dir
 
 from .. import __version__
+from .exit_codes import ExitCode
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
@@ -88,7 +89,7 @@ def version_callback(value: bool):
     """Print version and exit."""
     if value:
         typer.echo(f"GlassAlpha version {__version__}")
-        raise typer.Exit()
+        raise typer.Exit(ExitCode.SUCCESS)
 
 
 @app.callback()
@@ -113,11 +114,23 @@ def main_callback(
         "-q",
         help="Suppress non-error output",
     ),
+    json_errors: bool = typer.Option(
+        False,
+        "--json-errors",
+        help="Output errors as JSON for CI/CD integration",
+        envvar="GLASSALPHA_JSON_ERRORS",
+    ),
 ):
     """GlassAlpha - Transparent, auditable, regulator-ready ML audits.
 
     Use 'glassalpha COMMAND --help' for more information on a command.
     """
+    # Store json_errors flag in app state for commands to access
+    import os
+
+    if json_errors:
+        os.environ["GLASSALPHA_JSON_ERRORS"] = "1"
+
     # Set logging level based on flags
     if quiet:
         logging.getLogger().setLevel(logging.ERROR)
@@ -139,6 +152,7 @@ app.add_typer(monitor_app, name="monitor")
 
 # Import and register commands
 from .commands import audit, docs, doctor, list_components_cmd, validate
+from .init import init
 
 # Register main commands
 app.command()(audit)
@@ -146,6 +160,7 @@ app.command("validate")(validate)
 app.command("list", help="List available components")(list_components_cmd)
 app.command("doctor", help="Check environment and optional features")(doctor)
 app.command("docs", help="Open documentation in browser")(docs)
+app.command("init", help="Initialize new audit configuration")(init)
 
 # Register datasets commands with lazy loading (Phase 2 performance optimization)
 # These import the datasets module only when the command is actually invoked,
@@ -208,7 +223,7 @@ def dashboard_serve(
     except Exception as e:
         typer.secho(str(e), fg=typer.colors.RED, err=True)
         # CLI design: Clean error messages for enterprise feature failures
-        raise typer.Exit(1) from None
+        raise typer.Exit(ExitCode.USER_ERROR) from None
 
 
 @monitor_app.command("drift")  # pragma: no cover
@@ -230,7 +245,7 @@ def monitor_drift(
     except Exception as e:
         typer.secho(str(e), fg=typer.colors.RED, err=True)
         # Intentional: Hide Python internals from CLI users
-        raise typer.Exit(1) from None
+        raise typer.Exit(ExitCode.USER_ERROR) from None
 
 
 # Add models command to show available models and installation options

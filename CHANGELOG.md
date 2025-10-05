@@ -17,6 +17,82 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Exit code 3: Validation error (strict mode, compliance failures)
   - New `glassalpha.cli.exit_codes` module with ExitCode enum
   - Helper functions for exit code descriptions
+  - All CLI commands updated to use standardized exit codes (28 updates)
+
+- **Unified Error Formatter**: Consistent, self-diagnosable error messages across all commands
+
+  - Structured error format: What/Why/Fix with optional examples
+  - Six error types: CONFIG, DATA, MODEL, SYSTEM, VALIDATION, COMPONENT
+  - Color-coded severity levels for terminal output
+  - New `glassalpha.cli.error_formatter` module with ErrorFormatter class
+  - Convenience methods for each error type
+  - Actionable guidance reduces support burden
+
+- **JSON Error Output**: Machine-readable errors for CI/CD integration and automation
+
+  - `--json-errors` global flag for JSON output mode
+  - Auto-enables in CI environments (GitHub Actions, GitLab CI, CircleCI, Jenkins, Travis)
+  - Environment variable support: `GLASSALPHA_JSON_ERRORS=1`
+  - Structured error data with exit codes, types, messages, details, and context
+  - Success responses in JSON format
+  - Validation error aggregation
+  - Timestamps for error tracking
+  - Schema version for compatibility
+  - Perfect for parsing in scripts and monitoring systems
+
+- **Configuration Templates**: Minimal templates for common use cases reduce setup time
+
+  - Four ready-to-use templates: quickstart, production, development, testing
+  - Quickstart: 10-second audits with built-in datasets
+  - Production: Full regulatory compliance with strict mode
+  - Development: Flexible configuration for model iteration
+  - Testing: CI/CD-ready with full determinism
+  - Templates include comments explaining all options
+  - README with comparison matrix and customization guide
+
+- **Interactive Configuration Wizard**: `glassalpha init` command guides users through setup
+
+  - Interactive questionnaire identifies use case
+  - Automatically selects appropriate template
+  - Optional customization (data path, model type)
+  - Generates ready-to-use configuration in seconds
+  - Provides next steps and usage instructions
+  - Non-interactive mode for automation (`--no-interactive`)
+  - Time to first audit reduced from 30min to 2min
+
+- **Smart Context-Aware Defaults**: CLI intelligently infers parameters to minimize typing
+
+  - Config file auto-detection (searches for glassalpha.yaml, audit.yaml, config.yaml)
+  - Output path inference (audit.yaml → audit.html)
+  - Strict mode auto-enables for prod*/production* configs
+  - Repro mode auto-enables in CI environments and for test\* configs
+  - Environment variable support (GLASSALPHA_STRICT, GLASSALPHA_REPRO, CI)
+  - `--show-defaults` flag for debugging inferred values
+  - Explicit flags always override smart defaults
+  - Minimal command: `glassalpha audit` (zero flags needed!)
+
+- **Enhanced Output Path Validation**: Comprehensive pre-flight checks prevent late failures
+
+  - Validates output directory exists before starting audit
+  - Checks directory write permissions
+  - Validates manifest sidecar path is writable
+  - Detects read-only existing manifests
+  - `--check-output` flag for dry-run validation
+  - Shows which files will be overwritten
+  - Clear error messages with actionable hints
+  - Prevents wasted computation time on permission errors
+  - Perfect for CI/CD pre-flight checks
+
+- **Adult Income Dataset**: Added second built-in benchmark dataset for income prediction fairness
+
+  - Canonical UCI Adult (Census Income) dataset with 48,842 records
+  - Automatic download, processing, and caching
+  - 14 demographic and employment features
+  - Binary income prediction target (>50K / <=50K)
+  - Protected attributes: race, sex, age groups
+  - Preprocessed with education grouping and age binning
+  - Example configuration: `configs/adult_income_simple.yaml`
+  - Lazy loading preserves fast CLI startup times
 
 - **Enhanced Validation Command**: Runtime availability checks catch configuration errors before wasting compute time
 

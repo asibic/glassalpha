@@ -10,6 +10,8 @@ from pathlib import Path
 
 import typer
 
+from .exit_codes import ExitCode
+
 logger = logging.getLogger(__name__)
 
 # Create Typer app for prep commands
@@ -90,10 +92,10 @@ def compute_hash(
 
     except ImportError as e:
         typer.secho(f"Error: Missing dependency - {e}", fg=typer.colors.RED, err=True)
-        raise typer.Exit(code=1) from None
+        raise typer.Exit(code=ExitCode.USER_ERROR) from None
     except Exception as e:
         typer.secho(f"Error computing hashes: {e}", fg=typer.colors.RED, err=True)
-        raise typer.Exit(code=1) from None
+        raise typer.Exit(code=ExitCode.USER_ERROR) from None
 
 
 @prep_app.command("inspect")
@@ -213,10 +215,10 @@ def inspect_artifact(
 
     except ImportError as e:
         typer.secho(f"Error: Missing dependency - {e}", fg=typer.colors.RED, err=True)
-        raise typer.Exit(code=1) from None
+        raise typer.Exit(code=ExitCode.USER_ERROR) from None
     except Exception as e:
         typer.secho(f"Error inspecting artifact: {e}", fg=typer.colors.RED, err=True)
-        raise typer.Exit(code=1) from None
+        raise typer.Exit(code=ExitCode.USER_ERROR) from None
 
 
 @prep_app.command("validate")
@@ -285,7 +287,7 @@ def validate_artifact(
                 typer.secho("   ✗ File hash mismatch!", fg=typer.colors.RED, bold=True)
                 typer.echo(f"   Expected: {expected_file_hash}")
                 typer.echo(f"   Actual:   {actual_file_hash}")
-                raise typer.Exit(code=1)
+                raise typer.Exit(code=ExitCode.USER_ERROR)
         else:
             typer.echo("1. File hash check skipped (no expected hash provided)")
 
@@ -304,7 +306,7 @@ def validate_artifact(
             typer.secho("   ✓ All classes are allowed", fg=typer.colors.GREEN)
         except ValueError as e:
             typer.secho(f"   ✗ Class validation failed: {e}", fg=typer.colors.RED, bold=True)
-            raise typer.Exit(code=1)
+            raise typer.Exit(code=ExitCode.USER_ERROR)
         typer.echo()
 
         # Step 4: Params hash validation
@@ -318,7 +320,7 @@ def validate_artifact(
                 typer.secho("   ✗ Params hash mismatch!", fg=typer.colors.RED, bold=True)
                 typer.echo(f"   Expected: {expected_params_hash}")
                 typer.echo(f"   Actual:   {actual_params_hash}")
-                raise typer.Exit(code=1)
+                raise typer.Exit(code=ExitCode.USER_ERROR)
         else:
             typer.echo("4. Params hash check skipped (no expected hash provided)")
 
@@ -349,7 +351,7 @@ def validate_artifact(
         raise
     except ImportError as e:
         typer.secho(f"Error: Missing dependency - {e}", fg=typer.colors.RED, err=True)
-        raise typer.Exit(code=1) from None
+        raise typer.Exit(code=ExitCode.USER_ERROR) from None
     except Exception as e:
         typer.secho(f"Error validating artifact: {e}", fg=typer.colors.RED, err=True)
-        raise typer.Exit(code=1) from None
+        raise typer.Exit(code=ExitCode.USER_ERROR) from None

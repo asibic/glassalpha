@@ -17,7 +17,45 @@ from typing import Any
 
 import typer
 
+from .defaults import get_smart_defaults
+from .exit_codes import ExitCode
+from .json_error import JSONErrorOutput, should_use_json_output
+
 logger = logging.getLogger(__name__)
+
+
+def _output_error(
+    exit_code: int,
+    error_type: str,
+    message: str,
+    details: dict[str, Any] | None = None,
+    context: dict[str, Any] | None = None,
+    use_typer: bool = True,
+) -> None:
+    """Output error message (JSON or human-readable based on mode).
+
+    Args:
+        exit_code: Exit code to use
+        error_type: Error type (CONFIG, DATA, MODEL, etc.)
+        message: Error message
+        details: Additional error details
+        context: Contextual information
+        use_typer: Use typer.echo for human output (vs plain print)
+
+    """
+    if should_use_json_output():
+        JSONErrorOutput.output_error(
+            exit_code=exit_code,
+            error_type=error_type,
+            message=message,
+            details=details,
+            context=context,
+        )
+    # Human-readable output
+    elif use_typer:
+        typer.echo(message, err=True)
+    else:
+        print(message, file=sys.stderr)
 
 
 def print_banner(title: str = "GlassAlpha Audit Generation") -> None:
@@ -92,7 +130,7 @@ def _bootstrap_components() -> None:
         logger.debug("PassThroughModel imported")
     except ImportError as e:
         logger.error(f"Failed to import PassThroughModel: {e}")
-        raise typer.Exit(2) from e
+        raise typer.Exit(ExitCode.SYSTEM_ERROR) from e
 
     # Import sklearn models if available (they're optional)
     try:
@@ -180,7 +218,7 @@ def _run_audit_pipeline(config, output_path: Path, selected_explainer: str | Non
                 fg=typer.colors.RED,
                 err=True,
             )
-            raise typer.Exit(1)
+            raise typer.Exit(ExitCode.USER_ERROR)
 
         pipeline_time = time.time() - start_time
         typer.secho(_ascii(f"✓ Audit pipeline completed in {pipeline_time:.2f}s"), fg=typer.colors.GREEN)
@@ -270,7 +308,7 @@ def _run_audit_pipeline(config, output_path: Path, selected_explainer: str | Non
 
         else:
             typer.secho(f"Error: Unsupported output format '{output_format}'", fg=typer.colors.RED, err=True)
-            raise typer.Exit(1)
+            raise typer.Exit(ExitCode.USER_ERROR)
 
         typer.echo("=" * 50)
 
@@ -307,7 +345,7 @@ def _run_audit_pipeline(config, output_path: Path, selected_explainer: str | Non
         if "--verbose" in sys.argv or "-v" in sys.argv:
             logger.exception("Detailed audit failure information:")
 
-        raise typer.Exit(1)
+        raise typer.Exit(ExitCode.USER_ERROR)
 
 
 def _display_audit_summary(audit_results) -> None:
@@ -416,31 +454,31 @@ def _display_audit_summary(audit_results) -> None:
 
 def audit(  # pragma: no cover
     # Typer requires function calls in defaults - this is the documented pattern
-    config: Path = typer.Option(
-        ...,
+    config: Path | None = typer.Option(
+        None,
         "--config",
         "-c",
-        help="Path to audit configuration YAML file",
+        help="Path to audit configuration YAML file (auto-detects glassalpha.yaml, audit.yaml, config.yaml)",
         # Remove exists=True to handle file checking manually for better error messages
         file_okay=True,
         dir_okay=False,
     ),
-    output: Path = typer.Option(
-        ...,
+    output: Path | None = typer.Option(
+        None,
         "--output",
         "-o",
-        help="Path for output PDF report",
+        help="Path for output report (defaults to {config_name}.html)",
     ),
-    strict: bool = typer.Option(
-        False,
+    strict: bool | None = typer.Option(
+        None,
         "--strict",
         "-s",
-        help="Enable strict mode for regulatory compliance",
+        help="Enable strict mode for regulatory compliance (auto-enabled for prod*/production* configs)",
     ),
-    repro: bool = typer.Option(
-        False,
+    repro: bool | None = typer.Option(
+        None,
         "--repro",
-        help="Enable deterministic reproduction mode for byte-identical results",
+        help="Enable deterministic reproduction mode (auto-enabled in CI and for test* configs)",
     ),
     profile: str | None = typer.Option(
         None,
@@ -464,56 +502,154 @@ def audit(  # pragma: no cover
         "--no-fallback",
         help="Fail if requested components are unavailable (no automatic fallbacks)",
     ),
+    show_defaults: bool = typer.Option(
+        False,
+        "--show-defaults",
+        help="Show inferred defaults and exit (useful for debugging)",
+    ),
+    check_output: bool = typer.Option(
+        False,
+        "--check-output",
+        help="Check output paths are writable and exit (pre-flight validation)",
+    ),
 ):
     """Generate a compliance audit PDF report.
 
     This is the main command for GlassAlpha. It loads a configuration file,
     runs the audit pipeline, and generates a deterministic PDF report.
 
+    Smart Defaults:
+        If no --config is provided, searches for: glassalpha.yaml, audit.yaml, config.yaml
+        If no --output is provided, uses {config_name}.html
+        Strict mode auto-enables for prod*/production* configs
+        Repro mode auto-enables in CI environments and for test* configs
+
     Examples:
-        # Basic audit
-        glassalpha audit --config audit.yaml --output report.pdf
+        # Minimal usage (uses smart defaults)
+        glassalpha audit
+
+        # Explicit paths
+        glassalpha audit --config audit.yaml --output report.html
+
+        # See what defaults would be used
+        glassalpha audit --show-defaults
+
+        # Check output paths before running audit
+        glassalpha audit --check-output
 
         # Strict mode for regulatory compliance
-        glassalpha audit --config audit.yaml --output report.pdf --strict
+        glassalpha audit --config production.yaml  # Auto-enables strict!
 
         # Override specific settings
-        glassalpha audit -c base.yaml --override custom.yaml -o report.pdf
+        glassalpha audit -c base.yaml --override custom.yaml
 
         # Fail if components unavailable (no fallbacks)
-        glassalpha audit --config audit.yaml --output report.pdf --no-fallback
+        glassalpha audit --no-fallback
 
     """
     try:
+        # Apply smart defaults
+        try:
+            defaults = get_smart_defaults(
+                config=config,
+                output=output,
+                strict=strict if strict is not None else None,
+                repro=repro if repro is not None else None,
+            )
+        except ValueError as e:
+            _output_error(
+                exit_code=ExitCode.USER_ERROR,
+                error_type="CONFIG",
+                message=str(e),
+                details={"tip": "Create a config with 'glassalpha init'"},
+            )
+            raise typer.Exit(ExitCode.USER_ERROR) from None
+
+        # Extract resolved values
+        config = defaults["config"]
+        output = defaults["output"]
+        strict = defaults["strict"]
+        repro = defaults["repro"]
+
+        # Show defaults if requested
+        if show_defaults:
+            typer.echo("Inferred defaults:")
+            typer.echo(f"  config: {config}")
+            typer.echo(f"  output: {output}")
+            typer.echo(f"  strict: {strict}")
+            typer.echo(f"  repro:  {repro}")
+            return
+
         # Check file existence early with specific error message
         if not config.exists():
-            typer.echo(f"File '{config}' does not exist.", err=True)
-            raise typer.Exit(1)
+            _output_error(
+                exit_code=ExitCode.USER_ERROR,
+                error_type="CONFIG",
+                message=f"File '{config}' does not exist.",
+                context={"config_path": str(config)},
+            )
+            raise typer.Exit(ExitCode.USER_ERROR)
 
         # Check override config if provided
         if override_config and not override_config.exists():
-            typer.echo(f"Override file '{override_config}' does not exist.", err=True)
-            raise typer.Exit(1)
+            _output_error(
+                exit_code=ExitCode.USER_ERROR,
+                error_type="CONFIG",
+                message=f"Override file '{override_config}' does not exist.",
+                context={"override_path": str(override_config)},
+            )
+            raise typer.Exit(ExitCode.USER_ERROR)
 
         # Validate output directory exists before doing any work
         output_dir = output.parent if output.parent != Path() else Path.cwd()
         if not output_dir.exists():
-            typer.secho(
-                f"Error: Output directory does not exist: {output_dir}",
-                fg=typer.colors.RED,
-                err=True,
+            _output_error(
+                exit_code=ExitCode.USER_ERROR,
+                error_type="SYSTEM",
+                message=f"Output directory does not exist: {output_dir}",
+                details={"hint": f"Create it with: mkdir -p {output_dir}"},
+                context={"output_dir": str(output_dir)},
             )
-            typer.echo(f"  Create it with: mkdir -p {output_dir}")
-            raise typer.Exit(1)
+            raise typer.Exit(ExitCode.USER_ERROR)
 
         # Check if output directory is writable
         if not os.access(output_dir, os.W_OK):
-            typer.secho(
-                f"Error: Output directory is not writable: {output_dir}",
-                fg=typer.colors.RED,
-                err=True,
+            _output_error(
+                exit_code=ExitCode.SYSTEM_ERROR,
+                error_type="SYSTEM",
+                message=f"Output directory is not writable: {output_dir}",
+                context={"output_dir": str(output_dir)},
             )
-            raise typer.Exit(1)
+            raise typer.Exit(ExitCode.SYSTEM_ERROR)
+
+        # Validate manifest sidecar path will be writable
+        manifest_path = output.with_suffix(".manifest.json")
+        if manifest_path.exists() and not os.access(manifest_path, os.W_OK):
+            _output_error(
+                exit_code=ExitCode.SYSTEM_ERROR,
+                error_type="SYSTEM",
+                message=f"Cannot overwrite existing manifest (read-only): {manifest_path}",
+                details={"tip": "Make the file writable or remove it before running audit"},
+                context={"manifest_path": str(manifest_path)},
+            )
+            raise typer.Exit(ExitCode.SYSTEM_ERROR)
+
+        # Check output paths and exit if requested
+        if check_output:
+            typer.secho("✓ Output path validation:", fg=typer.colors.GREEN, bold=True)
+            typer.echo(f"  Output file:      {output}")
+            typer.echo(f"  Output directory: {output_dir}")
+            typer.echo(f"  Manifest sidecar: {manifest_path}")
+            typer.echo()
+            typer.secho("✓ All output paths are writable", fg=typer.colors.GREEN)
+
+            # Show what would be created
+            if output.exists():
+                typer.echo(f"  Note: {output.name} will be overwritten")
+            if manifest_path.exists():
+                typer.echo(f"  Note: {manifest_path.name} will be overwritten")
+
+            return
 
         # Import here to avoid circular imports
         from ..config import load_config_from_file
@@ -527,7 +663,7 @@ def audit(  # pragma: no cover
 
         # Preflight checks - ensure dependencies are available
         if not preflight_check_dependencies():
-            raise typer.Exit(1)
+            raise typer.Exit(ExitCode.VALIDATION_ERROR)
 
         # Load configuration - this doesn't need heavy ML libraries
         typer.echo(f"Loading configuration from: {config}")
@@ -611,17 +747,17 @@ def audit(  # pragma: no cover
         typer.secho(f"Error: {e}", fg=typer.colors.RED, err=True)
         # Use 'from None' to suppress Python traceback for clean CLI UX
         # Users should see "File not found", not internal stack traces
-        raise typer.Exit(1) from None
+        raise typer.Exit(ExitCode.USER_ERROR) from None
     except ValueError as e:
         typer.secho(f"Configuration error: {e}", fg=typer.colors.RED, err=True)
         # Intentional: Clean error message for end users
-        raise typer.Exit(1) from None
+        raise typer.Exit(ExitCode.USER_ERROR) from None
     except Exception as e:
         if "--verbose" in sys.argv or "-v" in sys.argv:
             logger.exception("Audit failed")
         typer.secho(f"Audit failed: {e}", fg=typer.colors.RED, err=True)
         # CLI design: Hide Python internals from users (verbose mode shows full details)
-        raise typer.Exit(1) from None
+        raise typer.Exit(ExitCode.USER_ERROR) from None
 
 
 def doctor():  # pragma: no cover
@@ -991,7 +1127,7 @@ def validate(  # pragma: no cover
                 "Tip: Run without --strict-validation to see warnings instead of errors",
                 fg=typer.colors.YELLOW,
             )
-            raise typer.Exit(1)
+            raise typer.Exit(ExitCode.VALIDATION_ERROR)
 
         # Report validation results
         typer.secho(_ascii("\n✓ Configuration is valid"), fg=typer.colors.GREEN)
@@ -1038,15 +1174,15 @@ def validate(  # pragma: no cover
     except FileNotFoundError as e:
         typer.secho(f"Error: {e}", fg=typer.colors.RED, err=True)
         # CLI UX: Clean error messages, no Python tracebacks for users
-        raise typer.Exit(1) from None
+        raise typer.Exit(ExitCode.USER_ERROR) from None
     except ValueError as e:
         typer.secho(f"Validation failed: {e}", fg=typer.colors.RED, err=True)
         # Intentional: User-friendly validation errors
-        raise typer.Exit(1) from None
+        raise typer.Exit(ExitCode.VALIDATION_ERROR) from None
     except Exception as e:
         typer.secho(f"Unexpected error: {e}", fg=typer.colors.RED, err=True)
         # Design choice: Hide implementation details from end users
-        raise typer.Exit(1) from None
+        raise typer.Exit(ExitCode.USER_ERROR) from None
 
 
 def docs(  # pragma: no cover
