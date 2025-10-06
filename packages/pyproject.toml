@@ -74,7 +74,7 @@ dev = [
     "ruff>=0.6",
     "mypy>=1.11",
     "pre-commit>=3.5",
-    "pyyaml-stubs>=0.1.0",  # Type stubs for YAML
+    "types-PyYAML>=6.0.12",  # Type stubs for YAML
 ]
 
 # Everything - all optional features
