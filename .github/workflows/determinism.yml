@@ -38,7 +38,13 @@ jobs:
             - name: Validate deterministic environment
               run: |
                   cd packages
-                  python -c "from glassalpha.utils.determinism import validate_deterministic_environment, deterministic; import sys; with deterministic(42, strict=True): result = validate_deterministic_environment(); sys.exit(0 if result['status'] == 'pass' else 1)"
+                  python -c "
+                  from glassalpha.utils.determinism import validate_deterministic_environment, deterministic
+                  import sys
+                  with deterministic(42, strict=True):
+                      result = validate_deterministic_environment()
+                      sys.exit(0 if result['status'] == 'pass' else 1)
+                  "
 
     test-cross-platform-consistency:
         name: Cross-Platform Consistency Check

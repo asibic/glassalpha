@@ -17,11 +17,11 @@ import typer
 from typer.main import get_command
 
 
-def extract_command_help(app: typer.Typer, prefix: str = "") -> list[dict[str, Any]]:
+def extract_command_help(app: typer.Typer | Any, prefix: str = "") -> list[dict[str, Any]]:
     """Extract help text from Typer app commands.
 
     Args:
-        app: Typer application instance
+        app: Typer application instance or Click command
         prefix: Command prefix for nested commands
 
     Returns:
@@ -30,8 +30,12 @@ def extract_command_help(app: typer.Typer, prefix: str = "") -> list[dict[str, A
     """
     commands = []
 
-    # Get Click command from Typer app
-    click_app = get_command(app)
+    # Get Click command from Typer app (only if it's a Typer instance)
+    if isinstance(app, typer.Typer):
+        click_app = get_command(app)
+    else:
+        # Already a Click command (from recursive call)
+        click_app = app
 
     # Extract commands
     if hasattr(click_app, "commands"):
@@ -68,6 +72,7 @@ def extract_command_help(app: typer.Typer, prefix: str = "") -> list[dict[str, A
             commands.append(cmd_info)
 
             # Recursively extract subcommands if this is a group
+            # Pass the Click command directly (not through get_command again)
             if hasattr(cmd, "commands"):
                 subcommands = extract_command_help(cmd, prefix=f"{full_name} ")
                 commands.extend(subcommands)
@@ -257,7 +262,7 @@ def main():
 
     # Check mode
     if args.check:
-        docs_path = Path("site/docs/reference/cli.md")
+        docs_path = Path("../site/docs/reference/cli.md")
         if check_docs_current(docs, docs_path):
             print("✓ CLI documentation is up to date")
             sys.exit(0)
