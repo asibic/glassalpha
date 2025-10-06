@@ -117,10 +117,8 @@ def run_perturbation_sweep(
         )
 
     logger.info(
-        "Running perturbation sweep: %d features, %d epsilon values, seed=%d",
-        len(non_protected_features),
-        len(epsilon_values),
-        seed,
+        f"Running perturbation sweep: {len(non_protected_features)} features, "
+        f"{len(epsilon_values)} epsilon values, seed={seed}",
     )
 
     # Get original predictions
@@ -169,7 +167,7 @@ def run_perturbation_sweep(
         delta = np.max(np.abs(y_pred_perturbed - y_pred_original))
         per_epsilon_deltas[epsilon] = float(delta)
 
-        logger.debug("Epsilon %.3f: max delta = %.6f", epsilon, delta)
+        logger.debug(f"Epsilon {epsilon:.3f}: max delta = {delta:.6f}")
 
     # Compute robustness score (max delta across all epsilon values)
     max_delta = max(per_epsilon_deltas.values())
@@ -184,9 +182,7 @@ def run_perturbation_sweep(
         gate_status = "WARNING"
 
     logger.info(
-        "Perturbation sweep complete: robustness_score=%.6f, gate=%s",
-        robustness_score,
-        gate_status,
+        f"Perturbation sweep complete: robustness_score={robustness_score:.6f}, gate={gate_status}",
     )
 
     return PerturbationResult(

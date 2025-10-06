@@ -321,10 +321,10 @@ class TestEdgeCases:
                 seed=42,
             )
 
-    def test_single_feature_perturbation(self, single_feature_df, simple_model):
+    def test_single_feature_perturbation(self, single_feature_df, single_feature_model):
         """Should work with single non-protected feature."""
         result = run_perturbation_sweep(
-            model=simple_model,
+            model=single_feature_model,
             X_test=single_feature_df,
             protected_features=["gender"],
             epsilon_values=[0.05],

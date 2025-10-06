@@ -15,7 +15,7 @@ def simple_df():
             "income": [30000, 50000, 70000, 90000, 40000],
             "gender": [0, 1, 0, 1, 0],  # protected
             "race": [0, 0, 1, 1, 0],  # protected
-        }
+        },
     )
 
 
@@ -41,7 +41,7 @@ def simple_model_dataframe():
             "income": np.random.randint(20000, 100000, 100),
             "gender": np.random.randint(0, 2, 100),
             "race": np.random.randint(0, 3, 100),
-        }
+        },
     )
     y = (df["age"] + df["income"] / 1000 > 50).astype(int)
 
@@ -57,8 +57,25 @@ def single_feature_df():
         {
             "age": [25, 35, 45, 55, 30],
             "gender": [0, 1, 0, 1, 0],  # protected
-        }
+        },
     )
+
+
+@pytest.fixture
+def single_feature_model():
+    """Trained model for single feature test case."""
+    np.random.seed(42)
+    df = pd.DataFrame(
+        {
+            "age": np.random.randint(18, 80, 100),
+            "gender": np.random.randint(0, 2, 100),
+        },
+    )
+    y = (df["age"] > 40).astype(int)
+
+    model = LogisticRegression(random_state=42)
+    model.fit(df, y)
+    return model
 
 
 @pytest.fixture
@@ -68,7 +85,7 @@ def all_protected_df():
         {
             "gender": [0, 1, 0, 1, 0],
             "race": [0, 0, 1, 1, 0],
-        }
+        },
     )
 
 
@@ -79,5 +96,5 @@ def empty_df():
         {
             "age": [],
             "income": [],
-        }
+        },
     )
