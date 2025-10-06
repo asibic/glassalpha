@@ -2,6 +2,8 @@
 
 GlassAlpha makes **deterministic, regulator-ready PDF audit reports** for tabular ML models. It's an open-source ([Apache 2.0](reference/trust-deployment.md#licensing-dependencies)) toolkit for reproducible, audit-ready model documentation.
 
+_Note: GlassAlpha is currently pre-alpha while I’m still making significant changes. I’ll cut the first official release and publish it on PyPI once things stabilize. The audits do run and the package works, so feel free to try it out, feedback welcome!_
+
 ## Quick Links
 
 - [**Quick start guide**](getting-started/quickstart.md): Run an audit in 60 seconds.
