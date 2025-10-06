@@ -74,6 +74,7 @@ def normalize_audit_context(audit_results: Any) -> dict[str, Any]:  # noqa: ANN4
             "schema_info": getattr(audit_results, "schema_info", {}),
             "model_info": getattr(audit_results, "model_info", {}),
             "selected_components": getattr(audit_results, "selected_components", {}),
+            "execution_info": getattr(audit_results, "execution_info", {}),
             "manifest": getattr(audit_results, "manifest", {}),
             "success": getattr(audit_results, "success", False),
             "error_message": getattr(audit_results, "error_message", None),

@@ -54,6 +54,50 @@ class AuditResults:
     success: bool = False
     error_message: str | None = None
 
+    def _repr_html_(self) -> str:
+        """Jupyter/IPython HTML representation for inline display.
+
+        Returns:
+            HTML string with audit summary (performance, fairness, features, lineage)
+
+        Note:
+            Returns visible error card if rendering fails (no silent failures).
+            Reuses existing Jinja2 template engine (no new dependencies).
+
+        """
+        try:
+            # Lazy import to avoid circular dependency
+            from glassalpha.report.renderer import AuditReportRenderer  # noqa: PLC0415
+
+            renderer = AuditReportRenderer()
+            return renderer.render_audit_report(
+                audit_results=self,
+                template_name="inline_summary.html",
+                embed_plots=False,  # No plots in inline view (keep it fast)
+            )
+        except Exception as e:  # noqa: BLE001
+            # Return visible error card (not silent fallback)
+            error_type = type(e).__name__
+            error_msg = str(e)
+            trace = traceback.format_exc()
+
+            # HTML error card with GitHub-style red/pink theme
+            return f"""
+            <div style="border: 2px solid #e74c3c; padding: 16px; margin: 10px 0; background-color: #fadbd8; border-radius: 6px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+                <h3 style="color: #c0392b; margin: 0 0 8px 0; font-size: 16px;">⚠️ Inline Display Failed</h3>
+                <p style="margin: 4px 0; font-size: 14px;">
+                    <strong>Error:</strong> {error_type}: {error_msg}
+                </p>
+                <p style="margin: 8px 0 4px 0; font-size: 13px; color: #6a737d;">
+                    Use <code style="background: #f6f8fa; padding: 2px 6px; border-radius: 3px; font-family: 'SF Mono', Monaco, monospace;">result.to_pdf('output.pdf')</code> to generate full report.
+                </p>
+                <details style="margin-top: 12px;">
+                    <summary style="cursor: pointer; font-size: 13px; color: #0366d6;">Show full error trace</summary>
+                    <pre style="font-size: 11px; margin-top: 8px; padding: 8px; background: #f6f8fa; border-radius: 3px; overflow-x: auto;">{trace}</pre>
+                </details>
+            </div>
+            """
+
 
 class AuditPipeline:
     """Main pipeline for conducting comprehensive ML model audits."""

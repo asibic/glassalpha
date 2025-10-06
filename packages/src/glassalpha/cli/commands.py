@@ -321,8 +321,7 @@ def _run_audit_pipeline(config, output_path: Path, selected_explainer: str | Non
             typer.echo(_ascii(f"📊 Size: {file_size:,} bytes ({file_size / 1024:.1f} KB)"))
             typer.echo(_ascii(f"⏱️  Total time: {total_time:.2f}s"))
             typer.echo(_ascii(f"   • Pipeline: {pipeline_time:.2f}s"))
-            if output_format == "pdf":
-                typer.echo(_ascii(f"   • PDF generation: {pdf_time:.2f}s"))
+            typer.echo(_ascii(f"   • PDF generation: {pdf_time:.2f}s"))
         elif output_format == "html":
             typer.secho(_ascii(f"📁 Output: {output_path}"), fg=typer.colors.GREEN)
             typer.echo(_ascii(f"📊 Size: {file_size:,} bytes ({file_size / 1024:.1f} KB)"))
@@ -338,8 +337,6 @@ def _run_audit_pipeline(config, output_path: Path, selected_explainer: str | Non
                 _ascii("\n🛡️  Strict mode: Report meets regulatory compliance requirements"),
                 fg=typer.colors.YELLOW,
             )
-
-        typer.echo("\nThe audit report is ready for review and regulatory submission.")
 
     except Exception as e:
         typer.secho(_ascii(f"\n❌ Audit failed: {e!s}"), fg=typer.colors.RED, err=True)

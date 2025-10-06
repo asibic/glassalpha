@@ -42,6 +42,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Documentation: [Installation Guide](https://glassalpha.com/getting-started/installation/), [Docker Quick Start](https://glassalpha.com/getting-started/quickstart/)
   - **Addresses reviewer feedback**: PyPI friction, determinism proof, Docker convenience, CLI/docs sync
 
+- **QW1: Inline HTML Display for Jupyter Notebooks**: Automatic audit summary display in notebook cells
+
+  - `AuditResults._repr_html_()` for automatic Jupyter/IPython display
+  - Inline view with 5 core sections:
+    - **Status bar**: Audit status badge (✅/⚠️/❌), timestamp, config name
+    - **Performance metrics**: ROC-AUC, PR-AUC, F1, calibration ECE (placeholder until E4)
+    - **Fairness analysis**: Worst-gap with sample sizes and pass/warn/fail badges
+    - **Top 5 features**: Mean |SHAP| importance with direction arrows (↑/↓)
+    - **Data & lineage**: Hashes, package versions, seed, config name
+    - **Audit status**: Policy gate counts (passed/warned/failed) or "not configured" placeholder
+  - Deterministic badge thresholds (fairness: 0.05 warn, 0.10 fail)
+  - Hybrid error card fallback (visible red box with traceback, no silent failures)
+  - Copyable export command with JavaScript copy-to-clipboard button
+  - Educational links to guides (fairness, policy gates, recourse, CLI reference)
+  - Zero new dependencies (reuses Jinja2 from core)
+  - 20 contract tests covering display, badges, lineage, error handling, graceful degradation
+  - Part of F5 Notebook API (Week 1 of Phase 2 pre-PyPI sprint)
+  - Deferred to Week 2: feature stability sparks, drift badge, readiness reducer
+
 - **Counterfactual Recourse (E2.5)**: ECOA-compliant actionable recommendations for adverse decisions
 
   - Generates feasible counterfactual recommendations with policy constraints
