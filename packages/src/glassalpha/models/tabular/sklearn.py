@@ -289,7 +289,7 @@ if SKLEARN_AVAILABLE:
             Args:
                 X: Training features (DataFrame preferred for feature names)
                 y: Training targets
-                **kwargs: Additional parameters including random_state
+                **kwargs: Additional parameters including random_state, max_iter, etc.
 
             Returns:
                 Self for method chaining
@@ -297,11 +297,24 @@ if SKLEARN_AVAILABLE:
             """
             # Create model if it doesn't exist
             if self.model is None:
-                self.model = LogisticRegression(random_state=42, max_iter=1000)
-
-            # Handle random_state in kwargs
-            if "random_state" in kwargs and hasattr(self.model, "set_params"):
-                self.model.set_params(random_state=kwargs["random_state"])
+                # Use kwargs for model creation, with sensible defaults
+                model_params = {
+                    "random_state": kwargs.get("random_state", 42),
+                    "max_iter": kwargs.get("max_iter", 5000),
+                }
+                # Pass through any other sklearn LogisticRegression params
+                for key in ["C", "penalty", "solver", "tol", "class_weight"]:
+                    if key in kwargs:
+                        model_params[key] = kwargs[key]
+                self.model = LogisticRegression(**model_params)
+            # Model already exists, update params if provided
+            elif hasattr(self.model, "set_params"):
+                update_params = {}
+                for key in ["random_state", "max_iter", "C", "penalty", "solver", "tol", "class_weight"]:
+                    if key in kwargs:
+                        update_params[key] = kwargs[key]
+                if update_params:
+                    self.model.set_params(**update_params)
 
             # Capture feature names from DataFrame
             import pandas as pd  # noqa: PLC0415

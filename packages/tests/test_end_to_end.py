@@ -230,7 +230,7 @@ class TestEndToEndWorkflow:
         model_configs = [
             {"type": "xgboost", "params": {"objective": "binary:logistic", "n_estimators": 10}},
             {"type": "lightgbm", "params": {"objective": "binary", "num_leaves": 10, "n_estimators": 10}},
-            {"type": "logistic_regression", "params": {"max_iter": 1000, "solver": "lbfgs"}},
+            {"type": "logistic_regression", "params": {"max_iter": 2000, "solver": "lbfgs"}},
         ]
 
         for _i, model_config in enumerate(model_configs):
