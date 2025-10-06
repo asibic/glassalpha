@@ -123,7 +123,7 @@ def _enforce_numpy_determinism() -> None:
         if hasattr(np, "set_num_threads"):
             np.set_num_threads(1)  # type: ignore[attr-defined]
     except Exception as e:  # noqa: BLE001
-        logger.debug("Could not set NumPy threads: %s", e)
+        logger.debug(f"Could not set NumPy threads: {e}")
 
 
 def normalize_pdf_metadata(
@@ -178,10 +178,9 @@ def normalize_pdf_metadata(
     # For now, just log - full implementation requires PDF library
     # TODO: Implement full PDF metadata normalization using pypdf or similar
     logger.warning(
-        "PDF metadata normalization not fully implemented. "
-        "For production use, integrate pypdf or similar library. "
-        "PDF: %s",
-        pdf_path,
+        f"PDF metadata normalization not fully implemented. "
+        f"For production use, integrate pypdf or similar library. "
+        f"PDF: {pdf_path}",
     )
 
     # Placeholder for future implementation

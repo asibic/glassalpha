@@ -77,7 +77,12 @@ class AuditPipeline:
         self.manifest_generator = ManifestGenerator()
 
         # Handle both pydantic and plain object configs (contract compliance)
-        cfg_dict = config.model_dump() if hasattr(config, "model_dump") else dict(vars(config))
+        if hasattr(config, "model_dump"):
+            cfg_dict = config.model_dump()
+        elif isinstance(config, dict):
+            cfg_dict = config
+        else:
+            cfg_dict = dict(vars(config))
         self.manifest_generator.add_config(cfg_dict)
 
         # Component instances (will be populated during execution)
@@ -87,7 +92,7 @@ class AuditPipeline:
         self.selected_metrics = {}
 
         # Contract compliance: Exact f-string for wheel contract test
-        logger.info(f"Initialized audit pipeline with profile: {config.audit_profile}")
+        logger.info(f"Initialized audit pipeline with profile: {cfg_dict.get('audit_profile', 'default')}")
 
     def run(self, progress_callback: Callable | None = None) -> AuditResults:
         """Execute the complete audit pipeline.
@@ -1091,11 +1096,19 @@ class AuditPipeline:
         logger.info("Finalizing audit results and manifest")
 
         # Store execution information (update existing dict to preserve preprocessing info)
+        # Handle both dict and Pydantic configs
+        if hasattr(self.config, "model_dump"):
+            cfg_dict = self.config.model_dump()
+        elif isinstance(self.config, dict):
+            cfg_dict = self.config
+        else:
+            cfg_dict = dict(vars(self.config))
+
         self.results.execution_info.update(
             {
                 "config_hash": self.manifest_generator.manifest.config_hash,
-                "audit_profile": self.config.audit_profile,
-                "strict_mode": self.config.strict_mode,
+                "audit_profile": cfg_dict.get("audit_profile", "default"),
+                "strict_mode": cfg_dict.get("strict_mode", False),
                 "components_used": len(self.manifest_generator.manifest.selected_components),
             },
         )
@@ -1285,9 +1298,17 @@ class AuditPipeline:
 
         # Validate runtime versions
         try:
+            # Handle both dict and Pydantic configs
+            if hasattr(self.config, "strict_mode"):
+                strict_mode = self.config.strict_mode
+            elif isinstance(self.config, dict):
+                strict_mode = self.config.get("strict_mode", False)
+            else:
+                strict_mode = False
+
             assert_runtime_versions(
                 manifest,
-                strict=self.config.strict_mode,
+                strict=strict_mode,
                 allow_minor=config.version_policy.allow_minor_in_strict,
             )
             logger.debug("Runtime version validation passed")
