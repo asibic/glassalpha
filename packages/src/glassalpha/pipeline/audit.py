@@ -135,8 +135,147 @@ class AuditPipeline:
         self.explainer = None
         self.selected_metrics = {}
 
+        # Runtime context for from_model() API (optional)
+        self._runtime_model = None
+        self._runtime_X_test = None
+        self._runtime_y_test = None
+        self._runtime_data = None
+
         # Contract compliance: Exact f-string for wheel contract test
         logger.info(f"Initialized audit pipeline with profile: {cfg_dict.get('audit_profile', 'default')}")
+
+    @classmethod
+    def from_model(
+        cls,
+        model: Any,  # noqa: ANN401
+        X_test: pd.DataFrame | np.ndarray,
+        y_test: pd.Series | np.ndarray,
+        protected_attributes: list[str],
+        *,
+        random_seed: int = 42,
+        audit_profile: str = "tabular_compliance",
+        explainer: str | None = None,
+        fairness_threshold: float | None = None,
+        recourse_config: dict | None = None,
+        feature_names: list[str] | None = None,
+        target_name: str | None = None,
+        **config_overrides: Any,
+    ) -> AuditResults:
+        """Create and run audit from in-memory model and data.
+
+        Enables 3-line audits without YAML config files:
+
+        >>> result = AuditPipeline.from_model(
+        ...     model=xgb_model,
+        ...     X_test=X_test,
+        ...     y_test=y_test,
+        ...     protected_attributes=["gender", "age"]
+        ... )
+
+        Args:
+            model: Fitted model (sklearn, xgboost, lightgbm, etc.)
+            X_test: Test features (DataFrame or array)
+            y_test: Test labels (Series or array)
+            protected_attributes: Protected attribute column names
+            random_seed: Random seed for reproducibility (default: 42)
+            audit_profile: Audit profile name (default: "tabular_compliance")
+            explainer: Explainer to use (default: auto-select based on model)
+            fairness_threshold: Classification threshold (default: 0.5)
+            recourse_config: Recourse configuration dict (default: None)
+            feature_names: Feature names if X_test is array (default: auto-detect)
+            target_name: Target column name (default: "target")
+            **config_overrides: Additional config overrides (advanced)
+
+        Returns:
+            AuditResults object with inline HTML display (auto-renders in Jupyter)
+
+        Raises:
+            ValueError: If model type cannot be detected
+            ValueError: If protected attributes not in X_test columns
+            TypeError: If X_test/y_test have incompatible types
+
+        Examples:
+            Basic usage with DataFrame:
+
+            >>> from sklearn.linear_model import LogisticRegression
+            >>> model = LogisticRegression()
+            >>> model.fit(X_train, y_train)
+            >>> result = AuditPipeline.from_model(
+            ...     model=model,
+            ...     X_test=X_test,
+            ...     y_test=y_test,
+            ...     protected_attributes=["gender", "age"]
+            ... )
+
+            With numpy arrays (requires feature_names):
+
+            >>> result = AuditPipeline.from_model(
+            ...     model=model,
+            ...     X_test=X_array,
+            ...     y_test=y_array,
+            ...     protected_attributes=["feature_0"],
+            ...     feature_names=["feature_0", "feature_1", "feature_2"]
+            ... )
+
+            With custom threshold and recourse:
+
+            >>> result = AuditPipeline.from_model(
+            ...     model=model,
+            ...     X_test=X_test,
+            ...     y_test=y_test,
+            ...     protected_attributes=["gender"],
+            ...     fairness_threshold=0.6,
+            ...     recourse_config={"enabled": True, "immutable_features": ["age"]}
+            ... )
+
+        """
+        from ..config.builder import build_config_from_model  # noqa: PLC0415
+
+        logger.info("Building audit configuration from in-memory model and data")
+
+        # Build config from inputs
+        audit_config, runtime_context = build_config_from_model(
+            model=model,
+            X_test=X_test,
+            y_test=y_test,
+            protected_attributes=protected_attributes,
+            random_seed=random_seed,
+            audit_profile=audit_profile,
+            explainer=explainer,
+            fairness_threshold=fairness_threshold,
+            recourse_config=recourse_config,
+            feature_names=feature_names,
+            target_name=target_name,
+            **config_overrides,
+        )
+
+        # Create pipeline instance
+        pipeline = cls(audit_config)
+
+        # Store in-memory model and data for runtime use
+        pipeline._runtime_model = runtime_context["model"]
+        pipeline._runtime_X_test = runtime_context["X_test"]
+        pipeline._runtime_y_test = runtime_context["y_test"]
+
+        # Build DataFrame for pipeline (if needed)
+        if isinstance(X_test, pd.DataFrame):
+            pipeline._runtime_data = X_test.copy()
+        else:
+            # Convert array to DataFrame
+            pipeline._runtime_data = pd.DataFrame(
+                X_test,
+                columns=runtime_context["feature_names"],
+            )
+
+        # Add target column
+        pipeline._runtime_data[runtime_context["target_name"]] = y_test
+
+        logger.info("Running audit pipeline with in-memory model and data")
+
+        # Run pipeline
+        results = pipeline.run()
+
+        return results
 
     def run(self, progress_callback: Callable | None = None) -> AuditResults:
         """Execute the complete audit pipeline.
@@ -262,6 +401,45 @@ class AuditPipeline:
         """
         logger.info("Loading and validating dataset")
 
+        # Check for in-memory data (from from_model())
+        if self._runtime_data is not None:
+            logger.info("Using in-memory data from from_model() API")
+            data = self._runtime_data
+
+            # Create schema from config
+            target_col = self.config.data.target_column or "target"
+            feature_cols = self.config.data.feature_columns or []
+
+            if not feature_cols:
+                # Use all columns except target
+                feature_cols = [col for col in data.columns if col != target_col]
+
+            schema = TabularDataSchema(
+                target=target_col,
+                features=feature_cols,
+                sensitive_features=self.config.data.protected_attributes,
+            )
+
+            # Validate schema
+            self.data_loader.validate_schema(data, schema)
+
+            # Store data information in results
+            self.results.data_summary = self.data_loader.get_data_summary(data)
+            self.results.schema_info = schema.model_dump()
+
+            # Add dataset to manifest (mark as in-memory)
+            self.manifest_generator.add_dataset(
+                "primary_dataset",
+                data=data,
+                file_path=":memory:",
+                target_column=schema.target,
+                sensitive_features=schema.sensitive_features,
+            )
+
+            logger.info(f"Loaded in-memory data: {data.shape[0]} rows, {data.shape[1]} columns")
+
+            return data, schema
+
         # Resolve dataset path with offline and fetch policy enforcement
         data_path = self._resolve_dataset_path()
 
@@ -348,6 +526,45 @@ class AuditPipeline:
 
         """
         logger.info("Loading/training model")
+
+        # Check for in-memory model (from from_model())
+        if self._runtime_model is not None:
+            model = self._runtime_model
+            logger.info("Using in-memory model from from_model() API")
+
+            # Store model info - use proper model type from config
+            model_type = self.config.model.type
+
+            # Try to get feature importance if available
+            feature_importance = {}
+            if hasattr(model, "get_feature_importance"):
+                try:
+                    importance = model.get_feature_importance()
+                    if hasattr(importance, "to_dict"):
+                        feature_importance = importance.to_dict()
+                    elif isinstance(importance, dict):
+                        feature_importance = importance
+                    else:
+                        feature_importance = dict(importance) if importance is not None else {}
+                except Exception as e:  # noqa: BLE001
+                    logger.warning(f"Could not extract feature importance: {e}")
+
+            self.results.model_info = {
+                "type": model_type,
+                "capabilities": model.get_capabilities() if hasattr(model, "get_capabilities") else {},
+                "feature_importance": feature_importance,
+            }
+
+            # Track in manifest
+            self.results.selected_components["model"] = {"name": model_type, "type": "model"}
+            self.manifest_generator.add_component(
+                "model",
+                model_type,
+                model,
+                details={"source": "in_memory"},
+            )
+
+            return model
 
         # Default to trainable model if no config provided (E2E compliance)
         if not hasattr(self.config, "model") or self.config.model is None:
@@ -525,6 +742,17 @@ class AuditPipeline:
 
         # Extract features for explanation
         X, _y, _ = self.data_loader.extract_features_target(data, schema)  # noqa: N806
+
+        # For in-memory models from from_model(), check if we need to exclude protected attributes
+        # Only exclude if model was trained on fewer features than provided
+        if self._runtime_model is not None and schema.sensitive_features:
+            model_n_features = getattr(self._runtime_model, "n_features_in_", None)
+            if model_n_features is not None and model_n_features < len(X.columns):
+                # Model trained on subset - likely excluding protected attributes
+                protected_cols = [col for col in schema.sensitive_features if col in X.columns]
+                if protected_cols:
+                    logger.info(f"Excluding protected attributes from model input: {protected_cols}")
+                    X = X.drop(columns=protected_cols)  # noqa: N806
 
         # Preprocess features same way as training
         X_processed = self._preprocess_for_training(X)  # noqa: N806
@@ -750,8 +978,20 @@ class AuditPipeline:
         # Extract data components
         X, y_true, sensitive_features = self.data_loader.extract_features_target(data, schema)  # noqa: N806
 
+        # For in-memory models from from_model(), check if we need to exclude protected attributes
+        # Only exclude if model was trained on fewer features than provided
+        X_for_model = X  # noqa: N806
+        if self._runtime_model is not None and schema.sensitive_features:
+            model_n_features = getattr(self._runtime_model, "n_features_in_", None)
+            if model_n_features is not None and model_n_features < len(X.columns):
+                # Model trained on subset - likely excluding protected attributes
+                protected_cols = [col for col in schema.sensitive_features if col in X.columns]
+                if protected_cols:
+                    logger.info(f"Excluding protected attributes from model input: {protected_cols}")
+                    X_for_model = X.drop(columns=protected_cols)  # noqa: N806
+
         # Use processed features for predictions (same as training)
-        X_processed = self._preprocess_for_training(X)  # noqa: N806
+        X_processed = self._preprocess_for_training(X_for_model)  # noqa: N806
 
         # Friend's spec: Fit-or-fail approach - never skip metrics
         if self.model is None:
@@ -761,8 +1001,12 @@ class AuditPipeline:
         # Check if model needs fitting and fit it (don't skip metrics)
         model_needs_fitting = False
 
+        # For in-memory models from from_model(), they're already fitted
+        if self._runtime_model is not None:
+            logger.debug("Using pre-fitted in-memory model from from_model()")
+            model_needs_fitting = False
         # Contract: simplified training logic guard (string match required by tests)
-        if getattr(self.model, "model", None) is None:
+        elif getattr(self.model, "model", None) is None:
             logger.debug("No underlying model instance set; proceeding with wrapper defaults")
             model_needs_fitting = True
         elif hasattr(self.model, "model") and getattr(self.model, "model", None) is None:
@@ -832,7 +1076,12 @@ class AuditPipeline:
             acc = float(accuracy_score(y_true, y_pred))
             if not hasattr(self.results, "model_performance") or self.results.model_performance is None:
                 self.results.model_performance = {}
-            self.results.model_performance["accuracy"] = acc
+            # Only set if not already set by _compute_performance_metrics
+            if "accuracy" not in self.results.model_performance:
+                self.results.model_performance["accuracy"] = {
+                    "accuracy": acc,
+                    "n_samples": len(y_true),
+                }
             logger.debug(f"Computed explicit accuracy: {acc:.4f}")
         except Exception:
             logger.exception("Failed to compute explicit accuracy:")
@@ -1571,8 +1820,16 @@ class AuditPipeline:
     def _ensure_components_loaded(self) -> None:
         """Ensure all required components are imported and registered."""
         try:
-            # Import explainer and metrics modules to trigger registration
-            from glassalpha.explain.shap import kernel, tree  # noqa: F401, PLC0415
+            # Import explainer modules to trigger registration
+            from glassalpha.explain import coefficients  # noqa: F401, PLC0415
+
+            # Import SHAP explainers (may not be available)
+            try:
+                from glassalpha.explain.shap import kernel, tree  # noqa: F401, PLC0415
+            except ImportError:
+                pass  # SHAP is optional
+
+            # Import metrics modules
             from glassalpha.metrics.fairness import bias_detection  # noqa: F401, PLC0415
             from glassalpha.metrics.performance import classification  # noqa: F401, PLC0415
 

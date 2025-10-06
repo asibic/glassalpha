@@ -1,6 +1,7 @@
 """Explainer modules for GlassAlpha."""
 
 from .base import ExplainerBase
+from .coefficients import CoefficientsExplainer
 from .noop import NoOpExplainer
 from .permutation import PermutationExplainer
 from .reason_codes import (

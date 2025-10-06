@@ -54,6 +54,8 @@ class CoefficientsExplainer(ExplainerBase):
             "ridge",
             "lasso",
             "elasticnet",
+            "sklearn.linear_model.logisticregression",  # Full sklearn class path
+            "sklearn.linear_model.linearregression",  # Full sklearn class path
         }
 
         # Check model_type string if provided
@@ -149,6 +151,15 @@ class CoefficientsExplainer(ExplainerBase):
             X = X.reshape(1, -1)
 
         n_samples, n_features = X.shape
+
+        # Check if feature count matches coefficients
+        n_coefficients = len(coef_)
+        if n_features != n_coefficients:
+            raise ValueError(
+                f"Feature count mismatch: X has {n_features} features but model has {n_coefficients} coefficients. "
+                f"This typically means the model was trained on a subset of features. "
+                f"Ensure X contains only the features used during model training."
+            )
 
         # Compute feature attributions: coef * (X - mean_X)
         # Use mean of background data if available, otherwise use 0

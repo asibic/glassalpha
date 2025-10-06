@@ -816,10 +816,13 @@
               {% if model_performance.accuracy %}
               <li>
                 <strong>Overall Accuracy:</strong>
-                {% set acc = model_performance.accuracy.value if
-                model_performance.accuracy is mapping and
-                model_performance.accuracy.value is defined else
-                model_performance.accuracy %}
+                {% if model_performance.accuracy is mapping %} {% if
+                model_performance.accuracy.value is defined %} {% set acc =
+                model_performance.accuracy.value %} {% elif
+                model_performance.accuracy.accuracy is defined %} {% set acc =
+                model_performance.accuracy.accuracy %} {% else %} {% set acc =
+                model_performance.accuracy %} {% endif %} {% else %} {% set acc
+                = model_performance.accuracy %} {% endif %}
                 <span
                   class="metric-value metric-{{ 'good' if acc > 0.8 else ('warning' if acc > 0.6 else 'poor') }}"
                 >
@@ -897,10 +900,13 @@
           </div>
         </div>
 
-        {% set acc_val = model_performance.accuracy.value if
-        model_performance.accuracy is mapping and
-        model_performance.accuracy.value is defined else
-        model_performance.accuracy if model_performance.accuracy else 0 %} {% if
+        {% if model_performance.accuracy %} {% if model_performance.accuracy is
+        mapping %} {% if model_performance.accuracy.value is defined %} {% set
+        acc_val = model_performance.accuracy.value %} {% elif
+        model_performance.accuracy.accuracy is defined %} {% set acc_val =
+        model_performance.accuracy.accuracy %} {% else %} {% set acc_val = 0 %}
+        {% endif %} {% else %} {% set acc_val = model_performance.accuracy %} {%
+        endif %} {% else %} {% set acc_val = 0 %} {% endif %} {% if
         bias_detected or (model_performance.accuracy and acc_val < 0.7) %}
         <div class="callout callout-warning">
           <h4>WARNING: Regulatory Attention Required</h4>
@@ -2362,14 +2368,17 @@
         <div class="model-card">
           <h4>Performance Metrics</h4>
           <ul>
-            {% set acc = None %} {% if model_performance.accuracy %} {% set acc
-            = model_performance.accuracy.value if model_performance.accuracy is
-            mapping and model_performance.accuracy.value is defined else
-            model_performance.accuracy %}
+            {% set acc = None %} {% if model_performance.accuracy %} {% if
+            model_performance.accuracy is mapping %} {% if
+            model_performance.accuracy.value is defined %} {% set acc =
+            model_performance.accuracy.value %} {% elif
+            model_performance.accuracy.accuracy is defined %} {% set acc =
+            model_performance.accuracy.accuracy %} {% endif %} {% else %} {% set
+            acc = model_performance.accuracy %} {% endif %} {% endif %}
             <li>
-              <strong>Accuracy:</strong> {{ "%.1f%%" | format(acc * 100) }}
+              <strong>Accuracy:</strong> {{ "%.1f%%" | format(acc * 100) if acc
+              else "N/A" }}
             </li>
-            {% endif %}
             <li>
               <strong>Overall Assessment:</strong> {{ 'Excellent' if (acc and
               acc > 0.9) else ('Good' if (acc and acc > 0.8) else ('Fair' if

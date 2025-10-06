@@ -451,7 +451,13 @@ ExplainerRegistry.register(
     "coefficients",
     CoefficientsExplainer,
     priority=10,
-    supports=["logistic_regression", "linear_regression", "sklearn-linear"],
+    supports=[
+        "logistic_regression",
+        "logisticregression",  # sklearn class name lowercased (no underscore)
+        "linear_regression",
+        "linearregression",  # sklearn class name lowercased (no underscore)
+        "sklearn-linear",
+    ],
 )
 
 # Register aliases for coefficients
@@ -469,11 +475,18 @@ ExplainerRegistry.register(
         "xgboost",
         "lightgbm",
         "random_forest",
+        "randomforest",  # sklearn class name variant
+        "randomforestclassifier",  # sklearn class name lowercased
         "extra_trees",
+        "extratrees",  # sklearn class name variant
         "decision_tree",
+        "decisiontree",  # sklearn class name variant
         "gradient_boosting",
+        "gradientboosting",  # sklearn class name variant
         "logistic_regression",
+        "logisticregression",  # sklearn class name lowercased (no underscore)
         "linear_regression",
+        "linearregression",  # sklearn class name lowercased (no underscore)
         "linear_model",
         "sklearn-linear",
     ],

@@ -2,6 +2,24 @@
 
 This module provides utilities to normalize audit results for template
 rendering, ensuring consistent data structures that prevent Jinja2 errors.
+
+Design Note: Dual Metric Paths
+-------------------------------
+The system intentionally supports two metric structures:
+
+1. **Pipeline Path (Production)**: Rich semantic structure
+   - Example: {"accuracy": {"accuracy": 0.87, "n_samples": 100}}
+   - Provides full audit context (value + metadata)
+   - Used by AuditPipeline for complete audit trails
+
+2. **Normalization Path (Tests/Mocks)**: Minimal safe structure
+   - Example: {"accuracy": {"value": 0.87}}
+   - Sanitizes arbitrary input for template safety
+   - Used by tests, external integrations, edge cases
+
+Templates handle BOTH via defensive extraction (checks .value, then .accuracy, then direct).
+This separation is intentional: don't consolidate unless you want to lose audit richness OR
+force verbose test structures.
 """
 
 from typing import Any

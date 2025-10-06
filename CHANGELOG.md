@@ -9,6 +9,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Fixed
+
+- **Explainer Registry for from_model() API**: Fixed CoefficientsExplainer and PermutationExplainer not being selected for LogisticRegression models
+
+  - Added `logisticregression` and `linearregression` (no underscore) to explainer `supports` lists to match sklearn class names
+  - Updated `tabular_compliance` profile to prioritize zero-dependency explainers: `["coefficients", "treeshap", "kernelshap", "permutation", "noop"]`
+  - Added smart protected attribute exclusion: only excludes when `model.n_features_in_ < len(X.columns)`
+  - Fixed model refitting check: skip for in-memory models from `from_model()`
+  - Fixed accuracy metric structure to match expected dict format with nested keys
+  - All 13 notebook API tests now passing
+  - Preprocessing integration test now passing
+
+- **HTML Report Template Metric Rendering**: Fixed template errors when rendering normalized metrics
+  - Template now correctly handles both `{"value": X}` (from normalization) and `{"accuracy": X}` (from pipeline) structures
+  - Checks for `.value` first, then `.accuracy`, then falls back to direct value
+  - Prevents `TypeError: 'dict' object has no attribute 'accuracy'` in Jinja2 templates
+  - All metrics normalization tests now passing
+
+### Added
+
 - **Stage 1.0 Foundation (Phase 2 Distribution Prep)**: Infrastructure for distributable, reproducible audits
 
   - **PyPI Packaging**: Granular optional dependencies for lean installs
@@ -60,6 +80,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - 20 contract tests covering display, badges, lineage, error handling, graceful degradation
   - Part of F5 Notebook API (Week 1 of Phase 2 pre-PyPI sprint)
   - Deferred to Week 2: feature stability sparks, drift badge, readiness reducer
+
+- **QW2: `from_model()` Constructor**: Programmatic API for 3-line audits without YAML configs
+
+  - `AuditPipeline.from_model()` classmethod for in-memory audits:
+    ```python
+    result = AuditPipeline.from_model(
+        model=xgb_model,
+        X_test=X_test,
+        y_test=y_test,
+        protected_attributes=["gender", "age"]
+    )
+    ```
+  - **Auto-detection**: Model type (sklearn, xgboost, lightgbm), feature names (DataFrame columns or array)
+  - **Determinism preserved**: Full reproducibility, manifest generation, config hashing (same as YAML workflow)
+  - **API design**: Matches sklearn/pandas patterns (`fit(X, y, **params)` style)
+  - **Three-tier API**:
+    - Simple (80%): Just model + data + protected attributes
+    - Intermediate (15%): Add seed, profile, explainer, threshold
+    - Advanced (5%): `**config_overrides` for full config access
+  - **Validation**: Fail fast on missing params, protected attrs not in features, model type detection failures
+  - **Components**:
+    - `config/builder.py`: Config generation from in-memory objects
+    - `models/detection.py`: Auto-detect model type from instance
+    - `pipeline/audit.py`: In-memory model/data handling
+  - Contract tests: Minimal params, determinism, validation, arrays, inline display integration
+  - Works seamlessly with QW1 inline HTML display
+  - Removes YAML barrier for notebook exploration (25-35% of users)
+  - Part of F5 Notebook API (Week 1 of Phase 2 pre-PyPI sprint)
+  - Status: ✅ Complete (contract tests passing)
 
 - **Counterfactual Recourse (E2.5)**: ECOA-compliant actionable recommendations for adverse decisions
 

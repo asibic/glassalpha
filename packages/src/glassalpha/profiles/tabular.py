@@ -101,8 +101,9 @@ class TabularComplianceProfile:
         explainer_config = config.get("explainers", {})
         if not explainer_config.get("priority"):
             # Provide default if not specified
+            # Order: model-specific (coefficients for linear) → SHAP (if available) → permutation (fallback) → noop (last resort)
             config["explainers"] = config.get("explainers", {})
-            config["explainers"]["priority"] = ["treeshap", "kernelshap", "noop"]
+            config["explainers"]["priority"] = ["coefficients", "treeshap", "kernelshap", "permutation", "noop"]
 
         # Check metrics configuration
         metrics_config = config.get("metrics", {})
@@ -135,17 +136,18 @@ class TabularComplianceProfile:
         """
         out = dict(cfg)
 
-        # Explainers - prefer TreeSHAP for tree models, fallback to KernelSHAP, then noop
+        # Explainers - prefer model-specific (coefficients for linear), then SHAP, then zero-dep fallbacks
+        # Order: coefficients (linear models) → treeshap (tree models) → kernelshap (general) → permutation (fallback) → noop (last resort)
         if "explainers" not in out or not out["explainers"].get("priority"):
             out["explainers"] = {
                 "strategy": "first_compatible",
-                "priority": ["treeshap", "kernelshap", "noop"],
+                "priority": ["coefficients", "treeshap", "kernelshap", "permutation", "noop"],
             }
         elif "explainers" in out:
             # Update existing explainer config with defaults
             existing = out["explainers"]
             existing.setdefault("strategy", "first_compatible")
-            existing.setdefault("priority", ["treeshap", "kernelshap", "noop"])
+            existing.setdefault("priority", ["coefficients", "treeshap", "kernelshap", "permutation", "noop"])
 
         # Metrics - performance and fairness
         if "metrics" not in out:

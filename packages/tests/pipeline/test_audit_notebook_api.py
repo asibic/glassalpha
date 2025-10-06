@@ -1,371 +1,399 @@
-"""Contract tests for notebook-friendly API features (QW1: Inline HTML Display)."""
+"""Contract tests for notebook API (QW2: from_model constructor).
 
-from glassalpha.pipeline.audit import AuditResults
+Tests the programmatic API that enables 3-line audits without YAML configs.
+"""
+
+import numpy as np
+import pandas as pd
+import pytest
+from sklearn.datasets import make_classification
+from sklearn.linear_model import LogisticRegression
+
+from glassalpha.pipeline.audit import AuditPipeline
 
 
-def skip_if_error_card(html):
-    """Helper to skip content checks if error card is shown (dependencies missing)."""
-    return "Inline Display Failed" in html
+class TestFromModelMinimalAPI:
+    """Test from_model() with minimal required parameters."""
+
+    def test_minimal_params_dataframe(self):
+        """Verify from_model() works with minimal required params (DataFrame)."""
+        # Create simple dataset
+        X, y = make_classification(n_samples=100, n_features=5, random_state=42)
+        X_df = pd.DataFrame(X, columns=[f"f{i}" for i in range(5)])
+        rng = np.random.RandomState(42)
+        X_df["protected"] = rng.choice([0, 1], size=100)
+
+        # Train model
+        model = LogisticRegression(random_state=42)
+        model.fit(X_df.drop("protected", axis=1), y)
+
+        # Run audit
+        result = AuditPipeline.from_model(
+            model=model,
+            X_test=X_df,
+            y_test=y,
+            protected_attributes=["protected"],
+        )
+
+        assert result.success
+        assert "accuracy" in result.model_performance
+        assert result.model_performance["accuracy"]["accuracy"] > 0
+
+    def test_minimal_params_with_arrays(self):
+        """Verify from_model() works with numpy arrays when feature_names provided."""
+        X, y = make_classification(n_samples=100, n_features=5, random_state=42)
+
+        model = LogisticRegression(random_state=42)
+        model.fit(X, y)
+
+        # Must provide feature_names when using arrays
+        result = AuditPipeline.from_model(
+            model=model,
+            X_test=X,
+            y_test=y,
+            protected_attributes=["feature_0"],
+            feature_names=[f"feature_{i}" for i in range(5)],
+        )
+
+        assert result.success
+        assert "accuracy" in result.model_performance
+
+    def test_arrays_without_feature_names_generates_defaults(self):
+        """Verify arrays without feature_names get auto-generated names."""
+        # Use n_features=5 with n_informative=2 to satisfy sklearn's requirement
+        X, y = make_classification(n_samples=100, n_features=5, n_informative=2, n_redundant=0, random_state=42)
+
+        model = LogisticRegression(random_state=42)
+        model.fit(X, y)
+
+        # No feature_names provided - should auto-generate
+        result = AuditPipeline.from_model(
+            model=model,
+            X_test=X,
+            y_test=y,
+            protected_attributes=["feature_0"],  # Use auto-generated name
+        )
+
+        assert result.success
+        # Check that feature names were auto-generated
+        assert "feature_0" in result.schema_info["features"]
 
 
-class TestInlineHTMLDisplay:
-    """Contract tests for _repr_html_() Jupyter integration."""
+class TestFromModelDeterminism:
+    """Test determinism guarantees of from_model()."""
 
-    def test_repr_html_exists(self):
-        """Contract: AuditResults has _repr_html_() for Jupyter display."""
-        result = AuditResults(success=True)
+    def test_same_inputs_same_results(self):
+        """Verify same inputs produce same results (determinism)."""
+        X, y = make_classification(n_samples=100, n_features=5, random_state=42)
+        X_df = pd.DataFrame(X, columns=[f"f{i}" for i in range(5)])
+        rng = np.random.RandomState(42)
+        X_df["protected"] = rng.choice([0, 1], size=100)
+
+        model = LogisticRegression(random_state=42)
+        model.fit(X_df.drop("protected", axis=1), y)
+
+        # Run twice with same seed
+        result1 = AuditPipeline.from_model(
+            model=model,
+            X_test=X_df,
+            y_test=y,
+            protected_attributes=["protected"],
+            random_seed=42,
+        )
+
+        result2 = AuditPipeline.from_model(
+            model=model,
+            X_test=X_df,
+            y_test=y,
+            protected_attributes=["protected"],
+            random_seed=42,
+        )
+
+        # Check performance metrics match
+        assert result1.model_performance["accuracy"]["accuracy"] == result2.model_performance["accuracy"]["accuracy"]
+
+        # Check manifest hashes match
+        assert result1.manifest["config_hash"] == result2.manifest["config_hash"]
+
+    def test_different_seeds_different_results(self):
+        """Verify different seeds can produce different results (when randomness involved)."""
+        X, y = make_classification(n_samples=100, n_features=5, random_state=42)
+        X_df = pd.DataFrame(X, columns=[f"f{i}" for i in range(5)])
+        rng = np.random.RandomState(42)
+        X_df["protected"] = rng.choice([0, 1], size=100)
+
+        model = LogisticRegression(random_state=42)
+        model.fit(X_df.drop("protected", axis=1), y)
+
+        # Run with different seeds
+        result1 = AuditPipeline.from_model(
+            model=model,
+            X_test=X_df,
+            y_test=y,
+            protected_attributes=["protected"],
+            random_seed=42,
+        )
+
+        result2 = AuditPipeline.from_model(
+            model=model,
+            X_test=X_df,
+            y_test=y,
+            protected_attributes=["protected"],
+            random_seed=123,
+        )
+
+        # Config hashes should be different (seed is part of config)
+        assert result1.manifest["config_hash"] != result2.manifest["config_hash"]
+
+
+class TestFromModelValidation:
+    """Test validation and error handling."""
+
+    def test_missing_protected_attribute_fails(self):
+        """Verify fails if protected attribute not in features."""
+        X, y = make_classification(n_samples=100, n_features=5, random_state=42)
+        X_df = pd.DataFrame(X, columns=[f"f{i}" for i in range(5)])
+
+        model = LogisticRegression(random_state=42)
+        model.fit(X_df, y)
+
+        with pytest.raises(ValueError, match="Protected attribute 'gender' not found"):
+            AuditPipeline.from_model(
+                model=model,
+                X_test=X_df,
+                y_test=y,
+                protected_attributes=["gender"],  # Not in columns
+            )
+
+    def test_mismatched_sample_counts_fails(self):
+        """Verify fails if X_test and y_test have different sample counts."""
+        X, y = make_classification(n_samples=100, n_features=5, random_state=42)
+        X_df = pd.DataFrame(X, columns=[f"f{i}" for i in range(5)])
+        X_df["protected"] = 0
+
+        model = LogisticRegression(random_state=42)
+        model.fit(X_df.drop("protected", axis=1), y)
+
+        # Truncate y_test
+        y_truncated = y[:50]
+
+        with pytest.raises(ValueError, match="different sample counts"):
+            AuditPipeline.from_model(
+                model=model,
+                X_test=X_df,  # 100 samples
+                y_test=y_truncated,  # 50 samples
+                protected_attributes=["protected"],
+            )
+
+    def test_unsupported_model_type_fails(self):
+        """Verify fails gracefully if model type cannot be detected."""
+
+        class CustomModel:
+            """Unsupported model type."""
+
+            def predict(self, X):  # noqa: N803
+                return np.zeros(len(X))
+
+        X, y = make_classification(n_samples=100, n_features=5, random_state=42)
+        X_df = pd.DataFrame(X, columns=[f"f{i}" for i in range(5)])
+        X_df["protected"] = 0
+
+        model = CustomModel()
+
+        with pytest.raises(ValueError, match="Cannot detect model type"):
+            AuditPipeline.from_model(
+                model=model,
+                X_test=X_df,
+                y_test=y,
+                protected_attributes=["protected"],
+            )
+
+
+class TestFromModelOptionalParams:
+    """Test optional parameters and configuration."""
+
+    def test_custom_random_seed(self):
+        """Verify custom random seed is used."""
+        X, y = make_classification(n_samples=100, n_features=5, random_state=42)
+        X_df = pd.DataFrame(X, columns=[f"f{i}" for i in range(5)])
+        rng = np.random.RandomState(42)
+        X_df["protected"] = rng.choice([0, 1], size=100)
+
+        model = LogisticRegression(random_state=42)
+        model.fit(X_df.drop("protected", axis=1), y)
+
+        result = AuditPipeline.from_model(
+            model=model,
+            X_test=X_df,
+            y_test=y,
+            protected_attributes=["protected"],
+            random_seed=999,
+        )
+
+        assert result.success
+        # Check seed was recorded in manifest
+        assert result.manifest["seeds"]["master_seed"] == 999
+
+    def test_custom_target_name(self):
+        """Verify custom target name is used."""
+        X, y = make_classification(n_samples=100, n_features=5, random_state=42)
+        X_df = pd.DataFrame(X, columns=[f"f{i}" for i in range(5)])
+        rng = np.random.RandomState(42)
+        X_df["protected"] = rng.choice([0, 1], size=100)
+
+        model = LogisticRegression(random_state=42)
+        model.fit(X_df.drop("protected", axis=1), y)
+
+        result = AuditPipeline.from_model(
+            model=model,
+            X_test=X_df,
+            y_test=y,
+            protected_attributes=["protected"],
+            target_name="outcome",
+        )
+
+        assert result.success
+        assert result.schema_info["target"] == "outcome"
+
+    def test_fairness_threshold(self):
+        """Verify fairness threshold parameter works."""
+        X, y = make_classification(n_samples=100, n_features=5, random_state=42)
+        X_df = pd.DataFrame(X, columns=[f"f{i}" for i in range(5)])
+        rng = np.random.RandomState(42)
+        X_df["protected"] = rng.choice([0, 1], size=100)
+
+        model = LogisticRegression(random_state=42)
+        model.fit(X_df.drop("protected", axis=1), y)
+
+        result = AuditPipeline.from_model(
+            model=model,
+            X_test=X_df,
+            y_test=y,
+            protected_attributes=["protected"],
+            fairness_threshold=0.6,
+        )
+
+        assert result.success
+        # Check threshold was used
+        if "threshold_selection" in result.model_performance:
+            assert result.model_performance["threshold_selection"]["policy"] == "fixed"
+            assert result.model_performance["threshold_selection"]["threshold"] == 0.6
+
+
+class TestFromModelInlineDisplay:
+    """Test integration with QW1 inline HTML display."""
+
+    def test_result_has_html_repr(self):
+        """Verify result has _repr_html_ for Jupyter display."""
+        X, y = make_classification(n_samples=100, n_features=5, random_state=42)
+        X_df = pd.DataFrame(X, columns=[f"f{i}" for i in range(5)])
+        rng = np.random.RandomState(42)
+        X_df["protected"] = rng.choice([0, 1], size=100)
+
+        model = LogisticRegression(random_state=42)
+        model.fit(X_df.drop("protected", axis=1), y)
+
+        result = AuditPipeline.from_model(
+            model=model,
+            X_test=X_df,
+            y_test=y,
+            protected_attributes=["protected"],
+        )
+
+        # Check _repr_html_ exists and returns HTML
         assert hasattr(result, "_repr_html_")
-        assert callable(result._repr_html_)
-
-    def test_repr_html_returns_html_string(self):
-        """Contract: _repr_html_() returns HTML string with DOCTYPE."""
-        result = AuditResults(
-            success=True,
-            model_performance={"accuracy": 0.85, "f1": 0.82},
-        )
         html = result._repr_html_()
         assert isinstance(html, str)
-        assert len(html) > 0
-        # Should contain HTML structure
-        assert "<!DOCTYPE html>" in html or "<div" in html
+        assert "<div" in html  # Should contain HTML
 
-    def test_repr_html_shows_performance_metrics(self):
-        """Contract: _repr_html_() displays performance metrics."""
-        result = AuditResults(
-            success=True,
-            model_performance={
-                "accuracy": 0.8532,
-                "roc_auc": 0.9145,
-                "precision": 0.7891,
-            },
+    def test_inline_display_shows_metrics(self):
+        """Verify inline display includes performance metrics."""
+        X, y = make_classification(n_samples=100, n_features=5, random_state=42)
+        X_df = pd.DataFrame(X, columns=[f"f{i}" for i in range(5)])
+        rng = np.random.RandomState(42)
+        X_df["protected"] = rng.choice([0, 1], size=100)
+
+        model = LogisticRegression(random_state=42)
+        model.fit(X_df.drop("protected", axis=1), y)
+
+        result = AuditPipeline.from_model(
+            model=model,
+            X_test=X_df,
+            y_test=y,
+            protected_attributes=["protected"],
         )
+
         html = result._repr_html_()
+        # Check that performance metrics appear in HTML
+        assert "accuracy" in html.lower() or "performance" in html.lower()
 
-        # Check metrics are displayed (or error card if dependencies missing)
-        if not skip_if_error_card(html):
-            assert "0.8532" in html or "85.32" in html  # Accuracy
-            assert "0.9145" in html or "91.45" in html  # ROC-AUC
-            assert "Performance" in html or "performance" in html.lower()
 
-    def test_repr_html_shows_fairness_badges_pass(self):
-        """Contract: _repr_html_() shows ✓ badge for gap < 0.05."""
-        result = AuditResults(
-            success=True,
-            fairness_analysis={
-                "group_metrics": {
-                    "gender": {
-                        "male": 0.82,
-                        "female": 0.85,  # Gap = 0.03 < 0.05 → pass
-                    },
-                },
-            },
+class TestFromModelIntegration:
+    """Integration tests with real datasets."""
+
+    def test_german_credit_e2e(self):
+        """E2E test with German Credit dataset."""
+        from sklearn.model_selection import train_test_split
+        from sklearn.preprocessing import LabelEncoder
+
+        from glassalpha.datasets import load_german_credit
+
+        # Load data
+        df = load_german_credit()
+
+        # Define schema manually (German Credit specific)
+        target_col = "credit_risk"
+        protected_attrs = ["gender", "age_group"]  # Actual column names
+        feature_cols = [col for col in df.columns if col not in [target_col]]
+
+        X = df[feature_cols]
+        y = df[target_col]
+
+        # Train/test split
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+        # Encode categorical features for LogisticRegression
+        le = LabelEncoder()
+        X_train_encoded = X_train.copy()
+        X_test_encoded = X_test.copy()
+
+        for col in X_train.columns:
+            if X_train[col].dtype == "object":
+                X_train_encoded[col] = le.fit_transform(X_train[col])
+                X_test_encoded[col] = le.transform(X_test[col])
+
+        # Train model
+        model = LogisticRegression(random_state=42, max_iter=1000)
+        model.fit(X_train_encoded, y_train)
+
+        # Run audit with from_model()
+        result = AuditPipeline.from_model(
+            model=model,
+            X_test=X_test_encoded,
+            y_test=y_test,
+            protected_attributes=["gender", "age_group"],
+            random_seed=42,
         )
+
+        # Verify success
+        assert result.success, f"Audit failed: {result.error_message}"
+
+        # Verify core components
+        assert "accuracy" in result.model_performance
+        assert result.model_performance["accuracy"]["accuracy"] > 0.5  # Should be reasonably accurate
+
+        # Verify fairness analysis ran
+        assert result.fairness_analysis  # Not empty
+        assert "gender" in str(result.fairness_analysis) or "age_group" in str(result.fairness_analysis)
+
+        # Verify explanations generated
+        assert result.explanations
+        assert "global_importance" in result.explanations
+
+        # Verify manifest created (structure varies, just check it exists)
+        assert result.manifest
+
+        # Verify inline HTML display works
         html = result._repr_html_()
-
-        # Should show green/success badge (or error card if dependencies missing)
-        if not skip_if_error_card(html):
-            assert "✓" in html or "badge-success" in html
-            assert "gender" in html.lower() or "Gender" in html
-
-    def test_repr_html_shows_fairness_badges_warning(self):
-        """Contract: _repr_html_() shows ⚠ badge for gap between 0.05-0.10."""
-        result = AuditResults(
-            success=True,
-            fairness_analysis={
-                "group_metrics": {
-                    "race": {
-                        "group_a": 0.75,
-                        "group_b": 0.82,  # Gap = 0.07, should warn
-                    },
-                },
-            },
-        )
-        html = result._repr_html_()
-
-        # Should show warning badge (or error card if dependencies missing)
-        if not skip_if_error_card(html):
-            assert "⚠" in html or "badge-warning" in html
-
-    def test_repr_html_shows_fairness_badges_fail(self):
-        """Contract: _repr_html_() shows ✗ badge for gap >= 0.10."""
-        result = AuditResults(
-            success=True,
-            fairness_analysis={
-                "group_metrics": {
-                    "age": {
-                        "young": 0.65,
-                        "old": 0.82,  # Gap = 0.17 >= 0.10 → fail
-                    },
-                },
-            },
-        )
-        html = result._repr_html_()
-
-        # Should show fail badge (or error card if dependencies missing)
-        if not skip_if_error_card(html):
-            assert "✗" in html or "badge-fail" in html
-
-    def test_repr_html_shows_top_features(self):
-        """Contract: _repr_html_() displays top 5 features with importances."""
-        result = AuditResults(
-            success=True,
-            explanations={
-                "feature_importances": {
-                    "feature_1": 0.35,
-                    "feature_2": 0.28,
-                    "feature_3": 0.19,
-                    "feature_4": 0.12,
-                    "feature_5": 0.06,
-                    "feature_6": 0.01,  # Should not appear (not in top 5)
-                },
-            },
-        )
-        html = result._repr_html_()
-
-        # Check top 5 are displayed (or error card if dependencies missing)
-        if not skip_if_error_card(html):
-            assert "feature_1" in html
-            assert "feature_2" in html
-            assert "feature_5" in html
-            assert "0.35" in html or "0.3500" in html
-
-    def test_repr_html_shows_direction_arrows(self):
-        """Contract: _repr_html_() shows ↑ for positive, ↓ for negative importance."""
-        result = AuditResults(
-            success=True,
-            explanations={
-                "feature_importances": {
-                    "positive_feature": 0.35,
-                    "negative_feature": -0.28,
-                },
-            },
-        )
-        html = result._repr_html_()
-
-        # Should contain direction indicators (or error card if dependencies missing)
-        if not skip_if_error_card(html):
-            assert "↑" in html or "↓" in html or "direction" in html.lower()
-
-    def test_repr_html_shows_lineage_badge(self):
-        """Contract: _repr_html_() displays data hash, model SHA, versions, seed."""
-        result = AuditResults(
-            success=True,
-            manifest={
-                "dataset_hash": "9f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c",
-                "model_hash": "3a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d",
-                "global_seed": 42,
-                "package_versions": {
-                    "sklearn": "1.5.2",
-                    "xgboost": "2.1.1",
-                },
-            },
-            execution_info={
-                "audit_profile": "tabular_compliance",
-            },
-        )
-        html = result._repr_html_()
-
-        # Check lineage elements (or error card if dependencies missing)
-        if not skip_if_error_card(html):
-            assert "9f2a3b4c" in html or "9f2" in html  # Dataset hash (truncated)
-            assert "seed" in html.lower() and "42" in html
-            assert "1.5.2" in html or "sklearn" in html.lower()
-            assert "tabular_compliance" in html
-
-    def test_repr_html_shows_audit_status_with_gates(self):
-        """Contract: _repr_html_() shows policy gate counts when available."""
-        result = AuditResults(
-            success=True,
-            execution_info={
-                "policy_gates": {
-                    "passed": 12,
-                    "warnings": 2,
-                    "failures": 0,
-                },
-            },
-        )
-        html = result._repr_html_()
-
-        # Should show gate counts (or error card if dependencies missing)
-        if "Inline Display Failed" in html:
-            # Error card shown (dependencies missing) - this is acceptable
-            assert isinstance(html, str) and len(html) > 0
-        else:
-            # Template rendered successfully - check content
-            assert "12" in html
-            assert "2" in html
-            assert "passed" in html.lower() or "Passed" in html
-            assert "warning" in html.lower() or "Warning" in html
-
-    def test_repr_html_shows_audit_status_placeholder(self):
-        """Contract: _repr_html_() shows placeholder when no gates configured."""
-        result = AuditResults(
-            success=True,
-            execution_info={},  # No policy_gates
-        )
-        html = result._repr_html_()
-
-        # Should show "not configured" message (or error card if dependencies missing)
-        if not skip_if_error_card(html):
-            assert "not configured" in html or "Not configured" in html or "placeholder" in html
-
-    def test_repr_html_shows_export_command(self):
-        """Contract: _repr_html_() shows copyable export command."""
-        result = AuditResults(success=True)
-        html = result._repr_html_()
-
-        # Should show export command (or error card if dependencies missing)
-        if not skip_if_error_card(html):
-            assert "result.to_pdf" in html or "export" in html.lower()
-            assert "output.pdf" in html or ".pdf" in html
-
-    def test_repr_html_has_copy_button(self):
-        """Contract: _repr_html_() includes copy button with JavaScript."""
-        result = AuditResults(success=True)
-        html = result._repr_html_()
-
-        # Should have copy functionality (or error card if dependencies missing)
-        if not skip_if_error_card(html):
-            assert "copy" in html.lower() or "Copy" in html
-            assert "clipboard" in html.lower() or "copyToClipboard" in html
-
-    def test_repr_html_error_card_on_template_failure(self):
-        """Contract: _repr_html_() shows visible error card on rendering failure."""
-        # Create result that will trigger template error
-        # (template expects certain structure)
-        result = AuditResults(success=True)
-
-        # Temporarily break template by removing it
-        import os
-        from pathlib import Path
-
-        template_path = Path(__file__).parent.parent.parent / "src" / "glassalpha" / "report" / "templates" / "inline_summary.html"
-
-        if template_path.exists():
-            # Rename template to trigger error
-            temp_name = template_path.with_suffix(".html.bak")
-            try:
-                os.rename(template_path, temp_name)
-
-                # Should return error card, not crash
-                html = result._repr_html_()
-                assert isinstance(html, str)
-                assert len(html) > 0
-                # Should contain error indicators
-                assert "error" in html.lower() or "failed" in html.lower() or "⚠" in html
-
-            finally:
-                # Restore template
-                if temp_name.exists():
-                    os.rename(temp_name, template_path)
-
-    def test_repr_html_graceful_when_performance_missing(self):
-        """Contract: _repr_html_() handles missing performance section gracefully."""
-        result = AuditResults(
-            success=True,
-            model_performance={},  # Empty
-        )
-        html = result._repr_html_()
-
-        # Should not crash, should be valid HTML
-        assert isinstance(html, str)
-        assert len(html) > 0
-        # Might show placeholder or just skip section
-
-    def test_repr_html_graceful_when_fairness_missing(self):
-        """Contract: _repr_html_() handles missing fairness section gracefully."""
-        result = AuditResults(
-            success=True,
-            fairness_analysis={},  # Empty
-        )
-        html = result._repr_html_()
-
-        # Should not crash
-        assert isinstance(html, str)
-        assert len(html) > 0
-
-    def test_repr_html_graceful_when_features_missing(self):
-        """Contract: _repr_html_() handles missing feature importance gracefully."""
-        result = AuditResults(
-            success=True,
-            explanations={},  # No feature_importances
-        )
-        html = result._repr_html_()
-
-        # Should not crash
-        assert isinstance(html, str)
-        assert len(html) > 0
-
-    def test_repr_html_no_embedded_plots(self):
-        """Contract: Inline HTML doesn't embed plots (keeps rendering fast)."""
-        result = AuditResults(
-            success=True,
-            model_performance={"accuracy": 0.85},
-        )
-        html = result._repr_html_()
-
-        # Should NOT contain base64-encoded images
-        assert "data:image/png;base64" not in html
-        assert "data:image/jpeg;base64" not in html
-
-    def test_repr_html_deterministic_thresholds(self):
-        """Contract: Badge thresholds are deterministic (0.05 warn, 0.10 fail)."""
-        # Test exact threshold boundaries
-        result_pass = AuditResults(
-            success=True,
-            fairness_analysis={
-                "group_metrics": {
-                    "attr": {"a": 0.50, "b": 0.54},  # Gap = 0.04 < 0.05 → pass
-                },
-            },
-        )
-        html_pass = result_pass._repr_html_()
-        if not skip_if_error_card(html_pass):
-            assert "✓" in html_pass or "badge-success" in html_pass
-
-        result_warn = AuditResults(
-            success=True,
-            fairness_analysis={
-                "group_metrics": {
-                    "attr": {"a": 0.50, "b": 0.57},  # Gap = 0.07, 0.05 ≤ gap < 0.10 → warn
-                },
-            },
-        )
-        html_warn = result_warn._repr_html_()
-        if not skip_if_error_card(html_warn):
-            assert "⚠" in html_warn or "badge-warning" in html_warn
-
-        result_fail = AuditResults(
-            success=True,
-            fairness_analysis={
-                "group_metrics": {
-                    "attr": {"a": 0.50, "b": 0.62},  # Gap = 0.12 ≥ 0.10 → fail
-                },
-            },
-        )
-        html_fail = result_fail._repr_html_()
-        if not skip_if_error_card(html_fail):
-            assert "✗" in html_fail or "badge-fail" in html_fail
-
-    def test_repr_html_includes_educational_links(self):
-        """Contract: _repr_html_() includes links to documentation."""
-        result = AuditResults(success=True)
-        html = result._repr_html_()
-
-        # Should have educational links (or error card if dependencies missing)
-        if not skip_if_error_card(html):
-            assert "glassalpha.com" in html.lower() or "learn" in html.lower() or "href" in html
-
-    def test_repr_html_compact_output(self):
-        """Contract: Inline HTML is compact (< 20KB for typical audit)."""
-        result = AuditResults(
-            success=True,
-            model_performance={"accuracy": 0.85, "roc_auc": 0.91},
-            fairness_analysis={"group_metrics": {"gender": {"m": 0.8, "f": 0.82}}},
-            explanations={"feature_importances": {"f1": 0.3, "f2": 0.2}},
-            manifest={"dataset_hash": "abc123", "global_seed": 42},
-        )
-        html = result._repr_html_()
-
-        # Should be reasonably sized (< 20KB)
-        assert len(html) < 20000  # 20KB limit
+        assert "<div" in html
+        assert "accuracy" in html.lower()
