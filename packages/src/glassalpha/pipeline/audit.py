@@ -1101,7 +1101,7 @@ class AuditPipeline:
 
         # Compute fairness metrics if sensitive features available
         if sensitive_features is not None:
-            self._compute_fairness_metrics(y_true, y_pred, y_proba, sensitive_features)
+            self._compute_fairness_metrics(y_true, y_pred, y_proba, sensitive_features, X)
 
         # Compute drift metrics (placeholder for now)
         self._compute_drift_metrics(X, y_true)
@@ -1317,16 +1317,18 @@ class AuditPipeline:
         self,
         y_true: np.ndarray,
         y_pred: np.ndarray,
-        y_proba: np.ndarray,  # noqa: ARG002
+        y_proba: np.ndarray,
         sensitive_features: pd.DataFrame,
+        X: pd.DataFrame,
     ) -> None:
-        """Compute fairness metrics.
+        """Compute fairness metrics including E11 individual fairness.
 
         Args:
             y_true: True labels
             y_pred: Predicted labels
             y_proba: Prediction probabilities
             sensitive_features: Sensitive attributes
+            X: Full feature DataFrame (for individual fairness)
 
         """
         logger.debug("Computing fairness metrics")
@@ -1372,6 +1374,65 @@ class AuditPipeline:
                 confidence_level=0.95,
                 seed=seed,
             )
+
+            # E11: Compute individual fairness metrics
+            logger.debug("Computing E11: Individual fairness metrics")
+            try:
+                from ..metrics.fairness.individual import IndividualFairnessMetrics  # noqa: PLC0415
+
+                # Get protected attribute names
+                protected_attrs = list(sensitive_features.columns)
+
+                # Create combined feature DataFrame (X + protected attributes)
+                # Need to ensure we don't duplicate columns
+                X_with_protected = X.copy()
+                for col in protected_attrs:
+                    if col not in X_with_protected.columns:
+                        X_with_protected[col] = sensitive_features[col]
+
+                # Extract predictions for individual fairness (binary class probability)
+                if y_proba is not None and len(y_proba.shape) == 2 and y_proba.shape[1] == 2:
+                    predictions = y_proba[:, 1]  # Positive class probability
+                else:
+                    # Fallback to predicted labels (convert to 0-1 scale)
+                    predictions = y_pred.astype(float)
+
+                # Get threshold from config or use default
+                threshold = 0.5
+                if hasattr(self.config, "fairness") and hasattr(self.config.fairness, "threshold"):
+                    threshold = self.config.fairness.threshold
+                elif hasattr(self.config, "model_dump"):
+                    cfg_dict = self.config.model_dump()
+                    threshold = cfg_dict.get("fairness", {}).get("threshold", 0.5)
+
+                # Initialize individual fairness metrics
+                individual_metrics = IndividualFairnessMetrics(
+                    model=self.model,
+                    features=X_with_protected,
+                    predictions=predictions,
+                    protected_attributes=protected_attrs,
+                    distance_metric="euclidean",  # Default to Euclidean
+                    similarity_percentile=90,
+                    prediction_diff_threshold=0.1,
+                    threshold=threshold,
+                    seed=seed,
+                )
+
+                # Compute metrics
+                individual_results = individual_metrics.compute()
+
+                # Add to fairness results
+                fairness_results["individual_fairness"] = individual_results
+                logger.info("E11: Individual fairness metrics computed successfully")
+
+            except Exception as e:  # noqa: BLE001
+                logger.warning(f"E11: Failed to compute individual fairness metrics: {e}")
+                # Don't fail entire fairness analysis if individual fairness fails
+                fairness_results["individual_fairness"] = {
+                    "error": str(e),
+                    "status": "failed",
+                }
+
             self.results.fairness_analysis = fairness_results
             logger.info(f"Computed fairness metrics with CIs: {list(fairness_results.keys())}")
 
