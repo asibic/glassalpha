@@ -11,6 +11,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **PermutationExplainer Scorer Bug**: Fixed critical bug preventing PermutationExplainer from working
+
+  - Fixed scorer signature: changed from `(y_true, y_pred)` to `(estimator, X, y)` to match sklearn's `permutation_importance` API
+  - Added `y` parameter to `explain()` method (required for permutation importance to compute score)
+  - Updated pipeline to pass `y_target` to explainer (other explainers ignore it)
+  - Updated all explainer signatures to accept optional `y` parameter for API consistency
+  - Fixed KernelSHAP parameter order to maintain backward compatibility: `(x, background_x, y)` instead of `(x, y, background_x)`
+  - Added 19 comprehensive tests: classifiers, regressors, determinism, progress bars, error handling
+  - All explainer and pipeline tests passing (70 tests)
+
 - **Explainer Registry for from_model() API**: Fixed CoefficientsExplainer and PermutationExplainer not being selected for LogisticRegression models
 
   - Added `logisticregression` and `linearregression` (no underscore) to explainer `supports` lists to match sklearn class names
@@ -109,6 +119,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Removes YAML barrier for notebook exploration (25-35% of users)
   - Part of F5 Notebook API (Week 1 of Phase 2 pre-PyPI sprint)
   - Status: ✅ Complete (contract tests passing)
+
+- **QW3: Progress Bars for Long-Running Operations**: Visual feedback during SHAP computation
+
+  - `glassalpha.utils.progress` module with `get_progress_bar()` utility
+  - **Auto-detection**: tqdm.auto detects Jupyter notebook vs terminal environment
+  - **Integration**: TreeSHAP, KernelSHAP, Permutation explainers show progress for large datasets
+  - **Smart defaults**:
+    - Shows for datasets > 100 samples (TreeSHAP), > 50 samples (KernelSHAP), > 1000 samples (Permutation)
+    - Auto-detects notebook vs terminal (tqdm.auto)
+    - Disabled in strict_mode (professional audit output)
+    - Disabled with `GLASSALPHA_NO_PROGRESS=1` env var
+  - **Pipeline integration**: Passes strict_mode to explainers, prevents duplicate progress bars
+  - **Graceful degradation**: Passthrough wrapper when tqdm unavailable (no errors)
+  - **Determinism preserved**: Progress bars don't affect outputs (same config → same results)
+  - **Testing**: 15+ contract tests (env var, strict mode, tqdm availability, determinism)
+  - **Integration test**: German Credit E2E with progress verification
+  - **Documentation**: Example notebook updated with progress bar demo and disable instructions
+  - Addresses user feedback: "Users abandon notebooks thinking SHAP computation froze"
+  - Part of F5 Notebook API (Week 1 of Phase 2 pre-PyPI sprint)
+  - Status: ✅ Complete (F5 fully complete: QW1 + QW2 + QW3)
 
 - **Counterfactual Recourse (E2.5)**: ECOA-compliant actionable recommendations for adverse decisions
 

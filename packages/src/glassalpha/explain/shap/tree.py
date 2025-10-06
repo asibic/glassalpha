@@ -239,7 +239,7 @@ class TreeSHAPExplainer(ExplainerBase):
         Args:
             x: Input data to explain OR wrapper (when background_x provided)
             background_x: Background data (when x is wrapper)
-            **kwargs: Additional parameters
+            **kwargs: Additional parameters (show_progress, strict_mode)
 
         Returns:
             SHAP values array or structured dict for test compatibility
@@ -274,7 +274,25 @@ class TreeSHAPExplainer(ExplainerBase):
         n = len(x)
         p = getattr(x, "shape", (n, 0))[1]
         if self.explainer is not None and SHAP_AVAILABLE:
-            vals = self.explainer.shap_values(x)
+            # Get progress settings from kwargs
+            show_progress = kwargs.get("show_progress", True)
+            strict_mode = kwargs.get("strict_mode", False)
+
+            # Import progress utility
+            from glassalpha.utils.progress import get_progress_bar, is_progress_enabled
+
+            # Determine if we should show progress
+            progress_enabled = is_progress_enabled(strict_mode) and show_progress
+
+            # For TreeSHAP, we can't wrap the internal loop, but we can show a progress indicator
+            # if the dataset is large enough
+            if progress_enabled and n > 100:
+                # Show progress bar for computation
+                with get_progress_bar(total=n, desc="Computing TreeSHAP", leave=False) as pbar:
+                    vals = self.explainer.shap_values(x)
+                    pbar.update(n)  # Update all at once since we can't track internal progress
+            else:
+                vals = self.explainer.shap_values(x)
             return np.array(vals)
         # Fallback: zero matrix with correct shape (tests usually check shape, not exact values)
         return np.zeros((n, p))

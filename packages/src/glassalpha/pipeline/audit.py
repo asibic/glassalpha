@@ -741,7 +741,7 @@ class AuditPipeline:
         logger.info("Generating model explanations")
 
         # Extract features for explanation
-        X, _y, _ = self.data_loader.extract_features_target(data, schema)  # noqa: N806
+        X, y_target, _ = self.data_loader.extract_features_target(data, schema)  # noqa: N806
 
         # For in-memory models from from_model(), check if we need to exclude protected attributes
         # Only exclude if model was trained on fewer features than provided
@@ -763,8 +763,21 @@ class AuditPipeline:
             background_sample = X_processed.sample(n=min(100, len(X_processed)), random_state=42)
             self.explainer.fit(self.model, background_sample, feature_names=list(X_processed.columns))
 
-            # Generate explanations
-            explanations = self.explainer.explain(X_processed)
+            # Get strict mode from config for progress bar control
+            strict_mode = False
+            if hasattr(self.config, "strict_mode"):
+                strict_mode = self.config.strict_mode
+            elif isinstance(self.config, dict):
+                strict_mode = self.config.get("strict_mode", False)
+
+            # Generate explanations with progress settings
+            # Note: PermutationExplainer requires y parameter, other explainers ignore it
+            explanations = self.explainer.explain(
+                X_processed,
+                y=y_target,  # Required for PermutationExplainer
+                show_progress=True,  # Enable progress by default
+                strict_mode=strict_mode,  # Respect strict mode setting
+            )
 
         # Normalize explanations to canonical format
         normalized_explanations = self._normalize_explanations(

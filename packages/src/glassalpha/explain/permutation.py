@@ -7,6 +7,7 @@ are randomly shuffled.
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Any
 
@@ -40,7 +41,7 @@ class PermutationExplainer(ExplainerBase):
         self.n_repeats = n_repeats
         self.random_state = random_state
         self.model = None
-        self.feature_names = None
+        self.feature_names: Sequence[str] | None = None
         self.is_fitted = False
 
     @classmethod
@@ -65,7 +66,7 @@ class PermutationExplainer(ExplainerBase):
         # If no model provided, assume compatible (will check at fit time)
         return True
 
-    def fit(self, wrapper: Any, background_X: Any, feature_names: list[str] | None = None) -> PermutationExplainer:
+    def fit(self, wrapper: Any, background_X: Any, feature_names: Sequence[str] | None = None) -> PermutationExplainer:
         """Fit the explainer.
 
         Args:
@@ -82,51 +83,83 @@ class PermutationExplainer(ExplainerBase):
         self.is_fitted = True
         return self
 
-    def explain(self, X: np.ndarray, **kwargs: Any) -> dict[str, Any]:
+    def explain(self, X: np.ndarray, y: np.ndarray | None = None, **kwargs: Any) -> dict[str, Any]:
         """Generate explanations using permutation importance.
 
         Args:
             X: Input data to explain
-            **kwargs: Additional parameters
+            y: Target values (required for permutation importance)
+            **kwargs: Additional parameters (show_progress, strict_mode)
 
         Returns:
             Dictionary containing explanation results
+
+        Raises:
+            RuntimeError: If explainer not fitted
+            ValueError: If y is not provided
 
         """
         if not self.is_fitted or self.model is None:
             raise RuntimeError("Explainer must be fitted before explaining")
 
+        if y is None:
+            raise ValueError(
+                "PermutationExplainer requires target values (y) to compute feature importance. "
+                "Pass y as: explainer.explain(X, y=y_test)"
+            )
+
         # Get the underlying model for sklearn compatibility
         underlying_model = getattr(self.model, "model", self.model)
 
         # Determine appropriate scoring method
+        # Scorers must have signature: scorer(estimator, X, y) -> float
         if hasattr(underlying_model, "predict_proba"):
-            # For classifiers, use negative log loss if available, otherwise accuracy
-            try:
-                # Check if we can import log_loss
-                from sklearn.metrics import log_loss
+            # For classifiers, use negative log loss
+            from sklearn.metrics import log_loss
 
-                scorer = lambda y_true, y_pred: -log_loss(y_true, y_pred)
-            except ImportError:
-                # Fallback to accuracy for binary classification
-                from sklearn.metrics import accuracy_score
-
-                scorer = accuracy_score
+            def scorer(estimator: Any, X: np.ndarray, y: np.ndarray) -> float:
+                y_pred = estimator.predict_proba(X)
+                return -log_loss(y, y_pred)
         else:
             # For regressors, use negative mean squared error
             from sklearn.metrics import mean_squared_error
 
-            scorer = lambda y_true, y_pred: -mean_squared_error(y_true, y_pred)
+            def scorer(estimator: Any, X: np.ndarray, y: np.ndarray) -> float:
+                y_pred = estimator.predict(X)
+                return -mean_squared_error(y, y_pred)
 
-        # Compute permutation importance
-        r = permutation_importance(
-            underlying_model,
-            X,
-            y=None,  # We don't have target values for explanation
-            n_repeats=self.n_repeats,
-            random_state=self.random_state,
-            scoring=scorer,
-        )
+        # Get progress settings from kwargs
+        show_progress = kwargs.get("show_progress", True)
+        strict_mode = kwargs.get("strict_mode", False)
+
+        # Import progress utility
+        from glassalpha.utils.progress import get_progress_bar, is_progress_enabled
+
+        # Determine if we should show progress (only for large datasets)
+        progress_enabled = is_progress_enabled(strict_mode) and show_progress and len(X) > 1000
+
+        # Compute permutation importance with optional progress
+        if progress_enabled:
+            # Show progress indicator (permutation_importance doesn't support callbacks)
+            with get_progress_bar(total=X.shape[1] * self.n_repeats, desc="Computing Permutation", leave=False) as pbar:
+                r = permutation_importance(
+                    underlying_model,
+                    X,
+                    y,
+                    n_repeats=self.n_repeats,
+                    random_state=self.random_state,
+                    scoring=scorer,
+                )
+                pbar.update(X.shape[1] * self.n_repeats)
+        else:
+            r = permutation_importance(
+                underlying_model,
+                X,
+                y,
+                n_repeats=self.n_repeats,
+                random_state=self.random_state,
+                scoring=scorer,
+            )
 
         # Set feature names
         if self.feature_names is not None:
@@ -145,9 +178,8 @@ class PermutationExplainer(ExplainerBase):
         std = r.importances_std
 
         # Normalize importances (optional, but often helpful)
-        # We'll use absolute values and sort by importance
+        # We'll use absolute values for weighting
         abs_importances = np.abs(importances)
-        order = np.argsort(-abs_importances)
 
         # Create feature attributions for each sample
         # For permutation importance, we compute per-sample attributions
@@ -174,18 +206,19 @@ class PermutationExplainer(ExplainerBase):
             "importances_std": [float(std[i]) for i in range(n_features)],
         }
 
-    def explain_local(self, X: np.ndarray, **kwargs: Any) -> np.ndarray:
+    def explain_local(self, X: np.ndarray, y: np.ndarray | None = None, **kwargs: Any) -> np.ndarray:
         """Generate local explanations.
 
         Args:
             X: Input data to explain
+            y: Target values (required for permutation importance)
             **kwargs: Additional parameters
 
         Returns:
             Feature attributions for each sample
 
         """
-        explanation = self.explain(X, **kwargs)
+        explanation = self.explain(X, y=y, **kwargs)
         return explanation["local_explanations"]
 
     def supports_model(self, model: Any) -> bool:

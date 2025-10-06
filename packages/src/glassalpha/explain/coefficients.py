@@ -101,8 +101,10 @@ class CoefficientsExplainer(ExplainerBase):
         self.is_fitted = True
         return self
 
-    def explain(self, X: np.ndarray, **kwargs: Any) -> dict[str, Any]:
+    def explain(self, X: np.ndarray, y: np.ndarray | None = None, **kwargs: Any) -> dict[str, Any]:
         """Generate explanations using model coefficients.
+
+        Note: y parameter is accepted for API compatibility but not used by CoefficientsExplainer.
 
         Args:
             X: Input data to explain

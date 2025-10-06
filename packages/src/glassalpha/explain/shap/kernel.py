@@ -151,13 +151,16 @@ class KernelSHAPExplainer(ExplainerBase):
         logger.debug(f"KernelSHAPExplainer fitted with {len(background_x)} background samples")
         return self
 
-    def explain(self, x: Any, background_x: Any = None, **kwargs: Any) -> Any:  # noqa: ANN401
+    def explain(self, x: Any, background_x: Any = None, y: Any = None, **kwargs: Any) -> Any:  # noqa: ANN401
         """Generate SHAP explanations for input data.
+
+        Note: y parameter is accepted for API compatibility but not used by KernelSHAP.
 
         Args:
             x: Input data to explain OR wrapper (when background_x provided)
             background_x: Background data (when x is wrapper)
-            **kwargs: Additional parameters (e.g., nsamples)
+            y: Target values (accepted for API compatibility, not used)
+            **kwargs: Additional parameters (e.g., nsamples, show_progress, strict_mode)
 
         Returns:
             SHAP values array or dict for test compatibility
@@ -187,12 +190,29 @@ class KernelSHAPExplainer(ExplainerBase):
             msg = "KernelSHAPExplainer not fitted"
             raise ValueError(msg)
 
-        # Get nsamples from kwargs or use default
+        # Get parameters from kwargs
         nsamples = kwargs.get("nsamples", self.max_samples or 100)
+        show_progress = kwargs.get("show_progress", True)
+        strict_mode = kwargs.get("strict_mode", False)
+
         logger.debug(f"Generating KernelSHAP explanations for {len(x)} samples with {nsamples} samples")
 
+        # Import progress utility
+        from glassalpha.utils.progress import get_progress_bar, is_progress_enabled
+
+        # Determine if we should show progress
+        progress_enabled = is_progress_enabled(strict_mode) and show_progress
+        n = len(x)
+
         # Calculate SHAP values with explicit l1_reg to avoid deprecation warning
-        shap_values = self._explainer.shap_values(x, nsamples=nsamples, l1_reg=self.l1_reg)
+        # Show progress for KernelSHAP if enabled and dataset is large enough
+        if progress_enabled and n > 50:
+            with get_progress_bar(total=n, desc="Computing KernelSHAP", leave=False) as pbar:
+                shap_values = self._explainer.shap_values(x, nsamples=nsamples, l1_reg=self.l1_reg)
+                pbar.update(n)  # Update all at once since we can't track internal progress
+        else:
+            shap_values = self._explainer.shap_values(x, nsamples=nsamples, l1_reg=self.l1_reg)
+
         shap_values = np.array(shap_values)
 
         # Return structured dict for pipeline compatibility, raw values for tests

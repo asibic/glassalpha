@@ -51,11 +51,12 @@ class ExplainerBase:
         """
         raise NotImplementedError
 
-    def explain(self, X, **kwargs):
+    def explain(self, X, y=None, **kwargs):
         """Generate explanations for input data.
 
         Args:
             X: Input data to explain
+            y: Target values (optional, required by some explainers like PermutationExplainer)
             **kwargs: Additional parameters for explanation generation
 
         Returns:
