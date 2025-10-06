@@ -1355,8 +1355,11 @@ class AuditPipeline:
             self.results.fairness_analysis = {}
             return
 
-        # Use the new fairness runner
+        # Use the new fairness runner with E10 confidence intervals
         from ..metrics.fairness.runner import run_fairness_metrics  # noqa: PLC0415
+
+        # Get seed for deterministic bootstrap CIs (global seed already set in _setup_reproducibility)
+        seed = get_component_seed("fairness_ci")
 
         try:
             fairness_results = run_fairness_metrics(
@@ -1364,9 +1367,13 @@ class AuditPipeline:
                 y_pred,
                 sensitive_features,
                 fairness_metrics,
+                compute_confidence_intervals=True,
+                n_bootstrap=1000,
+                confidence_level=0.95,
+                seed=seed,
             )
             self.results.fairness_analysis = fairness_results
-            logger.info(f"Computed fairness metrics: {list(fairness_results.keys())}")
+            logger.info(f"Computed fairness metrics with CIs: {list(fairness_results.keys())}")
 
         except Exception as e:
             logger.error(f"Failed to compute fairness metrics: {e}")
