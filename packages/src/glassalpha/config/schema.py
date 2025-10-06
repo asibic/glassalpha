@@ -92,6 +92,10 @@ class DataConfig(BaseModel):
         default_factory=list,
         description="List of protected/sensitive attributes for fairness analysis",
     )
+    intersections: list[str] = Field(
+        default_factory=list,
+        description="Two-way intersectional analysis specifications (e.g., ['gender*race', 'age*income'])",
+    )
     target_column: str | None = Field(None, description="Name of target column")
     feature_columns: list[str] | None = Field(None, description="List of feature columns to use")
 
@@ -100,6 +104,38 @@ class DataConfig(BaseModel):
     def lowercase_attributes(cls, v: list[str]) -> list[str]:
         """Ensure attribute names are lowercase."""
         return [attr.lower() for attr in v]
+
+    @field_validator("intersections")
+    @classmethod
+    def validate_intersections(cls, v: list[str]) -> list[str]:
+        """Validate and normalize intersection specifications.
+
+        Each intersection must be in format 'attr1*attr2' for two-way analysis.
+        """
+        normalized = []
+        for intersection in v:
+            # Ensure lowercase
+            intersection = intersection.lower()
+
+            # Validate format
+            parts = intersection.split('*')
+            if len(parts) != 2:
+                raise ValueError(
+                    f"Invalid intersection format '{intersection}'. "
+                    "Must be 'attr1*attr2' for two-way intersections."
+                )
+
+            # Validate non-empty parts
+            if not all(part.strip() for part in parts):
+                raise ValueError(
+                    f"Invalid intersection '{intersection}'. "
+                    "Both attributes must be non-empty."
+                )
+
+            # Normalize whitespace
+            normalized.append('*'.join(part.strip() for part in parts))
+
+        return normalized
 
     @field_validator("fetch")
     @classmethod

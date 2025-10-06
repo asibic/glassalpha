@@ -9,6 +9,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **E5.1: Basic Intersectional Fairness** (P1 Feature - Sophistication Signal)
+
+  - **Two-way intersectional analysis**: Detects bias at intersections of protected attributes (e.g., gender×race, age×income)
+  - **Cartesian product group creation**: Automatically generates all intersectional groups from attribute combinations
+  - **Full fairness metrics for each intersectional group**: TPR, FPR, precision, recall, selection rate computed per intersection
+  - **Disparity metrics**: Max-min differences and ratios across intersectional groups
+  - **Sample size warnings**: Reuses E10 infrastructure (n<10 ERROR, 10≤n<30 WARNING, n≥30 OK)
+  - **Bootstrap confidence intervals**: 95% CIs for all intersectional metrics using E10 bootstrap infrastructure
+  - **Statistical power analysis**: Power calculations for detecting disparity in each intersectional group
+  - **Deterministic computation**: Fully seeded for byte-identical reproducibility
+  - **Automatic integration**: Runs alongside group fairness when `data.intersections` specified in config
+  - **JSON export**: All intersectional results serializable with nested structure
+  - Configuration: `data.intersections: ["gender*race", "age*income"]` in YAML
+  - CLI: Intersectional metrics included when intersections configured
+  - API: `compute_intersectional_fairness()`, `create_intersectional_groups()`, `parse_intersection_spec()`
+  - Test coverage: 23 tests covering parsing, group creation, metrics, CIs, sample warnings, determinism
+  - Module: `glassalpha.metrics.fairness.intersectional`
+  - Example: German Credit config updated with age×foreign_worker and gender×age intersections
+
 - **E11: Individual Fairness Metrics** (P0 Feature - Legal Risk Coverage)
 
   - **Consistency Score**: Lipschitz-like metric measuring prediction stability for similar individuals
@@ -45,9 +64,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **Fairness Metrics Runner**: Enhanced to compute bootstrap CIs, sample size warnings, and power analysis
+- **Config Schema**: Added `data.intersections` field for E5.1 intersectional fairness analysis
+  - Validates intersection format: must be `"attr1*attr2"` for two-way intersections
+  - Normalizes to lowercase and strips whitespace
+  - Example: `intersections: ["gender*race", "age_years*foreign_worker"]`
+- **Fairness Metrics Runner**: Enhanced to compute bootstrap CIs, sample size warnings, power analysis, and intersectional metrics
+  - New parameter: `intersections` list for specifying intersectional analysis
+  - Automatically computes intersectional fairness when intersections specified
+  - Results nested under `intersectional` key in output
 - **Audit Pipeline**:
   - Now passes seed to fairness runner for deterministic confidence intervals
+  - Now passes intersections config to fairness runner for E5.1 analysis
   - Now computes E11 individual fairness metrics alongside group fairness
   - Passes full feature DataFrame to fairness metrics for individual-level analysis
 - **AuditResults**: Fairness analysis now includes `sample_size_warnings`, `statistical_power`, `{metric}_ci`, and `individual_fairness` keys

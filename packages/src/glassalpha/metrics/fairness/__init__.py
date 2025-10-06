@@ -5,6 +5,7 @@ demographic groups, including demographic parity, equalized odds, and
 equal opportunity metrics.
 
 Includes E11: Individual fairness metrics for detecting disparate treatment.
+Includes E5.1: Basic intersectional fairness for two-way bias analysis.
 """
 
 from .individual import (
@@ -13,10 +14,18 @@ from .individual import (
     counterfactual_flip_test,
     find_matched_pairs,
 )
+from .intersectional import (
+    compute_intersectional_fairness,
+    create_intersectional_groups,
+    parse_intersection_spec,
+)
 
 __all__ = [
     "IndividualFairnessMetrics",
     "compute_consistency_score",
     "counterfactual_flip_test",
     "find_matched_pairs",
+    "compute_intersectional_fairness",
+    "create_intersectional_groups",
+    "parse_intersection_spec",
 ]
