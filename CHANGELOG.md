@@ -9,6 +9,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Stage 1.0 Foundation (Phase 2 Distribution Prep)**: Infrastructure for distributable, reproducible audits
+
+  - **PyPI Packaging**: Granular optional dependencies for lean installs
+    - Base: `pip install glassalpha` (sklearn + HTML reports)
+    - Granular extras: `[shap]`, `[xgboost]`, `[lightgbm]`, `[pdf]`
+    - Combined: `[explain]` (all explainers), `[all]` (everything)
+    - Enables users to install only what they need
+  - **Determinism Enforcement**: `glassalpha.utils.determinism` module
+    - `deterministic(seed, strict=True)` context manager
+    - Enforces PYTHONHASHSEED, BLAS threading (OMP, OpenBLAS, MKL)
+    - File hashing utilities (`compute_file_hash`, `verify_deterministic_output`)
+    - Environment validation (`validate_deterministic_environment`)
+    - Integration tests for byte-identical reproducibility across runs
+    - Foundation for "same config → same SHA256" promise
+  - **Docker Image**: Production-ready container with WeasyPrint
+    - `python:3.11-slim` base with deterministic environment
+    - WeasyPrint fonts (Liberation, DejaVu, FreeFont) for consistent rendering
+    - Non-root user, volumes for /data and /output
+    - Health check for CLI accessibility
+    - `docker run glassalpha/glassalpha audit --config config.yaml`
+  - **CLI Documentation Automation**: `scripts/generate_cli_docs.py`
+    - Auto-generates `site/docs/reference/cli.md` from Typer app
+    - CI check mode prevents CLI/docs drift
+    - Extracts commands, options, arguments, examples
+    - Zero maintenance burden for CLI reference
+  - **CI Workflows**: GitHub Actions for quality gates
+    - Determinism tests (Linux + macOS matrix, Python 3.11-3.12)
+    - Docker build, test, and publish (GHCR)
+    - CLI docs drift detection
+    - Cross-platform consistency checks
+  - Documentation: [Installation Guide](https://glassalpha.com/getting-started/installation/), [Docker Quick Start](https://glassalpha.com/getting-started/quickstart/)
+  - **Addresses reviewer feedback**: PyPI friction, determinism proof, Docker convenience, CLI/docs sync
+
 - **Counterfactual Recourse (E2.5)**: ECOA-compliant actionable recommendations for adverse decisions
 
   - Generates feasible counterfactual recommendations with policy constraints

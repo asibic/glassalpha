@@ -1,0 +1,60 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# CI/CD
+.github/
+.circleci/
+.travis.yml
+
+# Documentation site build
+site/site/
+
+# Test artifacts
+.pytest_cache/
+.coverage
+htmlcov/
+*.log
+
+# Development files
+*.md
+!packages/README.md
+!packages/MANIFEST.in
+LICENSE
+NOTICE
+SECURITY.md
+TRADEMARK.md
+
+# Configs and examples (users mount their own)
+configs/
+examples/
+
+# Temporary files
+*.tmp
+*.bak
+~*

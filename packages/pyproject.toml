@@ -43,17 +43,27 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# SHAP explainers and tree models - enables advanced explainers and models
-explain = ["shap>=0.44", "xgboost>=2.0", "lightgbm>=4.0"]
+# SHAP explainers - enables TreeSHAP, KernelSHAP
+shap = ["shap>=0.44"]
+
+# Tree model support - XGBoost, LightGBM
+xgboost = ["xgboost>=2.0"]
+lightgbm = ["lightgbm>=4.0"]
+
+# Combined explainer support (SHAP + tree models)
+explain = ["glassalpha[shap,xgboost,lightgbm]"]
 
 # Enhanced visualization dependencies (seaborn adds nicer defaults)
 viz = ["seaborn>=0.13"]
 
 # PDF generation dependencies (jinja2 is now in core)
-docs = [
+pdf = [
     "weasyprint>=63,<64; platform_system!='Windows'",
     "reportlab>=4.1; platform_system=='Windows'",
 ]
+
+# Docs alias for backward compatibility
+docs = ["glassalpha[pdf]"]
 
 # Development dependencies
 dev = [
@@ -63,11 +73,13 @@ dev = [
     "black>=23.0",
     "ruff>=0.6",
     "mypy>=1.11",
-    "pre-commit>=3.5"
+    "pre-commit>=3.5",
+    "pyyaml-stubs>=0.1.0",  # Type stubs for YAML
 ]
 
 # Everything - all optional features
-all = ["glassalpha[explain,viz,docs]"]
+all = ["glassalpha[explain,viz,pdf]"]
+
 # Enterprise dependencies (not included in OSS)
 # These would be in glassalpha-enterprise package
 # enterprise = [...]

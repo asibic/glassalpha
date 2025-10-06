@@ -1,0 +1,49 @@
+name: CLI Documentation Check
+
+on:
+    push:
+        branches: [main, develop]
+        paths:
+            - "packages/src/glassalpha/cli/**"
+            - "packages/scripts/generate_cli_docs.py"
+            - "site/docs/reference/cli.md"
+    pull_request:
+        branches: [main, develop]
+        paths:
+            - "packages/src/glassalpha/cli/**"
+            - "packages/scripts/generate_cli_docs.py"
+            - "site/docs/reference/cli.md"
+
+jobs:
+    check-cli-docs:
+        name: Check CLI Docs are Current
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Set up Python 3.11
+              uses: actions/setup-python@v5
+              with:
+                  python-version: "3.11"
+
+            - name: Install dependencies
+              run: |
+                  cd packages
+                  pip install --upgrade pip
+                  pip install -e "."
+
+            - name: Check CLI docs are up to date
+              run: |
+                  cd packages
+                  python scripts/generate_cli_docs.py --check
+
+            - name: Generate updated docs (if check failed)
+              if: failure()
+              run: |
+                  cd packages
+                  python scripts/generate_cli_docs.py --output ../site/docs/reference/cli.md
+                  echo "❌ CLI documentation is out of date"
+                  echo "Run: python packages/scripts/generate_cli_docs.py --output site/docs/reference/cli.md"
+                  echo "Then commit the updated cli.md file"
+                  exit 1
