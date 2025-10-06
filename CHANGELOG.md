@@ -84,6 +84,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Test coverage: 20+ contract tests covering determinism, edge cases, and integration
   - Module: `glassalpha.metrics.fairness.individual`
 
+- **E10+: Calibration Confidence Intervals** (P1 Feature - Statistical Rigor for Calibration)
+
+  - **Bootstrap CIs for ECE and Brier score**: 95% confidence intervals using deterministic bootstrap
+    - Reuses E10's bootstrap infrastructure for consistency
+    - Percentile method for CI computation (default: 1000 bootstrap samples)
+    - Standard error calculation for uncertainty quantification
+  - **Bin-wise CIs for calibration curve**: Error bars for observed frequency in each calibration bin
+    - Enables visualization of uncertainty in calibration curves
+    - Skips bins with <10 samples (insufficient for reliable bootstrap)
+    - Exports bin-wise lower/upper bounds for plotting
+  - **Backward compatible API**: Legacy `assess_calibration_quality()` still returns dict without CIs
+    - New parameter: `compute_confidence_intervals=True` enables CIs
+    - Returns `CalibrationResult` dataclass with optional CI fields
+  - **Deterministic computation**: Fully seeded for byte-identical reproducibility
+  - **JSON export**: All CIs serializable with `to_dict()` for programmatic access
+  - **Automatic integration**: Ready for audit pipeline integration (deferred to follow-on work)
+  - CLI: Calibration CIs available via API (PDF display deferred)
+  - API: `compute_calibration_with_ci()`, `compute_bin_wise_ci()`, `assess_calibration_quality(compute_confidence_intervals=True)`
+  - Module: `glassalpha.metrics.calibration.confidence`, `glassalpha.metrics.calibration.quality`
+  - Test coverage: 25+ contract tests + German Credit integration tests
+  - **Why P1**: Completes statistical rigor story (E10 covered fairness, E10+ covers calibration)
+
 - **E10: Statistical Confidence & Uncertainty for Fairness Metrics** (P0 Feature)
   - Bootstrap confidence intervals for all fairness metrics (TPR, FPR, precision, recall, demographic parity)
   - Deterministic bootstrap with seeded random sampling for byte-identical reproducibility
