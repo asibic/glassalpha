@@ -9,6 +9,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **E12: Dataset-Level Bias Audit** (P1 Feature - Root-Cause Bias Detection)
+
+  - **Proxy Correlation Detection**: Identifies non-protected features correlating with protected attributes
+    - Multi-level severity system: ERROR (|r|>0.5), WARNING (0.3<|r|≤0.5), INFO (|r|≤0.3)
+    - Pearson correlation for continuous-continuous pairs
+    - Point-biserial for continuous-categorical pairs
+    - Cramér's V for categorical-categorical pairs
+    - Flags potential indirect discrimination pathways
+  - **Distribution Drift Analysis**: Detects feature distribution shifts between train and test
+    - Kolmogorov-Smirnov test for continuous features
+    - Chi-square test for categorical features
+    - Identifies data quality issues and distribution mismatch
+  - **Statistical Power for Sampling Bias**: Power calculations for detecting undersampling
+    - Severity levels: ERROR (power<0.5), WARNING (0.5≤power<0.7), OK (power≥0.7)
+    - Detects insufficient sample sizes before model training
+    - Prevents false confidence in fairness metrics
+  - **Continuous Attribute Binning**: Configurable binning strategies for age and other continuous protected attributes
+    - Domain-specific bins (age: [18, 25, 35, 50, 65, 100])
+    - Custom bins (user-specified)
+    - Equal-width and equal-frequency strategies
+    - Binning recorded in manifest for reproducibility
+  - **Train/Test Split Imbalance Detection**: Chi-square tests for protected group distribution differences
+    - Flags biased data splitting (e.g., gender representation differs between splits)
+    - Prevents evaluation bias from imbalanced splits
+  - **Automatic Integration**: All 5 checks run before model evaluation in audit pipeline
+  - **JSON Export**: All results serializable for programmatic access
+  - **Deterministic**: Fully seeded for byte-identical reproducibility
+  - CLI: Dataset bias metrics included in standard audit output
+  - API: `compute_dataset_bias_metrics()`, `compute_proxy_correlations()`, `compute_distribution_drift()`, `compute_sampling_bias_power()`, `detect_split_imbalance()`, `bin_continuous_attribute()`
+  - Test coverage: 27 contract tests + 6 integration tests with German Credit dataset
+  - Module: `glassalpha.metrics.fairness.dataset`
+  - **Why critical**: Catches bias at the source (most unfairness originates in data, not models)
+
 - **E5.1: Basic Intersectional Fairness** (P1 Feature - Sophistication Signal)
 
   - **Two-way intersectional analysis**: Detects bias at intersections of protected attributes (e.g., gender×race, age×income)
