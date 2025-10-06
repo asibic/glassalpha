@@ -17,6 +17,12 @@ def _assert_using_pypa_build():
 
     import build
 
+    # build.__file__ can be None for namespace packages
+    if build.__file__ is None:
+        # If __file__ is None, check if build module has the expected attributes
+        assert hasattr(build, "ProjectBuilder"), "build module doesn't have ProjectBuilder (wrong package?)"
+        return
+
     build_path = pathlib.Path(build.__file__)
     assert "site-packages" in str(build_path), f"Local 'build' package shadowing PyPA build at {build_path}"
 
