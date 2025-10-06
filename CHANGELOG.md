@@ -9,6 +9,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **E6+: Adversarial Perturbation Sweeps** (P2 Feature - Robustness Verification)
+
+  - **Epsilon-perturbation stability testing**: Validates model robustness under small input changes
+    - Perturbs non-protected features by ε ∈ {0.01, 0.05, 0.1} (1%, 5%, 10% Gaussian noise)
+    - Measures max prediction delta (L∞ norm) across all samples
+    - Reports robustness score = max delta across epsilon values
+  - **Protected feature exclusion**: Never perturbs gender, race, or other sensitive attributes
+    - Prevents synthetic bias introduction during robustness testing
+    - Validates that all features marked protected are excluded
+  - **Gate logic**: Automatic PASS/FAIL/WARNING based on configurable threshold
+    - PASS: max_delta < threshold
+    - WARNING: threshold ≤ max_delta < 1.5 × threshold
+    - FAIL: max_delta ≥ 1.5 × threshold
+    - Default threshold: 0.15 (15% max prediction change)
+  - **Deterministic perturbations**: Fully seeded for byte-identical reproducibility
+    - Uses seeded Gaussian noise generation
+    - Stable sort for epsilon values
+  - **JSON export**: All results serializable for programmatic access
+    - Exports: robustness_score, max_delta, per_epsilon_deltas, gate_status, threshold
+  - **Conditional execution**: Only runs when `metrics.stability.enabled = true`
+  - **Automatic integration**: Runs after fairness/calibration in audit pipeline
+  - Configuration: `metrics.stability.enabled`, `metrics.stability.epsilon_values`, `metrics.stability.threshold`
+  - CLI: Perturbation results included when stability metrics enabled
+  - API: `run_perturbation_sweep()`, `PerturbationResult`
+  - Test coverage: 22 contract tests + German Credit integration (determinism, epsilon validation, gates, protected features)
+  - Module: `glassalpha.metrics.stability.perturbation`
+  - **Why critical**: Emerging regulator demand for robustness proofs (EU AI Act, NIST AI RMF), prevents adversarial failures
+
 - **E12: Dataset-Level Bias Audit** (P1 Feature - Root-Cause Bias Detection)
 
   - **Proxy Correlation Detection**: Identifies non-protected features correlating with protected attributes

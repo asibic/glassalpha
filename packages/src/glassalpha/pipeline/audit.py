@@ -36,6 +36,7 @@ class AuditResults:
     model_performance: dict[str, Any] = field(default_factory=dict)
     fairness_analysis: dict[str, Any] = field(default_factory=dict)
     drift_analysis: dict[str, Any] = field(default_factory=dict)
+    stability_analysis: dict[str, Any] = field(default_factory=dict)
     explanations: dict[str, Any] = field(default_factory=dict)
 
     # Data information
@@ -1103,6 +1104,9 @@ class AuditPipeline:
         if sensitive_features is not None:
             self._compute_fairness_metrics(y_true, y_pred, y_proba, sensitive_features, X)
 
+        # Compute stability metrics (E6+ perturbation sweeps)
+        self._compute_stability_metrics(X, sensitive_features)
+
         # Compute drift metrics (placeholder for now)
         self._compute_drift_metrics(X, y_true)
 
@@ -1441,6 +1445,73 @@ class AuditPipeline:
             # Store error in a way that won't break template rendering
             self.results.fairness_analysis = {}
             self.results.error_message = f"Fairness analysis failed: {e}"
+
+    def _compute_stability_metrics(
+        self,
+        X: pd.DataFrame,  # noqa: N803
+        sensitive_features: pd.DataFrame | None,
+    ) -> None:
+        """Compute stability metrics (E6+ perturbation sweeps).
+
+        Args:
+            X: Full feature DataFrame
+            sensitive_features: Sensitive attributes to exclude from perturbation
+
+        """
+        # Check if stability metrics are enabled
+        if not hasattr(self.config, "metrics") or not hasattr(self.config.metrics, "stability"):
+            logger.debug("Stability metrics not configured, skipping")
+            self.results.stability_analysis = {}
+            return
+
+        stability_config = self.config.metrics.stability
+        if stability_config is None or not stability_config.enabled:
+            logger.debug("Stability metrics disabled, skipping")
+            self.results.stability_analysis = {}
+            return
+
+        logger.debug("Computing stability metrics (E6+ perturbation sweeps)")
+
+        try:
+            from ..metrics.stability import run_perturbation_sweep  # noqa: PLC0415
+
+            # Get protected feature names
+            protected_features = []
+            if sensitive_features is not None:
+                protected_features = list(sensitive_features.columns)
+
+            # Get perturbation config
+            epsilon_values = stability_config.epsilon_values
+            threshold = stability_config.threshold
+            seed = get_component_seed("stability_perturbation")
+
+            # Run perturbation sweep
+            logger.info(
+                f"Running perturbation sweep: epsilon={epsilon_values}, threshold={threshold}, seed={seed}",
+            )
+
+            result = run_perturbation_sweep(
+                model=self.model,
+                X_test=X,
+                protected_features=protected_features,
+                epsilon_values=epsilon_values,
+                threshold=threshold,
+                seed=seed,
+            )
+
+            # Store results
+            self.results.stability_analysis = result.to_dict()
+            logger.info(
+                f"Stability metrics computed: robustness_score={result.robustness_score:.6f}, "
+                f"gate={result.gate_status}",
+            )
+
+        except Exception as e:
+            logger.error(f"Failed to compute stability metrics: {e}")
+            self.results.stability_analysis = {
+                "error": str(e),
+                "status": "failed",
+            }
 
     def _compute_drift_metrics(self, X: pd.DataFrame, y: np.ndarray) -> None:  # noqa: N803, ARG002
         """Compute drift metrics (placeholder implementation).
