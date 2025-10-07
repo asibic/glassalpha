@@ -19,13 +19,13 @@ from __future__ import annotations
 
 class GlassAlphaError(Exception):
     """Base exception for all GlassAlpha errors.
-    
+
     All GlassAlpha exceptions include:
     - code: Error code (e.g., "GAE1001")
     - message: Description of what went wrong
     - fix: How to fix it
     - docs: Link to documentation
-    
+
     Examples:
         >>> try:
         ...     raise GlassAlphaError(
@@ -36,6 +36,7 @@ class GlassAlphaError(Exception):
         ...     )
         ... except GlassAlphaError as e:
         ...     print(e.code, e.message, e.fix)
+
     """
 
     def __init__(
@@ -47,18 +48,19 @@ class GlassAlphaError(Exception):
         docs: str | None = None,
     ) -> None:
         """Initialize error with code, message, fix, and optional docs link.
-        
+
         Args:
             code: Error code (e.g., "GAE1001")
             message: Human-readable error description
             fix: Actionable fix suggestion
             docs: Optional URL to documentation
+
         """
         self.code = code
         self.message = message
         self.fix = fix
         self.docs = docs or f"https://glassalpha.com/errors/{code}"
-        
+
         # Format error for display
         error_text = f"[{code}] {message}\n\nFix: {fix}\nDocs: {self.docs}"
         super().__init__(error_text)
@@ -80,9 +82,10 @@ class InvalidProtectedAttributesError(GlassAlphaError):
 
     def __init__(self, reason: str) -> None:
         """Initialize with specific reason for invalid format.
-        
+
         Args:
             reason: Specific reason (e.g., "keys must be strings")
+
         """
         super().__init__(
             code="GAE1001",
@@ -96,11 +99,12 @@ class LengthMismatchError(GlassAlphaError):
 
     def __init__(self, expected: int, got: int, name: str) -> None:
         """Initialize with expected and actual lengths.
-        
+
         Args:
             expected: Expected length (n_samples)
             got: Actual length
             name: Name of mismatched array
+
         """
         super().__init__(
             code="GAE1003",
@@ -114,9 +118,10 @@ class NonBinaryClassificationError(GlassAlphaError):
 
     def __init__(self, n_classes: int) -> None:
         """Initialize with number of classes detected.
-        
+
         Args:
             n_classes: Number of unique classes
+
         """
         super().__init__(
             code="GAE1004",
@@ -130,9 +135,10 @@ class UnsupportedMissingPolicyError(GlassAlphaError):
 
     def __init__(self, policy: str) -> None:
         """Initialize with unsupported policy.
-        
+
         Args:
             policy: The unsupported policy name
+
         """
         super().__init__(
             code="GAE1005",
@@ -146,9 +152,10 @@ class NoPredictProbaError(GlassAlphaError):
 
     def __init__(self, model_type: str) -> None:
         """Initialize with model type.
-        
+
         Args:
             model_type: Type of model
+
         """
         super().__init__(
             code="GAE1008",
@@ -162,9 +169,10 @@ class AUCWithoutProbaError(GlassAlphaError):
 
     def __init__(self, metric: str) -> None:
         """Initialize with metric name.
-        
+
         Args:
             metric: Metric requiring probabilities (e.g., "roc_auc")
+
         """
         super().__init__(
             code="GAE1009",
@@ -178,9 +186,10 @@ class MultiIndexNotSupportedError(GlassAlphaError):
 
     def __init__(self, data_name: str) -> None:
         """Initialize with data name.
-        
+
         Args:
             data_name: Name of data with MultiIndex (e.g., "X")
+
         """
         super().__init__(
             code="GAE1012",
@@ -197,10 +206,11 @@ class ResultIDMismatchError(GlassAlphaError):
 
     def __init__(self, expected: str, got: str) -> None:
         """Initialize with expected and actual IDs.
-        
+
         Args:
             expected: Expected result ID
             got: Actual result ID
+
         """
         super().__init__(
             code="GAE2002",
@@ -214,11 +224,12 @@ class DataHashMismatchError(GlassAlphaError):
 
     def __init__(self, data_name: str, expected: str, got: str) -> None:
         """Initialize with data name and hashes.
-        
+
         Args:
             data_name: Name of data (e.g., "X", "y")
             expected: Expected hash
             got: Actual hash
+
         """
         super().__init__(
             code="GAE2003",
@@ -235,13 +246,13 @@ class FileExistsError(GlassAlphaError):
 
     def __init__(self, path: str) -> None:
         """Initialize with file path.
-        
+
         Args:
             path: Path to existing file
+
         """
         super().__init__(
             code="GAE4001",
             message=f"File already exists: {path}",
             fix="Use overwrite=True to replace existing file, or choose a different path",
         )
-

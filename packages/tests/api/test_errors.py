@@ -19,7 +19,6 @@ from glassalpha.exceptions import (
     UnsupportedMissingPolicyError,
 )
 
-
 # Mark as contract test (must pass before release)
 pytestmark = pytest.mark.contract
 
@@ -474,4 +473,3 @@ class TestErrorCodeCoverage:
             assert error.docs
             assert error.docs.startswith("https://")
             assert error.code in error.docs
-
