@@ -1,13 +1,10 @@
 """Tests to ensure parameter aliases work correctly."""
-# SKIPPED: Moved from /tests/ - needs API review
-import pytest
-pytestmark = pytest.mark.skip(reason="Moved from /tests/ - API review needed")
-
 
 import types
 
 import numpy as np
 import pandas as pd
+
 from glassalpha.pipeline.train import train_from_config
 
 
@@ -44,9 +41,7 @@ def test_num_boost_round_and_seed_aliases_work():
     n_estimators = getattr(underlying_model, "n_estimators", None)
     random_state = getattr(underlying_model, "random_state", None)
 
-    assert n_estimators is not None, (
-        "num_boost_round should have been converted to n_estimators"
-    )
+    assert n_estimators is not None, "num_boost_round should have been converted to n_estimators"
     assert random_state is not None, "seed should have been converted to random_state"
 
 
@@ -96,9 +91,7 @@ def test_multi_softmax_coercion():
 
     # Verify predict_proba works (would fail with multi:softmax)
     proba = model.predict_proba(X)
-    assert proba.shape == (len(X), 3), (
-        f"Expected shape ({len(X)}, 3), got {proba.shape}"
-    )
+    assert proba.shape == (len(X), 3), f"Expected shape ({len(X)}, 3), got {proba.shape}"
 
     # Verify probabilities sum to 1
     prob_sums = np.sum(proba, axis=1)

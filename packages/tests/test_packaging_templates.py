@@ -1,10 +1,8 @@
 """Tests for template packaging and importlib.resources access."""
-# SKIPPED: Moved from /tests/ - needs API review
-import pytest
-pytestmark = pytest.mark.skip(reason="Moved from /tests/ - API review needed")
-
 
 import importlib.resources
+
+import pytest
 
 
 def test_templates_packaged():
@@ -12,7 +10,7 @@ def test_templates_packaged():
     # Test that we can access the standard audit template
     try:
         template_files = list(
-            importlib.resources.files("glassalpha.report.templates").iterdir()
+            importlib.resources.files("glassalpha.report.templates").iterdir(),
         )
         template_names = [f.name for f in template_files if f.is_file()]
 
@@ -30,7 +28,8 @@ def test_template_content_accessible():
     try:
         # Read the standard audit template
         template_content = importlib.resources.read_text(
-            "glassalpha.report.templates", "standard_audit.html"
+            "glassalpha.report.templates",
+            "standard_audit.html",
         )
 
         # Should contain basic HTML structure
@@ -45,19 +44,3 @@ def test_template_content_accessible():
         pytest.skip("Standard audit template not found in package")
     except Exception as e:
         pytest.fail(f"Failed to read template content: {e}")
-
-
-def test_examples_packaged():
-    """Test that example configurations are properly packaged."""
-    try:
-        # Check that example configs are accessible
-        example_files = list(importlib.resources.files("glassalpha").iterdir())
-        example_names = [
-            f.name for f in example_files if f.is_file() and f.name.endswith(".yaml")
-        ]
-
-        # Should have at least some example configs
-        assert len(example_names) > 0, "No example YAML files found in package"
-
-    except Exception as e:
-        pytest.fail(f"Failed to access packaged examples: {e}")

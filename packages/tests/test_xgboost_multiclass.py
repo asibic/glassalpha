@@ -10,7 +10,7 @@ import pytest
 
 from glassalpha.models.tabular.xgboost import XGBoostWrapper
 
-pytestmark = pytest.mark.skip(reason="XGBoostWrapper API changed - tests need update")
+# Tests re-enabled - API appears compatible
 
 
 def test_multiclass_training():

@@ -209,9 +209,37 @@ class TestSklearnSaveLoadWithPreprocessing:
 
     def test_save_load_with_feature_names(self):
         """Test save/load preserves feature names."""
-        # Skip this test as save/load functionality has complex implementation details
-        # that require more setup. The core wrapper functionality is tested elsewhere.
-        pytest.skip("Save/load functionality requires complex setup - tested in integration tests")
+        import os
+        import tempfile
+
+        X, y = _create_test_data_binary()
+        wrapper = LogisticRegressionWrapper()
+        wrapper.fit(X, y)
+
+        # Save model
+        with tempfile.NamedTemporaryFile(suffix=".pkl", delete=False) as f:
+            temp_path = f.name
+
+        try:
+            wrapper.save(temp_path)
+
+            # Load model
+            loaded_wrapper = LogisticRegressionWrapper()
+            loaded_wrapper.load(temp_path)
+
+            # Verify predictions are identical
+            original_preds = wrapper.predict(X)
+            loaded_preds = loaded_wrapper.predict(X)
+            np.testing.assert_array_equal(original_preds, loaded_preds)
+
+            # Verify probabilities are identical
+            original_proba = wrapper.predict_proba(X)
+            loaded_proba = loaded_wrapper.predict_proba(X)
+            np.testing.assert_array_almost_equal(original_proba, loaded_proba)
+
+        finally:
+            if os.path.exists(temp_path):
+                os.unlink(temp_path)
 
     def test_save_load_with_preprocessing_pipeline(self):
         """Test save/load with sklearn preprocessing pipeline."""
@@ -243,13 +271,71 @@ class TestSklearnSaveLoadWithPreprocessing:
 
     def test_save_load_preserves_model_state(self):
         """Test that save/load preserves trained model state."""
-        # Skip this test as save/load functionality has complex implementation details
-        pytest.skip("Save/load functionality requires complex setup - tested in integration tests")
+        import os
+        import tempfile
+
+        X, y = _create_test_data_binary()
+        wrapper = LogisticRegressionWrapper()
+        wrapper.fit(X, y)
+
+        # Get model state before save
+        original_state = wrapper.model.coef_.copy()
+
+        # Save and load
+        with tempfile.NamedTemporaryFile(suffix=".pkl", delete=False) as f:
+            temp_path = f.name
+
+        try:
+            wrapper.save(temp_path)
+            loaded_wrapper = LogisticRegressionWrapper()
+            loaded_wrapper.load(temp_path)
+
+            # Verify model state is preserved
+            loaded_state = loaded_wrapper.model.coef_
+            np.testing.assert_array_almost_equal(original_state, loaded_state)
+
+            # Verify feature names are preserved
+            assert wrapper.feature_names_ == loaded_wrapper.feature_names_
+
+        finally:
+            if os.path.exists(temp_path):
+                os.unlink(temp_path)
 
     def test_save_load_with_custom_preprocessing(self):
         """Test save/load with custom preprocessing in wrapper."""
-        # Skip this test as save/load functionality has complex implementation details
-        pytest.skip("Save/load functionality requires complex setup - tested in integration tests")
+        import os
+        import tempfile
+
+        X, y = _create_test_data_binary()
+
+        # Create a custom wrapper with preprocessing
+        class CustomPreprocessingWrapper(SklearnGenericWrapper):
+            def _preprocess_features(self, X):
+                # Simple custom preprocessing - add a constant column
+                X_processed = X.copy()
+                X_processed["constant"] = 1.0
+                return X_processed
+
+        wrapper = CustomPreprocessingWrapper()
+        wrapper.fit(X, y)
+
+        # Save and load
+        with tempfile.NamedTemporaryFile(suffix=".pkl", delete=False) as f:
+            temp_path = f.name
+
+        try:
+            wrapper.save(temp_path)
+            loaded_wrapper = CustomPreprocessingWrapper()
+            loaded_wrapper.load(temp_path)
+
+            # Verify predictions work after load
+            original_preds = wrapper.predict(X)
+            loaded_preds = loaded_wrapper.predict(X)
+            np.testing.assert_array_equal(original_preds, loaded_preds)
+
+        finally:
+            if os.path.exists(temp_path):
+                os.unlink(temp_path)
 
 
 class TestSklearnWrapperAdvancedFeatures:
@@ -517,5 +603,30 @@ class TestSklearnWrapperAdvancedFeatures:
 
     def test_wrapper_save_load_with_large_model(self):
         """Test save/load with larger, more complex models."""
-        # Skip this test as save/load functionality has complex implementation details
-        pytest.skip("Save/load functionality requires complex setup - tested in integration tests")
+        import os
+        import tempfile
+
+        # Create larger dataset
+        X, y = _create_test_data_binary(n_samples=1000, n_features=20)
+
+        wrapper = LogisticRegressionWrapper()
+        wrapper.fit(X, y)
+
+        # Save and load
+        with tempfile.NamedTemporaryFile(suffix=".pkl", delete=False) as f:
+            temp_path = f.name
+
+        try:
+            wrapper.save(temp_path)
+            loaded_wrapper = LogisticRegressionWrapper()
+            loaded_wrapper.load(temp_path)
+
+            # Verify predictions work on subset
+            test_X = X[:100]
+            original_preds = wrapper.predict(test_X)
+            loaded_preds = loaded_wrapper.predict(test_X)
+            np.testing.assert_array_equal(original_preds, loaded_preds)
+
+        finally:
+            if os.path.exists(temp_path):
+                os.unlink(temp_path)

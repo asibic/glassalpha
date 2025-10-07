@@ -5,13 +5,6 @@ import regressions from build configuration issues.
 """
 
 
-def test_imports_surface():
-    """Test that core public modules can be imported."""
-    # Core modules that should always be importable
-
-    # Verify key classes can be imported from data package
-
-
 def test_relative_imports():
     """Test that internal relative imports work correctly."""
     # This tests the specific import that was failing in german_credit.py

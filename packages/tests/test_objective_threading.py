@@ -1,14 +1,11 @@
 """Tests to ensure multiclass objective and num_class configuration threads correctly."""
-# SKIPPED: Moved from /tests/ - needs API review
-import pytest
-pytestmark = pytest.mark.skip(reason="Moved from /tests/ - API review needed")
-
 
 import types
 
 import numpy as np
 import pandas as pd
 import pytest
+
 from glassalpha.pipeline.train import train_from_config
 
 
@@ -35,9 +32,7 @@ def test_multiclass_objective_and_num_class_threaded():
 
     # Verify predict_proba returns correct shape
     proba = model.predict_proba(X)
-    assert proba.shape == (len(X), 4), (
-        f"Expected shape ({len(X)}, 4), got {proba.shape}"
-    )
+    assert proba.shape == (len(X), 4), f"Expected shape ({len(X)}, 4), got {proba.shape}"
 
     # Verify probabilities sum to 1 (for softprob)
     prob_sums = np.sum(proba, axis=1)
@@ -67,9 +62,7 @@ def test_multiclass_auto_inference():
 
     # Verify predict_proba works
     proba = model.predict_proba(X)
-    assert proba.shape == (len(X), 3), (
-        f"Expected shape ({len(X)}, 3), got {proba.shape}"
-    )
+    assert proba.shape == (len(X), 3), f"Expected shape ({len(X)}, 3), got {proba.shape}"
 
 
 def test_binary_classification_threading():
@@ -95,9 +88,7 @@ def test_binary_classification_threading():
 
     # Verify predict_proba returns (n, 2) shape
     proba = model.predict_proba(X)
-    assert proba.shape == (len(X), 2), (
-        f"Expected shape ({len(X)}, 2), got {proba.shape}"
-    )
+    assert proba.shape == (len(X), 2), f"Expected shape ({len(X)}, 2), got {proba.shape}"
 
 
 def test_inconsistent_num_class_raises():
@@ -141,6 +132,7 @@ def test_binary_objective_with_multiclass_raises():
 
     # Should raise ValueError
     with pytest.raises(
-        ValueError, match="Binary objective .* incompatible with .* classes"
+        ValueError,
+        match="Binary objective .* incompatible with .* classes",
     ):
         train_from_config(cfg, X, y)

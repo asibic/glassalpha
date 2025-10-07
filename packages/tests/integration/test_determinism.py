@@ -288,14 +288,11 @@ class TestPDFDeterminism:
     """
 
     def test_pdf_generation_is_consistent(self, tmp_path, simple_config):
-        """Test PDF generation produces consistent output.
+        """Test PDF generation produces byte-identical output.
 
-        Note: This test currently checks for consistent file size and structure,
-        not byte-identical output, since full PDF metadata normalization
-        is not yet implemented.
+        This validates that PDF generation is deterministic under seeded runs
+        with proper metadata normalization.
         """
-        pytest.skip("PDF determinism requires full metadata normalization implementation")
-
         config_path, config = simple_config
 
         pdf1_path = tmp_path / "audit1.pdf"

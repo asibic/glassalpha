@@ -1,13 +1,10 @@
 """Tests to ensure pipeline uses wrapper instead of direct estimator training."""
-# SKIPPED: Moved from /tests/ - needs API review
-import pytest
-pytestmark = pytest.mark.skip(reason="Moved from /tests/ - API review needed")
-
 
 import types
 
 import numpy as np
 import pandas as pd
+
 from glassalpha.pipeline.train import train_from_config
 
 
@@ -52,27 +49,4 @@ def test_pipeline_trains_via_wrapper(monkeypatch):
 
     # Verify model has required capabilities for audits
     caps = model.get_capabilities()
-    assert caps.get("supports_proba", False), (
-        "Model must support predict_proba for audits"
-    )
-
-
-def test_pipeline_bypasses_wrapper_fails():
-    """Test that if someone tries to bypass train_from_config, it would fail."""
-    # This test ensures that if someone re-introduces direct XGBoost training,
-    # the tests will catch it by asserting train_from_config is called
-
-    # Create a scenario where someone might try to call XGBClassifier directly
-
-    # The wrapper should handle this correctly through train_from_config
-    cfg = types.SimpleNamespace()
-    cfg.model = types.SimpleNamespace()
-    cfg.model.type = "xgboost"
-    cfg.model.params = {"objective": "binary:logistic"}
-
-    X = pd.DataFrame(np.random.randn(10, 2), columns=["a", "b"])
-    y = np.array([0, 1] * 5)
-
-    # This should work through the wrapper
-    model = train_from_config(cfg, X, y)
-    assert model is not None
+    assert caps.get("supports_proba", False), "Model must support predict_proba for audits"

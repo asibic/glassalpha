@@ -1,14 +1,11 @@
 """Tests for configuration threading and parameter passing."""
-# SKIPPED: Moved from /tests/ - needs API review
-import pytest
-pytestmark = pytest.mark.skip(reason="Moved from /tests/ - API review needed")
-
 
 import types
 
 import numpy as np
 import pandas as pd
 import pytest
+
 from glassalpha.pipeline.train import train_from_config
 
 
@@ -82,4 +79,3 @@ def test_model_without_fit_raises():
     """Test that models without fit method raise appropriate errors."""
     # This would require mocking a model class that doesn't have fit
     # For now, we'll skip this test as it's harder to mock properly
-    pass

@@ -175,13 +175,73 @@ def normalize_pdf_metadata(
     dt = datetime.fromisoformat(fixed_timestamp.replace("Z", "+00:00"))
     pdf_date = dt.strftime("D:%Y%m%d%H%M%S")
 
-    # For now, just log - full implementation requires PDF library
-    # TODO: Implement full PDF metadata normalization using pypdf or similar
-    logger.warning(
-        f"PDF metadata normalization not fully implemented. "
-        f"For production use, integrate pypdf or similar library. "
-        f"PDF: {pdf_path}",
-    )
+    # Implement basic PDF metadata normalization
+    # This handles the most common sources of non-determinism in PDFs
+
+    try:
+        # Try to use pypdf if available (optional dependency)
+        from pypdf import PdfReader, PdfWriter
+        from pypdf.generic import DictionaryObject, NameObject, TextStringObject
+
+        # Read the PDF
+        reader = PdfReader(str(pdf_path))
+        writer = PdfWriter()
+
+        # Copy all pages
+        for page in reader.pages:
+            writer.add_page(page)
+
+        # Normalize metadata
+        if writer._info is None:
+            writer._info = DictionaryObject()
+
+        # Set fixed metadata values
+        info = writer._info
+
+        # Set fixed creation and modification dates
+        info[NameObject("/CreationDate")] = TextStringObject(pdf_date)
+        info[NameObject("/ModDate")] = TextStringObject(pdf_date)
+
+        # Set fixed producer and creator
+        info[NameObject("/Producer")] = TextStringObject(producer)
+        info[NameObject("/Creator")] = TextStringObject(creator)
+
+        # Remove or fix other potentially non-deterministic fields
+        fields_to_remove = ["/ID", "/DocumentID", "/InstanceID", "/WebStatement"]
+        for field in fields_to_remove:
+            if field in info:
+                del info[field]
+
+        # Write back to file
+        with open(pdf_path, "wb") as output_file:
+            writer.write(output_file)
+
+        logger.debug(f"Normalized PDF metadata for {pdf_path}")
+
+    except ImportError:
+        # Fallback: try basic text replacement (works for some PDF generators)
+        try:
+            content = pdf_path.read_bytes()
+
+            # Replace common timestamp patterns
+            import re
+
+            # Pattern for PDF date format: D:YYYYMMDDHHMMSS
+            date_pattern = rb"D:\d{14}"
+
+            # Replace with fixed date
+            fixed_content = re.sub(date_pattern, pdf_date.encode(), content)
+
+            # Write back
+            pdf_path.write_bytes(fixed_content)
+
+            logger.debug(f"Applied basic PDF timestamp normalization for {pdf_path}")
+
+        except Exception as e:
+            logger.warning(f"Could not normalize PDF metadata: {e}. PDF may not be byte-identical.")
+
+    except Exception as e:
+        logger.warning(f"Error during PDF metadata normalization: {e}. PDF may not be byte-identical.")
 
     # Placeholder for future implementation
     # Will use pypdf to properly parse and rewrite metadata

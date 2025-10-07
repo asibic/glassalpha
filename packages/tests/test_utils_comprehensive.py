@@ -17,6 +17,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from glassalpha.utils.determinism import compute_file_hash, normalize_pdf_metadata, verify_deterministic_output
 from glassalpha.utils.hashing import (
     hash_array,
     hash_config,
@@ -967,3 +968,80 @@ class TestUtilsErrorHandling:
 
         numpy_hash = hash_array(large_data)
         assert isinstance(numpy_hash, str)
+
+
+class TestDeterminismUtilities:
+    """Test determinism-related utility functions."""
+
+    def test_compute_file_hash(self, tmp_path):
+        """Test file hash computation."""
+        # Create test file
+        test_file = tmp_path / "test.txt"
+        test_content = b"Hello, World!"
+        test_file.write_bytes(test_content)
+
+        # Compute hash
+        file_hash = compute_file_hash(test_file)
+        assert isinstance(file_hash, str)
+        assert len(file_hash) > 0
+
+        # Hash should be consistent
+        file_hash2 = compute_file_hash(test_file)
+        assert file_hash == file_hash2
+
+    def test_compute_file_hash_different_files(self, tmp_path):
+        """Test that different files produce different hashes."""
+        file1 = tmp_path / "test1.txt"
+        file2 = tmp_path / "test2.txt"
+
+        file1.write_bytes(b"Content 1")
+        file2.write_bytes(b"Content 2")
+
+        hash1 = compute_file_hash(file1)
+        hash2 = compute_file_hash(file2)
+
+        assert hash1 != hash2
+
+    def test_verify_deterministic_output_identical(self, tmp_path):
+        """Test verification of identical files."""
+        test_file = tmp_path / "test.txt"
+        content = b"Identical content"
+        test_file.write_bytes(content)
+
+        # Copy to second file
+        test_file2 = tmp_path / "test2.txt"
+        test_file2.write_bytes(content)
+
+        # Should be identical
+        identical, hash1, hash2 = verify_deterministic_output(test_file, test_file2)
+        assert identical
+        assert hash1 == hash2
+
+    def test_verify_deterministic_output_different(self, tmp_path):
+        """Test verification of different files."""
+        file1 = tmp_path / "test1.txt"
+        file2 = tmp_path / "test2.txt"
+
+        file1.write_bytes(b"Content 1")
+        file2.write_bytes(b"Content 2")
+
+        # Should not be identical
+        identical, hash1, hash2 = verify_deterministic_output(file1, file2)
+        assert not identical
+        assert hash1 != hash2
+
+    def test_normalize_pdf_metadata_basic(self, tmp_path):
+        """Test PDF metadata normalization with basic text replacement."""
+        # Create a simple text file that mimics PDF content
+        pdf_file = tmp_path / "test.pdf"
+        # Write content that includes a timestamp pattern
+        content = b"D:20250101120000Some PDF content"
+        pdf_file.write_bytes(content)
+
+        # Normalize metadata
+        normalize_pdf_metadata(pdf_file)
+
+        # File should still exist and be readable
+        assert pdf_file.exists()
+        new_content = pdf_file.read_bytes()
+        assert isinstance(new_content, bytes)

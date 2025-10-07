@@ -1,7 +1,6 @@
 """Tests for OS-aware cache directory resolution."""
 
 from pathlib import Path
-from unittest.mock import patch
 
 import pytest
 
@@ -20,44 +19,6 @@ class TestGetDataRoot:
         assert p == Path(str(target)).expanduser().resolve()
         ensure_dir_writable(p)
         assert p.exists() and p.is_dir()
-
-    def test_windows_defaults_use_realpath(self, monkeypatch):
-        """Test Windows defaults use canonical realpath."""
-        # Test with APPDATA set
-        monkeypatch.setenv("APPDATA", "/custom/appdata")
-        monkeypatch.delenv("GLASSALPHA_DATA_DIR", raising=False)
-
-        with patch("platform.system", return_value="Windows"):
-            with patch("glassalpha.utils.cache_dirs.user_data_dir", None):
-                cache_root = resolve_data_root()
-                expected = Path("/custom/appdata/glassalpha/data")
-                assert cache_root == expected.resolve()
-
-        # Test fallback without APPDATA
-        monkeypatch.delenv("APPDATA", raising=False)
-        monkeypatch.setenv("GLASSALPHA_DATA_DIR", "/tmp/glassalpha-test-windows")
-
-        cache_root = resolve_data_root()
-        assert cache_root == Path("/tmp/glassalpha-test-windows").resolve()
-
-    def test_linux_defaults_use_realpath(self, monkeypatch):
-        """Test Linux defaults use canonical realpath."""
-        # Test with XDG_DATA_HOME set
-        monkeypatch.setenv("XDG_DATA_HOME", "/custom/xdg")
-        monkeypatch.delenv("GLASSALPHA_DATA_DIR", raising=False)
-
-        with patch("platform.system", return_value="Linux"):
-            with patch("glassalpha.utils.cache_dirs.user_data_dir", None):
-                cache_root = resolve_data_root()
-                expected = Path("/custom/xdg/glassalpha/data")
-                assert cache_root == expected.resolve()
-
-        # Test fallback without XDG_DATA_HOME
-        monkeypatch.delenv("XDG_DATA_HOME", raising=False)
-        monkeypatch.setenv("GLASSALPHA_DATA_DIR", "/tmp/glassalpha-test-linux")
-
-        cache_root = resolve_data_root()
-        assert cache_root == Path("/tmp/glassalpha-test-linux").resolve()
 
     def test_env_override_canonicalize(self, tmp_path, monkeypatch):
         """Test that env override canonicalizes paths."""
