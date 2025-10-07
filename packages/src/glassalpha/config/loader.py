@@ -218,17 +218,6 @@ def load_config(config_dict: dict[str, Any], profile_name: str | None = None, st
     if strict:
         config_dict["strict_mode"] = True
 
-    # Import warning utilities
-    from .warnings import (  # noqa: PLC0415
-        check_config_security,
-        suggest_config_improvements,
-        validate_config_completeness,
-        warn_unknown_keys,
-    )
-
-    # Check for security issues
-    check_config_security(config_dict)
-
     # Apply defaults and validate
     config_dict = apply_profile_defaults(config_dict, config_dict.get("audit_profile"))
 
@@ -237,26 +226,6 @@ def load_config(config_dict: dict[str, Any], profile_name: str | None = None, st
     config_dict = _substitute_env_vars(config_dict)
 
     audit_config = validate_config(config_dict)
-
-    # Warn about unknown keys in non-critical sections (routed to loader logger)
-    from . import warnings as warnmod  # noqa: PLC0415
-
-    # Store original logger to temporarily redirect warnings
-    original_warnmod_logger = warnmod.logger
-    warnmod.logger = logger
-
-    try:
-        warn_unknown_keys(config_dict, audit_config.report, "report")
-        if hasattr(audit_config, "recourse") and audit_config.recourse:
-            warn_unknown_keys(config_dict, audit_config.recourse, "recourse")
-    finally:
-        # Restore original logger
-        warnmod.logger = original_warnmod_logger
-
-    # Validate completeness and suggest improvements (unless in strict mode)
-    if not (audit_config.strict_mode or strict):
-        validate_config_completeness(config_dict)
-        suggest_config_improvements(config_dict)
 
     # Apply strict mode validation if enabled
     if audit_config.strict_mode or strict:

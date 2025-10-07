@@ -4,7 +4,7 @@ import warnings
 
 import pytest
 
-from glassalpha.config.schema import AuditConfig, ReportConfig
+from glassalpha.config.schema import AuditConfig
 from glassalpha.config.strict import (
     StrictModeError,
     enforce_strict_defaults,
@@ -12,7 +12,6 @@ from glassalpha.config.strict import (
     validate_reproducible_environment,
     validate_strict_mode,
 )
-from glassalpha.config.warnings import warn_unknown_keys
 
 
 def _create_valid_strict_config() -> dict:
@@ -410,24 +409,3 @@ def test_enforce_strict_defaults_preserves_seed():
 
     # Seed should be unchanged
     assert config.reproducibility.random_seed == 12345
-
-
-def test_warn_unknown_keys_logs_warning(caplog):
-    """Test that unknown keys generate warnings."""
-    raw_config = {"report": {"unknown_key": 1, "template": "standard"}}
-    report = ReportConfig(template="standard")
-
-    warn_unknown_keys(raw_config, report, "report")
-
-    assert any("unknown_key" in record.message for record in caplog.records)
-
-
-def test_warn_unknown_keys_no_warning_for_known(caplog):
-    """Test that known keys don't generate warnings."""
-    raw_config = {"report": {"template": "standard"}}
-    report = ReportConfig(template="standard")
-
-    warn_unknown_keys(raw_config, report, "report")
-
-    # Should not have warnings about 'template'
-    assert not any("template" in record.message for record in caplog.records if "unknown" in record.message.lower())

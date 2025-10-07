@@ -209,20 +209,10 @@ When adding new features, follow lazy loading patterns:
 # ❌ BAD: Eager import at module level
 from sklearn.model_selection import train_test_split
 
-def split_data(data):
-    return train_test_split(data)
-
 # ✅ GOOD: Lazy import within function
 def split_data(data):
     from sklearn.model_selection import train_test_split
     return train_test_split(data)
-
-# ✅ GOOD: __getattr__ pattern for backward compatibility
-def __getattr__(name):
-    if name == "load_german_credit":
-        from .german_credit import load_german_credit
-        return load_german_credit
-    raise AttributeError(f"module has no attribute {name!r}")
 ```
 
 **Check for Regressions:**
