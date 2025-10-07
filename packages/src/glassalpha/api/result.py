@@ -6,27 +6,26 @@ Phase 2: Core structure with deep immutability.
 from __future__ import annotations
 
 import types
+from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Mapping
+from typing import Any
 
 import numpy as np
-
-if TYPE_CHECKING:
-    pass
 
 
 def _freeze_array(arr: np.ndarray) -> np.ndarray:
     """Make array C-contiguous and read-only.
-    
+
     This ensures arrays in results cannot be mutated, maintaining
     audit integrity for compliance requirements.
-    
+
     Args:
         arr: Array to freeze
-        
+
     Returns:
         Read-only, C-contiguous copy of array
+
     """
     # Always create a copy to avoid modifying the original
     arr = np.array(arr, copy=True, order="C")
@@ -37,11 +36,11 @@ def _freeze_array(arr: np.ndarray) -> np.ndarray:
 @dataclass(frozen=True)
 class AuditResult:
     """Immutable audit result with deterministic ID.
-    
+
     All audit results are deeply immutable to ensure compliance integrity.
     Results can be compared via strict equality (result.id) or tolerance-based
     equality (result.equals()) for cross-platform reproducibility.
-    
+
     Attributes:
         id: SHA-256 hash of canonical result dict (deterministic)
         schema_version: Result schema version (e.g., "0.2.0")
@@ -52,12 +51,13 @@ class AuditResult:
         stability: Stability test results (StabilityMetrics)
         explanations: SHAP explanation summary (ExplanationSummary | None)
         recourse: Recourse generation summary (RecourseSummary | None)
-    
+
     Examples:
         >>> result = ga.audit.from_model(model, X, y, protected_attributes={"gender": gender})
         >>> result.performance.accuracy  # 0.847
         >>> result.to_pdf("audit.pdf")
         >>> config = result.to_config()  # For reproduction
+
     """
 
     # Core identity
@@ -89,10 +89,10 @@ class AuditResult:
 
     def __eq__(self, other: object) -> bool:
         """Strict equality via result.id.
-        
+
         Two results are equal if and only if their IDs match.
         This ensures byte-identical reproducibility for compliance.
-        
+
         For tolerance-based comparison, use result.equals().
         """
         if not isinstance(other, AuditResult):
@@ -101,7 +101,7 @@ class AuditResult:
 
     def __hash__(self) -> int:
         """Stable hash via result.id (first 16 hex chars).
-        
+
         Enables use in sets and as dict keys.
         Hash is stable across pickle round-trips.
         """
@@ -150,24 +150,25 @@ class AuditResult:
         atol: float = 1e-8,
     ) -> bool:
         """Tolerance-based equality across all metrics.
-        
+
         Use this for cross-platform reproducibility testing where
         floating point differences may occur due to different BLAS
         implementations or CPU architectures.
-        
+
         Args:
             other: Result to compare against
             rtol: Relative tolerance (default: 1e-5)
             atol: Absolute tolerance (default: 1e-8)
-            
+
         Returns:
             True if all metrics match within tolerance
-            
+
         Examples:
             >>> result1 == result2  # Strict: byte-identical IDs
             False
             >>> result1.equals(result2, rtol=1e-5)  # Tolerant: float differences OK
             True
+
         """
         if self.id == other.id:
             return True
@@ -207,20 +208,20 @@ class AuditResult:
 
     def _repr_html_(self) -> str:
         """Rich display in Jupyter (O(1) complexity).
-        
+
         Shows high-level summary without computing expensive metrics.
         """
         # Type-guard formatting to prevent crashes
         perf = dict(self.performance)
 
-        acc = perf.get("accuracy", None)
+        acc = perf.get("accuracy")
         acc_str = f"{acc:.3f}" if isinstance(acc, (int, float)) else "N/A"
 
-        auc = perf.get("roc_auc", None)
+        auc = perf.get("roc_auc")
         auc_str = f"{auc:.3f}" if isinstance(auc, (int, float)) else "N/A"
 
         fair = dict(self.fairness)
-        dp_max = fair.get("demographic_parity_max_diff", None)
+        dp_max = fair.get("demographic_parity_max_diff")
         dp_str = f"{dp_max:.3f}" if isinstance(dp_max, (int, float)) else "N/A"
 
         return f"""
@@ -238,12 +239,13 @@ class AuditResult:
 
     def summary(self) -> dict[str, Any]:
         """Lightweight summary for logging (O(1)).
-        
+
         Returns dictionary with key metrics for quick inspection.
         Does not compute expensive operations.
-        
+
         Returns:
             Dictionary with id, schema_version, and key metrics
+
         """
         return {
             "id": self.id[:16],
@@ -262,16 +264,17 @@ class AuditResult:
 
     def to_json(self, path: str | Path, *, overwrite: bool = False) -> None:
         """Export to JSON with atomic write.
-        
+
         Uses same canonicalization as result.id computation
         (strict JSON, NaN→null, Inf→sentinel).
-        
+
         Args:
             path: Output path for JSON file
             overwrite: If True, overwrite existing file
-            
+
         Raises:
             GlassAlphaError: If file exists and overwrite=False
+
         """
         # Phase 3: Will implement with full export logic
         msg = "to_json() will be implemented in Phase 3"
@@ -279,13 +282,14 @@ class AuditResult:
 
     def to_pdf(self, path: str | Path, *, overwrite: bool = False) -> None:
         """Export to PDF with atomic write.
-        
+
         Args:
             path: Output path for PDF file
             overwrite: If True, overwrite existing file
-            
+
         Raises:
             GlassAlphaError: If file exists and overwrite=False
+
         """
         # Phase 3: Will implement with full export logic
         msg = "to_pdf() will be implemented in Phase 3"
@@ -293,16 +297,17 @@ class AuditResult:
 
     def to_config(self) -> dict[str, Any]:
         """Generate config dict for reproduction.
-        
+
         Returns dict with all parameters needed to reproduce this result:
         - model fingerprint
         - data hashes (with "sha256:" prefix)
         - protected attributes (categories + order)
         - random seed
         - expected result ID
-        
+
         Returns:
             Dictionary with reproduction parameters
+
         """
         return {
             "model": {
@@ -323,15 +328,15 @@ class AuditResult:
 
     def save(self, directory: str | Path, *, overwrite: bool = False) -> None:
         """Save result + config + manifest to directory.
-        
+
         Args:
             directory: Output directory path
             overwrite: If True, overwrite existing directory
-            
+
         Raises:
             GlassAlphaError: If directory exists and overwrite=False
+
         """
         # Phase 3: Will implement with full export logic
         msg = "save() will be implemented in Phase 3"
         raise NotImplementedError(msg)
-

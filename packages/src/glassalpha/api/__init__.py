@@ -1,18 +1,14 @@
-"""GlassAlpha Public API
+"""GlassAlpha API: Public audit interface.
 
-This module provides the primary entry points for audit generation.
-
-Phase 1: Stub for lazy loading validation
-Phase 2+: Full implementation
+Phase 3: Exports audit entry points and result classes.
 """
 
-# Will be implemented in Phase 3
-# from .audit import from_model, from_predictions, from_config
-# from .result import AuditResult
+from glassalpha.api.audit import from_config, from_model, from_predictions
+from glassalpha.api.result import AuditResult
 
 __all__ = [
-    # "from_model",
-    # "from_predictions",
-    # "from_config",
-    # "AuditResult",
+    "AuditResult",
+    "from_model",
+    "from_predictions",
+    "from_config",
 ]

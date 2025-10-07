@@ -18,7 +18,6 @@ from glassalpha.api.metrics import (
 )
 from glassalpha.api.result import AuditResult, _freeze_array
 
-
 # Mark as contract test (must pass before release)
 pytestmark = pytest.mark.contract
 
@@ -532,4 +531,3 @@ class TestAuditResultMethods:
         """save() raises NotImplementedError (Phase 3)."""
         with pytest.raises(NotImplementedError):
             sample_result.save("output_dir")
-

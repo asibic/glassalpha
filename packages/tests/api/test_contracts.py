@@ -56,25 +56,26 @@ class TestLazyLoading:
         import glassalpha as ga
 
         # Check audit not loaded yet
-        assert "glassalpha.api.audit" not in sys.modules, "audit module should not be loaded until accessed"
+        assert "glassalpha.api" not in sys.modules, "audit module should not be loaded until accessed"
 
     def test_audit_loads_on_access(self):
         """Audit module loads when accessed"""
         import glassalpha as ga
 
         # Remove audit module if present
-        if "glassalpha.api.audit" in sys.modules:
-            del sys.modules["glassalpha.api.audit"]
+        if "glassalpha.api" in sys.modules:
+            del sys.modules["glassalpha.api"]
 
         # Access audit attribute (will trigger lazy load)
-        try:
-            _ = ga.audit
-        except (ImportError, AttributeError):
-            # Module doesn't exist yet (Phase 3), that's ok
-            pass
-        else:
-            # If it loaded, verify it's in sys.modules
-            assert "glassalpha.api.audit" in sys.modules, "audit module should be in sys.modules after access"
+        _ = ga.audit
+
+        # Verify it loaded
+        assert "glassalpha.api" in sys.modules, "audit module should be in sys.modules after access"
+
+        # Verify entry points are accessible
+        assert hasattr(ga.audit, "from_model")
+        assert hasattr(ga.audit, "from_predictions")
+        assert hasattr(ga.audit, "from_config")
 
     def test_datasets_lazy_loads(self):
         """Datasets module loads on access"""

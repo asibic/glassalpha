@@ -15,7 +15,7 @@ __all__ = [
 
 # Lazy module loading (PEP 562)
 _LAZY_MODULES = {
-    "audit": "glassalpha.api.audit",
+    "audit": "glassalpha.api",  # Maps to glassalpha.api (contains from_model, etc.)
     "datasets": "glassalpha.datasets",
     "utils": "glassalpha.utils",
 }
