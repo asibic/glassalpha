@@ -260,7 +260,7 @@ def test_config_flexibility_integration():
     # Config with various issues that should generate warnings but not fail
     flexible_config = {
         "audit_profile": "test_profile",
-        "random_seed": 42,  # Deprecated
+        "reproducibility": {"random_seed": 42},  # Deprecated top-level format
         "data": {
             "dataset": "custom",
             "path": "/Users/testuser/data.csv",  # Security warning

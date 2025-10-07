@@ -8,6 +8,7 @@ feature management system that enable the plugin architecture.
 # This ensures models are registered when core is imported
 import glassalpha.models  # noqa: F401
 
+from ..data.base import DataInterface
 from .features import (
     FeatureNotAvailable,
     check_feature,
@@ -15,7 +16,6 @@ from .features import (
 )
 from .interfaces import (
     AuditProfileInterface,
-    DataInterface,
     ExplainerInterface,
     MetricInterface,
     ModelInterface,

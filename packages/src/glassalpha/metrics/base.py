@@ -124,11 +124,11 @@ class NoOpMetric(BaseMetric):
     no real metrics are available or for testing the metric system.
     """
 
-    metric_type = "noop"
+    metric_type = "performance"
 
     def __init__(self):
         """Initialize NoOp metric."""
-        super().__init__("noop_metric", "noop", "1.0.0")
+        super().__init__("noop_metric", "performance", "1.0.0")
         logger.info("NoOpMetric initialized")
 
     def compute(

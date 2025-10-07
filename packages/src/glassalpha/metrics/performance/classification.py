@@ -51,6 +51,7 @@ class AccuracyMetric(BaseMetric):
     """
 
     metric_type = "performance"
+    version = "1.0.0"
 
     def __init__(self):
         """Initialize accuracy metric."""
@@ -104,6 +105,7 @@ class PrecisionMetric(BaseMetric):
     """
 
     metric_type = "performance"
+    version = "1.0.0"
 
     def __init__(self, average: str = "binary"):
         """Initialize precision metric.
@@ -175,6 +177,7 @@ class RecallMetric(BaseMetric):
     """
 
     metric_type = "performance"
+    version = "1.0.0"
 
     def __init__(self, average: str = "binary"):
         """Initialize recall metric.
@@ -245,6 +248,7 @@ class F1Metric(BaseMetric):
     """
 
     metric_type = "performance"
+    version = "1.0.0"
 
     def __init__(self, average: str = "binary"):
         """Initialize F1 metric.
@@ -315,6 +319,7 @@ class AUCROCMetric(BaseMetric):
     """
 
     metric_type = "performance"
+    version = "1.0.0"
 
     def __init__(self, multiclass: str = "ovr"):
         """Initialize AUC-ROC metric.

@@ -28,6 +28,7 @@ class DemographicParityMetric(BaseMetric):
     """
 
     metric_type = "fairness"
+    version = "1.0.0"
 
     def __init__(self, tolerance: float = 0.1):
         """Initialize demographic parity metric.
@@ -173,6 +174,7 @@ class EqualOpportunityMetric(BaseMetric):
     """
 
     metric_type = "fairness"
+    version = "1.0.0"
 
     def __init__(self, tolerance: float = 0.1):
         """Initialize equal opportunity metric.
@@ -327,6 +329,7 @@ class EqualizedOddsMetric(BaseMetric):
     """
 
     metric_type = "fairness"
+    version = "1.0.0"
 
     def __init__(self, tolerance: float = 0.1):
         """Initialize equalized odds metric.
