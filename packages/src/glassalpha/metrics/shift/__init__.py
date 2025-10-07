@@ -33,11 +33,14 @@ from .reweighting import (
     parse_shift_spec,
     validate_shift_feasibility,
 )
+from .runner import ShiftAnalysisResult, run_shift_analysis
 
 __all__ = [
+    "ShiftAnalysisResult",
     "ShiftReweighter",
     "ShiftSpecification",
     "compute_shifted_weights",
     "parse_shift_spec",
+    "run_shift_analysis",
     "validate_shift_feasibility",
 ]
