@@ -47,6 +47,65 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Documentation: [Shift Testing Guide](site/docs/guides/shift-testing.md) with CI/CD integration examples
   - **Why critical**: Regulatory stress testing (EU AI Act), production readiness validation, CI/CD deployment gates
 
+- **E8: SR 11-7 Compliance Mapping Document** (P1 Feature - Banking Regulatory Guidance)
+
+  - **Comprehensive clause-to-artifact mapping**: Maps all SR 11-7 sections to specific GlassAlpha features
+    - Section III.A (Documentation, Testing, Monitoring) → Audit PDF, Shift Testing, CI/CD
+    - Section III.B (Validation, Sensitivity, Outcomes) → Calibration, Perturbations, Recourse
+    - Section III.C (Assumptions, Data Quality, Limitations) → Manifests, Dataset Bias, Model Card
+    - Section IV (Independence, Evidence) → Reproducibility, Evidence Packs
+    - Section V (Fairness) → Group, Intersectional, Individual Fairness
+  - **Examiner Q&A examples**: Ready-to-use responses for common audit questions
+  - **Citation templates**: How to reference GlassAlpha artifacts in compliance documentation
+  - **Quick reference table**: One-page summary of SR 11-7 coverage
+  - **Validation workflows**: Commands demonstrating reproducibility and independence
+  - **Evidence pack structure**: Complete audit bundle for regulatory submission
+  - **Sample size guidance**: Statistical power requirements per protected group
+  - **Monitoring integration**: CI/CD examples for ongoing model risk management
+  - Documentation: [SR 11-7 Mapping](site/docs/compliance/sr-11-7-mapping.md)
+  - **Why critical**: Enables banking institutions to demonstrate SR 11-7 compliance, supports regulatory audits
+
+- **E9: README Positioning Refresh** (P1 Feature - Distribution & Adoption)
+
+  - **Pain-first messaging**: Opens with "Ever tried explaining your ML model to a regulator?"
+  - **Policy-as-code emphasis**: Shows YAML-based compliance rules, not dashboards
+  - **Feature highlights**: Comprehensive listing of completed E-series features
+    - Compliance & Fairness: E5, E5.1, E10, E11, E12
+    - Explainability & Outcomes: E2, E2.5
+    - Robustness & Stability: E6, E6+, E6.5, E10+
+    - Regulatory Compliance: SR 11-7, Evidence Packs, Reproducibility
+  - **Statistical rigor positioning**: "95% confidence intervals on everything"
+  - **Byte-identical reproducibility**: SHA256-verified evidence packs
+  - **CI/CD deployment gates**: Shift testing examples with `--fail-on-degradation`
+  - **Three-part differentiation**: Policy-as-code, reproducibility, statistical confidence
+  - **Why critical**: Improves conversion from repo visitors to users, positions against dashboards/SaaS tools
+
+- **1.2C: QuickStart CLI Generator** (P0 Feature - Onboarding & Adoption)
+
+  - **Complete project scaffolding**: `glassalpha quickstart` generates ready-to-run audit projects
+    - Directory structure: data/, models/, reports/, configs/
+    - Audit configuration file (audit_config.yaml) with sensible defaults
+    - Example run script (run_audit.py) demonstrating programmatic API
+    - Project README with next steps and advanced usage examples
+    - .gitignore tailored for GlassAlpha projects
+  - **Interactive mode**: Guided prompts for dataset and model selection
+    - Dataset choices: German Credit (1K samples), Adult Income (48K samples)
+    - Model choices: XGBoost (recommended), LightGBM (fast), Logistic Regression (simple)
+    - Customizable project name
+  - **Non-interactive mode**: Command-line flags for CI/CD automation
+    - `--dataset`, `--model`, `--output` flags
+    - `--no-interactive` for scripted project generation
+  - **Time-to-first-audit**: <60 seconds from install to generated audit report
+    - `cd my-audit-project && python run_audit.py`
+    - No manual config editing required for built-in datasets
+  - **Documentation included**: Every generated project includes README with:
+    - Quick start (3 commands to first audit)
+    - CI/CD integration examples
+    - Custom data setup instructions
+    - Links to user guides and documentation
+  - CLI: `glassalpha quickstart` (interactive), `glassalpha quickstart --dataset german_credit --model xgboost --no-interactive`
+  - **Why critical**: Eliminates onboarding friction, enables immediate value demonstration
+
 - **E6+: Adversarial Perturbation Sweeps** (P2 Feature - Robustness Verification)
 
   - **Epsilon-perturbation stability testing**: Validates model robustness under small input changes
