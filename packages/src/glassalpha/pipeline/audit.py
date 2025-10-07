@@ -774,6 +774,7 @@ class AuditPipeline:
             # Generate explanations with progress settings
             # Note: PermutationExplainer requires y parameter, other explainers ignore it
             explanations = self.explainer.explain(
+                self.model,  # Model instance (required by explainer interface)
                 X_processed,
                 y=y_target,  # Required for PermutationExplainer
                 show_progress=True,  # Enable progress by default
@@ -1447,6 +1448,13 @@ class AuditPipeline:
         # Get seed for deterministic bootstrap CIs (global seed already set in _setup_reproducibility)
         seed = get_component_seed("fairness_ci")
 
+        # Get intersections from config (E5.1 - Intersectional Fairness)
+        intersections = []
+        if hasattr(self.config, "data") and hasattr(self.config.data, "intersections"):
+            intersections = self.config.data.intersections
+        elif isinstance(self.config, dict):
+            intersections = self.config.get("data", {}).get("intersections", [])
+
         try:
             fairness_results = run_fairness_metrics(
                 y_true,
@@ -1457,6 +1465,7 @@ class AuditPipeline:
                 n_bootstrap=1000,
                 confidence_level=0.95,
                 seed=seed,
+                intersections=intersections,  # E5.1: Pass intersections from config
             )
 
             # E11: Compute individual fairness metrics
