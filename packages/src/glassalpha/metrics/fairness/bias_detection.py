@@ -471,6 +471,7 @@ class PredictiveParityMetric(BaseMetric):
     """
 
     metric_type = "fairness"
+    version = "1.0.0"
 
     def __init__(self, tolerance: float = 0.1):
         """Initialize predictive parity metric.

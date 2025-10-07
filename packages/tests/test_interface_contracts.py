@@ -21,7 +21,13 @@ def test_all_models_satisfy_interface():
     model_names = ModelRegistry.names()
 
     # Filter out internal test models and test fixtures
-    production_models = [name for name in model_names if name not in ["passthrough", "enterprise_model", "test_model"]]
+    # Use pattern matching to exclude any test fixtures that may be registered during test runs
+    production_models = [
+        name
+        for name in model_names
+        if name not in ["passthrough"]
+        and not any(pattern in name.lower() for pattern in ["test", "enterprise", "oss", "mock"])
+    ]
 
     for name in production_models:
         try:
@@ -51,10 +57,12 @@ def test_all_explainers_satisfy_interface():
     explainer_names = ExplainerRegistry.names()
 
     # Filter out aliases and internal test explainers
+    # Use pattern matching to exclude any test fixtures that may be registered during test runs
+    aliases = ["coef", "coeff", "perm", "permutation_importance"]
     primary_explainers = [
         name
         for name in explainer_names
-        if name not in ["coef", "coeff", "perm", "permutation_importance", "enterprise_best", "test_explainer"]
+        if name not in aliases and not any(pattern in name.lower() for pattern in ["test", "enterprise", "oss", "mock"])
     ]
 
     for name in primary_explainers:
@@ -91,10 +99,12 @@ def test_all_metrics_satisfy_interface():
     metric_names = MetricRegistry.names()
 
     # Filter out noop metric and test fixtures
+    # Use pattern matching to exclude any test fixtures that may be registered during test runs
     production_metrics = [
         name
         for name in metric_names
-        if name not in ["noop", "noop_metric", "test_metric1", "test_metric2", "test_metric3"]
+        if name not in ["noop", "noop_metric"]
+        and not any(pattern in name.lower() for pattern in ["test", "enterprise", "oss", "mock"])
     ]
 
     for name in production_metrics:
@@ -196,9 +206,10 @@ def test_no_protocol_violations():
             continue
 
     # All explainers should declare priorities
-    test_explainers = ["coef", "coeff", "perm", "permutation_importance", "enterprise_best", "test_explainer"]
+    aliases = ["coef", "coeff", "perm", "permutation_importance"]
     for name in ExplainerRegistry.names():
-        if name in test_explainers:  # Skip aliases and test fixtures
+        # Skip aliases and test fixtures
+        if name in aliases or any(pattern in name.lower() for pattern in ["test", "enterprise", "oss", "mock"]):
             continue
 
         try:
@@ -211,9 +222,11 @@ def test_no_protocol_violations():
             continue
 
     # All metrics should declare metric_type
-    test_metrics = ["noop", "noop_metric", "test_metric1", "test_metric2", "test_metric3"]
     for name in MetricRegistry.names():
-        if name in test_metrics:  # Skip noop metric and test fixtures
+        # Skip noop metric and test fixtures
+        if name in ["noop", "noop_metric"] or any(
+            pattern in name.lower() for pattern in ["test", "enterprise", "oss", "mock"]
+        ):
             continue
 
         try:
