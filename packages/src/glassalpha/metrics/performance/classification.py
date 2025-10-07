@@ -407,6 +407,7 @@ class ClassificationReportMetric(BaseMetric):
     """
 
     metric_type = "performance"
+    version = "1.0.0"
 
     def __init__(self):
         """Initialize classification report metric."""
