@@ -22,6 +22,8 @@ Credit scoring models must comply with fair lending laws including:
 - **Fair Credit Reporting Act (FCRA)** - Requires accuracy and fairness in credit reporting
 - **GDPR Article 22** - Right to explanation for automated decision-making
 
+**Industry Context**: For banking-specific compliance requirements (SR 11-7, ECOA, FCRA), see the [Banking Compliance Guide](../compliance/banking-guide.md).
+
 ## Prerequisites
 
 - GlassAlpha installed ([Installation Guide](../getting-started/installation.md))

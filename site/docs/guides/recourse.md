@@ -728,8 +728,19 @@ glassalpha recourse \
 
 ## Related Documentation
 
-- [Reason Codes Guide](reason-codes.md) - E2 feature for adverse action notices
+- [Reason Codes Guide](reason-codes.md) - Adverse action notices (ECOA requirement)
 - [CLI Reference](../reference/cli.md) - Complete CLI documentation
+
+### Industry-Specific Guidance
+
+- **[Banking Compliance Guide](../compliance/banking-guide.md)** - Recourse for credit decisions (SR 11-7, ECOA)
+- **[Insurance Compliance Guide](../compliance/insurance-guide.md)** - Recourse for underwriting decisions
+- **[Fraud Detection Guide](../compliance/fraud-guide.md)** - Contestability for fraud flags
+
+### Workflow Guides
+
+- **[Compliance Officer Workflow](compliance-workflow.md)** - Evidence generation and regulator communication
+- **[ML Engineer Workflow](ml-engineer-workflow.md)** - Integration and debugging
 
 ## Support
 

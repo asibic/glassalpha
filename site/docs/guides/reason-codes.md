@@ -510,7 +510,13 @@ glassalpha reasons \
 - **[Configuration Guide](../getting-started/configuration.md)** - Full config options
 - **[CLI Reference](../reference/cli.md)** - All CLI commands
 - **[Quick Start Guide](../getting-started/quickstart.md)** - Generate your first audit
-- **Recourse Guide** - Actionable recommendations (coming in E2.5)
+- **[Recourse Guide](recourse.md)** - Actionable recommendations
+
+## Industry-Specific Guidance
+
+- **[Banking Compliance Guide](../compliance/banking-guide.md)** - ECOA adverse action requirements for credit models
+- **[Fraud Detection Guide](../compliance/fraud-guide.md)** - FCRA adverse action requirements for fraud models
+- **[Compliance Officer Workflow](compliance-workflow.md)** - Evidence packs and regulator communication
 
 ## Support
 

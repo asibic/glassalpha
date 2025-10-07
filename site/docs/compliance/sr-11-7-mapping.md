@@ -8,6 +8,16 @@ This document maps **GlassAlpha features** to **SR 11-7 requirements** (Federal 
 
 **Scope**: Banking institutions using ML models for credit decisions, risk assessment, and other regulated activities.
 
+## Related Guides
+
+This is a **technical reference** document mapping GlassAlpha features to specific SR 11-7 clauses. For practical guidance, see:
+
+- **[Banking Compliance Guide](banking-guide.md)** - Workflow for credit models, loan pricing, fraud detection (SR 11-7, ECOA, FCRA)
+- **[Compliance Officer Workflow](../guides/compliance-workflow.md)** - Evidence pack generation, policy gates, regulator communication
+- **[ML Engineer Workflow](../guides/ml-engineer-workflow.md)** - Implementation details, CI integration, debugging
+
+**New to SR 11-7?** Start with the [Banking Compliance Guide](banking-guide.md) for an overview, then return here for clause-by-clause details.
+
 ## Quick Reference Table
 
 | SR 11-7 Section | Requirement Summary             | GlassAlpha Artifact                    | Location in Audit        |
@@ -564,11 +574,30 @@ All limitations quantified with statistical measures, not qualitative statements
 
 ## Related Resources
 
-- [Fair Lending Compliance (ECOA)](./ecoa-compliance.md)
-- [EU AI Act Mapping](./eu-ai-act-mapping.md)
-- [NAIC Model Risk Framework](./naic-mapping.md)
-- [GlassAlpha User Guides](../guides/)
+### Compliance Guides
+
+- [Banking Compliance Guide](banking-guide.md) - SR 11-7, ECOA, FCRA workflows
+- [Compliance Overview](index.md) - Role/industry navigation
+- [Trust & Deployment](../reference/trust-deployment.md) - Reproducibility and audit trails
+
+### Workflow Guides
+
+- [Compliance Officer Workflow](../guides/compliance-workflow.md) - Evidence packs, policy gates
+- [ML Engineer Workflow](../guides/ml-engineer-workflow.md) - Implementation, CI integration
+- [Model Validator Workflow](../guides/validator-workflow.md) - Independent verification
+
+### Feature Guides
+
+- [Reason Codes Guide](../guides/reason-codes.md) - ECOA-compliant adverse action notices
+- [Recourse Guide](../guides/recourse.md) - Counterfactual recommendations
+- [Shift Testing Guide](../guides/shift-testing.md) - Demographic robustness testing
+- [Preprocessing Guide](../guides/preprocessing.md) - Artifact verification
+
+### Examples
+
+- [German Credit Audit](../examples/german-credit-audit.md) - Complete credit scoring audit
+- [Fraud Detection](../examples/fraud-detection-audit.md) - Fraud model audit
 
 ---
 
-**Questions?** Contact your compliance officer or [file an issue](https://github.com/glassalpha/glassalpha/issues) for GlassAlpha support.
+**Questions?** See [Troubleshooting](../reference/troubleshooting.md) or contact [support](mailto:contact@glassalpha.com).

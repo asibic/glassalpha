@@ -20,6 +20,8 @@ This example demonstrates using GlassAlpha to detect bias in healthcare AI syste
 - Age-related discrimination in care decisions
 - Socioeconomic factors affecting medical AI
 
+**Industry Context**: For healthcare-specific compliance requirements (HIPAA, health equity mandates, clinical validation), see the [Healthcare Compliance Guide](../compliance/healthcare-guide.md).
+
 ## Healthcare-specific configuration
 
 ```yaml

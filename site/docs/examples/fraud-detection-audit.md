@@ -28,6 +28,8 @@ Fraud detection models must comply with:
 - **Fair Credit Reporting Act (FCRA)**: Accuracy in consumer reporting
 - **Equal Credit Opportunity Act (ECOA)**: Non-discrimination in credit decisions
 
+**Industry Context**: For fraud detection-specific compliance requirements (FCRA adverse action, FTC fairness), see the [Fraud Detection Compliance Guide](../compliance/fraud-guide.md).
+
 ## Prerequisites
 
 - GlassAlpha installed ([Installation Guide](../getting-started/installation.md))

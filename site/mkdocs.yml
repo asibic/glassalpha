@@ -90,7 +90,7 @@ markdown_extensions:
 
 nav:
   - Home: index.md
-  
+
   # === GETTING STARTED (Progressive onboarding) ===
   - Getting Started:
       - Quick Start: getting-started/quickstart.md
@@ -99,44 +99,55 @@ nav:
       - Configuration: getting-started/configuration.md
       - Built-in Datasets: getting-started/datasets.md
       - Public Data Sources: getting-started/data-sources.md
-  
-  # === GUIDES (Task-based "How do I...?") ===
+
+  # === GUIDES (Organized by Industry, Role, and Task) ===
   - Guides:
-      # Core workflows
-      - Preprocessing Verification: guides/preprocessing.md
-      - Generating Reason Codes (ECOA): guides/reason-codes.md
-      - Counterfactual Recourse: guides/recourse.md
-      
-      # Advanced analysis
-      - Detecting Dataset Bias: guides/dataset-bias.md
-      - Testing Demographic Shifts: guides/shift-testing.md
-      
-      # Model selection
-      - Choosing a Model: reference/model-selection.md
-      - Choosing an Explainer: reference/explainers.md
-  
+      # Industry-specific compliance guides
+      - Industry Guides:
+          - Banking & Credit: compliance/banking-guide.md
+          - Insurance: compliance/insurance-guide.md
+          - Healthcare: compliance/healthcare-guide.md
+          - Fraud Detection: compliance/fraud-guide.md
+
+      # Role-based workflows
+      - Role Guides:
+          - For ML Engineers: guides/ml-engineer-workflow.md
+          - For Compliance Officers: guides/compliance-workflow.md
+          - For Model Validators: guides/validator-workflow.md
+
+      # Task-based how-to guides (by usage likelihood)
+      - How-To Guides:
+          - Generating Reason Codes (ECOA): guides/reason-codes.md
+          - Preprocessing Verification: guides/preprocessing.md
+          - Counterfactual Recourse: guides/recourse.md
+          - Detecting Dataset Bias: guides/dataset-bias.md
+          - Testing Demographic Shifts: guides/shift-testing.md
+          - Choosing a Model: reference/model-selection.md
+          - Choosing an Explainer: reference/explainers.md
+
   # === UNDERSTANDING (Deep dives into concepts) ===
   - Understanding:
       # Core metrics
       - Fairness Metrics: reference/fairness-metrics.md
       - Calibration Analysis: reference/calibration.md
       - Robustness Testing: reference/robustness.md
-      
+
       # Technical details
       - Model Parameters: reference/model-parameters.md
       - Model-Explainer Compatibility: reference/model-explainer-compatibility.md
-  
+
   # === COMPLIANCE (Regulatory requirements) ===
   - Compliance:
-      - SR 11-7 Mapping (Banking): compliance/sr-11-7-mapping.md
+      - Overview: compliance/index.md
+      - SR 11-7 Technical Mapping: compliance/sr-11-7-mapping.md
       - Trust & Deployment: reference/trust-deployment.md
-  
+
   # === EXAMPLES (Learn by doing) ===
   - Examples:
       - German Credit Audit: examples/german-credit-audit.md
       - Healthcare Bias Detection: examples/healthcare-bias-detection.md
       - Fraud Detection: examples/fraud-detection-audit.md
-  
+
   # === REFERENCE (CLI & API documentation) ===
   - Reference:
       - CLI Commands: reference/cli.md
@@ -144,7 +155,7 @@ nav:
       - FAQ: reference/faq.md
       - Contributing: reference/contributing.md
       - Trademark: reference/TRADEMARK.md
-  
+
   # === COMMUNITY ===
   - Blog: blog/index.md
   - About: about.md
@@ -157,7 +168,7 @@ extra:
   analytics:
     provider: google
     property: G-JGKRDR0GX8
-  
+
   # SEO metadata
   meta:
     - name: description
