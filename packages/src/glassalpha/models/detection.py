@@ -74,6 +74,20 @@ def detect_model_type(model: Any) -> str:  # noqa: ANN401
         logger.info(f"Detected model type 'random_forest' from class name '{model_class}'")
         return "random_forest"
 
+    if "tree" in class_lower and "sklearn" in model_module:
+        logger.info(f"Detected model type 'decision_tree' from class name '{model_class}'")
+        return "decision_tree"
+
+    # Fallback for sklearn models
+    if "sklearn" in model_module:
+        logger.warning(f"Using fallback 'sklearn' for unknown sklearn model '{model_class}'")
+        return "sklearn"
+
+    # Fallback for any model with predict() method
+    if hasattr(model, "predict"):
+        logger.warning(f"Using fallback 'unknown' for model '{model_module}.{model_class}'")
+        return "unknown"
+
     # Detection failed - provide helpful error
     raise ValueError(
         f"Cannot detect model type for {model_module}.{model_class}. "
