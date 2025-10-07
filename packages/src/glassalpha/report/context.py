@@ -76,13 +76,54 @@ def normalize_audit_context(audit_results: Any) -> dict[str, Any]:  # noqa: ANN4
         context["model_performance"] = normalize_metrics(audit_results.model_performance)
         context["performance_metrics"] = context["model_performance"]  # Compatibility alias
 
+        # E10+: Extract calibration CIs to top level for template convenience
+        if isinstance(audit_results.model_performance, dict):
+            calibration_ci = audit_results.model_performance.get("calibration_ci")
+            if calibration_ci and isinstance(calibration_ci, dict) and "error" not in calibration_ci:
+                context["calibration_ci"] = calibration_ci
+
     if hasattr(audit_results, "fairness_analysis"):
         context["fairness_analysis"] = audit_results.fairness_analysis
         context["fairness_metrics"] = context["fairness_analysis"]  # Compatibility alias
 
+        # Extract nested features for template convenience
+        if isinstance(audit_results.fairness_analysis, dict):
+            # E10: Group fairness confidence intervals
+            # Extract CIs for each metric (demographic_parity_ci, equal_opportunity_ci, etc.)
+            fairness_cis = {}
+            for key, value in audit_results.fairness_analysis.items():
+                if key.endswith("_ci") and isinstance(value, dict):
+                    fairness_cis[key] = value
+            if fairness_cis:
+                context["fairness_confidence_intervals"] = fairness_cis
+
+            # E5.1: Intersectional fairness
+            intersectional = audit_results.fairness_analysis.get("intersectional")
+            if intersectional:
+                context["intersectional_fairness"] = intersectional
+
+            # E11: Individual fairness
+            individual = audit_results.fairness_analysis.get("individual_fairness")
+            if individual:
+                context["individual_fairness"] = individual
+
+            # E12: Dataset bias
+            dataset_bias = audit_results.fairness_analysis.get("dataset_bias")
+            if dataset_bias and isinstance(dataset_bias, dict) and "error" not in dataset_bias:
+                context["dataset_bias"] = dataset_bias
+
     if hasattr(audit_results, "drift_analysis"):
         context["drift_analysis"] = audit_results.drift_analysis
         context["drift_metrics"] = context["drift_analysis"]  # Compatibility alias
+
+    # E6+: Extract stability analysis (perturbation sweeps)
+    if hasattr(audit_results, "stability_analysis"):
+        stability = audit_results.stability_analysis
+        if stability and isinstance(stability, dict):
+            context["stability_analysis"] = stability
+            # Extract perturbation results for template convenience
+            if "robustness_score" in stability:
+                context["perturbation_results"] = stability
 
     # Safely extract other results with defaults
     context.update(
