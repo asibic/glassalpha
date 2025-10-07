@@ -532,7 +532,10 @@ if SKLEARN_AVAILABLE:
                         # Decode base64-encoded pickle
                         self.model = pickle.loads(base64.b64decode(obj["model"]))
                     else:
-                        raise ValueError("Invalid model data in versioned format")
+                        raise ValueError(
+                            "Invalid model data in versioned format. "
+                            "Expected base64-encoded pickle data in 'model' field.",
+                        )
                 # Legacy JSON format (v1) - handle as best as we can
                 # This is for the test case that saves JSON without version info
                 elif "model" in obj:
