@@ -12,7 +12,6 @@ from functools import wraps
 class FeatureNotAvailable(Exception):
     """Raised when attempting to use an enterprise feature without license."""
 
-    pass
 
 
 def is_enterprise() -> bool:

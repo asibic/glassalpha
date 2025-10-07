@@ -699,7 +699,7 @@ def audit(  # pragma: no cover
         manifest_path = output.with_suffix(".manifest.json")
         if manifest_path.exists() and not os.access(manifest_path, os.W_OK):
             _output_error(
-                f"Cannot overwrite existing manifest (read-only): {manifest_path}. Make the file writable or remove it before running audit"
+                f"Cannot overwrite existing manifest (read-only): {manifest_path}. Make the file writable or remove it before running audit",
             )
             raise typer.Exit(ExitCode.SYSTEM_ERROR)
 

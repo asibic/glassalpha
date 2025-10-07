@@ -204,7 +204,9 @@ def compute_consistency_score(
 
     # Check for NaN values
     if np.isnan(X).any():
-        raise ValueError("Features contain NaN values. Please handle missing data before computing individual fairness.")
+        raise ValueError(
+            "Features contain NaN values. Please handle missing data before computing individual fairness."
+        )
 
     # Normalize features for fair distance comparison (use robust scaling)
     X_normalized = _robust_scale(X)
@@ -278,7 +280,7 @@ def compute_consistency_score(
         # All similar pairs have distance ~0 (identical features)
         # Consistency score is 0 if predictions are same, else very high
         max_pred_diff = np.max(similar_pred_diffs)
-        consistency_score = 0.0 if max_pred_diff < 1e-6 else float('inf')
+        consistency_score = 0.0 if max_pred_diff < 1e-6 else float("inf")
     else:
         lipschitz_values = similar_pred_diffs[nonzero_mask] / similar_distances[nonzero_mask]
         consistency_score = float(np.max(lipschitz_values))
@@ -441,7 +443,7 @@ def counterfactual_flip_test(
     flip_changes = []
 
     for idx in range(n_samples):
-        instance = features.iloc[idx:idx+1].copy()
+        instance = features.iloc[idx : idx + 1].copy()
 
         # Get original prediction
         orig_proba = model.predict_proba(instance)
@@ -565,10 +567,7 @@ class IndividualFairnessMetrics:
 
         # 2. Matched pairs
         # Extract non-protected features
-        non_protected_features = self.features[[
-            c for c in self.features.columns
-            if c not in self.protected_attributes
-        ]]
+        non_protected_features = self.features[[c for c in self.features.columns if c not in self.protected_attributes]]
         protected_features_df = self.features[self.protected_attributes]
 
         # Use similarity threshold from consistency score

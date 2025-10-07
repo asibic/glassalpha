@@ -207,7 +207,7 @@ def generate_recourse(
     # Early exit: already approved
     if original_prediction >= threshold:
         logger.info(
-            f"Instance {instance_id} already approved (pred={original_prediction:.2f} >= threshold={threshold:.2f})"
+            f"Instance {instance_id} already approved (pred={original_prediction:.2f} >= threshold={threshold:.2f})",
         )
         return RecourseResult(
             instance_id=instance_id,

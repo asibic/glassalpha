@@ -15,8 +15,8 @@ Includes E5.1: Basic Intersectional Fairness support:
 """
 
 import logging
-from typing import Any
 from collections.abc import Callable
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -177,7 +177,7 @@ def _compute_sample_size_warnings(sensitive_df: pd.DataFrame) -> dict[str, Any]:
             group_key = f"{attr_name}_{group}"
             warning_result = check_sample_size_adequacy(
                 n=int(n_samples),
-                group_name=group_key
+                group_name=group_key,
             )
             warnings[group_key] = warning_result
 
@@ -222,12 +222,11 @@ def _interpret_power(power: float) -> str:
     """Interpret statistical power value."""
     if power < 0.5:
         return "Very low power - insufficient to detect disparity reliably"
-    elif power < 0.8:
+    if power < 0.8:
         return "Low power - may miss true disparities"
-    elif power < 0.9:
+    if power < 0.9:
         return "Adequate power - reasonable detection capability"
-    else:
-        return "High power - strong detection capability"
+    return "High power - strong detection capability"
 
 
 def _compute_metric_confidence_intervals(
@@ -279,14 +278,13 @@ def _compute_metric_confidence_intervals(
                     continue
                 # Selection rate for demographic parity or group rates
                 metric_fn = _make_selection_rate_metric(key, sensitive_df)
+            # Try to match pattern: {attr}_{group} (e.g., gender_0, gender_1)
+            # This is a selection rate for the group
+            elif len(parts) == 2 and parts[1].isdigit():
+                metric_fn = _make_selection_rate_metric(key, sensitive_df)
             else:
-                # Try to match pattern: {attr}_{group} (e.g., gender_0, gender_1)
-                # This is a selection rate for the group
-                if len(parts) == 2 and parts[1].isdigit():
-                    metric_fn = _make_selection_rate_metric(key, sensitive_df)
-                else:
-                    # Generic metric - skip CI computation
-                    continue
+                # Generic metric - skip CI computation
+                continue
 
             # Compute bootstrap CI
             ci = compute_bootstrap_ci(

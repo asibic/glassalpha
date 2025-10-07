@@ -23,9 +23,9 @@ from .intersectional import (
 __all__ = [
     "IndividualFairnessMetrics",
     "compute_consistency_score",
-    "counterfactual_flip_test",
-    "find_matched_pairs",
     "compute_intersectional_fairness",
+    "counterfactual_flip_test",
     "create_intersectional_groups",
+    "find_matched_pairs",
     "parse_intersection_spec",
 ]

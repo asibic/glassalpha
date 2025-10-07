@@ -232,7 +232,7 @@ class TreeSHAPExplainer(ExplainerBase):
         self,
         x: Any,  # noqa: ANN401
         background_x: Any = None,  # noqa: ANN401
-        **kwargs: Any,  # noqa: ANN401,ARG002
+        **kwargs: Any,  # noqa: ANN401
     ) -> Any:  # noqa: ANN401
         """Generate TreeSHAP explanations for input data.
 

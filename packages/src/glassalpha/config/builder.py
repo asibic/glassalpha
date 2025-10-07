@@ -179,7 +179,7 @@ def build_config_from_model(
     if model_n_features is not None and model_n_features < len(feature_cols):
         logger.warning(
             f"Model trained on {model_n_features} features but X_test has {len(feature_cols)} columns. "
-            f"Model will use first {model_n_features} features for predictions."
+            f"Model will use first {model_n_features} features for predictions.",
         )
 
     # 10. Build runtime context (model + data)

@@ -351,7 +351,7 @@ class GermanCreditDataset:
         return processed_data
 
     def get_train_test_split(
-        self, test_size: float = 0.2, random_state: int = 42, stratify: bool = True
+        self, test_size: float = 0.2, random_state: int = 42, stratify: bool = True,
     ) -> tuple[pd.DataFrame, pd.DataFrame]:
         """Get train/test split of German Credit data.
 
@@ -374,7 +374,7 @@ class GermanCreditDataset:
         stratify_by = data[TARGET_NAME] if stratify else None
 
         train_data, test_data = train_test_split(
-            data, test_size=test_size, random_state=random_state, stratify=stratify_by
+            data, test_size=test_size, random_state=random_state, stratify=stratify_by,
         )
 
         logger.info(f"Train/test split: {len(train_data)}/{len(test_data)} samples")
@@ -458,7 +458,7 @@ def get_german_credit_schema() -> TabularDataSchema:
 
 
 def load_german_credit(
-    cache_dir: Path | None = None, train_test_split: bool = False, test_size: float = 0.2, random_state: int = 42
+    cache_dir: Path | None = None, train_test_split: bool = False, test_size: float = 0.2, random_state: int = 42,
 ) -> pd.DataFrame | tuple[pd.DataFrame, pd.DataFrame]:
     """Convenience function to load German Credit dataset.
 
@@ -476,8 +476,7 @@ def load_german_credit(
 
     if train_test_split:
         return dataset.get_train_test_split(test_size, random_state)
-    else:
-        return dataset.load_processed_data()
+    return dataset.load_processed_data()
 
 
 if __name__ == "__main__":

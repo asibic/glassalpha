@@ -170,9 +170,7 @@ def assert_runtime_versions(manifest: dict[str, Any], strict: bool, allow_minor:
 
             # In strict mode, minor drift is only acceptable if allow_minor=True
             # In non-strict mode, always warn but don't fail
-            if strict and not is_minor_drift:
-                mismatches.append(f"{lib}: {artifact_ver} -> {audit_ver}")
-            elif not strict:
+            if (strict and not is_minor_drift) or not strict:
                 mismatches.append(f"{lib}: {artifact_ver} -> {audit_ver}")
 
     if mismatches:
@@ -180,5 +178,4 @@ def assert_runtime_versions(manifest: dict[str, Any], strict: bool, allow_minor:
 
         if strict:
             raise RuntimeError(message)
-        else:
-            warnings.warn(message, UserWarning, stacklevel=2)
+        warnings.warn(message, UserWarning, stacklevel=2)

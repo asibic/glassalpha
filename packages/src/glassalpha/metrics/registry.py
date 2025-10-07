@@ -19,7 +19,7 @@ from typing import Literal
 @dataclass(frozen=True)
 class MetricSpec:
     """Specification for a metric.
-    
+
     Attributes:
         key: Metric key (e.g., "accuracy", "demographic_parity_diff")
         display_name: Human-readable name
@@ -30,8 +30,9 @@ class MetricSpec:
         default_atol: Default absolute tolerance for equality checks
         aggregation: How to aggregate across groups (for fairness metrics)
         fairness_definition: Reference to fairness definition (if applicable)
+
     """
-    
+
     key: str
     display_name: str
     description: str
@@ -202,24 +203,26 @@ ALL_METRICS = {
 
 def get_metric_spec(key: str) -> MetricSpec | None:
     """Get metric specification by key.
-    
+
     Args:
         key: Metric key (e.g., "accuracy")
-        
+
     Returns:
         MetricSpec or None if not found
+
     """
     return ALL_METRICS.get(key)
 
 
 def requires_probabilities(key: str) -> bool:
     """Check if metric requires predicted probabilities.
-    
+
     Args:
         key: Metric key
-        
+
     Returns:
         True if metric requires y_proba
+
     """
     spec = get_metric_spec(key)
     return spec.requires_proba if spec else False
@@ -227,12 +230,13 @@ def requires_probabilities(key: str) -> bool:
 
 def get_default_tolerance(key: str) -> tuple[float, float]:
     """Get default tolerance for metric.
-    
+
     Args:
         key: Metric key
-        
+
     Returns:
         Tuple of (rtol, atol)
+
     """
     spec = get_metric_spec(key)
     if spec:

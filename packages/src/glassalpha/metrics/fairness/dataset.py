@@ -1,5 +1,4 @@
-"""
-Dataset-level bias audit metrics (E12).
+"""Dataset-level bias audit metrics (E12).
 
 Detects bias at the data source level before model training:
 - Proxy correlation: Protected attributes correlating with non-protected features
@@ -10,12 +9,12 @@ Detects bias at the data source level before model training:
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Union, Any
+from typing import Any
+
 import numpy as np
 import pandas as pd
 from scipy import stats
 from scipy.stats import chi2_contingency, ks_2samp
-
 
 # ============================================================================
 # DATA STRUCTURES
@@ -26,13 +25,13 @@ from scipy.stats import chi2_contingency, ks_2samp
 class ProxyCorrelationResult:
     """Results from proxy correlation analysis."""
 
-    correlations: Dict[str, Dict[str, Dict[str, Any]]]
+    correlations: dict[str, dict[str, dict[str, Any]]]
     """
     Nested dict: {protected_attr: {feature: {correlation, p_value, severity}}}
     Severity levels: ERROR (|r|>0.5), WARNING (0.3<|r|≤0.5), INFO (|r|≤0.3)
     """
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to JSON-serializable dict."""
         return {"correlations": self.correlations}
 
@@ -41,13 +40,13 @@ class ProxyCorrelationResult:
 class DistributionDriftResult:
     """Results from distribution drift analysis."""
 
-    drift_tests: Dict[str, Dict[str, Any]]
+    drift_tests: dict[str, dict[str, Any]]
     """
     Dict: {feature: {test_type, statistic, p_value, drifted}}
     test_type: "ks_test" for continuous, "chi2_test" for categorical
     """
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to JSON-serializable dict."""
         return {"drift_tests": self.drift_tests}
 
@@ -56,13 +55,13 @@ class DistributionDriftResult:
 class SamplingBiasResult:
     """Results from sampling bias power analysis."""
 
-    power_by_group: Dict[str, Dict[str, Dict[str, Any]]]
+    power_by_group: dict[str, dict[str, dict[str, Any]]]
     """
     Nested dict: {protected_attr: {group: {n, power, severity}}}
     Severity: ERROR (power<0.5), WARNING (0.5≤power<0.7), OK (power≥0.7)
     """
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to JSON-serializable dict."""
         return {"power_by_group": self.power_by_group}
 
@@ -71,12 +70,12 @@ class SamplingBiasResult:
 class SplitImbalanceResult:
     """Results from train/test split imbalance analysis."""
 
-    imbalance_tests: Dict[str, Dict[str, Any]]
+    imbalance_tests: dict[str, dict[str, Any]]
     """
     Dict: {protected_attr: {p_value, imbalanced, train_distribution, test_distribution}}
     """
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to JSON-serializable dict."""
         return {"imbalance_tests": self.imbalance_tests}
 
@@ -87,11 +86,11 @@ class BinnedAttribute:
 
     attr_name: str
     strategy: str
-    bins: List[float]
-    categories: List[str]
+    bins: list[float]
+    categories: list[str]
     binned_values: pd.Series
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to JSON-serializable dict."""
         return {
             "attr_name": self.attr_name,
@@ -105,13 +104,13 @@ class BinnedAttribute:
 class DatasetBiasMetrics:
     """Complete dataset-level bias audit results."""
 
-    proxy_correlations: Optional[ProxyCorrelationResult] = None
-    distribution_drift: Optional[DistributionDriftResult] = None
-    sampling_bias_power: Optional[SamplingBiasResult] = None
-    split_imbalance: Optional[SplitImbalanceResult] = None
-    protected_attr_binning: Dict[str, BinnedAttribute] = field(default_factory=dict)
+    proxy_correlations: ProxyCorrelationResult | None = None
+    distribution_drift: DistributionDriftResult | None = None
+    sampling_bias_power: SamplingBiasResult | None = None
+    split_imbalance: SplitImbalanceResult | None = None
+    protected_attr_binning: dict[str, BinnedAttribute] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to JSON-serializable dict."""
         result = {}
 
@@ -124,9 +123,7 @@ class DatasetBiasMetrics:
         if self.split_imbalance:
             result["split_imbalance"] = self.split_imbalance.to_dict()
         if self.protected_attr_binning:
-            result["protected_attr_binning"] = {
-                k: v.to_dict() for k, v in self.protected_attr_binning.items()
-            }
+            result["protected_attr_binning"] = {k: v.to_dict() for k, v in self.protected_attr_binning.items()}
 
         return result
 
@@ -137,14 +134,14 @@ class DatasetBiasMetrics:
 
 
 def _cramers_v(contingency_table: np.ndarray) -> float:
-    """
-    Compute Cramér's V statistic for categorical association.
+    """Compute Cramér's V statistic for categorical association.
 
     Args:
         contingency_table: 2D array of category counts
 
     Returns:
         Cramér's V (0 = no association, 1 = perfect association)
+
     """
     chi2, _, _, _ = chi2_contingency(contingency_table)
     n = contingency_table.sum()
@@ -163,12 +160,11 @@ def _cramers_v(contingency_table: np.ndarray) -> float:
 
 def compute_proxy_correlations(
     data: pd.DataFrame,
-    protected_attrs: List[str],
-    feature_cols: List[str],
+    protected_attrs: list[str],
+    feature_cols: list[str],
     seed: int = 42,
 ) -> ProxyCorrelationResult:
-    """
-    Detect proxy features that correlate with protected attributes.
+    """Detect proxy features that correlate with protected attributes.
 
     Uses:
     - Pearson correlation for continuous-continuous
@@ -188,6 +184,7 @@ def compute_proxy_correlations(
 
     Returns:
         ProxyCorrelationResult with correlations and severity levels
+
     """
     np.random.seed(seed)
 
@@ -209,7 +206,7 @@ def compute_proxy_correlations(
                 # Pearson correlation for continuous-continuous
                 corr, p_value = stats.pearsonr(
                     data[protected_attr].dropna(),
-                    data[feature].dropna()
+                    data[feature].dropna(),
                 )
             elif not protected_is_numeric and not feature_is_numeric:
                 # Cramér's V for categorical-categorical
@@ -230,7 +227,7 @@ def compute_proxy_correlations(
 
                 corr, p_value = stats.pearsonr(
                     protected_numeric[~np.isnan(protected_numeric) & ~np.isnan(feature_numeric)],
-                    feature_numeric[~np.isnan(protected_numeric) & ~np.isnan(feature_numeric)]
+                    feature_numeric[~np.isnan(protected_numeric) & ~np.isnan(feature_numeric)],
                 )
 
             # Determine severity
@@ -259,12 +256,11 @@ def compute_proxy_correlations(
 def compute_distribution_drift(
     train_data: pd.DataFrame,
     test_data: pd.DataFrame,
-    feature_cols: List[str],
+    feature_cols: list[str],
     seed: int = 42,
     alpha: float = 0.05,
 ) -> DistributionDriftResult:
-    """
-    Detect distribution drift between train and test sets.
+    """Detect distribution drift between train and test sets.
 
     Uses:
     - Kolmogorov-Smirnov test for continuous features
@@ -279,6 +275,7 @@ def compute_distribution_drift(
 
     Returns:
         DistributionDriftResult with drift tests
+
     """
     np.random.seed(seed)
 
@@ -335,13 +332,12 @@ def compute_distribution_drift(
 
 def compute_sampling_bias_power(
     data: pd.DataFrame,
-    protected_attrs: List[str],
+    protected_attrs: list[str],
     target_effect_size: float = 0.1,
     seed: int = 42,
     alpha: float = 0.05,
 ) -> SamplingBiasResult:
-    """
-    Compute statistical power to detect sampling bias.
+    """Compute statistical power to detect sampling bias.
 
     For each protected group, computes power to detect a target_effect_size
     difference in representation (e.g., 10% undersampling).
@@ -360,6 +356,7 @@ def compute_sampling_bias_power(
 
     Returns:
         SamplingBiasResult with power by group
+
     """
     np.random.seed(seed)
 
@@ -436,14 +433,13 @@ DEFAULT_BINS = {
 
 
 def bin_continuous_attribute(
-    values: Union[np.ndarray, pd.Series],
+    values: np.ndarray | pd.Series,
     attr_name: str,
     strategy: str = "domain",
-    bins: Optional[List[float]] = None,
+    bins: list[float] | None = None,
     n_bins: int = 4,
 ) -> BinnedAttribute:
-    """
-    Bin continuous protected attribute for group analysis.
+    """Bin continuous protected attribute for group analysis.
 
     Strategies:
     - "domain": Use domain-specific bins (e.g., age brackets)
@@ -460,6 +456,7 @@ def bin_continuous_attribute(
 
     Returns:
         BinnedAttribute with binning info and binned values
+
     """
     if isinstance(values, pd.Series):
         values = values.values
@@ -515,13 +512,12 @@ def bin_continuous_attribute(
 
 def detect_split_imbalance(
     data: pd.DataFrame,
-    protected_attrs: List[str],
+    protected_attrs: list[str],
     split_col: str = "split",
     seed: int = 42,
     alpha: float = 0.05,
 ) -> SplitImbalanceResult:
-    """
-    Detect imbalanced train/test splits by protected group.
+    """Detect imbalanced train/test splits by protected group.
 
     Uses Chi-square test to detect if protected group distributions
     differ significantly between train and test sets.
@@ -535,6 +531,7 @@ def detect_split_imbalance(
 
     Returns:
         SplitImbalanceResult with imbalance tests
+
     """
     np.random.seed(seed)
 
@@ -580,8 +577,8 @@ def detect_split_imbalance(
 
 def compute_dataset_bias_metrics(
     data: pd.DataFrame,
-    protected_attrs: List[str],
-    feature_cols: List[str],
+    protected_attrs: list[str],
+    feature_cols: list[str],
     split_col: str = "split",
     seed: int = 42,
     compute_proxy: bool = True,
@@ -589,8 +586,7 @@ def compute_dataset_bias_metrics(
     compute_power: bool = True,
     compute_imbalance: bool = True,
 ) -> DatasetBiasMetrics:
-    """
-    Compute all dataset-level bias metrics.
+    """Compute all dataset-level bias metrics.
 
     Args:
         data: Full dataset with split indicator
@@ -608,6 +604,7 @@ def compute_dataset_bias_metrics(
 
     Raises:
         ValueError: If protected_attrs is empty
+
     """
     if not protected_attrs:
         raise ValueError("protected_attrs cannot be empty")

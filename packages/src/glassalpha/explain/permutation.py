@@ -105,7 +105,7 @@ class PermutationExplainer(ExplainerBase):
         if y is None:
             raise ValueError(
                 "PermutationExplainer requires target values (y) to compute feature importance. "
-                "Pass y as: explainer.explain(X, y=y_test)"
+                "Pass y as: explainer.explain(X, y=y_test)",
             )
 
         # Get the underlying model for sklearn compatibility

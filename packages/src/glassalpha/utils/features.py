@@ -54,7 +54,7 @@ def align_features(X: pd.DataFrame, feature_names: list[str]) -> pd.DataFrame:
 
     if missing_cols:
         logger.debug(
-            f"feature_align: added {len(missing_cols)} missing columns with fill_value=0: {sorted(missing_cols)}"
+            f"feature_align: added {len(missing_cols)} missing columns with fill_value=0: {sorted(missing_cols)}",
         )
 
     if extra_cols:

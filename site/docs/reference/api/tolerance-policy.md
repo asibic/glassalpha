@@ -23,6 +23,7 @@ assert result1.performance.accuracy == result2.performance.accuracy
 ```
 
 **Root causes**:
+
 1. **Floating-point arithmetic**: Different CPU architectures, compiler optimizations
 2. **Library implementations**: NumPy/sklearn may use different BLAS/LAPACK backends
 3. **Summation order**: Parallel operations may sum in different orders
@@ -38,10 +39,12 @@ abs(a - b) <= (atol + rtol * abs(b))
 ```
 
 **Terminology**:
+
 - **`rtol`** (relative tolerance): Tolerance as a fraction of the value
 - **`atol`** (absolute tolerance): Absolute tolerance (for values near zero)
 
 **Example**:
+
 ```python
 # rtol=1e-5, atol=1e-8
 result1.equals(result2, rtol=1e-5, atol=1e-8)
@@ -63,18 +66,19 @@ result1.equals(result2, rtol=1e-5, atol=1e-8)
 
 **Default**: `rtol=1e-5`, `atol=1e-8`
 
-| Metric | rtol | atol | Rationale |
-|--------|------|------|-----------|
-| Accuracy | 1e-5 | 1e-8 | ~0.001% relative error |
-| Precision | 1e-5 | 1e-8 | ~0.001% relative error |
-| Recall | 1e-5 | 1e-8 | ~0.001% relative error |
-| F1 | 1e-5 | 1e-8 | ~0.001% relative error |
-| ROC AUC | 1e-5 | 1e-8 | AUC is stable |
-| PR AUC | 1e-5 | 1e-8 | AUC is stable |
-| Brier Score | 1e-5 | 1e-8 | MSE-based, stable |
-| Log Loss | 1e-5 | 1e-8 | Log-based, needs small tolerance |
+| Metric      | rtol | atol | Rationale                        |
+| ----------- | ---- | ---- | -------------------------------- |
+| Accuracy    | 1e-5 | 1e-8 | ~0.001% relative error           |
+| Precision   | 1e-5 | 1e-8 | ~0.001% relative error           |
+| Recall      | 1e-5 | 1e-8 | ~0.001% relative error           |
+| F1          | 1e-5 | 1e-8 | ~0.001% relative error           |
+| ROC AUC     | 1e-5 | 1e-8 | AUC is stable                    |
+| PR AUC      | 1e-5 | 1e-8 | AUC is stable                    |
+| Brier Score | 1e-5 | 1e-8 | MSE-based, stable                |
+| Log Loss    | 1e-5 | 1e-8 | Log-based, needs small tolerance |
 
 **Why 1e-5?**
+
 - Allows ~0.001% relative error
 - Example: Accuracy 0.85 ± 0.0000085
 - Catches real differences while allowing floating-point noise
@@ -85,17 +89,19 @@ result1.equals(result2, rtol=1e-5, atol=1e-8)
 
 **Default**: `rtol=1e-4`, `atol=1e-6`
 
-| Metric | rtol | atol | Rationale |
-|--------|------|------|-----------|
-| ECE (Expected Calibration Error) | 1e-4 | 1e-6 | Binning introduces variance |
-| MCE (Maximum Calibration Error) | 1e-4 | 1e-6 | Max operator amplifies noise |
+| Metric                           | rtol | atol | Rationale                    |
+| -------------------------------- | ---- | ---- | ---------------------------- |
+| ECE (Expected Calibration Error) | 1e-4 | 1e-6 | Binning introduces variance  |
+| MCE (Maximum Calibration Error)  | 1e-4 | 1e-6 | Max operator amplifies noise |
 
 **Why looser?**
+
 - Calibration metrics use binning (bin edges can shift)
 - Max operators amplify small differences
 - Still catches real calibration drift
 
 **Example**:
+
 ```python
 # ECE: 0.0500 vs 0.0501
 # abs(0.0500 - 0.0501) = 0.0001
@@ -113,13 +119,14 @@ result1.equals(result2, rtol=1e-5, atol=1e-8)
 
 **Default**: `rtol=1e-5`, `atol=1e-8`
 
-| Metric | rtol | atol | Rationale |
-|--------|------|------|-----------|
-| Demographic Parity Diff | 1e-5 | 1e-8 | Rate differences are stable |
-| Equalized Odds Diff | 1e-5 | 1e-8 | TPR/FPR differences are stable |
-| Equal Opportunity Diff | 1e-5 | 1e-8 | TPR differences are stable |
+| Metric                  | rtol | atol | Rationale                      |
+| ----------------------- | ---- | ---- | ------------------------------ |
+| Demographic Parity Diff | 1e-5 | 1e-8 | Rate differences are stable    |
+| Equalized Odds Diff     | 1e-5 | 1e-8 | TPR/FPR differences are stable |
+| Equal Opportunity Diff  | 1e-5 | 1e-8 | TPR differences are stable     |
 
 **Why standard?**
+
 - Fairness metrics are rate differences (stable)
 - Example: DP diff 0.05 ± 0.0000005
 - Must catch real fairness drift
@@ -130,12 +137,13 @@ result1.equals(result2, rtol=1e-5, atol=1e-8)
 
 **Default**: `rtol=0.0`, `atol=0.0`
 
-| Metric | rtol | atol | Rationale |
-|--------|------|------|-----------|
-| Monotonicity Violations | 0.0 | 0.0 | Integer counts must match exactly |
-| Support (sample sizes) | 0.0 | 0.0 | Integer counts must match exactly |
+| Metric                  | rtol | atol | Rationale                         |
+| ----------------------- | ---- | ---- | --------------------------------- |
+| Monotonicity Violations | 0.0  | 0.0  | Integer counts must match exactly |
+| Support (sample sizes)  | 0.0  | 0.0  | Integer counts must match exactly |
 
 **Why exact?**
+
 - Counts are integers (no floating-point error)
 - Any difference is a real difference
 
@@ -192,7 +200,7 @@ For **maximum reproducibility** in CI/CD:
     # Run audit twice
     glassalpha audit --config audit.yaml --out audit1.json
     glassalpha audit --config audit.yaml --out audit2.json
-    
+
     # Validate result IDs match (byte-identical)
     python -c "
     import json
@@ -203,6 +211,7 @@ For **maximum reproducibility** in CI/CD:
 ```
 
 **Why this works**:
+
 - `result_id` is a hash of canonical JSON
 - Canonical JSON uses fixed precision (6 decimals)
 - Result IDs match if and only if all metrics match at that precision
@@ -233,15 +242,18 @@ assert current.equals(baseline_loaded, rtol=1e-5, atol=1e-8)
 ### Known Issues
 
 **BLAS/LAPACK backends**:
+
 - **macOS Accelerate**: Apple's optimized BLAS
 - **OpenBLAS**: Common on Linux
 - **MKL**: Intel Math Kernel Library (Conda)
 
 **Impact**:
+
 - Matrix operations may differ in last few digits
 - Summation order may differ (parallel operations)
 
 **Mitigation**:
+
 ```bash
 # Force single-threaded BLAS (deterministic)
 export OMP_NUM_THREADS=1
@@ -252,11 +264,13 @@ export OPENBLAS_NUM_THREADS=1
 ### Testing Strategy
 
 **Local**: Test with default tolerance
+
 ```bash
 pytest tests/test_reproducibility.py
 ```
 
 **CI**: Test with stricter tolerance + deterministic BLAS
+
 ```yaml
 env:
   OMP_NUM_THREADS: 1
@@ -275,6 +289,7 @@ env:
 **A**: Floating-point arithmetic is not associative. Even with the same seed, different platforms may compute slightly different results.
 
 **Example**:
+
 ```python
 # Different summation order
 (0.1 + 0.2) + 0.3 != 0.1 + (0.2 + 0.3)
@@ -288,10 +303,12 @@ env:
 **A**: Use **default tolerance** (`rtol=1e-5, atol=1e-8`) for most cases.
 
 Use **stricter tolerance** (`rtol=1e-6, atol=1e-9`) if:
+
 - Critical compliance audit (SEC, FDA, etc.)
 - Need to catch 0.0001% changes
 
 Use **looser tolerance** (`rtol=1e-4, atol=1e-6`) if:
+
 - Cross-platform comparison (dev laptop vs. CI)
 - Exploratory analysis (not regulatory)
 
@@ -343,7 +360,7 @@ for key, val1 in result1.performance.items():
     val2 = result2.performance[key]
     diff = abs(val1 - val2)
     rel_diff = diff / abs(val2) if val2 != 0 else float('inf')
-    
+
     if diff > 1e-8 + 1e-5 * abs(val2):
         print(f"{key}: {val1} vs {val2} (diff={diff:.2e}, rel={rel_diff:.2e})")
 ```
@@ -358,6 +375,5 @@ for key, val1 in result1.performance.items():
 
 ---
 
-**Last Updated**: 2025-10-07  
+**Last Updated**: 2025-10-07
 **Applies to**: v0.2.0+
-

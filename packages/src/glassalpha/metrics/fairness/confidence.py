@@ -11,9 +11,9 @@ Key features:
 """
 
 import logging
+from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
-from collections.abc import Callable
 
 import numpy as np
 from scipy import stats
@@ -144,8 +144,13 @@ def compute_bootstrap_ci(
         lower, upper = _percentile_ci(bootstrap_estimates_array, confidence_level)
     elif method == "bca":
         lower, upper = _bca_ci(
-            bootstrap_estimates_array, point_estimate, y_true, y_pred, sensitive,
-            metric_fn, confidence_level
+            bootstrap_estimates_array,
+            point_estimate,
+            y_true,
+            y_pred,
+            sensitive,
+            metric_fn,
+            confidence_level,
         )
     else:
         raise ValueError(f"Unknown CI method: {method}")
@@ -224,7 +229,7 @@ def _bca_ci(
         try:
             jack_est = metric_fn(y_true[mask], y_pred[mask], sensitive[mask])
             jackknife_estimates.append(jack_est)
-        except Exception:  # noqa: BLE001, S110
+        except Exception:  # noqa: BLE001
             continue
 
     if len(jackknife_estimates) < n_samples // 2:
@@ -252,10 +257,10 @@ def _bca_ci(
 
     # BCa-adjusted percentiles
     lower_percentile = 100 * stats.norm.cdf(
-        z0 + (z0 + z_alpha_lower) / (1 - acceleration * (z0 + z_alpha_lower))
+        z0 + (z0 + z_alpha_lower) / (1 - acceleration * (z0 + z_alpha_lower)),
     )
     upper_percentile = 100 * stats.norm.cdf(
-        z0 + (z0 + z_alpha_upper) / (1 - acceleration * (z0 + z_alpha_upper))
+        z0 + (z0 + z_alpha_upper) / (1 - acceleration * (z0 + z_alpha_upper)),
     )
 
     # Clip percentiles to valid range
@@ -292,26 +297,25 @@ def check_sample_size_adequacy(
             "n_samples": n,
             "min_required": min_error,
             "message": f"Insufficient sample size for {group_name} (n={n}). "
-                      f"Minimum {min_error} samples required for reliable inference.",
+            f"Minimum {min_error} samples required for reliable inference.",
             "recommendation": f"Increase sample size to at least {min_error} "
-                            f"(recommended: {min_warning}+) or exclude group from analysis.",
+            f"(recommended: {min_warning}+) or exclude group from analysis.",
         }
-    elif n < min_warning:
+    if n < min_warning:
         return {
             "status": "WARNING",
             "n_samples": n,
             "min_recommended": min_warning,
             "message": f"Small sample size for {group_name} (n={n}). "
-                      f"Results may have high variance. Recommended: {min_warning}+ samples.",
-            "recommendation": f"Interpret results with caution. "
-                            f"Consider collecting more data or using wider confidence intervals.",
+            f"Results may have high variance. Recommended: {min_warning}+ samples.",
+            "recommendation": "Interpret results with caution. "
+            "Consider collecting more data or using wider confidence intervals.",
         }
-    else:
-        return {
-            "status": "OK",
-            "n_samples": n,
-            "message": f"Adequate sample size for {group_name} (n={n}).",
-        }
+    return {
+        "status": "OK",
+        "n_samples": n,
+        "message": f"Adequate sample size for {group_name} (n={n}).",
+    }
 
 
 def compute_statistical_power(
@@ -345,7 +349,7 @@ def compute_statistical_power(
 
         # Standard error under alternative
         se_alt = np.sqrt(
-            (p1 * (1 - p1) / n_samples) + (p2 * (1 - p2) / n_samples)
+            (p1 * (1 - p1) / n_samples) + (p2 * (1 - p2) / n_samples),
         )
 
         # Critical value for two-tailed test

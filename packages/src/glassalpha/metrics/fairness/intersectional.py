@@ -36,20 +36,19 @@ def parse_intersection_spec(spec: str) -> tuple[str, str]:
 
     Raises:
         ValueError: If spec is not in valid format
+
     """
-    parts = spec.split('*')
+    parts = spec.split("*")
     if len(parts) != 2:
         raise ValueError(
-            f"Invalid intersection format '{spec}'. "
-            "Must be 'attr1*attr2' for two-way intersections."
+            f"Invalid intersection format '{spec}'. " "Must be 'attr1*attr2' for two-way intersections.",
         )
 
     attr1, attr2 = [p.strip() for p in parts]
 
     if not attr1 or not attr2:
         raise ValueError(
-            f"Invalid intersection '{spec}'. "
-            "Both attributes must be non-empty."
+            f"Invalid intersection '{spec}'. " "Both attributes must be non-empty.",
         )
 
     return attr1, attr2
@@ -72,6 +71,7 @@ def create_intersectional_groups(
 
     Raises:
         ValueError: If attributes not found in DataFrame
+
     """
     if attr1 not in X.columns:
         raise ValueError(f"Attribute '{attr1}' not found in data")
@@ -80,7 +80,7 @@ def create_intersectional_groups(
 
     # Create intersectional group labels
     # Format: "attr1_value1*attr2_value2"
-    groups = X[attr1].astype(str) + '*' + X[attr2].astype(str)
+    groups = X[attr1].astype(str) + "*" + X[attr2].astype(str)
     groups.name = f"{attr1}*{attr2}"
 
     return groups
@@ -114,6 +114,7 @@ def compute_intersectional_fairness(
         - Sample size warnings
         - Statistical power analysis
         - Bootstrap confidence intervals (if requested)
+
     """
     # Parse intersection spec
     attr1, attr2 = parse_intersection_spec(intersection_spec)
@@ -145,7 +146,7 @@ def compute_intersectional_fairness(
         group_key = f"{attr1}*{attr2}_{group}"
         warning_result = check_sample_size_adequacy(
             n=n_samples,
-            group_name=group_key
+            group_name=group_key,
         )
         sample_size_warnings[group_key] = warning_result
 
@@ -226,12 +227,11 @@ def _interpret_power(power: float) -> str:
     """Interpret statistical power value."""
     if power < 0.5:
         return "Very low power - insufficient to detect disparity reliably"
-    elif power < 0.8:
+    if power < 0.8:
         return "Low power - may miss true disparities"
-    elif power < 0.9:
+    if power < 0.9:
         return "Adequate power - reasonable detection capability"
-    else:
-        return "High power - strong detection capability"
+    return "High power - strong detection capability"
 
 
 def _compute_disparity_metrics(
@@ -293,11 +293,12 @@ def _compute_intersectional_cis(
         # Create metric functions for this specific group
         def make_metric_fn(target_group: str, metric_type: str):
             """Factory for creating group-specific metric functions."""
+
             def metric_fn(yt, yp, sens):
                 # IMPORTANT: Use 'sens' parameter (resampled intersectional groups)
                 # not the outer scope 'intersectional_groups' variable
                 # Filter to specific intersectional group
-                mask = (sens == target_group)
+                mask = sens == target_group
 
                 if not np.any(mask):
                     return np.nan
@@ -313,22 +314,21 @@ def _compute_intersectional_cis(
                     tp = np.sum((yt_group == 1) & (yp_group == 1))
                     fn = np.sum((yt_group == 1) & (yp_group == 0))
                     return tp / (tp + fn) if (tp + fn) > 0 else 0.0
-                elif metric_type == "fpr":
+                if metric_type == "fpr":
                     fp = np.sum((yt_group == 0) & (yp_group == 1))
                     tn = np.sum((yt_group == 0) & (yp_group == 0))
                     return fp / (fp + tn) if (fp + tn) > 0 else 0.0
-                elif metric_type == "precision":
+                if metric_type == "precision":
                     tp = np.sum((yt_group == 1) & (yp_group == 1))
                     fp = np.sum((yt_group == 0) & (yp_group == 1))
                     return tp / (tp + fp) if (tp + fp) > 0 else 0.0
-                elif metric_type == "recall":
+                if metric_type == "recall":
                     tp = np.sum((yt_group == 1) & (yp_group == 1))
                     fn = np.sum((yt_group == 1) & (yp_group == 0))
                     return tp / (tp + fn) if (tp + fn) > 0 else 0.0
-                elif metric_type == "selection_rate":
+                if metric_type == "selection_rate":
                     return np.mean(yp_group)
-                else:
-                    return np.nan
+                return np.nan
 
             return metric_fn
 

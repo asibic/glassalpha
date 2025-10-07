@@ -13,13 +13,13 @@ from glassalpha.metrics.registry import (
 )
 
 __all__ = [
-    "MetricSpec",
     "ALL_METRICS",
-    "PERFORMANCE_METRICS",
-    "FAIRNESS_METRICS",
     "CALIBRATION_METRICS",
+    "FAIRNESS_METRICS",
+    "PERFORMANCE_METRICS",
     "STABILITY_METRICS",
+    "MetricSpec",
+    "get_default_tolerance",
     "get_metric_spec",
     "requires_probabilities",
-    "get_default_tolerance",
 ]

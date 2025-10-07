@@ -58,7 +58,7 @@ class DecoratorFriendlyRegistry(PluginRegistry):
                 {
                     "priority": meta.get("priority", 0),
                     "enterprise": bool(meta.get("enterprise", False)),
-                }
+                },
             )
             # Keep existing metadata fields if present
             if "supports" in meta:

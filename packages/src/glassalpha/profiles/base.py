@@ -65,7 +65,7 @@ class BaseAuditProfile:
         model_type = config.get("model", {}).get("type")
         if model_type and model_type not in cls.compatible_models:
             raise ValueError(
-                f"Model type '{model_type}' not compatible with profile '{cls.name}'. Allowed: {cls.compatible_models}"
+                f"Model type '{model_type}' not compatible with profile '{cls.name}'. Allowed: {cls.compatible_models}",
             )
 
         # Check required fields
