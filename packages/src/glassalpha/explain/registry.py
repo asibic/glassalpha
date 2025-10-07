@@ -202,6 +202,20 @@ TYPE_TO_EXPLAINERS = {
 class ExplainerRegistryClass(DecoratorFriendlyRegistry):
     """Enhanced explainer registry with compatibility-based selection."""
 
+    def get_install_hint(self, name: str) -> str | None:
+        """Get installation hint for an explainer plugin.
+
+        Args:
+            name: Explainer name
+
+        Returns:
+            Installation hint string or None if no hint available
+
+        """
+        if name in ["kernelshap", "treeshap"]:
+            return "pip install 'glassalpha[shap]'"
+        return None
+
     def is_compatible(self, name: str, model_type: str, model=None) -> bool:
         """Check if explainer is compatible with model type.
 
@@ -428,17 +442,6 @@ class ExplainerRegistryClass(DecoratorFriendlyRegistry):
 ExplainerRegistry = ExplainerRegistryClass(group="glassalpha.explainers")
 ExplainerRegistry.discover()  # Safe discovery without heavy imports
 
-
-# Add get_install_hint method to the registry instance
-def _get_install_hint(name: str) -> str | None:
-    """Get installation hint for an explainer plugin."""
-    if name in ["kernelshap", "treeshap"]:
-        return "pip install 'glassalpha[shap]'"
-    return None
-
-
-ExplainerRegistry.get_install_hint = _get_install_hint
-
 # Register the built-in explainers
 from .noop import NoOpExplainer
 
@@ -524,66 +527,12 @@ except ImportError:
     pass
 
 
-# Legacy compatibility class that delegates to the instance registry
-class ExplainerRegistryCompat:
-    """Legacy compatibility wrapper for ExplainerRegistry.
-
-    Provides the same API as the old ExplainerRegistry for existing code.
-    Delegates all calls to the real ExplainerRegistry instance.
-    """
-
-    @classmethod
-    def register(cls, key_or_obj, obj=None, **meta) -> type:
-        """Register an explainer class with a key."""
-        return ExplainerRegistry.register(key_or_obj, obj, **meta)
-
-    @classmethod
-    def get(cls, key: str) -> type | None:
-        """Get explainer class by key."""
-        try:
-            return ExplainerRegistry.get(key)
-        except KeyError:
-            return None
-
-    @classmethod
-    def get_all(cls) -> dict[str, type]:
-        """Get all registered explainers."""
-        result = {}
-        for name in cls.names():
-            try:
-                result[name] = cls.get(name)
-            except ImportError:
-                continue
-        return result
-
-    @classmethod
-    def names(cls) -> list[str]:
-        """Get list of registered explainer names."""
-        return ExplainerRegistry.names()
-
-    @classmethod
-    def has(cls, name: str) -> bool:
-        """Check if explainer is available."""
-        return ExplainerRegistry.has(name)
-
-    @classmethod
-    def get_install_hint(cls, name: str) -> str | None:
-        """Get installation hint for an explainer plugin."""
-        return ExplainerRegistry.get_install_hint(name)
-
-    @classmethod
-    def available_plugins(cls) -> dict[str, bool]:
-        """Get availability status of all plugins."""
-        return ExplainerRegistry.available_plugins()
-
-
-# Export both the real registry and the compat class for backward compatibility
+# Export the registry and selection utilities
 __all__ = [
     "ERR_UNSUPPORTED_MODEL",
     "REQUIRES",
     "SUPPORTED_FAMILIES",
     "ExplainerRegistry",
-    "ExplainerRegistryCompat",
     "_available",
     "_first_available",
     "select_explainer",

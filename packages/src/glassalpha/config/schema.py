@@ -528,11 +528,6 @@ class AuditConfig(BaseModel):
     model: ModelConfig = Field(..., description="Model configuration")
     data: DataConfig = Field(..., description="Data configuration")
 
-    def __init__(self, **data):
-        # Profile defaults are applied in the loader, not here
-        # Schema should only validate, not mutate inputs
-        super().__init__(**data)
-
     # Optional fields with defaults
     explainers: ExplainerConfig = Field(default_factory=ExplainerConfig, description="Explainer configuration")
     metrics: MetricsConfig = Field(default_factory=MetricsConfig, description="Metrics configuration")

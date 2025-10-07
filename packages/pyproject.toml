@@ -255,10 +255,8 @@ source = ["src/glassalpha"]
 fail_under = 0
 # Temporary omissions to keep Gate 2 meaningful while we add tests
 omit = [
-  "*/site-packages/glassalpha/metrics/drift/detection.py",   # placeholder module
-  "*/site-packages/glassalpha/metrics/registry.py",          # legacy shim, unused
-  "*/site-packages/glassalpha/models/_io.py",                # unused shim
-  "*/site-packages/glassalpha/profiles/*",                   # not shipped yet
+  "*/site-packages/glassalpha/metrics/drift/detection.py",   # placeholder module for future
+  "*/site-packages/glassalpha/models/_io.py",                # unused serialization utilities
   "*/site-packages/glassalpha/report/renderers/html.py"      # PDF path is used in CI
 ]
 

@@ -135,30 +135,6 @@ def ensure_dir_writable(path: Path, mode: int = 0o700) -> Path:
     raise RuntimeError(f"Failed to create writable directory after {max_attempts} attempts: {path}")
 
 
-def get_data_root() -> Path:
-    """Get the root directory for caching datasets (legacy function).
-
-    DEPRECATED: Use resolve_data_root() + ensure_dir_writable() instead.
-
-    Returns:
-        Path to the cache root directory (creates directory if needed)
-
-    Raises:
-        RuntimeError: If the cache directory cannot be determined or created
-
-    """
-    import warnings
-
-    warnings.warn(
-        "get_data_root() is deprecated. Use resolve_data_root() + ensure_dir_writable()",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-
-    root = resolve_data_root()
-    return ensure_dir_writable(root)
-
-
 def get_cache_path(dataset_key: str, filename: str) -> Path:
     """Get the full cache path for a dataset file.
 

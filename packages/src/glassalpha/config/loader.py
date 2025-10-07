@@ -109,27 +109,6 @@ def merge_configs(base: dict[str, Any], override: dict[str, Any]) -> dict[str, A
     return result
 
 
-def _migrate_deprecated(cfg: dict[str, Any]) -> tuple[dict[str, Any], list[str]]:
-    """Migrate deprecated configuration options to current format.
-
-    Args:
-        cfg: Configuration dictionary to migrate
-
-    Returns:
-        Tuple of (migrated_config, deprecation_notes)
-
-    """
-    notes = []
-    cfg = cfg.copy()  # Don't modify original
-
-    if "random_seed" in cfg:
-        cfg.setdefault("reproducibility", {})
-        cfg["reproducibility"]["random_seed"] = cfg.pop("random_seed")
-        notes.append("• 'random_seed' is deprecated, use 'reproducibility.random_seed'")
-
-    return cfg, notes
-
-
 def validate_config_completeness(_: "AuditConfig") -> None:
     """Hook for additional completeness checks (patched in tests)."""
     return
@@ -203,11 +182,6 @@ def validate_config(config: dict[str, Any] | AuditConfig) -> AuditConfig:
         return config
 
     try:
-        # Migrate deprecated options before validation
-        config, notes = _migrate_deprecated(config)
-        if notes:
-            logger.warning("Deprecated configuration options found:\n  " + "\n  ".join(notes))
-
         # Profile defaults are applied in load_config, not here
 
         # Create and validate config object
@@ -249,12 +223,10 @@ def load_config(config_dict: dict[str, Any], profile_name: str | None = None, st
         check_config_security,
         suggest_config_improvements,
         validate_config_completeness,
-        warn_deprecated_options,
         warn_unknown_keys,
     )
 
-    # Check for deprecated options and security issues
-    warn_deprecated_options(config_dict)
+    # Check for security issues
     check_config_security(config_dict)
 
     # Apply defaults and validate

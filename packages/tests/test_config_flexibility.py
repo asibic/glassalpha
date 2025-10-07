@@ -9,7 +9,6 @@ from glassalpha.config.warnings import (
     check_config_security,
     suggest_config_improvements,
     validate_config_completeness,
-    warn_deprecated_options,
     warn_unknown_keys,
 )
 
@@ -51,36 +50,6 @@ def test_unknown_keys_in_report_section_logged():
 
     # Config should still be valid
     assert config.report.template == "standard_audit.html"
-
-
-def test_deprecated_options_warning():
-    """Test that deprecated configuration options generate warnings."""
-    config_dict = {
-        "audit_profile": "test_profile",
-        "random_seed": 42,  # Deprecated: should be reproducibility.random_seed
-        "target": "target_col",  # Deprecated: should be data.target_column
-        "data": {
-            "dataset": "custom",
-            "path": "test.csv",
-            "target_column": "target",
-            "protected_attributes": ["age"],
-        },
-        "model": {"type": "xgboost"},
-        "explainers": {"strategy": "first_compatible", "priority": ["treeshap"]},
-        "metrics": {"performance": ["accuracy"]},
-        "report": {"template": "standard_audit.html"},
-    }
-
-    with patch("glassalpha.config.warnings.logger") as mock_logger:
-        warn_deprecated_options(config_dict)
-
-        # Should have logged deprecation warnings
-        mock_logger.warning.assert_called()
-        warning_msg = mock_logger.warning.call_args[0][0]
-
-        assert "deprecated" in warning_msg.lower()
-        assert "random_seed" in warning_msg
-        assert "reproducibility.random_seed" in warning_msg
 
 
 def test_security_warnings_for_user_paths():
@@ -218,7 +187,7 @@ def test_non_strict_mode_shows_suggestions():
 
     with patch("glassalpha.config.warnings.validate_config_completeness") as mock_completeness:
         with patch("glassalpha.config.warnings.suggest_config_improvements") as mock_suggestions:
-            config = load_config(config_dict, strict=False)
+            _config = load_config(config_dict, strict=False)
 
             # In non-strict mode, suggestions should be called
             mock_completeness.assert_called_once()

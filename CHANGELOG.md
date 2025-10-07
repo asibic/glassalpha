@@ -9,6 +9,78 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Industry-Specific Compliance Guides** (P0 Feature - Distribution & Adoption)
+
+  - **Banking & Credit**: SR 11-7, ECOA, FCRA compliance workflows
+    - Credit scoring, loan pricing, fraud detection use cases
+    - Policy gate configuration for banking regulations
+    - SR 11-7 requirements mapped to CLI commands
+    - Common audit failures and remediation strategies
+    - Documentation: [Banking Compliance Guide](site/docs/compliance/banking-guide.md)
+  - **Insurance**: NAIC Model Act #670, rate fairness, anti-discrimination
+    - Pricing, underwriting, claims model workflows
+    - Actuarial justification documentation
+    - Rate parity analysis and proxy feature detection
+    - State-specific considerations (CA Prop 103, NY Reg 187, CO SB 21-169)
+    - Documentation: [Insurance Compliance Guide](site/docs/compliance/insurance-guide.md)
+  - **Healthcare**: HIPAA, health equity mandates, clinical validation
+    - Risk stratification, diagnostic support, resource allocation workflows
+    - IRB and quality committee submission guidance
+    - Health equity analysis (CMS quality measures, state mandates)
+    - Dataset bias detection for healthcare disparities
+    - Documentation: [Healthcare Compliance Guide](site/docs/compliance/healthcare-guide.md)
+  - **Fraud Detection**: FCRA adverse action, FTC fairness guidelines
+    - Transaction fraud, account takeover, application fraud workflows
+    - False positive equity analysis
+    - FCRA-compliant reason codes and adverse action notices
+    - Consumer protection and recourse mechanisms
+    - Documentation: [Fraud Detection Compliance Guide](site/docs/compliance/fraud-guide.md)
+  - **Why critical**: Enables faster adoption by providing industry-specific entry points, demonstrates regulatory understanding, improves SEO and discoverability
+
+- **Role-Based Workflow Guides** (P0 Feature - Distribution & Adoption)
+
+  - **ML Engineer Workflow**: Implementation, CI/CD integration, debugging
+    - Local development loop with fast iteration
+    - CI/CD integration with GitHub Actions and pre-commit hooks
+    - Notebook development with inline HTML display
+    - Performance optimization strategies
+    - Reproducibility debugging and troubleshooting
+    - Documentation: [ML Engineer Workflow](site/docs/guides/ml-engineer-workflow.md)
+  - **Compliance Officer Workflow**: Evidence packs, policy gates, regulator communication
+    - Evidence pack generation for regulatory submissions
+    - Policy-as-code gate establishment
+    - Regulator response workflows
+    - Communication templates for cover letters and findings
+    - Audit trail and verification procedures
+    - Documentation: [Compliance Officer Workflow](site/docs/guides/compliance-workflow.md)
+  - **Model Validator Workflow**: Independent verification, challenge testing, red flags
+    - Evidence pack integrity verification
+    - Independent audit reproduction
+    - Challenge testing (threshold sensitivity, distribution shifts, edge cases)
+    - Red flag taxonomy (critical, warning, advisory)
+    - Validation opinion letter templates
+    - Documentation: [Model Validator Workflow](site/docs/guides/validator-workflow.md)
+  - **Why critical**: Different personas need different workflows, builds trust through tailored guidance, enables enterprise adoption
+
+- **Compliance Overview Landing Page** (P0 Feature - Navigation & UX)
+
+  - **Role/industry picker**: Decision tree for quick navigation
+  - **Common scenarios**: "I need SR 11-7 compliance" → Banking guide + workflow
+  - **Regulatory framework coverage**: Summary of SR 11-7, NAIC, HIPAA, FCRA, ECOA
+  - **Core capabilities overview**: Audit reports, evidence packs, policy gates, reproducibility
+  - **Cross-links**: All industry guides, role workflows, examples
+  - Documentation: [Compliance Overview](site/docs/compliance/index.md)
+  - **Why critical**: Reduces time-to-value, helps users find relevant content quickly
+
+- **Documentation Navigation Reorganization** (P0 Feature - UX & Discoverability)
+
+  - **Guides section restructured** into three subsections:
+    - **Industry Guides**: Banking, Insurance, Healthcare, Fraud Detection (ordered by potential customer base)
+    - **Role Guides**: ML Engineers, Compliance Officers, Model Validators (ordered by user base size)
+    - **How-To Guides**: Task-based guides (Reason Codes, Preprocessing, Recourse, etc.) ordered by usage likelihood
+  - **SR 11-7 mapping enhanced** with cross-links to new banking and compliance guides
+  - **Why critical**: Easier navigation, better SEO, clearer value proposition
+
 - **E6.5: Demographic Shift Simulator** (P0 Feature - Distribution Robustness Testing)
 
   - **Post-stratification reweighting**: Simulates demographic distribution changes via sample weights

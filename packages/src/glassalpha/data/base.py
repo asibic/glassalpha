@@ -3,6 +3,11 @@
 This module defines the common interface that all data loaders
 must implement to enable consistent data handling across
 different modalities (tabular, text, image).
+
+**v1.0 Limitation**: The current implementation is optimized for tabular data.
+All methods assume pandas DataFrames as the primary data structure.
+Future versions (v2.0+) will support text and image modalities through
+modality-specific subclasses (TextDataInterface, ImageDataInterface).
 """
 
 from abc import ABC, abstractmethod
@@ -22,7 +27,13 @@ class DataSchema(BaseModel):
 
 
 class DataInterface(ABC):
-    """Protocol for data loaders across different modalities."""
+    """Protocol for data loaders across different modalities.
+
+    **v1.0 Note**: Current implementation assumes tabular data (pandas DataFrame).
+    Methods are designed with extensibility in mind but currently handle only
+    structured/tabular datasets. Text and image modalities will be supported
+    in v2.0 through specialized subclasses.
+    """
 
     @abstractmethod
     def load(self, path: Path, schema: DataSchema | None = None) -> pd.DataFrame:

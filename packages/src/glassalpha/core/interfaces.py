@@ -2,6 +2,12 @@
 
 These protocols define the interfaces that all implementations must follow,
 enabling the plugin architecture and future extensibility.
+
+**Modality Support**: v1.0 focuses on tabular ML models (classification/regression
+with structured features). The abstractions are designed to be modality-agnostic,
+but current implementations assume tabular data. LLM and vision model support
+will be added in v2.0 through the plugin system without breaking changes to
+existing tabular model code.
 """
 
 from typing import Any, Protocol, runtime_checkable
@@ -100,7 +106,10 @@ class MetricInterface(Protocol):
     version: str
 
     def compute(
-        self, y_true: np.ndarray, y_pred: np.ndarray, sensitive_features: pd.DataFrame | None = None
+        self,
+        y_true: np.ndarray,
+        y_pred: np.ndarray,
+        sensitive_features: pd.DataFrame | None = None,
     ) -> dict[str, float]:
         """Compute metric values.
 
@@ -121,71 +130,6 @@ class MetricInterface(Protocol):
 
     def requires_sensitive_features(self) -> bool:
         """Check if metric requires sensitive features."""
-        ...
-
-
-@runtime_checkable
-class DataInterface(Protocol):
-    """Protocol for data handling across modalities."""
-
-    # Required class attributes
-    modality: str  # 'tabular', 'text', 'image', etc.
-    version: str
-
-    def load(self, path: str) -> Any:
-        """Load data from specified file path with format auto-detection.
-
-        Loads data from various file formats (CSV, JSON, Parquet, etc.) with
-        automatic format detection and schema validation. Implementations should
-        handle common data formats and provide consistent error handling for
-        regulatory compliance requirements.
-
-        Args:
-            path: Path to data file (supports multiple formats: .csv, .json, .parquet)
-
-        Returns:
-            Loaded data in standardized format (typically pandas DataFrame)
-
-        Raises:
-            FileNotFoundError: If the specified data file does not exist
-            PermissionError: If file system permissions prevent reading the file
-            ValueError: If data format is unrecognized or contains invalid content
-            OSError: If file system error occurs during loading
-            ImportError: If required data processing libraries are unavailable
-            UnicodeDecodeError: If file encoding is incompatible or corrupted
-            ParserError: If file structure violates expected format specifications
-
-        Note:
-            Implementations must preserve data integrity and provide audit trail
-            capabilities. All loaded data should undergo schema validation to
-            ensure compliance with regulatory data handling requirements.
-
-        """
-        ...
-
-    def validate_schema(self, data: Any, schema: dict[str, Any]) -> bool:
-        """Validate data against schema.
-
-        Args:
-            data: Data to validate
-            schema: Schema specification
-
-        Returns:
-            True if valid
-
-        """
-        ...
-
-    def compute_hash(self, data: Any) -> str:
-        """Compute deterministic hash of data.
-
-        Args:
-            data: Data to hash
-
-        Returns:
-            Hash string
-
-        """
         ...
 
 

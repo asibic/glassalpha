@@ -40,52 +40,6 @@ def warn_unknown_keys(raw_config: dict[str, Any], parsed_model: BaseModel, secti
         )
 
 
-def warn_deprecated_options(config_dict: dict[str, Any]) -> None:
-    """Warn about deprecated configuration options.
-
-    Args:
-        config_dict: Full configuration dictionary
-
-    """
-    deprecated_mappings = {
-        # Old key -> (new key, section)
-        "random_seed": ("reproducibility.random_seed", "reproducibility"),
-        "target": ("data.target_column", "data"),
-        "protected_attrs": ("data.protected_attributes", "data"),
-        "model_type": ("model.type", "model"),
-        "model_params": ("model.params", "model"),
-        "explainer_type": ("explainers.priority", "explainers"),
-        "metrics_config": ("metrics", "metrics"),
-        "report_template": ("report.template", "report"),
-    }
-
-    deprecated_found = []
-
-    def check_nested_keys(obj: Any, prefix: str = "") -> None:
-        """Recursively check for deprecated keys."""
-        if not isinstance(obj, dict):
-            return
-
-        for key, value in obj.items():
-            full_key = f"{prefix}.{key}" if prefix else key
-
-            if key in deprecated_mappings and prefix == "":  # Only check top-level keys
-                old_key, new_section = deprecated_mappings[key]
-                deprecated_found.append((full_key, old_key))
-
-            if isinstance(value, dict):
-                check_nested_keys(value, full_key)
-
-    check_nested_keys(config_dict)
-
-    if deprecated_found:
-        warning_msg = "Deprecated configuration options found:\n"
-        for old_key, new_key in deprecated_found:
-            warning_msg += f"  • '{old_key}' is deprecated, use '{new_key}' instead\n"
-        warning_msg += "These options still work but may be removed in future versions."
-        logger.warning(warning_msg.rstrip())
-
-
 def validate_config_completeness(config_dict: dict[str, Any]) -> None:
     """Validate that configuration has all required sections for production use.
 
@@ -123,7 +77,7 @@ def validate_config_completeness(config_dict: dict[str, Any]) -> None:
                         if dataset in ["german_credit"]:  # Add other built-in datasets here
                             # Demote to info since built-in datasets resolve their own paths
                             logger.info(
-                                f"data.path not specified but using built-in dataset '{dataset}' - path will be resolved automatically"
+                                f"data.path not specified but using built-in dataset '{dataset}' - path will be resolved automatically",
                             )
                             missing_fields.remove("path")
 
