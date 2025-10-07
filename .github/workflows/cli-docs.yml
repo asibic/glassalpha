@@ -14,6 +14,10 @@ on:
             - "packages/scripts/generate_cli_docs.py"
             - "site/docs/reference/cli.md"
 
+permissions:
+    contents: read
+    pull-requests: read
+
 jobs:
     check-cli-docs:
         name: Check CLI Docs are Current
