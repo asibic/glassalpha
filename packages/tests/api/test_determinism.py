@@ -4,7 +4,7 @@ Tests for canonicalization, result ID computation, and data hashing.
 """
 
 import base64
-from datetime import datetime, timezone
+from datetime import UTC, datetime, timezone
 
 import numpy as np
 import pandas as pd
@@ -16,7 +16,6 @@ from glassalpha.core.canonicalization import (
     compute_result_id,
     hash_data_for_manifest,
 )
-
 
 # Mark as contract test (must pass before release)
 pytestmark = pytest.mark.contract
@@ -149,7 +148,7 @@ class TestCanonicalize:
 
     def test_datetime_with_tz(self):
         """Datetime with timezone preserved"""
-        dt = datetime(2025, 1, 15, 12, 30, 0, tzinfo=timezone.utc)
+        dt = datetime(2025, 1, 15, 12, 30, 0, tzinfo=UTC)
         result = canonicalize(dt)
 
         assert result == "2025-01-15T12:30:00+00:00"
@@ -515,4 +514,3 @@ class TestDeterminismAcrossRuns:
 
         # All unique (no collisions)
         assert len(set(ids)) == 100
-
