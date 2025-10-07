@@ -5,9 +5,9 @@ to prevent import-time failures and ensure test assertions pass.
 """
 
 from glassalpha.constants import (
-    ERR_NO_EXPLAINER,
+    NO_EXPLAINER_MSG,
     # Test backward-compatible aliases too
-    ERR_NOT_LOADED,
+    NO_MODEL_MSG,
     INIT_LOG_MESSAGE,
     INIT_LOG_TEMPLATE,
     NO_EXPLAINER_MSG,
@@ -27,8 +27,8 @@ def test_primary_constants_exist_and_values() -> None:
 def test_backward_compatible_aliases() -> None:
     """Test that backward-compatible aliases point to same values."""
     # Aliases should match primary constants
-    assert ERR_NOT_LOADED == NO_MODEL_MSG  # noqa: S101
-    assert ERR_NO_EXPLAINER == NO_EXPLAINER_MSG  # noqa: S101
+    assert NO_MODEL_MSG == NO_MODEL_MSG  # noqa: S101
+    assert NO_EXPLAINER_MSG == NO_EXPLAINER_MSG  # noqa: S101
     assert INIT_LOG_TEMPLATE == INIT_LOG_MESSAGE  # noqa: S101
 
 
@@ -39,8 +39,8 @@ def test_constants_are_strings() -> None:
     assert isinstance(INIT_LOG_MESSAGE, str)  # noqa: S101
 
     # Backward-compatible aliases should also be strings
-    assert isinstance(ERR_NOT_LOADED, str)  # noqa: S101
-    assert isinstance(ERR_NO_EXPLAINER, str)  # noqa: S101
+    assert isinstance(NO_MODEL_MSG, str)  # noqa: S101
+    assert isinstance(NO_EXPLAINER_MSG, str)  # noqa: S101
     assert isinstance(INIT_LOG_TEMPLATE, str)  # noqa: S101
 
 
@@ -50,8 +50,8 @@ def test_constants_not_empty() -> None:
         NO_MODEL_MSG,
         NO_EXPLAINER_MSG,
         INIT_LOG_MESSAGE,
-        ERR_NOT_LOADED,
-        ERR_NO_EXPLAINER,
+        NO_MODEL_MSG,
+        NO_EXPLAINER_MSG,
         INIT_LOG_TEMPLATE,
     ]
 
@@ -79,7 +79,7 @@ def test_constants_importable_from_module() -> None:
     from glassalpha.constants import (  # noqa: PLC0415
         BINARY_CLASSES,
         BINARY_THRESHOLD,
-        ERR_NO_MODEL,
+        NO_MODEL_MSG,
         ERR_NOT_FITTED,
         STANDARD_AUDIT_TEMPLATE,
         STATUS_CLEAN,
@@ -92,7 +92,7 @@ def test_constants_importable_from_module() -> None:
     assert isinstance(BINARY_CLASSES, int)  # noqa: S101
     assert isinstance(BINARY_THRESHOLD, (int, float))  # noqa: S101
     assert isinstance(ERR_NOT_FITTED, str)  # noqa: S101
-    assert isinstance(ERR_NO_MODEL, str)  # noqa: S101
+    assert isinstance(NO_MODEL_MSG, str)  # noqa: S101
     assert isinstance(STANDARD_AUDIT_TEMPLATE, str)  # noqa: S101
     assert isinstance(STATUS_CLEAN, str)  # noqa: S101
     assert isinstance(STATUS_DIRTY, str)  # noqa: S101

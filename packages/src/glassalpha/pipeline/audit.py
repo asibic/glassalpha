@@ -2214,35 +2214,6 @@ class AuditPipeline:
 
         return cache_path
 
-    def _resolve_requested_path(self) -> Path:
-        """Resolve the requested data path from configuration.
-
-        DEPRECATED: Use _resolve_dataset_path instead.
-
-        Returns:
-            Path to the requested data file
-
-        Raises:
-            ValueError: If dataset is unknown or configuration is invalid
-
-        """
-        from ..datasets.registry import REGISTRY
-        from ..utils.cache_dirs import resolve_data_root
-
-        cfg = self.config.data
-
-        # Custom dataset: user provides explicit path
-        if cfg.dataset == "custom":
-            return Path(cfg.path).expanduser().resolve()
-
-        # Built-in dataset: resolve to canonical cache file
-        spec = REGISTRY.get(cfg.dataset)
-        if not spec:
-            raise ValueError(f"Unknown dataset key: {cfg.dataset}")
-
-        cache_root = resolve_data_root()
-        return (cache_root / spec.default_relpath).resolve()
-
     def _ensure_dataset_availability(self, requested_path: Path) -> Path:
         """Ensure dataset is available, fetching if necessary.
 

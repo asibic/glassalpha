@@ -451,23 +451,6 @@ class TestJSONSerialization:
 class TestAssessCalibrationQuality:
     """Test the extended assess_calibration_quality function."""
 
-    def test_backward_compatibility(self):
-        """Test that legacy API still works (no CIs)."""
-        np.random.seed(42)
-        n_samples = 200
-        y_true = np.random.binomial(1, 0.5, n_samples)
-        y_prob = np.random.beta(3, 3, n_samples)
-
-        # Legacy call (no CI computation)
-        result = assess_calibration_quality(y_true, y_prob, n_bins=10)
-
-        # Should return dict with basic metrics
-        assert isinstance(result, dict)
-        assert "brier_score" in result
-        assert "expected_calibration_error" in result
-        assert "maximum_calibration_error" in result
-        assert "ece_ci" not in result  # No CIs in legacy mode
-
     def test_with_confidence_intervals(self):
         """Test new API with CI computation."""
         np.random.seed(42)

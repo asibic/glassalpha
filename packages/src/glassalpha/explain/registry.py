@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import importlib.util
-import inspect
 import logging
 from collections.abc import Iterable
 
@@ -247,25 +246,12 @@ class ExplainerRegistryClass(DecoratorFriendlyRegistry):
                 try:
                     return bool(cls.is_compatible(model=model, model_type=model_type, config=None))
                 except TypeError as e:
-                    # Handle legacy signatures gracefully
+                    # Signature incompatible - log and treat as not compatible
                     logger.warning(
                         f"{name}.is_compatible has incompatible signature: {e}. "
                         f"Please update to: @classmethod is_compatible(cls, *, model=None, model_type=None, config=None)",
                     )
-
-                    # Try legacy fallback patterns
-                    try:
-                        # Try with just model parameter (old instance method pattern)
-                        sig = inspect.signature(cls.is_compatible)
-                        if "model_type" in sig.parameters:
-                            # Old keyword pattern
-                            return bool(cls.is_compatible(model_type=model_type, model=model))
-                        # Old positional pattern
-                        return bool(cls.is_compatible(model if model is not None else model_type))
-                    except Exception:  # noqa: BLE001
-                        # If all attempts fail, treat as incompatible
-                        logger.error(f"Could not determine compatibility for {name}, treating as incompatible")
-                        return False
+                    return False
         except (KeyError, ImportError) as e:
             logger.debug(f"Explainer {name} not available: {e}")
             return False

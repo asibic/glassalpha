@@ -70,7 +70,7 @@ class TestConcurrencyFetch:
         pipeline.config = type("Config", (), {"data": config})()
 
         # Get requested path via pipeline's resolver
-        requested_path = pipeline._resolve_requested_path()
+        requested_path = pipeline._resolve_dataset_path()
         results = []
 
         def fetch_worker():

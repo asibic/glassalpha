@@ -8,7 +8,7 @@ from collections.abc import Callable
 from functools import wraps
 from typing import Any, TypeVar
 
-from glassalpha.constants import ERR_NOT_LOADED
+from glassalpha.constants import NO_MODEL_MSG
 
 F = TypeVar("F", bound=Callable[..., Any])
 
@@ -30,7 +30,7 @@ def requires_fitted(func: F) -> F:
     @wraps(func)
     def wrapper(self: Any, *args: Any, **kwargs: Any) -> Any:  # noqa: ANN401
         if getattr(self, "model", None) is None:
-            raise ValueError(ERR_NOT_LOADED)
+            raise ValueError(NO_MODEL_MSG)
         return func(self, *args, **kwargs)
 
     return wrapper
@@ -56,7 +56,7 @@ def requires_fitted_or_has_is_fitted_flag(func: F) -> F:
         if (hasattr(self, "_is_fitted") and not getattr(self, "_is_fitted", False)) or (
             not hasattr(self, "_is_fitted") and getattr(self, "model", None) is None
         ):
-            raise ValueError(ERR_NOT_LOADED)
+            raise ValueError(NO_MODEL_MSG)
         return func(self, *args, **kwargs)
 
     return wrapper

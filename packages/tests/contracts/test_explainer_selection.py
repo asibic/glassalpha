@@ -7,7 +7,7 @@ from typing import Any
 
 import pytest
 
-from glassalpha.constants import ERR_NO_EXPLAINER
+from glassalpha.constants import NO_EXPLAINER_MSG
 
 
 class TestExplainerSelection:
@@ -32,7 +32,7 @@ class TestExplainerSelection:
         with pytest.raises(RuntimeError) as exc_info:
             ExplainerRegistry.find_compatible(unsupported_model)
 
-        assert str(exc_info.value) == ERR_NO_EXPLAINER  # noqa: S101
+        assert str(exc_info.value) == NO_EXPLAINER_MSG  # noqa: S101
 
     def test_xgboost_has_compatible_explainer(self) -> None:
         """Test that XGBoost models find compatible explainers."""
@@ -57,7 +57,7 @@ class TestExplainerSelection:
 
         sklearn_model_types = [
             "logistic_regression",
-            "linear_model",
+            "linear_regression",
         ]
 
         for model_type in sklearn_model_types:
@@ -198,9 +198,9 @@ class TestExplainerSelection:
 
         # Should raise RuntimeError when no compatible explainer found
         with patch.object(pipeline, "_select_explainer") as mock_select:
-            mock_select.side_effect = RuntimeError(ERR_NO_EXPLAINER)
+            mock_select.side_effect = RuntimeError(NO_EXPLAINER_MSG)
 
-            with pytest.raises(RuntimeError, match=ERR_NO_EXPLAINER):
+            with pytest.raises(RuntimeError, match=NO_EXPLAINER_MSG):
                 pipeline._select_explainer(config.model)  # noqa: SLF001
 
     def test_registry_knows_common_aliases(self) -> None:

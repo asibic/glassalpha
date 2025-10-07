@@ -15,7 +15,10 @@ logger = logging.getLogger(__name__)
 
 
 def assess_calibration_quality(
-    y_true: Iterable[int], y_prob_pos: Iterable[float], *, n_bins: int = 10
+    y_true: Iterable[int],
+    y_prob_pos: Iterable[float],
+    *,
+    n_bins: int = 10,
 ) -> dict[str, float]:
     """Compute simple calibration quality diagnostics for binary classification.
 

@@ -2,6 +2,8 @@
 
 from unittest.mock import patch
 
+import pytest
+
 from glassalpha.config.loader import load_config
 
 
@@ -12,27 +14,36 @@ def test_unknown_profile_warns_and_continues():
         "model": {"type": "xgboost"},
         "data": {"dataset": "custom", "path": "test.csv"},
         "report": {
-            "unknown_option": "value",  # Should be logged as unknown key
             "template": "standard_audit.html",
         },
     }
 
     with patch("glassalpha.config.loader.logger") as mock_logger:
-        # Should not raise error
+        # Should not raise error for unknown profile
         config = load_config(config_dict)
 
         # Should have logged warning about unknown profile
         mock_logger.warning.assert_any_call("Unknown audit profile: totally_fake_profile")
-
-        # Should have logged about unknown report keys (check that it contains the key)
-        warning_calls = [call.args[0] for call in mock_logger.warning.call_args_list]
-        assert any("unknown_option" in call for call in warning_calls)
 
         # Config should be returned (with defaults applied)
         assert hasattr(config, "audit_profile")
         assert hasattr(config, "model")
         assert hasattr(config, "data")
         assert hasattr(config, "report")
+
+
+def test_unknown_config_keys_raise_validation_error():
+    """Test that unknown config keys raise validation errors."""
+    config_dict = {
+        "audit_profile": "tabular_compliance",
+        "model": {"type": "xgboost", "unknown_key": "value"},
+        "data": {"dataset": "custom", "path": "test.csv"},
+        "report": {"template": "standard_audit.html"},
+    }
+
+    # Should raise ValueError due to unknown keys (Pydantic validation)
+    with pytest.raises(ValueError, match="Invalid configuration"):
+        load_config(config_dict)
 
 
 def test_missing_profile_fallback():

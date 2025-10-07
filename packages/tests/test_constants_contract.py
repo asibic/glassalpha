@@ -44,11 +44,11 @@ def test_constants_module_exports():
 
 def test_backward_compatible_aliases():
     """Ensure backward-compatible aliases are maintained."""
-    from glassalpha.constants import ERR_NO_EXPLAINER, ERR_NOT_LOADED
+    from glassalpha.constants import NO_EXPLAINER_MSG, NO_MODEL_MSG
 
     # These aliases should still work for existing code
-    assert isinstance(ERR_NOT_LOADED, str)
-    assert isinstance(ERR_NO_EXPLAINER, str)
+    assert isinstance(NO_MODEL_MSG, str)
+    assert isinstance(NO_EXPLAINER_MSG, str)
 
 
 def test_import_contract_critical_modules():

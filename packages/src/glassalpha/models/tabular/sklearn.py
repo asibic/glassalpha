@@ -172,8 +172,8 @@ class SklearnGenericWrapper:
         """
         data = joblib.load(path)
 
-        # Handle both old format (feature_names) and new format (feature_names_)
-        feature_names = data.get("feature_names_") or data.get("feature_names")
+        # Load using current format (feature_names_)
+        feature_names = data.get("feature_names_")
         n_classes = data.get("n_classes")
 
         wrapper = cls(model=data["model"], feature_names=feature_names)

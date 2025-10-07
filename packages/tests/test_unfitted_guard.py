@@ -139,12 +139,3 @@ def test_no_model_msg_constant_exists() -> None:
     assert NO_MODEL_MSG == "Model not loaded. Load a model first."  # noqa: S101
     assert isinstance(NO_MODEL_MSG, str)  # noqa: S101
     assert len(NO_MODEL_MSG) > 0  # noqa: S101
-
-
-def test_backward_compatibility() -> None:
-    """Test that old constant names still work for existing code."""
-    from glassalpha.constants import ERR_NOT_LOADED, NO_MODEL_MSG  # noqa: PLC0415
-
-    # ERR_NOT_LOADED should be an alias for NO_MODEL_MSG
-    assert ERR_NOT_LOADED == NO_MODEL_MSG  # noqa: S101
-    assert ERR_NOT_LOADED == "Model not loaded. Load a model first."  # noqa: S101

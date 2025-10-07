@@ -311,7 +311,7 @@ class TestSaveLoadRoundtrip:
 
         # Should raise error when trying to save unfitted model
         with tempfile.NamedTemporaryFile(suffix=".pkl") as tmp:
-            from glassalpha.constants import ERR_NOT_LOADED  # noqa: PLC0415
+            from glassalpha.constants import NO_MODEL_MSG  # noqa: PLC0415
 
-            with pytest.raises(ValueError, match=ERR_NOT_LOADED):
+            with pytest.raises(ValueError, match=NO_MODEL_MSG):
                 wrapper.save(tmp.name)

@@ -38,7 +38,7 @@ class TestDatasetFetchingIntegration:
         pipeline = AuditPipeline(config)
 
         # Test path resolution
-        resolved_path = pipeline._resolve_requested_path()
+        resolved_path = pipeline._resolve_dataset_path()
         # resolved_path points to: .../glassalpha/data/german_credit_processed.csv
         # So parent is .../glassalpha/data, which is what we want
         from glassalpha.utils.cache_dirs import resolve_data_root
@@ -127,12 +127,9 @@ class TestDatasetFetchingIntegration:
         pipeline = AuditPipeline.__new__(AuditPipeline)
         pipeline.config = type("Config", (), {"data": config})()
 
-        # Path resolution should succeed for custom dataset
-        resolved_path = pipeline._resolve_requested_path()
-
-        # But ensuring availability should fail for non-existent custom file
+        # Path resolution should fail for non-existent custom dataset
         with pytest.raises(FileNotFoundError) as exc_info:
-            pipeline._ensure_dataset_availability(resolved_path)
+            pipeline._resolve_dataset_path()
 
         error_msg = str(exc_info.value)
         assert "Custom data file not found" in error_msg
