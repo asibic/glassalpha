@@ -1,22 +1,23 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Optional, Union, Iterable
 import logging
-import warnings
+from collections.abc import Iterable
+from typing import Any
 
 import numpy as np
 from sklearn.calibration import CalibratedClassifierCV
 from sklearn.metrics import brier_score_loss
-from sklearn.utils.validation import check_is_fitted
 
 logger = logging.getLogger(__name__)
 
 
 # ---------- Public API expected by tests ----------
 
-def assess_calibration_quality(y_true: Iterable[int], y_prob_pos: Iterable[float], *, n_bins: int = 10) -> Dict[str, float]:
-    """
-    Compute simple calibration quality diagnostics for binary classification.
+
+def assess_calibration_quality(
+    y_true: Iterable[int], y_prob_pos: Iterable[float], *, n_bins: int = 10
+) -> dict[str, float]:
+    """Compute simple calibration quality diagnostics for binary classification.
 
     Returns a dict containing:
       - brier_score
@@ -57,11 +58,9 @@ def assess_calibration_quality(y_true: Iterable[int], y_prob_pos: Iterable[float
     }
 
 
-def get_calibration_info(estimator: Any) -> Dict[str, Any]:
-    """
-    Describe whether an estimator is a CalibratedClassifierCV and expose key fields.
-    """
-    info: Dict[str, Any] = {
+def get_calibration_info(estimator: Any) -> dict[str, Any]:
+    """Describe whether an estimator is a CalibratedClassifierCV and expose key fields."""
+    info: dict[str, Any] = {
         "is_calibrated": False,
         "calibration_method": None,
         "cv_folds": None,
@@ -81,9 +80,8 @@ def get_calibration_info(estimator: Any) -> Dict[str, Any]:
     return info
 
 
-def validate_calibration_config(cfg: Optional[Dict[str, Any]]) -> Dict[str, Any]:
-    """
-    Normalize and validate a calibration configuration dict.
+def validate_calibration_config(cfg: dict[str, Any] | None) -> dict[str, Any]:
+    """Normalize and validate a calibration configuration dict.
 
     Returns a dict with keys: method (str|None), cv (int), ensemble (bool)
 
@@ -113,8 +111,7 @@ def validate_calibration_config(cfg: Optional[Dict[str, Any]]) -> Dict[str, Any]
 
 
 def recommend_calibration_method(model_name: str, n_samples: int, *, min_samples_isotonic: int = 1000) -> str:
-    """
-    Heuristic recommendation of calibration method based on model family and sample size.
+    """Heuristic recommendation of calibration method based on model family and sample size.
 
     - Small datasets favor 'sigmoid'
     - Tree-based models favor 'isotonic' when sufficiently large
@@ -146,41 +143,16 @@ def recommend_calibration_method(model_name: str, n_samples: int, *, min_samples
 
 def maybe_calibrate(
     estimator: Any,
-    method: Optional[str] = None,
-    cv: Optional[Union[int, str]] = None,
+    method: str | None = None,
+    cv: int | str | None = None,
     ensemble: bool = False,
 ) -> Any:
-    """
-    Return a CalibratedClassifierCV wrapper if a calibration method is requested;
+    """Return a CalibratedClassifierCV wrapper if a calibration method is requested;
     otherwise return the estimator unchanged.
 
     Note: This function does not call `.fit()`. It only constructs the wrapper so
     that callers can inspect configuration (e.g., for reporting) or fit later.
-
-    Supports legacy call pattern maybe_calibrate(estimator, X, y, method) by detecting
-    array-like second/third arguments and emitting a deprecation warning, returning a
-    *fitted* CalibratedClassifierCV in that case to preserve prior behavior.
     """
-    # --- Legacy signature detection: maybe_calibrate(estimator, X, y, method) ---
-    # If `method` is array-like and `cv` is array-like, assume old order and swap.
-    if hasattr(method, "__array__") or isinstance(method, (list, tuple)):
-        # method actually holds X, and cv holds y, and ensemble holds the string method
-        X, y, real_method = method, cv, ensemble  # type: ignore[assignment]
-        warnings.warn(
-            "maybe_calibrate(estimator, X, y, method) signature is deprecated; "
-            "use maybe_calibrate(estimator, method=..., cv=...) and call .fit(X, y) later.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        m = str(real_method).lower()
-        if m not in {"isotonic", "sigmoid"}:
-            raise ValueError("Unknown calibration method")
-        cv_folds: Union[int, str, None] = 5
-        wrapper = CalibratedClassifierCV(estimator=estimator, method=m, cv=cv_folds, ensemble=False)
-        # Fit now to mimic legacy behavior
-        return wrapper.fit(np.asarray(X), np.asarray(y))
-
-    # --- Modern, explicit signature ---
     if method is None:
         return estimator
 
@@ -200,7 +172,10 @@ def maybe_calibrate(
 
     try:
         wrapper = CalibratedClassifierCV(
-            estimator=estimator, method=method_norm, cv=cv, ensemble=bool(ensemble)
+            estimator=estimator,
+            method=method_norm,
+            cv=cv,
+            ensemble=bool(ensemble),
         )
         return wrapper
     except Exception as exc:  # pragma: no cover - defensive
