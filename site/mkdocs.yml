@@ -118,10 +118,16 @@ nav:
           - Healthcare: compliance/healthcare-guide.md
           - Fraud Detection: compliance/fraud-guide.md
 
+      # Core Concepts (foundational knowledge)
+      - Core Concepts:
+          - Fairness 101: guides/fairness-101.md
+          - Understanding Protected Attributes: guides/understanding-protected-attributes.md
+
       # Finally specific tasks (foundational → advanced)
       - How-To Guides:
           - Choosing a Model: reference/model-selection.md
-          - Choosing an Explainer: reference/explainers.md
+          - Choosing an Explainer: guides/how-to/choose-explainer.md
+          - Debugging Fairness Violations: guides/how-to/debug-fairness-violations.md
           - Preprocessing Verification: guides/preprocessing.md
           - Generating Reason Codes (ECOA): guides/reason-codes.md
           - Detecting Dataset Bias: guides/dataset-bias.md
@@ -152,6 +158,7 @@ nav:
 
       # API Documentation
       - API Reference:
+          - Overview: reference/api/index.md
           - Audit API (from_model): reference/api/api-audit.md
           - Configuration API: reference/api/api-config.md
           - Pipeline API (Advanced): reference/api/api-pipeline.md
