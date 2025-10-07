@@ -1,192 +1,241 @@
-"""Metric registry for GlassAlpha.
+"""Metric Registry: Metadata for all metrics.
 
-This module defines the MetricRegistry using the decorator-friendly registry
-and provides utilities for metric selection and computation.
+Provides metadata for each metric including:
+- Display name
+- Description
+- Higher is better (for comparisons)
+- Compute requirements (e.g., requires probabilities)
+- Default tolerance for equality checks
+- Aggregation method (for multi-group metrics)
+- Fairness definition reference
 """
 
-import logging
-from typing import Any
+from __future__ import annotations
 
-from ..core.decor_registry import DecoratorFriendlyRegistry
-
-logger = logging.getLogger(__name__)
-
-# Create the metric registry using the decorator-friendly registry
-MetricRegistry = DecoratorFriendlyRegistry(group="glassalpha.metrics")
-MetricRegistry.discover()  # Safe discovery without heavy imports
+from dataclasses import dataclass
+from typing import Literal
 
 
-def get_metrics_by_type(metric_type: str) -> list[str]:
-    """Get all registered metrics of a specific type.
-
-    Args:
-        metric_type: Type of metrics to retrieve (performance, fairness, drift)
-
-    Returns:
-        List of metric names of the specified type
-
+@dataclass(frozen=True)
+class MetricSpec:
+    """Specification for a metric.
+    
+    Attributes:
+        key: Metric key (e.g., "accuracy", "demographic_parity_diff")
+        display_name: Human-readable name
+        description: One-line description
+        higher_is_better: True if higher values are better
+        requires_proba: True if metric requires predicted probabilities
+        default_rtol: Default relative tolerance for equality checks
+        default_atol: Default absolute tolerance for equality checks
+        aggregation: How to aggregate across groups (for fairness metrics)
+        fairness_definition: Reference to fairness definition (if applicable)
     """
-    matching_metrics = []
+    
+    key: str
+    display_name: str
+    description: str
+    higher_is_better: bool
+    requires_proba: bool = False
+    default_rtol: float = 1e-5
+    default_atol: float = 1e-8
+    aggregation: Literal["max_diff", "mean", "none"] = "none"
+    fairness_definition: str | None = None
 
-    all_metrics = MetricRegistry.get_all()
-    for name, metric_cls in all_metrics.items():
-        try:
-            if hasattr(metric_cls, "metric_type") and metric_cls.metric_type == metric_type:
-                matching_metrics.append(name)
-        except Exception as e:
-            logger.warning(f"Error checking metric type for {name}: {e}")
 
-    return matching_metrics
+# Performance Metrics Registry
+
+PERFORMANCE_METRICS = {
+    "accuracy": MetricSpec(
+        key="accuracy",
+        display_name="Accuracy",
+        description="Fraction of correct predictions",
+        higher_is_better=True,
+        default_rtol=1e-5,
+        default_atol=1e-8,
+    ),
+    "precision": MetricSpec(
+        key="precision",
+        display_name="Precision",
+        description="Fraction of positive predictions that are correct",
+        higher_is_better=True,
+        default_rtol=1e-5,
+        default_atol=1e-8,
+    ),
+    "recall": MetricSpec(
+        key="recall",
+        display_name="Recall",
+        description="Fraction of actual positives correctly predicted",
+        higher_is_better=True,
+        default_rtol=1e-5,
+        default_atol=1e-8,
+    ),
+    "f1": MetricSpec(
+        key="f1",
+        display_name="F1 Score",
+        description="Harmonic mean of precision and recall",
+        higher_is_better=True,
+        default_rtol=1e-5,
+        default_atol=1e-8,
+    ),
+    "roc_auc": MetricSpec(
+        key="roc_auc",
+        display_name="ROC AUC",
+        description="Area under ROC curve (requires probabilities)",
+        higher_is_better=True,
+        requires_proba=True,
+        default_rtol=1e-5,
+        default_atol=1e-8,
+    ),
+    "pr_auc": MetricSpec(
+        key="pr_auc",
+        display_name="PR AUC",
+        description="Area under precision-recall curve (requires probabilities)",
+        higher_is_better=True,
+        requires_proba=True,
+        default_rtol=1e-5,
+        default_atol=1e-8,
+    ),
+    "brier_score": MetricSpec(
+        key="brier_score",
+        display_name="Brier Score",
+        description="Mean squared error of probability predictions",
+        higher_is_better=False,
+        requires_proba=True,
+        default_rtol=1e-5,
+        default_atol=1e-8,
+    ),
+    "log_loss": MetricSpec(
+        key="log_loss",
+        display_name="Log Loss",
+        description="Negative log-likelihood of probability predictions",
+        higher_is_better=False,
+        requires_proba=True,
+        default_rtol=1e-5,
+        default_atol=1e-8,
+    ),
+}
+
+# Fairness Metrics Registry
+
+FAIRNESS_METRICS = {
+    "demographic_parity_diff": MetricSpec(
+        key="demographic_parity_diff",
+        display_name="Demographic Parity Difference",
+        description="Max difference in positive prediction rate across groups",
+        higher_is_better=False,
+        default_rtol=1e-5,
+        default_atol=1e-8,
+        aggregation="max_diff",
+        fairness_definition="Demographic parity: P(Ŷ=1|A=a) equal across groups",
+    ),
+    "equalized_odds_max_diff": MetricSpec(
+        key="equalized_odds_max_diff",
+        display_name="Equalized Odds Difference",
+        description="Max difference in TPR or FPR across groups",
+        higher_is_better=False,
+        default_rtol=1e-5,
+        default_atol=1e-8,
+        aggregation="max_diff",
+        fairness_definition="Equalized odds: TPR and FPR equal across groups",
+    ),
+    "equal_opportunity_diff": MetricSpec(
+        key="equal_opportunity_diff",
+        display_name="Equal Opportunity Difference",
+        description="Max difference in TPR (recall) across groups",
+        higher_is_better=False,
+        default_rtol=1e-5,
+        default_atol=1e-8,
+        aggregation="max_diff",
+        fairness_definition="Equal opportunity: TPR equal across groups",
+    ),
+}
+
+# Calibration Metrics Registry
+
+CALIBRATION_METRICS = {
+    "ece": MetricSpec(
+        key="ece",
+        display_name="Expected Calibration Error",
+        description="Expected difference between predicted probabilities and actual rates",
+        higher_is_better=False,
+        requires_proba=True,
+        default_rtol=1e-4,  # Calibration metrics: looser tolerance
+        default_atol=1e-6,
+        aggregation="mean",
+    ),
+    "mce": MetricSpec(
+        key="mce",
+        display_name="Maximum Calibration Error",
+        description="Maximum difference between predicted probabilities and actual rates",
+        higher_is_better=False,
+        requires_proba=True,
+        default_rtol=1e-4,
+        default_atol=1e-6,
+        aggregation="max_diff",
+    ),
+}
+
+# Stability Metrics Registry
+
+STABILITY_METRICS = {
+    "monotonicity_violations": MetricSpec(
+        key="monotonicity_violations",
+        display_name="Monotonicity Violations",
+        description="Number of monotonicity constraint violations",
+        higher_is_better=False,
+        default_rtol=0.0,  # Count metrics: exact match
+        default_atol=0.0,
+        aggregation="none",
+    ),
+}
+
+# Combined Registry
+
+ALL_METRICS = {
+    **PERFORMANCE_METRICS,
+    **FAIRNESS_METRICS,
+    **CALIBRATION_METRICS,
+    **STABILITY_METRICS,
+}
 
 
-def get_required_metrics_for_profile(profile_name: str) -> dict[str, list[str]]:
-    """Get required metrics for a specific audit profile.
-
+def get_metric_spec(key: str) -> MetricSpec | None:
+    """Get metric specification by key.
+    
     Args:
-        profile_name: Name of the audit profile
-
+        key: Metric key (e.g., "accuracy")
+        
     Returns:
-        Dictionary mapping metric types to lists of required metric names
-
+        MetricSpec or None if not found
     """
-    # This will be enhanced when audit profiles are fully implemented
-    if profile_name == "tabular_compliance":
-        return {
-            "performance": ["accuracy", "precision", "recall", "f1", "auc_roc"],
-            "fairness": ["demographic_parity", "equal_opportunity"],
-            "drift": ["psi", "ks_test"],
-        }
-    # Default minimal set
-    return {"performance": ["accuracy"], "fairness": [], "drift": []}
+    return ALL_METRICS.get(key)
 
 
-def select_appropriate_metrics(
-    model_type: str,
-    task_type: str = "classification",
-    has_sensitive_features: bool = False,
-    audit_profile: str = "standard",
-) -> dict[str, list[str]]:
-    """Select appropriate metrics based on model and data characteristics.
-
+def requires_probabilities(key: str) -> bool:
+    """Check if metric requires predicted probabilities.
+    
     Args:
-        model_type: Type of model (xgboost, lightgbm, logistic_regression, etc.)
-        task_type: Type of ML task (classification, regression)
-        has_sensitive_features: Whether sensitive features are available for fairness metrics
-        audit_profile: Name of audit profile to use
-
+        key: Metric key
+        
     Returns:
-        Dictionary mapping metric types to lists of selected metric names
-
+        True if metric requires y_proba
     """
-    selected = {"performance": [], "fairness": [], "drift": []}
-
-    # Get profile requirements
-    profile_requirements = get_required_metrics_for_profile(audit_profile)
-
-    # Performance metrics (always needed)
-    performance_metrics = get_metrics_by_type("performance")
-    if task_type == "classification":
-        # Prefer classification metrics
-        preferred = ["accuracy", "precision", "recall", "f1", "auc_roc"]
-        selected["performance"] = [m for m in preferred if m in performance_metrics]
-    else:
-        # Regression metrics (when implemented)
-        preferred = ["mse", "rmse", "mae", "r2"]
-        selected["performance"] = [m for m in preferred if m in performance_metrics]
-
-    # Fairness metrics (only if sensitive features available)
-    if has_sensitive_features:
-        fairness_metrics = get_metrics_by_type("fairness")
-        preferred = profile_requirements.get("fairness", ["demographic_parity"])
-        selected["fairness"] = [m for m in preferred if m in fairness_metrics]
-
-    # Drift metrics (useful for monitoring)
-    drift_metrics = get_metrics_by_type("drift")
-    preferred = profile_requirements.get("drift", ["psi"])
-    selected["drift"] = [m for m in preferred if m in drift_metrics]
-
-    # Remove empty categories
-    selected = {k: v for k, v in selected.items() if v}
-
-    logger.info(f"Selected metrics for {model_type} {task_type}: {selected}")
-    return selected
+    spec = get_metric_spec(key)
+    return spec.requires_proba if spec else False
 
 
-def compute_all_metrics(
-    metric_names: list[str],
-    y_true: Any,
-    y_pred: Any,
-    sensitive_features: Any = None,
-) -> dict[str, dict[str, float]]:
-    """Compute multiple metrics at once.
-
+def get_default_tolerance(key: str) -> tuple[float, float]:
+    """Get default tolerance for metric.
+    
     Args:
-        metric_names: List of metric names to compute
-        y_true: Ground truth values
-        y_pred: Predicted values
-        sensitive_features: Optional sensitive features for fairness metrics
-
+        key: Metric key
+        
     Returns:
-        Dictionary mapping metric names to their computed values
-
+        Tuple of (rtol, atol)
     """
-    results = {}
-
-    for metric_name in metric_names:
-        try:
-            metric_cls = MetricRegistry.get(metric_name)
-            metric = metric_cls()
-
-            # Check if metric requires sensitive features
-            if metric.requires_sensitive_features() and sensitive_features is None:
-                logger.warning(f"Metric {metric_name} requires sensitive features but none provided")
-                continue
-
-            computed = metric.compute(y_true, y_pred, sensitive_features)
-            results[metric_name] = computed
-
-        except Exception as e:
-            logger.error(f"Error computing metric {metric_name}: {e}")
-            results[metric_name] = {"error": str(e)}
-
-    return results
-
-
-def get_metric_summary(results: dict[str, dict[str, float]]) -> dict[str, Any]:
-    """Create a summary of computed metrics.
-
-    Args:
-        results: Dictionary of computed metric results
-
-    Returns:
-        Summary dictionary with aggregated information
-
-    """
-    summary = {
-        "total_metrics": len(results),
-        "successful_metrics": len([r for r in results.values() if "error" not in r]),
-        "failed_metrics": len([r for r in results.values() if "error" in r]),
-        "metric_types": {},
-        "key_metrics": {},
-    }
-
-    # Group by metric type and extract key values
-    for metric_name, metric_results in results.items():
-        if "error" not in metric_results:
-            try:
-                metric_cls = MetricRegistry.get(metric_name)
-                metric_type = getattr(metric_cls, "metric_type", "unknown")
-
-                if metric_type not in summary["metric_types"]:
-                    summary["metric_types"][metric_type] = []
-                summary["metric_types"][metric_type].append(metric_name)
-
-                # Extract primary metric value (usually the first or most important)
-                if len(metric_results) > 0:
-                    primary_key = list(metric_results.keys())[0]
-                    summary["key_metrics"][metric_name] = metric_results[primary_key]
-
-            except Exception as e:
-                logger.warning(f"Error summarizing metric {metric_name}: {e}")
-
-    return summary
+    spec = get_metric_spec(key)
+    if spec:
+        return (spec.default_rtol, spec.default_atol)
+    # Fallback: standard tolerance
+    return (1e-5, 1e-8)

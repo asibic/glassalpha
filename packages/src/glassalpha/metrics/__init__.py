@@ -1,12 +1,25 @@
-"""Metrics modules for GlassAlpha.
+"""Metrics package: Metric specifications and registry."""
 
-This module provides various metric implementations for model evaluation,
-including performance metrics, fairness metrics, and drift metrics.
-"""
+from glassalpha.metrics.registry import (
+    ALL_METRICS,
+    CALIBRATION_METRICS,
+    FAIRNESS_METRICS,
+    PERFORMANCE_METRICS,
+    STABILITY_METRICS,
+    MetricSpec,
+    get_default_tolerance,
+    get_metric_spec,
+    requires_probabilities,
+)
 
-from .registry import MetricRegistry
-
-# Discover metrics from entry points
-MetricRegistry.discover()
-
-__all__ = ["MetricRegistry"]
+__all__ = [
+    "MetricSpec",
+    "ALL_METRICS",
+    "PERFORMANCE_METRICS",
+    "FAIRNESS_METRICS",
+    "CALIBRATION_METRICS",
+    "STABILITY_METRICS",
+    "get_metric_spec",
+    "requires_probabilities",
+    "get_default_tolerance",
+]

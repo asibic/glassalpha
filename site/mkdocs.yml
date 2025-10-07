@@ -162,6 +162,8 @@ nav:
       - API Reference:
           - Overview: reference/api/index.md
           - Entry Points (from_model, from_predictions, from_config): reference/api/audit-entry-points.md
+          - Stability Index: reference/api/stability-index.md
+          - Tolerance Policy: reference/api/tolerance-policy.md
           - Audit API (from_model): reference/api/api-audit.md
           - Configuration API: reference/api/api-config.md
           - Pipeline API (Advanced): reference/api/api-pipeline.md
