@@ -2,6 +2,52 @@
 
 Welcome to GlassAlpha compliance documentation. This guide helps you find the right resources for your role and industry.
 
+## Compliance Workflow at a Glance
+
+```mermaid
+graph TD
+    Start[Model Ready<br/>for Audit] --> Config[Create Audit<br/>Configuration]
+    Config --> Policy[Apply Policy<br/>Gates]
+    Policy --> Run[Run Audit<br/>glassalpha audit]
+
+    Run --> Analysis{Audit<br/>Results}
+
+    Analysis -->|Pass| Evidence[Generate<br/>Evidence Pack]
+    Analysis -->|Fail| Remediate[Fix Issues]
+    Analysis -->|Warning| Document[Document<br/>Mitigation]
+
+    Remediate --> Run
+    Document --> Evidence
+
+    Evidence --> Review[Compliance<br/>Officer Review]
+    Review --> Validate[Independent<br/>Validation]
+
+    Validate --> Submit[Submit to<br/>Regulator]
+    Submit --> Archive[Archive<br/>7 years]
+
+    style Start fill:#e1f5ff
+    style Analysis fill:#fff3cd
+    style Evidence fill:#d4edda
+    style Submit fill:#f8d7da
+    style Archive fill:#d1ecf1
+```
+
+**Key stages:**
+
+1. **Configuration** - Define model, data, protected attributes, policy gates
+2. **Execution** - Run audit with `--strict` mode for regulatory compliance
+3. **Review** - Analyze results, address failed gates, document warnings
+4. **Evidence** - Export tamper-evident evidence pack with checksums
+5. **Validation** - Independent review by validator or compliance officer
+6. **Submission** - Submit to regulator with cover letter and verification instructions
+7. **Archive** - Retain all artifacts per regulatory requirements (typically 7 years)
+
+**Quick links:**
+
+- [Compliance Readiness Checklist](compliance-readiness-checklist.md) - Pre-submission verification
+- [Compliance Officer Workflow](../guides/compliance-workflow.md) - Detailed process
+- [Model Validator Workflow](../guides/validator-workflow.md) - Independent verification
+
 ## Quick Navigation
 
 ### By Industry
@@ -20,6 +66,100 @@ Choose your role for workflow-specific guidance:
 - **[ML Engineers](../guides/ml-engineer-workflow.md)** - Implementation, CI integration, debugging
 - **[Compliance Officers](../guides/compliance-workflow.md)** - Evidence packs, policy gates, regulator communication
 - **[Model Validators](../guides/validator-workflow.md)** - Verification, challenge, independent review
+
+## Which Regulations Apply to You?
+
+Use this table to determine which regulations govern your ML system based on geography, industry, and use case.
+
+| Regulation                 | Geography      | Industry          | Use Case                                                             | GlassAlpha Coverage | Detailed Guide                            |
+| -------------------------- | -------------- | ----------------- | -------------------------------------------------------------------- | ------------------- | ----------------------------------------- |
+| **SR 11-7**                | United States  | Banking           | Model Risk Management (credit, fraud, collections)                   | ✅ Full             | [SR 11-7 Mapping](sr-11-7-mapping.md)     |
+| **ECOA / Reg B**           | United States  | Credit/Lending    | Credit decisions (loans, cards, mortgages)                           | ✅ Full             | [Banking Guide](banking-guide.md)         |
+| **FCRA**                   | United States  | Credit/Background | Adverse actions (credit denials, employment screening)               | ✅ Full             | [Banking Guide](banking-guide.md)         |
+| **EU AI Act**              | European Union | High-Risk AI      | Credit scoring, employment, law enforcement, critical infrastructure | ⚠️ Partial          | [EU AI Act Mapping](eu-ai-act-mapping.md) |
+| **GDPR Article 22**        | European Union | All               | Automated decision-making with legal/significant effects             | ✅ Full             | [EU AI Act Mapping](eu-ai-act-mapping.md) |
+| **NAIC Model #870**        | United States  | Insurance         | Underwriting, pricing, claims (all states)                           | ✅ Full             | [Insurance Guide](insurance-guide.md)     |
+| **California SB 221**      | California     | Insurance         | Life insurance algorithmic underwriting                              | ✅ Full             | [Insurance Guide](insurance-guide.md)     |
+| **Colorado SB21-169**      | Colorado       | Insurance         | External consumer data in underwriting                               | ✅ Full             | [Insurance Guide](insurance-guide.md)     |
+| **HIPAA**                  | United States  | Healthcare        | Protected Health Information (PHI)                                   | ⚠️ Partial          | [Healthcare Guide](healthcare-guide.md)   |
+| **21st Century Cures Act** | United States  | Healthcare        | Clinical decision support systems                                    | ⚠️ Partial          | [Healthcare Guide](healthcare-guide.md)   |
+| **FTC Act Section 5**      | United States  | All               | Unfair or deceptive practices                                        | ✅ Full             | [Fraud Guide](fraud-guide.md)             |
+
+### Coverage Legend
+
+- **✅ Full**: GlassAlpha provides all required artifacts and validation
+- **⚠️ Partial**: Core fairness/explainability covered, but additional domain-specific requirements may apply
+- **❌ Not Covered**: Requires specialized tools or manual processes
+
+### Key Compliance Requirements by Regulation
+
+**Banking (SR 11-7)**:
+
+- Model risk management framework
+- Independent validation
+- Conceptual soundness documentation
+- Ongoing monitoring
+- **GlassAlpha provides**: Audit reports, policy gates, manifest provenance, validator workflow
+
+**Credit (ECOA/FCRA)**:
+
+- Adverse action notices with reason codes
+- Disparate impact testing
+- Fair lending compliance
+- **GlassAlpha provides**: Reason codes, fairness metrics, demographic parity analysis
+
+**EU AI Act (High-Risk Systems)**:
+
+- Fundamental rights impact assessment
+- Data governance and quality
+- Transparency and user information
+- Human oversight mechanisms
+- **GlassAlpha provides**: Explainability (SHAP), fairness metrics, audit documentation, manifest
+
+**Insurance (NAIC #870)**:
+
+- Algorithm documentation
+- Ongoing monitoring
+- Discriminatory effect testing
+- Consumer transparency
+- **GlassAlpha provides**: Fairness analysis, rate fairness metrics, calibration testing
+
+**Healthcare (HIPAA)**:
+
+- PHI de-identification
+- Access controls and audit logs
+- Health equity considerations
+- **GlassAlpha provides**: De-identified analytics, fairness across demographics
+
+### Multi-Jurisdiction Scenarios
+
+**Example 1: US Bank with EU Customers**
+
+- Primary: SR 11-7 (US banking)
+- Secondary: GDPR Article 22 (EU customers)
+- **Solution**: Run audit with both `financial_services` and `eu_ai_act` profiles
+
+**Example 2: Insurance Company (Multi-State)**
+
+- Primary: NAIC Model #870 (all states)
+- State-Specific: California SB 221, Colorado SB21-169
+- **Solution**: Use `insurance` profile + state-specific fairness thresholds
+
+**Example 3: Healthcare AI (Clinical Decision Support)**
+
+- Primary: HIPAA (data protection)
+- Secondary: 21st Century Cures Act (clinical validation)
+- **Solution**: De-identify data, use `healthcare` profile, supplement with clinical validation
+
+### Determining Your Requirements
+
+1. **Geography**: Where are your users located?
+2. **Industry**: Which sector are you operating in?
+3. **Use Case**: What decisions does your model make?
+4. **Data Sensitivity**: Do you handle protected data (PHI, PII)?
+5. **Impact**: What are the consequences of model errors?
+
+**Not sure?** Start with the [Compliance Readiness Checklist](compliance-readiness-checklist.md) to identify your requirements.
 
 ## Decision Tree
 

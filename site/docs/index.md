@@ -2,60 +2,43 @@
 
 GlassAlpha makes **deterministic, regulator-ready PDF audit reports** for tabular ML models. It's an open-source ([Apache 2.0](reference/trust-deployment.md#licensing-dependencies)) toolkit for reproducible, audit-ready model documentation.
 
-_Note: GlassAlpha is currently pre-alpha while I’m still making significant changes. I’ll cut the first official release and publish it on PyPI once things stabilize. The audits do run and the package works, so feel free to try it out, feedback welcome!_
+_Note: GlassAlpha is currently pre-alpha while I'm still making significant changes. I'll cut the first official release and publish it on PyPI once things stabilize. The audits do run and the package works, so feel free to try it out, feedback welcome!_
 
-## Quick Links
+## How it works
 
-- [**Quick start guide**](getting-started/quickstart.md): Run an audit in 60 seconds.
-- [**Using your own data**](getting-started/custom-data.md): Audit your models with custom CSV files.
-- [**Preprocessing verification**](guides/preprocessing.md): Verify production preprocessing artifacts for compliance.
-- [**Reason codes**](guides/reason-codes.md): Generate ECOA-compliant adverse action notices.
-- [**Public datasets**](getting-started/data-sources.md): Test with 10+ curated benchmark datasets.
-- [**Examples**](examples/german-credit-audit.md): Walkthrough ML audits on credit, healthcare bias and fraud detection.
-- [**Trust & deployment**](reference/trust-deployment.md): Architecture, licensing, security, and compliance.
+```mermaid
+graph LR
+    A[Your Model<br/>+ Data] --> B[GlassAlpha CLI]
+    B --> C[Audit Pipeline]
+    C --> D[Performance<br/>Analysis]
+    C --> E[Fairness<br/>Testing]
+    C --> F[Explainability<br/>SHAP/Coef]
+    C --> G[Calibration<br/>Testing]
+    D --> H[Professional<br/>PDF Report]
+    E --> H
+    F --> H
+    G --> H
+    H --> I[Evidence Pack<br/>SHA256 Verified]
+    I --> J[Regulatory<br/>Submission]
 
-### Run first audit in 60 seconds
-
-## Feature Overview
-
-Quick reference for GlassAlpha capabilities and where to learn more:
-
-| Feature | Guide | Reference | Compliance |
-|---------|-------|-----------|------------|
-| **Group Fairness** | [Configuration](getting-started/configuration.md#fairness-analysis-with-statistical-confidence) | [Fairness Metrics](reference/fairness-metrics.md) | [SR 11-7 §V](compliance/sr-11-7-mapping.md) |
-| **Intersectional Fairness** | [Configuration](getting-started/configuration.md#fairness-analysis-with-statistical-confidence) | [Fairness Metrics](reference/fairness-metrics.md#intersectional-fairness-e51) | [SR 11-7 §V](compliance/sr-11-7-mapping.md) |
-| **Individual Fairness** | [Configuration](getting-started/configuration.md#fairness-analysis-with-statistical-confidence) | [Fairness Metrics](reference/fairness-metrics.md#individual-fairness-e11) | [SR 11-7 §V](compliance/sr-11-7-mapping.md) |
-| **Dataset Bias** | [Detection Guide](guides/dataset-bias.md) | - | [SR 11-7 §III.C.2](compliance/sr-11-7-mapping.md) |
-| **Calibration** | [Configuration](getting-started/configuration.md#calibration-analysis-with-confidence-intervals) | [Calibration Reference](reference/calibration.md) | [SR 11-7 §III.B.2](compliance/sr-11-7-mapping.md) |
-| **Robustness** | [Configuration](getting-started/configuration.md#robustness-testing-adversarial-perturbations) | [Robustness Reference](reference/robustness.md) | EU AI Act Art. 15 |
-| **Shift Testing** | [Shift Testing Guide](guides/shift-testing.md) | - | [SR 11-7 §III.A.3](compliance/sr-11-7-mapping.md) |
-| **Reason Codes** | [Reason Codes Guide](guides/reason-codes.md) | - | ECOA §701(d) |
-| **Preprocessing** | [Preprocessing Guide](guides/preprocessing.md) | - | [SR 11-7 §III.C.1](compliance/sr-11-7-mapping.md) |
-
-
-#### Clone and install
-
-```bash
-git clone https://github.com/GlassAlpha/glassalpha
-cd glassalpha/packages
-pip install -e .
+    style A fill:#e1f5ff
+    style H fill:#d4edda
+    style I fill:#fff3cd
+    style J fill:#f8d7da
 ```
 
-#### Generate an audit report (uses included German Credit example)
+**Single command**: `glassalpha audit --config your_config.yaml --output audit.pdf`
 
-```bash
-glassalpha audit --config configs/german_credit_simple.yaml --output audit.html
-```
+## Quick links
 
-That's it. You now have a complete audit report with model performance, explanations, and fairness metrics.
+- [**Quick start guide**](getting-started/quickstart.md): Run an audit in 60 seconds
+- [**Interactive notebook**](https://colab.research.google.com/github/GlassAlpha/glassalpha/blob/main/examples/notebooks/quickstart_colab.ipynb): Try in Colab (zero setup)
+- [**Python API reference**](reference/api/index.md): `from_model()` API for notebooks and programmatic use
+- [**Feature overview**](getting-started/overview.md): Why choose GlassAlpha and how it compares
+- [**Using your own data**](getting-started/custom-data.md): Audit your models with custom CSV files
+- [**Examples**](examples/german-credit-audit.md): Walkthrough ML audits on credit, healthcare bias and fraud detection
 
-**Note:** To generate PDF reports instead of HTML, install with `pip install 'glassalpha[docs]'`.
-
-See [**more setup documentation here**](getting-started/quickstart.md).
-
-## See It in Action (5-Minute Demo)
-
-Want to see what you get? Generate a professional audit PDF in 5 minutes:
+## Run your first audit in 60 seconds
 
 ```bash
 # 1. Clone and install (90 seconds)
@@ -71,7 +54,13 @@ open audit.html  # macOS
 # start audit.html  # Windows
 ```
 
-**Result**: A professional audit report with:
+**Result**: A professional audit report with model performance, fairness analysis, feature importance, individual explanations, reason codes, preprocessing verification, and complete audit trail.
+
+[See detailed quickstart guide →](getting-started/quickstart.md)
+
+## What you get
+
+Every GlassAlpha audit includes:
 
 - ✅ Model performance metrics (accuracy, precision, recall, F1, AUC)
 - ✅ Fairness analysis (bias detection across demographic groups)
@@ -81,185 +70,19 @@ open audit.html  # macOS
 - ✅ Preprocessing verification (production artifact validation)
 - ✅ Complete audit trail (reproducibility manifest with all seeds and hashes)
 
-**Note:** Base install includes LogisticRegression with zero-dependency coefficient explanations. For tree models with SHAP, install with `pip install -e ".[explain]"`.
+[See complete audit contents →](reference/audit-contents.md)
 
-[See example output](examples/german-credit-audit.md)
+## Why choose GlassAlpha?
 
-## Why Choose GlassAlpha?
-
-### How GlassAlpha Compares
-
-| Feature                   | GlassAlpha                      | Fairlearn        | AIF360               | Commercial Tools     |
-| ------------------------- | ------------------------------- | ---------------- | -------------------- | -------------------- |
-| **Audit PDFs**            | ✅ Professional, byte-identical | ❌ No reports    | ❌ No reports        | ✅ $$$               |
-| **Custom Data in 5 min**  | ✅ Yes                          | ⚠️ Complex setup | ⚠️ Complex setup     | ⚠️ Support needed    |
-| **Built-in Datasets**     | ✅ 10+ ready to use             | ❌ None          | ⚠️ Few               | ✅ Limited           |
-| **Model Support**         | ✅ XGBoost, LightGBM, sklearn   | ⚠️ sklearn only  | ⚠️ Limited           | ✅ Varies            |
-| **Deterministic Results** | ✅ Byte-identical PDFs          | ⚠️ Partial       | ❌ No                | ⚠️ Varies            |
-| **Offline/Air-gapped**    | ✅ 100% offline                 | ✅ Yes           | ✅ Yes               | ❌ Requires internet |
-| **Cost**                  | ✅ Free (Apache 2.0)            | ✅ Free (MIT)    | ✅ Free (Apache 2.0) | 💰 $5K-$50K+         |
-| **Regulatory Ready**      | ✅ Audit trails + manifests     | ❌ No trails     | ❌ No trails         | ✅ $$$               |
-| **Learning Curve**        | ✅ 60-second start              | ⚠️ Steep         | ⚠️ Steep             | ⚠️ Training needed   |
-
-**Bottom line**: GlassAlpha is the only OSS tool that combines professional audit PDFs, easy custom data support, and complete regulatory compliance—all in a 60-second setup.
-
-### Designed for regulatory compliance
+GlassAlpha is the only OSS tool that combines professional audit PDFs, easy custom data support, and complete regulatory compliance—all in a 60-second setup.
 
 - **Deterministic outputs** - Identical PDFs on same seed/data/model
 - **Complete lineage** - Git SHA, config hash, data hash, seeds recorded
 - **Professional formatting** - Publication-quality reports with visualizations
-
-### On-premise first design
-
 - **No external dependencies** - Runs completely offline
-- **File-based approach** - No databases or complex infrastructure needed
-- **Full reproducibility** - Immutable run manifests for audit trails
-
-### Simplicity as a core principle
-
 - **Single command** - `glassalpha audit` handles everything
-- **YAML configuration** - Policy-as-code for compliance requirements
-- **Fast execution** - Under 60 seconds from model to PDF
 
-## Supported models
-
-| Model Type          | Status     | Notes                           |
-| ------------------- | ---------- | ------------------------------- |
-| XGBoost             | Production | TreeSHAP integration optimized  |
-| LightGBM            | Production | Native integration available    |
-| Logistic Regression | Production | Full scikit-learn compatibility |
-
-_Additional model types available through extension framework._
-
-## Audit report contents
-
-Audit reports include:
-
-### 1. Model performance metrics
-
-- Accuracy, precision, recall, F1, AUC-ROC
-- Confusion matrices and performance curves
-- Cross-validation results
-
-### 2. Model explanations
-
-- Feature importance rankings (coefficients for linear, SHAP for tree models)
-- Individual prediction explanations
-- Visual breakdown of key decisions
-
-### 3. Basic fairness analysis
-
-- Protected attribute analysis
-- Disparate impact calculations
-- Group parity metrics
-
-### 4. Reason codes (ECOA compliance)
-
-- Top-N negative feature contributions
-- ECOA-compliant adverse action notices
-- Protected attribute exclusion
-- Deterministic ranking
-
-### 5. Reproducibility manifest
-
-- Complete configuration hash
-- Dataset fingerprint
-- Git commit SHA and timestamp
-- All random seeds used
-
-## Installation
-
-Clone and setup
-
-```bash
-git clone https://github.com/GlassAlpha/glassalpha
-cd glassalpha/packages
-```
-
-Python 3.11, 3.12, or 3.13 supported
-
-```bash
-python3 --version   # should show 3.11.x, 3.12.x, or 3.13.x
-```
-
-(Recommended) Create a virtual environment
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-```
-
-Upgrade pip and install in editable mode
-
-```bash
-python -m pip install --upgrade pip
-pip install -e ".[dev]"
-```
-
-Verify installation
-
-```bash
-glassalpha --help
-```
-
-## Contributing
-
-We welcome contributions to enhance GlassAlpha's capabilities:
-
-### Enhancement areas
-
-1. **Additional models** - Neural networks, time series, custom integrations
-2. **Advanced explanations** - Counterfactuals, gradient methods, interactive visuals
-3. **Extended compliance** - Additional frameworks, custom templates, industry metrics
-4. **Performance** - Large dataset optimization, parallel processing
-5. **Documentation** - Examples, tutorials, best practices
-
-### Example: configuration format
-
-Working configuration structure:
-
-```yaml
-audit_profile: german_credit_default
-
-data:
-  path: data/german_credit_processed.csv
-  target_column: credit_risk
-  protected_attributes:
-    - gender
-    - age_group
-    - foreign_worker
-
-model:
-  type: xgboost
-  params:
-    objective: binary:logistic
-    n_estimators: 100
-    max_depth: 5
-
-explainers:
-  strategy: first_compatible
-  priority:
-    - treeshap
-    - kernelshap
-
-metrics:
-  performance:
-    metrics:
-      - accuracy
-      - precision
-      - recall
-      - f1
-      - auc_roc
-  fairness:
-    metrics:
-      - demographic_parity
-      - equal_opportunity
-
-reproducibility:
-  random_seed: 42
-```
-
-This configuration format supports deterministic, reproducible audits.
+[See detailed comparison and features →](getting-started/overview.md)
 
 ## Use cases
 
@@ -267,18 +90,14 @@ This configuration format supports deterministic, reproducible audits.
 - [Healthcare bias detection](examples/healthcare-bias-detection.md) - Medical AI compliance example
 - [Fraud detection audit](examples/fraud-detection-audit.md) - Financial services compliance example
 
-_Comprehensive examples with real datasets and regulatory interpretations._
-
 ## Documentation
 
 - [Quick start guide](getting-started/quickstart.md) - Installation and first audit
+- [Feature overview](getting-started/overview.md) - Why choose GlassAlpha and how it compares
 - [Using custom data](getting-started/custom-data.md) - Audit your own models
-- [Preprocessing verification](guides/preprocessing.md) - Verify production preprocessing artifacts
-- [Reason codes](guides/reason-codes.md) - ECOA-compliant adverse action notices
-- [Public datasets](getting-started/data-sources.md) - 10+ curated benchmark datasets
 - [Configuration guide](getting-started/configuration.md) - YAML configuration reference
+- [CLI commands](reference/cli.md) - Complete command reference
 - [Trust & deployment](reference/trust-deployment.md) - Architecture, licensing, security, and compliance
-- [Contribution guidelines](reference/contributing.md) - Enhancement opportunities
 
 ## License & trademark
 

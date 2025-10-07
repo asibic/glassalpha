@@ -30,7 +30,7 @@ This generates an ECOA-compliant adverse action notice explaining why instance 4
 
 ## How It Works
 
-### 1. SHAP Value Extraction
+### 1. SHAP value extraction
 
 GlassAlpha uses SHAP (SHapley Additive exPlanations) to determine feature contributions:
 
@@ -117,7 +117,7 @@ reproducibility:
   deterministic: true
 ```
 
-## CLI Usage
+## CLI usage
 
 ### Generate Single Notice
 
@@ -129,7 +129,7 @@ glassalpha reasons \
   --output notices/app_001.txt
 ```
 
-### JSON Output
+### JSON output
 
 ```bash
 glassalpha reasons \

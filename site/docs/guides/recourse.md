@@ -204,7 +204,7 @@ top_n: 5 # Return top 5 recommendations
 
 Returns the `top_n` lowest-cost feasible recommendations.
 
-## CLI Reference
+## CLI reference
 
 ### Command: `glassalpha recourse`
 
@@ -460,7 +460,7 @@ feature_bounds:
   savings_balance: [0, 50000] # Instead of [0, 10000]
 ```
 
-### SHAP Computation Failed
+### SHAP computation failed
 
 **Problem**: `TreeExplainer failed` or `KernelSHAP timeout`
 
@@ -602,7 +602,7 @@ git commit -m "Add recourse config with ECOA-compliant constraints"
 
 ## Regulatory Compliance
 
-### ECOA Requirements
+### ECOA requirements
 
 **15 U.S.C. § 1691(d)**: Creditors must provide "a statement of specific reasons for the action taken"
 
@@ -624,7 +624,7 @@ git commit -m "Add recourse config with ECOA-compliant constraints"
 - ✅ Realistic constraints (respects immutables and monotonic constraints)
 - ✅ Multiple options (top-N recommendations sorted by cost)
 
-### CFPB Supervision Guidelines
+### CFPB supervision guidelines
 
 **Recommendation**: Provide "actionable steps consumers can take"
 

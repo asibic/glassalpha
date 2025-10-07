@@ -1,10 +1,14 @@
 # Quick start guide
 
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/GlassAlpha/glassalpha/blob/main/examples/notebooks/quickstart_colab.ipynb)
+
+**Prefer notebooks?** Try our [interactive Colab notebook](https://colab.research.google.com/github/GlassAlpha/glassalpha/blob/main/examples/notebooks/quickstart_colab.ipynb) - generate your first audit in 8 minutes with zero setup.
+
 ## The 5-minute version
 
 Get your first professional audit PDF in 5 minutes:
 
-### Using QuickStart Generator (Easiest)
+### Using quickstart generator (easiest)
 
 ```bash
 # 1. Install (30 seconds)
@@ -20,7 +24,7 @@ cd my-audit-project && python run_audit.py
 open reports/audit_report.html  # macOS
 ```
 
-### Using Repository Example
+### Using repository example
 
 ```bash
 # 1. Clone and install (90 seconds)
@@ -69,7 +73,7 @@ Get up and running with GlassAlpha in less than 10 minutes. This guide will take
 
 Choose between the quickstart generator (recommended) or manual setup:
 
-### Option A: QuickStart Generator (Recommended)
+### Option A: Quickstart generator (recommended)
 
 The fastest way to get started. Creates a complete audit project in <60 seconds:
 
@@ -114,7 +118,7 @@ glassalpha quickstart \
 
 **Skip to:** [Step 3: Review your audit report](#step-3-review-your-audit-report) once your report is generated.
 
-### Option B: Manual Setup
+### Option B: Manual setup
 
 If you prefer manual setup or want to work from the repository:
 
@@ -166,6 +170,20 @@ glassalpha models
 ```
 
 You should see the CLI help message with available commands.
+
+### Installation verification checklist
+
+Run these checks to confirm everything is working:
+
+- [ ] **CLI is accessible**: `glassalpha --version` shows version number
+- [ ] **Python version correct**: `python --version` shows 3.11+ (3.11.x, 3.12.x, or 3.13.x)
+- [ ] **Base dependencies installed**: `glassalpha list` shows available components
+- [ ] **Models available**: `glassalpha models` shows at least `logistic_regression`
+- [ ] **Config validation works**: `glassalpha validate --config configs/german_credit_simple.yaml` passes
+
+**All checks passed?** → Proceed to Step 2
+
+**Some checks failed?** → See [Troubleshooting first-run errors](#troubleshooting-first-run-errors) below
 
 ## Step 2: Generate your first audit
 
@@ -417,6 +435,175 @@ For detailed customization options, see the [Configuration Guide](configuration.
 - Coverage decision analysis
 - Health equity evaluations
 
+## Troubleshooting first-run errors
+
+### Issue: `glassalpha: command not found`
+
+**Symptom**: After installation, running `glassalpha` results in "command not found"
+
+**Cause**: CLI entry point not in PATH or package not installed
+
+**Solution**:
+
+```bash
+# Option 1: Verify installation
+pip list | grep glassalpha
+
+# Option 2: Reinstall with pip
+pip install -e .
+
+# Option 3: Use module invocation (development)
+cd glassalpha/packages
+PYTHONPATH=src python3 -m glassalpha --version
+```
+
+**Still not working?** Check if you're in the correct virtual environment:
+
+```bash
+which python  # Should show your venv path
+```
+
+### Issue: Import errors on first audit
+
+**Symptom**: `ModuleNotFoundError: No module named 'sklearn'` or similar
+
+**Cause**: Missing dependencies
+
+**Solution**:
+
+```bash
+# Ensure pip is up to date
+python -m pip install --upgrade pip
+
+# Reinstall with dependencies
+pip install -e ".[all]"
+
+# Verify installation
+pip list | grep -E "scikit-learn|pandas|numpy"
+```
+
+### Issue: XGBoost/LightGBM not available
+
+**Symptom**: `glassalpha models` only shows `logistic_regression`
+
+**Cause**: Advanced ML libraries not installed (base install only)
+
+**Solution**: This is expected behavior for base install.
+
+```bash
+# Install advanced models
+pip install -e ".[explain]"
+
+# Verify XGBoost/LightGBM are now available
+glassalpha models
+```
+
+### Issue: First audit fails with config error
+
+**Symptom**: `ConfigError: missing required field 'data.path'`
+
+**Cause**: Config file format issue or wrong path
+
+**Solution**:
+
+```bash
+# Validate config before running audit
+glassalpha validate --config configs/german_credit_simple.yaml
+
+# Check if config file exists
+ls -la configs/german_credit_simple.yaml
+
+# If file doesn't exist, ensure you're in correct directory
+cd glassalpha/packages
+```
+
+### Issue: Dataset download fails
+
+**Symptom**: `DatasetError: Failed to fetch german_credit dataset`
+
+**Cause**: Network issue or cache directory problem
+
+**Solution**:
+
+```bash
+# Check dataset cache location
+glassalpha datasets cache-dir
+
+# Try manual dataset fetch
+glassalpha datasets fetch german_credit
+
+# If network issues, use offline mode (download dataset separately)
+```
+
+### Issue: Permission errors on macOS
+
+**Symptom**: `PermissionError: [Errno 13] Permission denied`
+
+**Cause**: System Python or restrictive permissions
+
+**Solution**:
+
+```bash
+# Use virtual environment (recommended)
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -e .
+
+# Or use user install
+pip install --user -e .
+```
+
+### Issue: Slow first audit (>30 seconds)
+
+**Symptom**: First audit takes much longer than expected
+
+**Cause**: Cold start (package imports, dataset download)
+
+**Expected**: First run is slower due to:
+
+- One-time dataset download (~1-2MB)
+- Python package imports
+- Model training
+
+**Solution**: Subsequent runs will be faster (3-5 seconds). If consistently slow:
+
+```bash
+# Check if large dataset is being used
+glassalpha datasets info german_credit
+
+# Reduce explainer samples for faster iterations
+# Edit config: explainer.background_samples: 100
+```
+
+### Issue: PDF generation fails
+
+**Symptom**: Audit completes but no PDF created, or `WeasyPrint` errors
+
+**Cause**: HTML mode works, PDF generation has issues
+
+**Solution**:
+
+```bash
+# Use HTML output instead (works without WeasyPrint)
+glassalpha audit --config configs/german_credit_simple.yaml --output audit.html
+
+# Or install PDF dependencies
+pip install -e ".[pdf]"
+```
+
+### Still having issues?
+
+1. **Check the full troubleshooting guide**: [Troubleshooting Reference](../reference/troubleshooting.md)
+2. **Search existing issues**: [GitHub Issues](https://github.com/GlassAlpha/glassalpha/issues)
+3. **Ask for help**: [GitHub Discussions](https://github.com/GlassAlpha/glassalpha/discussions)
+
+When reporting issues, include:
+
+- Output of `glassalpha --version`
+- Output of `python --version`
+- Full error message
+- Operating system
+
 ## Getting help
 
 - **Documentation**: [Complete Guide](../index.md)
@@ -448,21 +635,21 @@ You now have GlassAlpha installed and have generated your first audit report. Th
 
 GlassAlpha transforms complex ML audit requirements into a simple, reliable workflow that meets the highest professional and regulatory standards.
 
-## Next Steps
+## Next steps
 
-### Dive Deeper into Core Concepts
+### Dive deeper into core concepts
 
 - **[Understanding Fairness Metrics](../reference/fairness-metrics.md)** - Learn about group, intersectional, and individual fairness with statistical confidence intervals
 - **[Detecting Dataset Bias](../guides/dataset-bias.md)** - Catch proxy correlations, drift, and sampling bias before model training
 - **[Calibration Analysis](../reference/calibration.md)** - Ensure predicted probabilities match observed outcomes
 
-### Advanced Features
+### Advanced features
 
 - **[Testing Demographic Shifts](../guides/shift-testing.md)** - Validate model robustness under population changes with CI/CD gates
 - **[Robustness Testing](../reference/robustness.md)** - Test stability under adversarial perturbations (ε-perturbation sweeps)
 - **[Generating Reason Codes](../guides/reason-codes.md)** - ECOA-compliant adverse action notices
 
-### Regulatory Compliance
+### Regulatory compliance
 
 - **[SR 11-7 Compliance Mapping](../compliance/sr-11-7-mapping.md)** - Federal Reserve guidance for banking models (complete clause-to-artifact mapping)
 - **[Trust & Deployment](../reference/trust-deployment.md)** - Reproducibility, determinism, and evidence pack export

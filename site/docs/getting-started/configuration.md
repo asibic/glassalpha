@@ -715,9 +715,9 @@ validation:
 
 ## Troubleshooting configuration issues
 
-## Configuring Advanced Metrics
+## Configuring advanced metrics
 
-### Fairness Analysis with Statistical Confidence
+### Fairness analysis with statistical confidence
 
 Enable advanced fairness metrics with bootstrap confidence intervals:
 
@@ -729,29 +729,29 @@ metrics:
       - demographic_parity
       - equal_opportunity
       - predictive_parity
-    
+
     # Statistical confidence intervals (E10)
     compute_confidence_intervals: true
-    n_bootstrap: 1000  # Bootstrap samples (default: 1000)
-    confidence_level: 0.95  # 95% CI (default)
-    
+    n_bootstrap: 1000 # Bootstrap samples (default: 1000)
+    confidence_level: 0.95 # 95% CI (default)
+
     # Individual fairness (E11)
     individual_fairness:
       enabled: true
-      distance_metric: euclidean  # euclidean or mahalanobis
-      similarity_percentile: 90  # Top 10% most similar pairs
-      prediction_threshold: 0.10  # 10% difference threshold
+      distance_metric: euclidean # euclidean or mahalanobis
+      similarity_percentile: 90 # Top 10% most similar pairs
+      prediction_threshold: 0.10 # 10% difference threshold
 
 # Intersectional analysis (E5.1)
 data:
   intersections:
-    - "gender*race"  # 2-way intersections
+    - "gender*race" # 2-way intersections
     - "age*income"
 ```
 
 **Learn more**: [Fairness Metrics Reference](../reference/fairness-metrics.md)
 
-### Calibration Analysis with Confidence Intervals
+### Calibration analysis with confidence intervals
 
 Enable calibration testing with statistical rigor:
 
@@ -759,23 +759,23 @@ Enable calibration testing with statistical rigor:
 metrics:
   calibration:
     enabled: true
-    
+
     # Binning strategy
-    n_bins: 10  # Fixed bins (default)
-    bin_strategy: fixed  # fixed or adaptive
-    
+    n_bins: 10 # Fixed bins (default)
+    bin_strategy: fixed # fixed or adaptive
+
     # Confidence intervals (E10+)
     compute_confidence_intervals: true
     n_bootstrap: 1000
     confidence_level: 0.95
-    
+
     # Bin-wise error bars
     compute_bin_wise_ci: true
 ```
 
 **Learn more**: [Calibration Analysis](../reference/calibration.md)
 
-### Robustness Testing (Adversarial Perturbations)
+### Robustness testing (adversarial perturbations)
 
 Test model stability under input perturbations:
 
@@ -783,15 +783,15 @@ Test model stability under input perturbations:
 metrics:
   stability:
     enabled: true
-    
+
     # Epsilon perturbation levels (E6+)
-    epsilon_values: [0.01, 0.05, 0.1]  # 1%, 5%, 10% noise
-    threshold: 0.15  # Max allowed prediction change (15%)
+    epsilon_values: [0.01, 0.05, 0.1] # 1%, 5%, 10% noise
+    threshold: 0.15 # Max allowed prediction change (15%)
 ```
 
 **Learn more**: [Robustness Testing](../reference/robustness.md)
 
-### Dataset Bias Detection
+### Dataset bias detection
 
 Automatically runs when `protected_attributes` are specified:
 
@@ -801,17 +801,17 @@ data:
     - gender
     - race
     - age
-  
+
   # Configure continuous attribute binning (E12)
   binning:
     age:
-      strategy: domain_specific  # domain_specific, custom, equal_width, equal_frequency
-      bins: [18, 25, 35, 50, 65, 100]  # Age range boundaries
+      strategy: domain_specific # domain_specific, custom, equal_width, equal_frequency
+      bins: [18, 25, 35, 50, 65, 100] # Age range boundaries
 ```
 
 **Learn more**: [Detecting Dataset Bias](../guides/dataset-bias.md)
 
-### Demographic Shift Testing
+### Demographic shift testing
 
 Test robustness under population changes (CLI-only):
 
@@ -824,7 +824,6 @@ glassalpha audit --config audit.yaml \
 ```
 
 **Learn more**: [Testing Demographic Shifts](../guides/shift-testing.md)
-
 
 ### Common configuration errors
 

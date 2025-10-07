@@ -12,7 +12,7 @@ GlassAlpha generates deterministic audit PDFs with complete lineage tracking. Sa
 
 ## Who
 
-My name is [Gabe Mays](https://gmays.com/about/) and I like building things.
+I'm [Gabe Mays](https://gmays.com/about/) and I like to build things.
 
 ## Why
 

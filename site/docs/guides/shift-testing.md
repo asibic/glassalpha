@@ -1,9 +1,9 @@
 # Demographic Shift Testing Guide
 
 !!! tip "Quick Navigation"
-    **Prerequisites**: [Quick Start](../getting-started/quickstart.md)  
-    **Related**: [Dataset Bias Detection](dataset-bias.md) | [Robustness Testing](../reference/robustness.md)  
-    **Compliance**: [SR 11-7 §III.A.3](../compliance/sr-11-7-mapping.md) - Ongoing monitoring
+**Prerequisites**: [Quick Start](../getting-started/quickstart.md)
+**Related**: [Dataset Bias Detection](dataset-bias.md) | [Robustness Testing](../reference/robustness.md)
+**Compliance**: [SR 11-7 §III.A.3](../compliance/sr-11-7-mapping.md) - Ongoing monitoring
 
 # Demographic Shift Testing (E6.5)
 
@@ -168,7 +168,7 @@ metrics:
 seed: 42
 ```
 
-### CLI Flags
+### CLI flags
 
 | Flag                    | Description                                  | Default         |
 | ----------------------- | -------------------------------------------- | --------------- |
@@ -199,7 +199,7 @@ Analyzing shift: gender_male +0.10 (+10pp)
 ✓ Shift analysis complete - no violations detected
 ```
 
-### JSON Export
+### JSON export
 
 Results are exported to `{output}.shift_analysis.json`:
 
@@ -265,7 +265,7 @@ Results are exported to `{output}.shift_analysis.json`:
 }
 ```
 
-## CI/CD Integration
+## CI/CD integration
 
 ### GitHub Actions Example
 
@@ -521,4 +521,4 @@ data:
 
 ---
 
-**Questions?** See [FAQ](../faq.md) or [file an issue](https://github.com/glassalpha/glassalpha/issues).
+**Questions?** See [FAQ](../reference/faq.md) or [file an issue](https://github.com/glassalpha/glassalpha/issues).

@@ -47,7 +47,6 @@ theme:
     - search.share
     - search.suggest
     - toc.follow
-    - toc.integrate
 
 plugins:
   - search
@@ -93,66 +92,84 @@ nav:
 
   # === GETTING STARTED (Progressive onboarding) ===
   - Getting Started:
+      - Overview: getting-started/overview.md
       - Quick Start: getting-started/quickstart.md
       - Installation: getting-started/installation.md
       - Using Your Own Data: getting-started/custom-data.md
       - Configuration: getting-started/configuration.md
+      - Configuration Patterns: getting-started/configuration-patterns.md
       - Built-in Datasets: getting-started/datasets.md
       - Public Data Sources: getting-started/data-sources.md
 
-  # === GUIDES (Organized by Industry, Role, and Task) ===
+  # === GUIDES (Role-first, then industry, then tasks) ===
   - Guides:
-      # Industry-specific compliance guides
+      # Users first ask "which workflow applies to me?"
+      - Role Guides:
+          - For ML Engineers: guides/ml-engineer-workflow.md
+          - For Data Scientists: guides/data-scientist-workflow.md
+          - For ML Managers: guides/ml-manager-workflow.md
+          - For Compliance Officers: guides/compliance-workflow.md
+          - For Model Validators: guides/validator-workflow.md
+
+      # Then "what industry-specific guidance exists?"
       - Industry Guides:
           - Banking & Credit: compliance/banking-guide.md
           - Insurance: compliance/insurance-guide.md
           - Healthcare: compliance/healthcare-guide.md
           - Fraud Detection: compliance/fraud-guide.md
 
-      # Role-based workflows
-      - Role Guides:
-          - For ML Engineers: guides/ml-engineer-workflow.md
-          - For Compliance Officers: guides/compliance-workflow.md
-          - For Model Validators: guides/validator-workflow.md
-
-      # Task-based how-to guides (by usage likelihood)
+      # Finally specific tasks (foundational → advanced)
       - How-To Guides:
-          - Generating Reason Codes (ECOA): guides/reason-codes.md
-          - Preprocessing Verification: guides/preprocessing.md
-          - Counterfactual Recourse: guides/recourse.md
-          - Detecting Dataset Bias: guides/dataset-bias.md
-          - Testing Demographic Shifts: guides/shift-testing.md
           - Choosing a Model: reference/model-selection.md
           - Choosing an Explainer: reference/explainers.md
-
-  # === UNDERSTANDING (Deep dives into concepts) ===
-  - Understanding:
-      # Core metrics
-      - Fairness Metrics: reference/fairness-metrics.md
-      - Calibration Analysis: reference/calibration.md
-      - Robustness Testing: reference/robustness.md
-
-      # Technical details
-      - Model Parameters: reference/model-parameters.md
-      - Model-Explainer Compatibility: reference/model-explainer-compatibility.md
+          - Preprocessing Verification: guides/preprocessing.md
+          - Generating Reason Codes (ECOA): guides/reason-codes.md
+          - Detecting Dataset Bias: guides/dataset-bias.md
+          - Counterfactual Recourse: guides/recourse.md
+          - Testing Demographic Shifts: guides/shift-testing.md
 
   # === COMPLIANCE (Regulatory requirements) ===
   - Compliance:
       - Overview: compliance/index.md
+      - Compliance Readiness Checklist: compliance/compliance-readiness-checklist.md
       - SR 11-7 Technical Mapping: compliance/sr-11-7-mapping.md
+      - EU AI Act Mapping: compliance/eu-ai-act-mapping.md
       - Trust & Deployment: reference/trust-deployment.md
 
-  # === EXAMPLES (Learn by doing) ===
+  # === EXAMPLES (Simple → Advanced) ===
   - Examples:
       - German Credit Audit: examples/german-credit-audit.md
-      - Healthcare Bias Detection: examples/healthcare-bias-detection.md
       - Fraud Detection: examples/fraud-detection-audit.md
+      - Healthcare Bias Detection: examples/healthcare-bias-detection.md
 
-  # === REFERENCE (CLI & API documentation) ===
+  # === REFERENCE (High-frequency first) ===
   - Reference:
       - CLI Commands: reference/cli.md
+      - Audit Report Contents: reference/audit-contents.md
+      - Supported Models: reference/supported-models.md
       - Troubleshooting: reference/troubleshooting.md
       - FAQ: reference/faq.md
+
+      # API Documentation
+      - API Reference:
+          - Audit API (from_model): reference/api/api-audit.md
+          - Configuration API: reference/api/api-config.md
+          - Pipeline API (Advanced): reference/api/api-pipeline.md
+
+      # Core concepts users reference frequently
+      - Understanding Metrics:
+          - Fairness Metrics: reference/fairness-metrics.md
+          - Calibration Analysis: reference/calibration.md
+          - Robustness Testing: reference/robustness.md
+
+      # Deep technical details
+      - Technical Details:
+          - Model Parameters: reference/model-parameters.md
+          - Model Selection: reference/model-selection.md
+          - Explainer Selection: reference/explainers.md
+          - Model-Explainer Compatibility: reference/model-explainer-compatibility.md
+
+      # Community
       - Contributing: reference/contributing.md
       - Trademark: reference/TRADEMARK.md
 
