@@ -6,11 +6,11 @@ Complete reference for `from_model()`, `from_predictions()`, and `from_config()`
 
 ## Quick Comparison
 
-| Method | Input | Use Case | Explanations | Determinism |
-|--------|-------|----------|--------------|-------------|
-| **from_model()** | Model + data | Notebook exploration, feature engineering | ✅ SHAP + recourse | ⚠️ Requires seed |
-| **from_predictions()** | Predictions only | Model deleted, external predictions | ❌ No | ✅ Deterministic |
-| **from_config()** | YAML config | CI/CD, reproducibility verification | ✅ If enabled | ✅ Enforced |
+| Method                 | Input            | Use Case                                  | Explanations       | Determinism      |
+| ---------------------- | ---------------- | ----------------------------------------- | ------------------ | ---------------- |
+| **from_model()**       | Model + data     | Notebook exploration, feature engineering | ✅ SHAP + recourse | ⚠️ Requires seed |
+| **from_predictions()** | Predictions only | Model deleted, external predictions       | ❌ No              | ✅ Deterministic |
+| **from_config()**      | YAML config      | CI/CD, reproducibility verification       | ✅ If enabled      | ✅ Enforced      |
 
 ---
 
@@ -49,7 +49,7 @@ glassalpha.audit.from_model(
 **Optional:**
 
 - **protected_attributes** (`dict[str, pd.Series | np.ndarray]`) - Protected attributes for fairness analysis. Keys are attribute names, values are arrays. Missing values (NaN) mapped to "Unknown" category.
-  
+
   Example: `{"gender": gender_array, "race": race_array}`
 
 - **sample_weight** (`pd.Series | np.ndarray` of shape `(n_samples,)`) - Sample weights for weighted metrics
@@ -337,8 +337,8 @@ glassalpha.audit.from_config(
 
 ```yaml
 model:
-  path: "models/xgboost.pkl"        # Pickled model
-  type: "xgboost.XGBClassifier"     # For verification
+  path: "models/xgboost.pkl" # Pickled model
+  type: "xgboost.XGBClassifier" # For verification
 
 data:
   X_path: "data/X_test.parquet"
@@ -346,7 +346,7 @@ data:
   protected_attributes:
     gender: "data/gender.parquet"
     race: "data/race.parquet"
-  expected_hashes:                   # Optional: verify data integrity
+  expected_hashes: # Optional: verify data integrity
     X: "sha256:abc123..."
     y: "sha256:def456..."
 
@@ -357,7 +357,7 @@ audit:
   calibration: true
 
 validation:
-  expected_result_id: "abc123..."    # Optional: verify reproducibility
+  expected_result_id: "abc123..." # Optional: verify reproducibility
 ```
 
 ### Examples
@@ -398,7 +398,7 @@ result.to_pdf("report.pdf")
 ```yaml
 # audit.yaml
 validation:
-  expected_result_id: "abc123def456..."  # From previous run
+  expected_result_id: "abc123def456..." # From previous run
 
 # Fails if result ID doesn't match (non-deterministic)
 ```
@@ -568,27 +568,27 @@ All errors inherit from `GlassAlphaError` and include:
 
 ### Input Validation Errors
 
-| Code | Error | When Raised |
-|------|-------|-------------|
+| Code    | Error                           | When Raised                           |
+| ------- | ------------------------------- | ------------------------------------- |
 | GAE1001 | InvalidProtectedAttributesError | Invalid `protected_attributes` format |
-| GAE1003 | LengthMismatchError | Array length mismatch |
-| GAE1004 | NonBinaryClassificationError | >2 classes detected |
-| GAE1005 | UnsupportedMissingPolicyError | Invalid `missing_policy` value |
-| GAE1008 | NoPredictProbaError | Model has no `predict_proba()` |
-| GAE1009 | AUCWithoutProbaError | Accessing AUC without probabilities |
-| GAE1012 | MultiIndexNotSupportedError | DataFrame has MultiIndex |
+| GAE1003 | LengthMismatchError             | Array length mismatch                 |
+| GAE1004 | NonBinaryClassificationError    | >2 classes detected                   |
+| GAE1005 | UnsupportedMissingPolicyError   | Invalid `missing_policy` value        |
+| GAE1008 | NoPredictProbaError             | Model has no `predict_proba()`        |
+| GAE1009 | AUCWithoutProbaError            | Accessing AUC without probabilities   |
+| GAE1012 | MultiIndexNotSupportedError     | DataFrame has MultiIndex              |
 
 ### Data/Result Validation Errors
 
-| Code | Error | When Raised |
-|------|-------|-------------|
+| Code    | Error                 | When Raised                      |
+| ------- | --------------------- | -------------------------------- |
 | GAE2002 | ResultIDMismatchError | Result ID doesn't match expected |
 | GAE2003 | DataHashMismatchError | Data hash doesn't match expected |
 
 ### File Operation Errors
 
-| Code | Error | When Raised |
-|------|-------|-------------|
+| Code    | Error           | When Raised                       |
+| ------- | --------------- | --------------------------------- |
 | GAE4001 | FileExistsError | File exists and `overwrite=False` |
 
 ### Example
@@ -622,4 +622,3 @@ except ga.InvalidProtectedAttributesError as e:
 - **GitHub Issues**: [Report bugs](https://github.com/GlassAlpha/glassalpha/issues)
 - **Discussions**: [Ask questions](https://github.com/GlassAlpha/glassalpha/discussions)
 - **Email**: [contact@glassalpha.com](mailto:contact@glassalpha.com)
-

@@ -6,14 +6,14 @@ Guide to when predicted probabilities are required vs optional for audit metrics
 
 ## Quick Summary
 
-| Metric Type | Requires `y_proba` | Alternative |
-|-------------|-------------------|-------------|
-| **Accuracy, Precision, Recall, F1** | ❌ No | Decision labels only |
-| **ROC AUC, PR AUC** | ✅ Yes | Skip or use `decision_function()` |
-| **Brier Score, Log Loss** | ✅ Yes | Skip |
-| **Calibration (ECE, curves)** | ✅ Yes | Skip calibration analysis |
-| **Fairness (DP, EO)** | ❌ No | Works with labels |
-| **SHAP Explanations** | ❌ No | Works with any `predict()` |
+| Metric Type                         | Requires `y_proba` | Alternative                       |
+| ----------------------------------- | ------------------ | --------------------------------- |
+| **Accuracy, Precision, Recall, F1** | ❌ No              | Decision labels only              |
+| **ROC AUC, PR AUC**                 | ✅ Yes             | Skip or use `decision_function()` |
+| **Brier Score, Log Loss**           | ✅ Yes             | Skip                              |
+| **Calibration (ECE, curves)**       | ✅ Yes             | Skip calibration analysis         |
+| **Fairness (DP, EO)**               | ❌ No              | Works with labels                 |
+| **SHAP Explanations**               | ❌ No              | Works with any `predict()`        |
 
 ---
 
@@ -30,7 +30,7 @@ Guide to when predicted probabilities are required vs optional for audit metrics
 - **Calibration**: Checks if probabilities match actual rates (requires probabilities)
 - **Brier score**: Measures
 
- probability accuracy (requires probabilities)
+probability accuracy (requires probabilities)
 
 ---
 
@@ -382,7 +382,7 @@ if ece > 0.10:
     print(f"⚠️ Poor calibration (ECE={ece:.3f}). Consider CalibratedClassifierCV.")
 ```
 
-**Good calibration**: ECE < 0.05  
+**Good calibration**: ECE < 0.05
 **Poor calibration**: ECE > 0.10
 
 ---
@@ -501,4 +501,3 @@ print(f"ECE: {result.calibration.ece:.3f}")  # Should be low
 
 - **GitHub Issues**: [Report bugs](https://github.com/GlassAlpha/glassalpha/issues)
 - **Discussions**: [Ask questions](https://github.com/GlassAlpha/glassalpha/discussions)
-

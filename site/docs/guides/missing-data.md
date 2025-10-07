@@ -146,7 +146,7 @@ result = ga.audit.from_model(...)
 - <10% missing: Acceptable
 - 10-30% missing: Document in report
 - 30-50% missing: Investigate data quality
-- >50% missing: Fairness analysis unreliable
+- > 50% missing: Fairness analysis unreliable
 
 ### 2. All Missing Data
 
@@ -263,7 +263,7 @@ result_all = ga.audit.from_model(...)  # Includes "Unknown"
 result_complete = ga.audit.from_model(...)  # Complete only
 
 # Check if conclusions differ
-if abs(result_all.fairness.demographic_parity_max_diff - 
+if abs(result_all.fairness.demographic_parity_max_diff -
        result_complete.fairness.demographic_parity_max_diff) > 0.05:
     print("⚠️ Missing data affects fairness conclusions")
 ```
@@ -381,4 +381,3 @@ result.manifest["protected_attributes_missing_policy"] = {
 
 - **GitHub Issues**: [Report bugs](https://github.com/GlassAlpha/glassalpha/issues)
 - **Discussions**: [Ask questions](https://github.com/GlassAlpha/glassalpha/discussions)
-
