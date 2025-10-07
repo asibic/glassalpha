@@ -199,12 +199,12 @@
           <tr>
             <td class="metric-name">Calibration (ECE)</td>
             <td class="metric-value">
-              {% if calibration_ci.ece is not none %} {{
-              "%.4f"|format(calibration_ci.ece) }} {% else %}N/A{% endif %} {%
-              if calibration_ci.ece_ci %}
+              {% if calibration_ci.get('ece') is not none %} {{
+              "%.4f"|format(calibration_ci['ece']) }} {% else %}N/A{% endif %}
+              {% if calibration_ci.get('ece_ci') %}
               <span style="font-size: 11px; color: #586069">
-                (95% CI: [{{ "%.3f"|format(calibration_ci.ece_ci.ci_lower) }},
-                {{ "%.3f"|format(calibration_ci.ece_ci.ci_upper) }}])
+                (95% CI: [{{ "%.3f"|format(calibration_ci['ece_ci']['ci_lower'])
+                }}, {{ "%.3f"|format(calibration_ci['ece_ci']['ci_upper']) }}])
               </span>
               {% endif %}
             </td>
@@ -304,23 +304,23 @@
         <div style="margin: 6px 0">
           <strong>Individual Fairness:</strong>
           Consistency score {{
-          "%.3f"|format(individual_fairness.consistency_score) }} {% if
-          individual_fairness.consistency_score >= 0.90 %}
+          "%.3f"|format(individual_fairness['consistency_score']) }} {% if
+          individual_fairness['consistency_score'] >= 0.90 %}
           <span class="badge badge-success" style="margin-left: 8px">✓</span>
-          {% elif individual_fairness.consistency_score >= 0.75 %}
+          {% elif individual_fairness['consistency_score'] >= 0.75 %}
           <span class="badge badge-warning" style="margin-left: 8px">⚠</span>
           {% else %}
           <span class="badge badge-fail" style="margin-left: 8px">✗</span>
           {% endif %}
         </div>
         {% endif %} {% if stability_analysis and
-        stability_analysis.robustness_score is defined %}
+        stability_analysis.get('robustness_score') is not none %}
         <div style="margin: 6px 0">
           <strong>Robustness Score:</strong>
-          {{ "%.4f"|format(stability_analysis.robustness_score) }} {% if
-          stability_analysis.gate_status == "PASS" %}
+          {{ "%.4f"|format(stability_analysis['robustness_score']) }} {% if
+          stability_analysis.get('gate_status') == "PASS" %}
           <span class="badge badge-success" style="margin-left: 8px">✓</span>
-          {% elif stability_analysis.gate_status == "WARNING" %}
+          {% elif stability_analysis.get('gate_status') == "WARNING" %}
           <span class="badge badge-warning" style="margin-left: 8px">⚠</span>
           {% else %}
           <span class="badge badge-fail" style="margin-left: 8px">✗</span>

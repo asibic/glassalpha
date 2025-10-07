@@ -104,8 +104,37 @@ def normalize_audit_context(audit_results: Any) -> dict[str, Any]:  # noqa: ANN4
 
             # E11: Individual fairness
             individual = audit_results.fairness_analysis.get("individual_fairness")
-            if individual:
-                context["individual_fairness"] = individual
+            if individual and isinstance(individual, dict) and "error" not in individual:
+                # Flatten nested structure for template
+                flattened = {}
+
+                # Extract consistency score fields
+                if "consistency_score" in individual and isinstance(individual["consistency_score"], dict):
+                    consistency = individual["consistency_score"]
+                    flattened["consistency_score"] = consistency.get("consistency_score", 0.0)
+
+                # Extract matched pairs fields
+                if "matched_pairs" in individual and isinstance(individual["matched_pairs"], dict):
+                    matched = individual["matched_pairs"]
+                    matched_pairs_list = matched.get("matched_pairs", [])
+                    flattened["matched_pairs_count"] = len(matched_pairs_list)
+
+                    # Calculate avg and max prediction diff from matched pairs
+                    if matched_pairs_list:
+                        diffs = [p.get("prediction_diff", 0.0) for p in matched_pairs_list]
+                        flattened["avg_prediction_diff"] = sum(diffs) / len(diffs) if diffs else 0.0
+                        flattened["max_prediction_diff"] = max(diffs) if diffs else 0.0
+                    else:
+                        flattened["avg_prediction_diff"] = 0.0
+                        flattened["max_prediction_diff"] = 0.0
+
+                # Extract flip test fields
+                if "flip_test" in individual and isinstance(individual["flip_test"], dict):
+                    flip = individual["flip_test"]
+                    flip_changes = flip.get("flip_changes_prediction", [])
+                    flattened["flip_test_violations"] = len(flip_changes)
+
+                context["individual_fairness"] = flattened
 
             # E12: Dataset bias
             dataset_bias = audit_results.fairness_analysis.get("dataset_bias")

@@ -1179,31 +1179,39 @@
               </tr>
             </thead>
             <tbody>
-              {% for corr in dataset_bias.proxy_correlations %}
+              {% if dataset_bias.proxy_correlations and
+              dataset_bias.proxy_correlations.correlations %} {% for
+              protected_attr, features in
+              dataset_bias.proxy_correlations.correlations.items() %} {% for
+              feature, corr_data in features.items() %}
               <tr>
                 <td>
-                  <strong
-                    >{{ corr.feature | replace("_", " ") | title }}</strong
-                  >
+                  <strong>{{ feature | replace("_", " ") | title }}</strong>
                 </td>
-                <td>{{ corr.protected_attr | replace("_", " ") | title }}</td>
+                <td>{{ protected_attr | replace("_", " ") | title }}</td>
                 <td class="metric-value">
-                  {{ "%.3f"|format(corr.correlation) }}
+                  {{ "%.3f"|format(corr_data.correlation) }}
                 </td>
                 <td class="metric-value text-small">
-                  {{ "%.4f"|format(corr.p_value) }}
+                  {{ "%.4f"|format(corr_data.p_value) }}
                 </td>
                 <td>
-                  {% if corr.correlation|abs > 0.7 %}
+                  {% if corr_data.correlation|abs > 0.7 %}
                   <span class="badge badge-error">High Proxy Risk</span>
-                  {% elif corr.correlation|abs > 0.5 %}
+                  {% elif corr_data.correlation|abs > 0.5 %}
                   <span class="badge badge-warning">Moderate Proxy Risk</span>
                   {% else %}
                   <span class="badge badge-success">Low Risk</span>
                   {% endif %}
                 </td>
               </tr>
-              {% endfor %}
+              {% endfor %} {% endfor %} {% else %}
+              <tr>
+                <td colspan="5" class="text-center text-muted">
+                  No proxy correlations detected
+                </td>
+              </tr>
+              {% endif %}
             </tbody>
           </table>
         </div>
@@ -1236,30 +1244,37 @@
               </tr>
             </thead>
             <tbody>
-              {% for drift in dataset_bias.distribution_drift %}
+              {% if dataset_bias.distribution_drift and
+              dataset_bias.distribution_drift.drift_tests %} {% for feature,
+              drift_data in dataset_bias.distribution_drift.drift_tests.items()
+              %}
               <tr>
                 <td>
-                  <strong
-                    >{{ drift.feature | replace("_", " ") | title }}</strong
-                  >
+                  <strong>{{ feature | replace("_", " ") | title }}</strong>
                 </td>
                 <td class="metric-value">
-                  {{ "%.4f"|format(drift.statistic) }}
+                  {{ "%.4f"|format(drift_data.statistic) }}
                 </td>
                 <td class="metric-value text-small">
-                  {{ "%.4f"|format(drift.p_value) }}
+                  {{ "%.4f"|format(drift_data.p_value) }}
                 </td>
                 <td>
-                  {% if drift.p_value < 0.01 %}
+                  {% if drift_data.p_value < 0.01 %}
                   <span class="badge badge-error">Significant Drift</span>
-                  {% elif drift.p_value < 0.05 %}
+                  {% elif drift_data.p_value < 0.05 %}
                   <span class="badge badge-warning">Moderate Drift</span>
                   {% else %}
                   <span class="badge badge-success">No Significant Drift</span>
                   {% endif %}
                 </td>
               </tr>
-              {% endfor %}
+              {% endfor %} {% else %}
+              <tr>
+                <td colspan="4" class="text-center text-muted">
+                  No distribution drift tests available
+                </td>
+              </tr>
+              {% endif %}
             </tbody>
           </table>
         </div>
@@ -1282,10 +1297,17 @@
               </tr>
             </thead>
             <tbody>
-              {% for attr, power_info in
-              dataset_bias.sampling_bias_power.items() %}
+              {% if dataset_bias.sampling_bias_power and
+              dataset_bias.sampling_bias_power.power_by_group %} {% for attr,
+              groups in dataset_bias.sampling_bias_power.power_by_group.items()
+              %} {% for group_name, power_info in groups.items() %}
               <tr>
-                <td><strong>{{ attr | replace("_", " ") | title }}</strong></td>
+                <td>
+                  <strong
+                    >{{ attr | replace("_", " ") | title }} ({{ group_name
+                    }})</strong
+                  >
+                </td>
                 <td class="metric-value">
                   {{ "%.2f"|format(power_info.power) }}
                 </td>
@@ -1300,7 +1322,13 @@
                   {% endif %}
                 </td>
               </tr>
-              {% endfor %}
+              {% endfor %} {% endfor %} {% else %}
+              <tr>
+                <td colspan="4" class="text-center text-muted">
+                  No sampling bias power analysis available
+                </td>
+              </tr>
+              {% endif %}
             </tbody>
           </table>
         </div>
@@ -1975,21 +2003,21 @@
               <tr>
                 <td><strong>Expected Calibration Error (ECE)</strong></td>
                 <td class="metric-value">
-                  {% if calibration_ci.ece is not none %} {{
-                  "%.4f"|format(calibration_ci.ece) }} {% else %} N/A {% endif
-                  %}
+                  {% if calibration_ci.get('ece') is not none %} {{
+                  "%.4f"|format(calibration_ci['ece']) }} {% else %} N/A {%
+                  endif %}
                 </td>
                 <td class="metric-value text-small">
-                  {% if calibration_ci.ece_ci %} [{{
-                  "%.4f"|format(calibration_ci.ece_ci.ci_lower) }}, {{
-                  "%.4f"|format(calibration_ci.ece_ci.ci_upper) }}] {% else %}
-                  N/A {% endif %}
+                  {% if calibration_ci.get('ece_ci') %} [{{
+                  "%.4f"|format(calibration_ci['ece_ci']['ci_lower']) }}, {{
+                  "%.4f"|format(calibration_ci['ece_ci']['ci_upper']) }}] {%
+                  else %} N/A {% endif %}
                 </td>
                 <td class="text-small">
-                  {% if calibration_ci.ece is not none %} {% if
-                  calibration_ci.ece < 0.05 %}
+                  {% if calibration_ci.get('ece') is not none %} {% if
+                  calibration_ci['ece'] < 0.05 %}
                   <span class="badge badge-success">Well Calibrated</span>
-                  {% elif calibration_ci.ece < 0.10 %}
+                  {% elif calibration_ci['ece'] < 0.10 %}
                   <span class="badge badge-warning">Acceptable</span>
                   {% else %}
                   <span class="badge badge-error">Poorly Calibrated</span>
@@ -1999,13 +2027,13 @@
               <tr>
                 <td><strong>Brier Score</strong></td>
                 <td class="metric-value">
-                  {{ "%.4f"|format(calibration_ci.brier_score) }}
+                  {{ "%.4f"|format(calibration_ci['brier_score']) }}
                 </td>
                 <td class="metric-value text-small">
-                  {% if calibration_ci.brier_ci %} [{{
-                  "%.4f"|format(calibration_ci.brier_ci.ci_lower) }}, {{
-                  "%.4f"|format(calibration_ci.brier_ci.ci_upper) }}] {% else %}
-                  N/A {% endif %}
+                  {% if calibration_ci.get('brier_ci') %} [{{
+                  "%.4f"|format(calibration_ci['brier_ci']['ci_lower']) }}, {{
+                  "%.4f"|format(calibration_ci['brier_ci']['ci_upper']) }}] {%
+                  else %} N/A {% endif %}
                 </td>
                 <td class="text-small">
                   Combined measure of calibration and accuracy (lower is better)
@@ -2016,13 +2044,13 @@
         </div>
 
         <p class="text-small text-muted">
-          Sample size: {{ "{:,}".format(calibration_ci.n_samples) }} | Bins: {{
-          calibration_ci.n_bins }} | Bootstrap samples: {{
-          calibration_ci.ece_ci.n_bootstrap if calibration_ci.ece_ci else 'N/A'
-          }}
+          Sample size: {{ "{:,}".format(calibration_ci.get('n_samples', 0)) }} |
+          Bins: {{ calibration_ci.get('n_bins', 10) }} | Bootstrap samples: {{
+          calibration_ci.get('ece_ci', {}).get('n_bootstrap', 'N/A') if
+          calibration_ci.get('ece_ci') else 'N/A' }}
         </p>
 
-        {% if calibration_ci.bin_calibration %}
+        {% if calibration_ci.get('bin_calibration') %}
         <h3>Bin-Wise Calibration Error</h3>
         <p class="text-small text-muted">
           Calibration error by predicted probability bin. Wide confidence
@@ -2042,23 +2070,26 @@
               </tr>
             </thead>
             <tbody>
-              {% for bin in calibration_ci.bin_calibration %}
+              {% for bin in calibration_ci['bin_calibration'] %}
               <tr>
                 <td class="text-small">
-                  [{{ "%.2f"|format(bin.bin_lower) }}, {{
-                  "%.2f"|format(bin.bin_upper) }})
+                  [{{ "%.2f"|format(bin['bin_lower']) }}, {{
+                  "%.2f"|format(bin['bin_upper']) }})
                 </td>
-                <td class="metric-value">{{ bin.count }}</td>
+                <td class="metric-value">{{ bin['count'] }}</td>
                 <td class="metric-value">
-                  {{ "%.3f"|format(bin.mean_predicted) }}
+                  {{ "%.3f"|format(bin['mean_predicted']) }}
                 </td>
                 <td class="metric-value">
-                  {{ "%.3f"|format(bin.mean_observed) }}
+                  {{ "%.3f"|format(bin['mean_observed']) }}
                 </td>
-                <td class="metric-value">{{ "%.3f"|format(bin.error|abs) }}</td>
+                <td class="metric-value">
+                  {{ "%.3f"|format(bin['error']|abs) }}
+                </td>
                 <td class="metric-value text-small">
-                  {% if bin.error_ci %} [{{ "%.3f"|format(bin.error_ci.ci_lower)
-                  }}, {{ "%.3f"|format(bin.error_ci.ci_upper) }}] {% else %} N/A
+                  {% if bin.get('error_ci') %} [{{
+                  "%.3f"|format(bin['error_ci']['ci_lower']) }}, {{
+                  "%.3f"|format(bin['error_ci']['ci_upper']) }}] {% else %} N/A
                   {% endif %}
                 </td>
               </tr>
@@ -2519,12 +2550,12 @@
               <tr>
                 <td><strong>Consistency Score</strong></td>
                 <td class="metric-value">
-                  {{ "%.3f"|format(individual_fairness.consistency_score) }}
+                  {{ "%.3f"|format(individual_fairness['consistency_score']) }}
                 </td>
                 <td>
-                  {% if individual_fairness.consistency_score >= 0.90 %}
+                  {% if individual_fairness['consistency_score'] >= 0.90 %}
                   <span class="badge badge-success">High Consistency</span>
-                  {% elif individual_fairness.consistency_score >= 0.75 %}
+                  {% elif individual_fairness['consistency_score'] >= 0.75 %}
                   <span class="badge badge-warning">Moderate Consistency</span>
                   {% else %}
                   <span class="badge badge-error">Low Consistency</span>
@@ -2559,22 +2590,25 @@
               <tr>
                 <td><strong>Matched Pairs Found</strong></td>
                 <td class="metric-value">
-                  {{ individual_fairness.matched_pairs_count }}
+                  {{ individual_fairness['matched_pairs_count'] }}
                 </td>
               </tr>
-              {% if individual_fairness.avg_prediction_diff is defined %}
+              {% if individual_fairness.get('avg_prediction_diff') is not none
+              %}
               <tr>
                 <td><strong>Avg Prediction Difference</strong></td>
                 <td class="metric-value">
-                  {{ "%.3f"|format(individual_fairness.avg_prediction_diff) }}
+                  {{ "%.3f"|format(individual_fairness['avg_prediction_diff'])
+                  }}
                 </td>
               </tr>
-              {% endif %} {% if individual_fairness.max_prediction_diff is
-              defined %}
+              {% endif %} {% if individual_fairness.get('max_prediction_diff')
+              is not none %}
               <tr>
                 <td><strong>Max Prediction Difference</strong></td>
                 <td class="metric-value">
-                  {{ "%.3f"|format(individual_fairness.max_prediction_diff) }}
+                  {{ "%.3f"|format(individual_fairness['max_prediction_diff'])
+                  }}
                 </td>
               </tr>
               {% endif %}
@@ -2602,12 +2636,12 @@
               <tr>
                 <td><strong>Flip Test Violations</strong></td>
                 <td class="metric-value">
-                  {{ individual_fairness.flip_test_violations }}
+                  {{ individual_fairness['flip_test_violations'] }}
                 </td>
                 <td>
-                  {% if individual_fairness.flip_test_violations == 0 %}
+                  {% if individual_fairness['flip_test_violations'] == 0 %}
                   <span class="badge badge-success">No Violations</span>
-                  {% elif individual_fairness.flip_test_violations < 10 %}
+                  {% elif individual_fairness['flip_test_violations'] < 10 %}
                   <span class="badge badge-warning">Minor Violations</span>
                   {% else %}
                   <span class="badge badge-error">Significant Violations</span>

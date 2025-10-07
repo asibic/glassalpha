@@ -9,6 +9,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **E6.5: Demographic Shift Simulator** (P0 Feature - Distribution Robustness Testing)
+
+  - **Post-stratification reweighting**: Simulates demographic distribution changes via sample weights
+    - Tests model robustness under realistic population shifts
+    - Adjusts group proportions by specified percentage points (e.g., +10pp, -5pp)
+    - Mathematically sound reweighting: `weight[group] *= (p_target / p_original)`
+    - Validates shifted proportion stays within [0.01, 0.99] bounds
+  - **Before/after metrics comparison**: Recomputes all metrics with adjusted weights
+    - **Fairness**: TPR, FPR, demographic parity, precision, recall
+    - **Calibration**: ECE, Brier score (with bootstrap CIs)
+    - **Performance**: Accuracy, F1, precision, recall
+  - **Degradation detection**: Quantifies metric changes under demographic shifts
+    - Reports absolute differences (percentage points)
+    - Supports configurable degradation thresholds for CI gates
+    - Gate statuses: PASS (no violations), WARNING (approaching threshold), FAIL (exceeds threshold)
+  - **CLI integration**: `--check-shift` and `--fail-on-degradation` flags
+    - Syntax: `--check-shift attribute:shift` (e.g., `gender:+0.1` for +10pp increase)
+    - Multiple shifts supported: `--check-shift gender:+0.1 --check-shift age:-0.05`
+    - Exit code 1 if degradation exceeds threshold (CI-friendly)
+  - **JSON export**: Complete shift analysis results in sidecar file
+    - Exports: shift_specification, baseline_metrics, shifted_metrics, degradation, gate_status, violations
+    - File: `{output}.shift_analysis.json`
+    - Programmatically parseable for dashboards and monitoring
+  - **Deterministic execution**: Fully seeded for reproducibility
+    - Seeded weight computation
+    - Seeded metric recomputation
+    - Byte-identical results across runs
+  - **Validation**:
+    - Binary attribute requirement (multi-class deferred to enterprise)
+    - Feasibility checks (prevent impossible shifts)
+    - Clear error messages with exact format requirements
+  - Configuration: CLI-only feature (no YAML config required)
+  - API: `run_shift_analysis()`, `ShiftAnalysisResult`, `ShiftSpecification`, `compute_shifted_weights()`
+  - Test coverage: 30+ contract tests + German Credit integration (parsing, validation, reweighting, metrics, determinism)
+  - Module: `glassalpha.metrics.shift.{reweighting, runner}`
+  - Documentation: [Shift Testing Guide](site/docs/guides/shift-testing.md) with CI/CD integration examples
+  - **Why critical**: Regulatory stress testing (EU AI Act), production readiness validation, CI/CD deployment gates
+
 - **E6+: Adversarial Perturbation Sweeps** (P2 Feature - Robustness Verification)
 
   - **Epsilon-perturbation stability testing**: Validates model robustness under small input changes

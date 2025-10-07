@@ -131,9 +131,16 @@ class TestShiftSpecification:
             spec.shift = 0.2  # type: ignore
 
     def test_invalid_shifted_proportion_raises(self) -> None:
-        """Test error for shifted proportion outside [0.01, 0.99]."""
-        with pytest.raises(ValueError, match="must be in \\[0.01, 0.99\\]"):
-            ShiftSpecification("gender", 0.7, 0.35, 1.05)
+        """Test error for shifted proportion outside [0.01, 0.99].
+
+        Note: Validation happens at the entry point (compute_shifted_weights),
+        not in ShiftSpecification itself. This allows validate=False to work.
+        """
+        data = pd.DataFrame({"gender": [1, 1, 1, 0]})  # 75% gender=1
+
+        # Shift that would result in invalid proportion (75% + 30% = 105%)
+        with pytest.raises(ValueError, match="must be ≤ 0.99"):
+            compute_shifted_weights(data, "gender", 0.3, validate=True)
 
     def test_to_dict_serialization(self) -> None:
         """Test dictionary serialization."""
@@ -348,4 +355,5 @@ class TestEdgeCases:
         weights, spec = compute_shifted_weights(data, "gender", 0.1)
 
         assert len(weights) == 10000
-        assert 0.45 <= spec.shifted_proportion <= 0.55  # Approximately balanced
+        # Original is ~50%, shift +10pp → result should be ~60%
+        assert 0.55 <= spec.shifted_proportion <= 0.65  # ~60% after +10pp shift

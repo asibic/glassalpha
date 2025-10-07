@@ -56,7 +56,12 @@ class ShiftSpecification:
     shifted_proportion: float
 
     def __post_init__(self) -> None:
-        """Validate shift specification."""
+        """Validate shift specification.
+
+        Note: Only validates types and basic constraints.
+        Range validation (shifted_proportion in [0.01, 0.99]) is done by
+        validate_shift_feasibility() which can be optionally skipped.
+        """
         if not isinstance(self.attribute, str) or not self.attribute:
             raise ValueError(f"Attribute must be non-empty string, got: {self.attribute}")
 
@@ -68,11 +73,8 @@ class ShiftSpecification:
                 f"Original proportion must be in [0, 1], got: {self.original_proportion}",
             )
 
-        if not (0.01 <= self.shifted_proportion <= 0.99):
-            raise ValueError(
-                f"Shifted proportion must be in [0.01, 0.99], got: {self.shifted_proportion}. "
-                "Shifts to <1% or >99% are not supported.",
-            )
+        # Note: shifted_proportion range validation removed
+        # It's done by validate_shift_feasibility() which can be skipped via validate=False
 
     def to_dict(self) -> dict[str, Any]:
         """Export to dictionary for JSON serialization."""
@@ -110,11 +112,13 @@ def parse_shift_spec(spec_str: str) -> tuple[str, float]:
             f"Invalid shift specification '{spec_str}'. Expected format: 'attribute:shift' (e.g., 'gender:+0.1')",
         )
 
-    parts = spec_str.split(":", 1)
-    if len(parts) != 2:
+    # Check for exactly one colon (before splitting)
+    if spec_str.count(":") != 1:
         raise ValueError(
             f"Invalid shift specification '{spec_str}'. Expected exactly one ':' separator.",
         )
+
+    parts = spec_str.split(":", 1)
 
     attribute, shift_str = parts
     attribute = attribute.strip()
