@@ -27,7 +27,7 @@ GlassAlpha provides the following commands:
 
 ### `glassalpha audit`
 
-Generate a compliance audit PDF report.
+Generate a compliance audit PDF report with optional shift testing.
 
 This is the main command for GlassAlpha. It loads a configuration file,
 runs the audit pipeline, and generates a deterministic PDF report.
@@ -60,6 +60,12 @@ Examples:
     # Fail if components unavailable (no fallbacks)
     glassalpha audit --no-fallback
 
+    # Stress test for demographic shifts (E6.5)
+    glassalpha audit --check-shift gender:+0.1
+
+    # Multiple shifts with degradation threshold
+    glassalpha audit --check-shift gender:+0.1 --check-shift age:-0.05 --fail-on-degradation 0.05
+
 **Options:**
 
 - `--config, -c`: Path to audit configuration YAML file (auto-detects glassalpha.yaml, audit.yaml, config.yaml)
@@ -72,6 +78,8 @@ Examples:
 - `--no-fallback`: Fail if requested components are unavailable (no automatic fallbacks) (default: `False`)
 - `--show-defaults`: Show inferred defaults and exit (useful for debugging) (default: `False`)
 - `--check-output`: Check output paths are writable and exit (pre-flight validation) (default: `False`)
+- `--check-shift`: Test model robustness under demographic shifts (e.g., 'gender:+0.1'). Can specify multiple. (default: `[]`)
+- `--fail-on-degradation`: Exit with error if any metric degrades by more than this threshold (e.g., 0.05 for 5pp).
 
 ### `glassalpha dashboard`
 
@@ -257,6 +265,17 @@ Examples:
 - `--file-hash`: Expected file hash (sha256:...)
 - `--params-hash`: Expected params hash (sha256:...)
 - `--check-versions`: Check runtime version compatibility (default: `True`)
+
+### `glassalpha quickstart`
+
+Generate template audit project
+
+**Options:**
+
+- `--output, -o`: Output directory for project scaffold (default: `my-audit-project`)
+- `--dataset, -d`: Dataset type (german_credit, adult_income)
+- `--model, -m`: Model type (xgboost, lightgbm, logistic_regression)
+- `--interactive`: Use interactive mode to customize project (default: `True`)
 
 ### `glassalpha reasons`
 

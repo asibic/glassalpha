@@ -638,11 +638,6 @@ A: Minimal (<1 second overhead):
 
 The actual transformation time is the same as without verification.
 
-## Related Documentation
-
-- [Configuration Reference](../getting-started/configuration.md)
-- [CLI Commands](../reference/cli.md)
-- [Troubleshooting](../reference/troubleshooting.md)
 
 ## Support
 
@@ -652,3 +647,14 @@ If you encounter issues with preprocessing artifact verification:
 2. Run `glassalpha prep validate` for detailed diagnostics
 3. Review audit logs for specific error messages
 4. Open an issue: https://github.com/yourusername/glassalpha/issues
+## Related Documentation
+
+- [Configuration Reference](../getting-started/configuration.md)
+- [CLI Commands](../reference/cli.md)
+- [Troubleshooting](../reference/troubleshooting.md)
+
+## Related Guides
+
+- **[Detecting Dataset Bias](dataset-bias.md)** - Audit data quality before preprocessing
+- **[Testing Demographic Shifts](shift-testing.md)** - Validate robustness under population changes
+- **[SR 11-7 Compliance](../compliance/sr-11-7-mapping.md)** - Banking regulatory requirements (Section III.C.1)

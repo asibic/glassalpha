@@ -1,5 +1,5 @@
 site_name: GlassAlpha
-site_description: Open-source AI compliance toolkit.
+site_description: Open-source AI compliance toolkit for transparent, auditable ML models
 site_url: https://glassalpha.com
 repo_url: https://github.com/GlassAlpha/glassalpha
 repo_name: GlassAlpha/glassalpha
@@ -90,31 +90,62 @@ markdown_extensions:
 
 nav:
   - Home: index.md
+  
+  # === GETTING STARTED (Progressive onboarding) ===
   - Getting Started:
       - Quick Start: getting-started/quickstart.md
       - Installation: getting-started/installation.md
-      - Using Custom Data: getting-started/custom-data.md
+      - Using Your Own Data: getting-started/custom-data.md
       - Configuration: getting-started/configuration.md
-      - Data Sources: getting-started/data-sources.md
-      - Datasets: getting-started/datasets.md
+      - Built-in Datasets: getting-started/datasets.md
+      - Public Data Sources: getting-started/data-sources.md
+  
+  # === GUIDES (Task-based "How do I...?") ===
   - Guides:
-      - Model Selection: reference/model-selection.md
-      - Explainer Selection: reference/explainers.md
-      - Model Parameters: reference/model-parameters.md
+      # Core workflows
       - Preprocessing Verification: guides/preprocessing.md
-      - Reason Codes (ECOA): guides/reason-codes.md
+      - Generating Reason Codes (ECOA): guides/reason-codes.md
       - Counterfactual Recourse: guides/recourse.md
+      
+      # Advanced analysis
+      - Detecting Dataset Bias: guides/dataset-bias.md
+      - Testing Demographic Shifts: guides/shift-testing.md
+      
+      # Model selection
+      - Choosing a Model: reference/model-selection.md
+      - Choosing an Explainer: reference/explainers.md
+  
+  # === UNDERSTANDING (Deep dives into concepts) ===
+  - Understanding:
+      # Core metrics
+      - Fairness Metrics: reference/fairness-metrics.md
+      - Calibration Analysis: reference/calibration.md
+      - Robustness Testing: reference/robustness.md
+      
+      # Technical details
+      - Model Parameters: reference/model-parameters.md
+      - Model-Explainer Compatibility: reference/model-explainer-compatibility.md
+  
+  # === COMPLIANCE (Regulatory requirements) ===
+  - Compliance:
+      - SR 11-7 Mapping (Banking): compliance/sr-11-7-mapping.md
+      - Trust & Deployment: reference/trust-deployment.md
+  
+  # === EXAMPLES (Learn by doing) ===
   - Examples:
       - German Credit Audit: examples/german-credit-audit.md
       - Healthcare Bias Detection: examples/healthcare-bias-detection.md
-      - Fraud Detection Audit: examples/fraud-detection-audit.md
+      - Fraud Detection: examples/fraud-detection-audit.md
+  
+  # === REFERENCE (CLI & API documentation) ===
   - Reference:
-      - CLI Reference: reference/cli.md
-      - Trust & Deployment: reference/trust-deployment.md
+      - CLI Commands: reference/cli.md
       - Troubleshooting: reference/troubleshooting.md
       - FAQ: reference/faq.md
       - Contributing: reference/contributing.md
       - Trademark: reference/TRADEMARK.md
+  
+  # === COMMUNITY ===
   - Blog: blog/index.md
   - About: about.md
   - Contact: contact.md
@@ -126,6 +157,19 @@ extra:
   analytics:
     provider: google
     property: G-JGKRDR0GX8
+  
+  # SEO metadata
+  meta:
+    - name: description
+      content: Open-source AI compliance toolkit for transparent, auditable ML models. Generate regulator-ready audit reports with fairness analysis, calibration testing, and statistical confidence intervals.
+    - name: keywords
+      content: AI compliance, ML audit, model fairness, explainable AI, regulatory compliance, SR 11-7, ECOA, bias detection
+    - property: og:title
+      content: GlassAlpha - AI Compliance Toolkit
+    - property: og:description
+      content: Make ML models transparent, auditable, and regulator-ready
+    - property: og:type
+      content: website
 
 extra_javascript:
   - https://polyfill.io/v3/polyfill.min.js?features=es6

@@ -4,6 +4,24 @@
 
 Get your first professional audit PDF in 5 minutes:
 
+### Using QuickStart Generator (Easiest)
+
+```bash
+# 1. Install (30 seconds)
+pip install glassalpha
+
+# 2. Generate project (interactive wizard)
+glassalpha quickstart
+
+# 3. Run audit (20 seconds)
+cd my-audit-project && python run_audit.py
+
+# 4. Done! Open your professional report
+open reports/audit_report.html  # macOS
+```
+
+### Using Repository Example
+
 ```bash
 # 1. Clone and install (90 seconds)
 git clone https://github.com/GlassAlpha/glassalpha
@@ -43,11 +61,62 @@ Get up and running with GlassAlpha in less than 10 minutes. This guide will take
 ## Prerequisites
 
 - Python 3.11 or higher
-- Git
+- Git (optional, only needed for manual setup)
 - 2GB available disk space
 - Command line access
 
 ## Step 1: Installation
+
+Choose between the quickstart generator (recommended) or manual setup:
+
+### Option A: QuickStart Generator (Recommended)
+
+The fastest way to get started. Creates a complete audit project in <60 seconds:
+
+```bash
+# Install GlassAlpha (if not already installed)
+pip install glassalpha
+
+# Generate a ready-to-run audit project
+glassalpha quickstart
+```
+
+The interactive wizard will ask you:
+
+1. **Project name**: Where to create the project directory
+2. **Dataset**: German Credit (1K samples) or Adult Income (48K samples)
+3. **Model type**: XGBoost (recommended), LightGBM (fast), or Logistic Regression (simple)
+
+**What you get:**
+
+- Complete project directory structure (data/, models/, reports/, configs/)
+- Pre-configured audit configuration file (`audit_config.yaml`)
+- Example run script (`run_audit.py`) demonstrating programmatic API
+- Project README with next steps and advanced usage
+- `.gitignore` tailored for GlassAlpha projects
+
+**Run your first audit:**
+
+```bash
+cd my-audit-project
+python run_audit.py  # Generates audit report in <5 seconds
+```
+
+**Non-interactive mode** (for scripts/CI):
+
+```bash
+glassalpha quickstart \
+  --dataset german_credit \
+  --model xgboost \
+  --output my-project \
+  --no-interactive
+```
+
+**Skip to:** [Step 3: Review your audit report](#step-3-review-your-audit-report) once your report is generated.
+
+### Option B: Manual Setup
+
+If you prefer manual setup or want to work from the repository:
 
 ### Clone and install
 
@@ -378,3 +447,22 @@ You now have GlassAlpha installed and have generated your first audit report. Th
 - **Flexible configuration** for different use cases and models
 
 GlassAlpha transforms complex ML audit requirements into a simple, reliable workflow that meets the highest professional and regulatory standards.
+
+## Next Steps
+
+### Dive Deeper into Core Concepts
+
+- **[Understanding Fairness Metrics](../reference/fairness-metrics.md)** - Learn about group, intersectional, and individual fairness with statistical confidence intervals
+- **[Detecting Dataset Bias](../guides/dataset-bias.md)** - Catch proxy correlations, drift, and sampling bias before model training
+- **[Calibration Analysis](../reference/calibration.md)** - Ensure predicted probabilities match observed outcomes
+
+### Advanced Features
+
+- **[Testing Demographic Shifts](../guides/shift-testing.md)** - Validate model robustness under population changes with CI/CD gates
+- **[Robustness Testing](../reference/robustness.md)** - Test stability under adversarial perturbations (ε-perturbation sweeps)
+- **[Generating Reason Codes](../guides/reason-codes.md)** - ECOA-compliant adverse action notices
+
+### Regulatory Compliance
+
+- **[SR 11-7 Compliance Mapping](../compliance/sr-11-7-mapping.md)** - Federal Reserve guidance for banking models (complete clause-to-artifact mapping)
+- **[Trust & Deployment](../reference/trust-deployment.md)** - Reproducibility, determinism, and evidence pack export

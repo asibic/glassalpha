@@ -1,3 +1,10 @@
+# Demographic Shift Testing Guide
+
+!!! tip "Quick Navigation"
+    **Prerequisites**: [Quick Start](../getting-started/quickstart.md)  
+    **Related**: [Dataset Bias Detection](dataset-bias.md) | [Robustness Testing](../reference/robustness.md)  
+    **Compliance**: [SR 11-7 §III.A.3](../compliance/sr-11-7-mapping.md) - Ongoing monitoring
+
 # Demographic Shift Testing (E6.5)
 
 ## Overview

@@ -16,6 +16,23 @@ _Note: GlassAlpha is currently pre-alpha while I’m still making significant ch
 
 ### Run first audit in 60 seconds
 
+## Feature Overview
+
+Quick reference for GlassAlpha capabilities and where to learn more:
+
+| Feature | Guide | Reference | Compliance |
+|---------|-------|-----------|------------|
+| **Group Fairness** | [Configuration](getting-started/configuration.md#fairness-analysis-with-statistical-confidence) | [Fairness Metrics](reference/fairness-metrics.md) | [SR 11-7 §V](compliance/sr-11-7-mapping.md) |
+| **Intersectional Fairness** | [Configuration](getting-started/configuration.md#fairness-analysis-with-statistical-confidence) | [Fairness Metrics](reference/fairness-metrics.md#intersectional-fairness-e51) | [SR 11-7 §V](compliance/sr-11-7-mapping.md) |
+| **Individual Fairness** | [Configuration](getting-started/configuration.md#fairness-analysis-with-statistical-confidence) | [Fairness Metrics](reference/fairness-metrics.md#individual-fairness-e11) | [SR 11-7 §V](compliance/sr-11-7-mapping.md) |
+| **Dataset Bias** | [Detection Guide](guides/dataset-bias.md) | - | [SR 11-7 §III.C.2](compliance/sr-11-7-mapping.md) |
+| **Calibration** | [Configuration](getting-started/configuration.md#calibration-analysis-with-confidence-intervals) | [Calibration Reference](reference/calibration.md) | [SR 11-7 §III.B.2](compliance/sr-11-7-mapping.md) |
+| **Robustness** | [Configuration](getting-started/configuration.md#robustness-testing-adversarial-perturbations) | [Robustness Reference](reference/robustness.md) | EU AI Act Art. 15 |
+| **Shift Testing** | [Shift Testing Guide](guides/shift-testing.md) | - | [SR 11-7 §III.A.3](compliance/sr-11-7-mapping.md) |
+| **Reason Codes** | [Reason Codes Guide](guides/reason-codes.md) | - | ECOA §701(d) |
+| **Preprocessing** | [Preprocessing Guide](guides/preprocessing.md) | - | [SR 11-7 §III.C.1](compliance/sr-11-7-mapping.md) |
+
+
 #### Clone and install
 
 ```bash

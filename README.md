@@ -62,12 +62,13 @@ degradation_threshold: 0.05 # Max 5pp metric drop under demographic shifts
 
 ## Core Capabilities
 
+### Supported Models
 ### Compliance & Fairness
 
-- **Group Fairness** (E5): Demographic parity, TPR/FPR, with statistical confidence intervals
+- **Group Fairness** (E5): Demographic parity, TPR/FPR, with [statistical confidence intervals](site/docs/reference/fairness-metrics.md)
 - **Intersectional Fairness** (E5.1): Hidden bias detection in demographic combinations (e.g., race×gender)
-- **Individual Fairness** (E11): Consistency score—similar applicants get similar decisions
-- **Dataset Bias Audit** (E12): Proxy feature detection, distribution drift, sampling bias power
+- **Individual Fairness** (E11): [Consistency score](site/docs/reference/fairness-metrics.md#individual-fairness)—similar applicants get similar decisions
+- **[Dataset Bias Audit](site/docs/guides/dataset-bias.md)** (E12): Proxy feature detection, distribution drift, sampling bias power
 - **Statistical Confidence** (E10): Bootstrap CIs for all fairness metrics, sample size warnings
 
 ### Explainability & Outcomes
@@ -78,18 +79,16 @@ degradation_threshold: 0.05 # Max 5pp metric drop under demographic shifts
 
 ### Robustness & Stability
 
-- **Calibration Analysis** (E10+): ECE with confidence intervals, bin-wise calibration curves
-- **Adversarial Perturbation** (E6+): ε-perturbation sweeps, robustness score
-- **Demographic Shift Testing** (E6.5): Simulate population changes, detect degradation before deployment
+- **[Calibration Analysis](site/docs/reference/calibration.md)** (E10+): ECE with confidence intervals, bin-wise calibration curves
+- **[Adversarial Perturbation](site/docs/reference/robustness.md)** (E6+): ε-perturbation sweeps, robustness score
+- **[Demographic Shift Testing](site/docs/guides/shift-testing.md)** (E6.5): Simulate population changes, detect degradation before deployment
 
 ### Regulatory Compliance
 
-- **SR 11-7 Mapping**: Complete Federal Reserve guidance coverage (banking)
+- **[SR 11-7 Mapping](site/docs/compliance/sr-11-7-mapping.md)**: Complete Federal Reserve guidance coverage (banking)
 - **Evidence Packs**: SHA256-verified bundles (PDF + manifest + gates + policy)
 - **Reproducibility**: Deterministic execution, version pinning, byte-identical PDFs
 - **CI/CD Gates**: Exit code 1 if compliance fails, JSON output for automation
-
-### Supported Models
 
 - XGBoost, LightGBM, Logistic Regression (more coming)
 - **Everything runs locally** - your data never leaves your machine
