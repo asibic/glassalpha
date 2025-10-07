@@ -511,72 +511,43 @@ if SKLEARN_AVAILABLE:
                 json.dump(save_data, f, indent=2)
 
         def load(self, path: str | Path) -> LogisticRegressionWrapper:
-            """Load model from file with backward compatibility for legacy formats."""
+            """Load model from file in current JSON format."""
             import base64  # noqa: PLC0415
             import json  # noqa: PLC0415
             import pickle  # noqa: PLC0415
 
-            import joblib  # noqa: PLC0415
-
             path_obj = Path(path)
 
             try:
-                # First, try to load as new JSON format
+                # Load JSON format with versioning
                 with path_obj.open("r", encoding="utf-8") as f:
                     obj = json.load(f)
 
-                # Check if it's the new versioned format
-                if "format_version" in obj:
-                    # New JSON format with versioning
-                    if "model" in obj and isinstance(obj["model"], str):
-                        # Decode base64-encoded pickle
-                        self.model = pickle.loads(base64.b64decode(obj["model"]))
-                    else:
-                        raise ValueError(
-                            "Invalid model data in versioned format. "
-                            "Expected base64-encoded pickle data in 'model' field.",
-                        )
-                # Legacy JSON format (v1) - handle as best as we can
-                # This is for the test case that saves JSON without version info
-                elif "model" in obj:
-                    # The legacy test creates a fake model dict, not a real sklearn model
-                    # We need to validate that it has the required structure
-                    if isinstance(obj["model"], dict) and "coef_" in obj["model"]:
-                        # Valid legacy format with actual model structure
-                        from sklearn.linear_model import LogisticRegression  # noqa: PLC0415
+                # Check if it's the versioned format
+                if "format_version" not in obj:
+                    raise ValueError(
+                        f"Model file {path_obj} is not in the expected format. "
+                        "Expected 'format_version' field in JSON.",
+                    )
 
-                        self.model = LogisticRegression()
-                        # Set basic attributes from the legacy data
-                        self.model.coef_ = __import__("numpy").array(obj["model"]["coef_"])
-                        self.model.intercept_ = __import__("numpy").array(obj["model"]["intercept_"])
-                        self.model.classes_ = __import__("numpy").array(obj["model"]["classes_"])
-                    else:
-                        # Invalid model data - missing required fields
-                        raise ValueError(
-                            "Invalid model data: legacy format must contain coef_, intercept_, and classes_",
-                        )
-                else:
-                    raise ValueError("No model data found in legacy format")
+                # Load base64-encoded pickle data
+                if "model" not in obj or not isinstance(obj["model"], str):
+                    raise ValueError(
+                        "Invalid model data in versioned format. Expected base64-encoded pickle data in 'model' field.",
+                    )
+
+                # Decode and load the model
+                self.model = pickle.loads(base64.b64decode(obj["model"]))
 
                 # Set common attributes
                 self.feature_names_ = obj.get("feature_names_")
                 self.n_classes = obj.get("n_classes")
                 self._is_fitted = obj.get("_is_fitted", True)
 
-            except (json.JSONDecodeError, UnicodeDecodeError):
-                # Fall back to legacy joblib format
-                try:
-                    obj = joblib.load(path_obj)
-                    self.model = obj["model"]
-                    self.feature_names_ = obj.get("feature_names_")
-                    self.n_classes = obj.get("n_classes")
-                    self._is_fitted = obj.get("_is_fitted", True)
-                except Exception as e:
-                    raise ValueError(
-                        f"Failed to load model from {path_obj}: unable to parse as JSON or joblib format",
-                    ) from e
             except FileNotFoundError:
                 raise  # Let FileNotFoundError bubble up unchanged for tests
+            except (json.JSONDecodeError, UnicodeDecodeError) as e:
+                raise ValueError(f"Failed to load model from {path_obj}: {e}") from e
             except KeyError as e:
                 raise ValueError(f"Failed to load model from {path_obj}: {e}") from e
 
