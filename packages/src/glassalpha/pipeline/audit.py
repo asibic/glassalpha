@@ -85,7 +85,7 @@ class AuditResults:
             # HTML error card with GitHub-style red/pink theme
             return f"""
             <div style="border: 2px solid #e74c3c; padding: 16px; margin: 10px 0; background-color: #fadbd8; border-radius: 6px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-                <h3 style="color: #c0392b; margin: 0 0 8px 0; font-size: 16px;">⚠️ Inline Display Failed</h3>
+                <h3 style="color: #c0392b; margin: 0 0 8px 0; font-size: 16px;">WARNING: Inline Display Failed</h3>
                 <p style="margin: 4px 0; font-size: 14px;">
                     <strong>Error:</strong> {error_type}: {error_msg}
                 </p>

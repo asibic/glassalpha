@@ -13,7 +13,6 @@ from glassalpha.api.metrics import ReadonlyMetrics, _freeze_nested
 from glassalpha.api.result import AuditResult
 from glassalpha.core.canonicalization import canonicalize
 
-
 # Mark as contract test (must pass before release)
 pytestmark = pytest.mark.contract
 
@@ -316,4 +315,3 @@ class TestResultSummaryEdgeCases:
 
         assert len(summary["performance"]) == 4
         assert len(summary["fairness"]) == 2
-
