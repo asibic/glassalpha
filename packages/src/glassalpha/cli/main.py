@@ -48,18 +48,6 @@ datasets_app = typer.Typer(
 # Preprocessing artifact management (OSS)
 from .prep import prep_app
 
-# Future command groups (for Phase 2+)
-# These are stubbed now to establish the structure
-dashboard_app = typer.Typer(
-    help="Dashboard operations (Enterprise only)",
-    no_args_is_help=True,
-)
-
-monitor_app = typer.Typer(
-    help="Monitoring operations (Enterprise only)",
-    no_args_is_help=True,
-)
-
 
 # First-run detection helper
 def _show_first_run_tip():
@@ -146,9 +134,6 @@ def main_callback(
 app.add_typer(datasets_app, name="datasets")
 app.add_typer(prep_app, name="prep")
 
-# Enterprise features - these will check for license
-app.add_typer(dashboard_app, name="dashboard")
-app.add_typer(monitor_app, name="monitor")
 
 # Import and register commands
 from .commands import audit, docs, doctor, list_components_cmd, reasons, recourse, validate
@@ -205,51 +190,6 @@ def fetch_dataset_lazy(
     from .datasets import fetch_dataset
 
     return fetch_dataset(dataset, force, dest)
-
-
-# Dashboard commands (enterprise stubs)
-@dashboard_app.command("serve")  # pragma: no cover
-def dashboard_serve(
-    port: int = typer.Option(8080, "--port", "-p", help="Port to serve on"),
-    host: str = typer.Option("localhost", "--host", "-h", help="Host to bind to"),
-):
-    """Start the monitoring dashboard (Enterprise only)."""
-    from ..core.features import check_feature
-
-    @check_feature("dashboard")
-    def _serve():
-        typer.echo(f"Starting dashboard on {host}:{port}")
-        # Future implementation
-        typer.echo("Dashboard feature coming in Phase 2")
-
-    try:
-        _serve()
-    except Exception as e:
-        typer.secho(str(e), fg=typer.colors.RED, err=True)
-        # CLI design: Clean error messages for enterprise feature failures
-        raise typer.Exit(ExitCode.USER_ERROR) from None
-
-
-@monitor_app.command("drift")  # pragma: no cover
-def monitor_drift(
-    config: Path = typer.Option(..., "--config", "-c", help="Configuration file"),
-    baseline: Path = typer.Option(..., "--baseline", "-b", help="Baseline manifest"),
-):
-    """Monitor model drift (Enterprise only)."""
-    from ..core.features import check_feature
-
-    @check_feature("monitoring")
-    def _monitor():
-        typer.echo(f"Monitoring drift from {baseline}")
-        # Future implementation
-        typer.echo("Monitoring feature coming in Phase 2")
-
-    try:
-        _monitor()
-    except Exception as e:
-        typer.secho(str(e), fg=typer.colors.RED, err=True)
-        # Intentional: Hide Python internals from CLI users
-        raise typer.Exit(ExitCode.USER_ERROR) from None
 
 
 # Add models command to show available models and installation options

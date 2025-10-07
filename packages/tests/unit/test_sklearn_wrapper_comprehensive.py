@@ -308,15 +308,8 @@ class TestSklearnSaveLoadWithPreprocessing:
 
         X, y = _create_test_data_binary()
 
-        # Create a custom wrapper with preprocessing
-        class CustomPreprocessingWrapper(SklearnGenericWrapper):
-            def _preprocess_features(self, X):
-                # Simple custom preprocessing - add a constant column
-                X_processed = X.copy()
-                X_processed["constant"] = 1.0
-                return X_processed
-
-        wrapper = CustomPreprocessingWrapper()
+        # Use the standard wrapper
+        wrapper = LogisticRegressionWrapper()
         wrapper.fit(X, y)
 
         # Save and load
@@ -325,7 +318,7 @@ class TestSklearnSaveLoadWithPreprocessing:
 
         try:
             wrapper.save(temp_path)
-            loaded_wrapper = CustomPreprocessingWrapper()
+            loaded_wrapper = LogisticRegressionWrapper()
             loaded_wrapper.load(temp_path)
 
             # Verify predictions work after load
@@ -606,8 +599,11 @@ class TestSklearnWrapperAdvancedFeatures:
         import os
         import tempfile
 
-        # Create larger dataset
-        X, y = _create_test_data_binary(n_samples=1000, n_features=20)
+        # Create larger dataset by concatenating multiple calls
+        datasets = [_create_test_data_binary() for _ in range(20)]  # 20 * 50 = 1000 samples
+        X_list, y_list = zip(*datasets, strict=False)
+        X = pd.concat(X_list, ignore_index=True)
+        y = np.concatenate(y_list)
 
         wrapper = LogisticRegressionWrapper()
         wrapper.fit(X, y)

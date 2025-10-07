@@ -19,7 +19,7 @@ def test_multiclass_objective_and_num_class_threaded():
     cfg = types.SimpleNamespace()
     cfg.model = types.SimpleNamespace()
     cfg.model.type = "xgboost"
-    cfg.model.params = {"objective": "multi:softmax", "num_class": 4, "max_depth": 3}
+    cfg.model.params = {"objective": "multi:softprob", "num_class": 4, "max_depth": 3}
     cfg.reproducibility = types.SimpleNamespace()
     cfg.reproducibility.random_seed = 42
 
@@ -109,7 +109,7 @@ def test_inconsistent_num_class_raises():
     cfg.reproducibility.random_seed = 42
 
     # Should raise ValueError
-    with pytest.raises(ValueError, match="Inconsistent num_class"):
+    with pytest.raises(ValueError, match="num_class.*does not match observed classes"):
         train_from_config(cfg, X, y)
 
 

@@ -9,7 +9,7 @@ from typing import Any
 
 import pytest
 
-from glassalpha.constants import NO_MODEL_MSG
+from glassalpha.constants import ERR_NOT_FITTED
 
 
 class TestFittedStateGuards:
@@ -22,13 +22,13 @@ class TestFittedStateGuards:
         wrapper = XGBoostWrapper()
 
         # Predict before fit/load should raise exact error
-        with pytest.raises(ValueError, match=NO_MODEL_MSG):
+        with pytest.raises(ValueError, match=ERR_NOT_FITTED):
             wrapper.predict([[1, 2, 3]])
 
-        with pytest.raises(ValueError, match=NO_MODEL_MSG):
+        with pytest.raises(ValueError, match=ERR_NOT_FITTED):
             wrapper.predict_proba([[1, 2, 3]])
 
-        with pytest.raises(ValueError, match=NO_MODEL_MSG):
+        with pytest.raises(ValueError, match=ERR_NOT_FITTED):
             wrapper.save("dummy_path.json")
 
     def test_lightgbm_wrapper_unfitted_guards(self) -> None:
@@ -40,10 +40,10 @@ class TestFittedStateGuards:
 
         wrapper = LightGBMWrapper()
 
-        with pytest.raises(ValueError, match=NO_MODEL_MSG):
+        with pytest.raises(ValueError, match=ERR_NOT_FITTED):
             wrapper.predict([[1, 2, 3]])
 
-        with pytest.raises(ValueError, match=NO_MODEL_MSG):
+        with pytest.raises(ValueError, match=ERR_NOT_FITTED):
             wrapper.predict_proba([[1, 2, 3]])
 
     def test_sklearn_wrapper_unfitted_guards(self) -> None:
@@ -55,13 +55,13 @@ class TestFittedStateGuards:
 
         wrapper = LogisticRegressionWrapper()
 
-        with pytest.raises(ValueError, match=NO_MODEL_MSG):
+        with pytest.raises(ValueError, match=ERR_NOT_FITTED):
             wrapper.predict([[1, 2, 3]])
 
-        with pytest.raises(ValueError, match=NO_MODEL_MSG):
+        with pytest.raises(ValueError, match=ERR_NOT_FITTED):
             wrapper.predict_proba([[1, 2, 3]])
 
-        with pytest.raises(ValueError, match=NO_MODEL_MSG):
+        with pytest.raises(ValueError, match=ERR_NOT_FITTED):
             wrapper.save("dummy_path.pkl")
 
     def test_fitted_state_after_fit(self) -> None:
@@ -76,7 +76,7 @@ class TestFittedStateGuards:
         wrapper = LogisticRegressionWrapper()
 
         # Should raise error before fit
-        with pytest.raises(ValueError, match=NO_MODEL_MSG):
+        with pytest.raises(ValueError, match=ERR_NOT_FITTED):
             wrapper.predict([[1, 2]])
 
         # Fit the model
@@ -116,7 +116,7 @@ class TestFittedStateGuards:
 
         # Create new wrapper and verify it's unfitted
         wrapper2 = LogisticRegressionWrapper()
-        with pytest.raises(ValueError, match=NO_MODEL_MSG):
+        with pytest.raises(ValueError, match=ERR_NOT_FITTED):
             wrapper2.predict([[1, 2]])
 
         # Load the saved model
@@ -168,8 +168,8 @@ class TestFittedStateGuards:
                 wrapper.predict([[1, 2, 3]])
                 pytest.fail(f"{wrapper_name} wrapper should raise error when unfitted")
             except ValueError as e:
-                assert str(e) == NO_MODEL_MSG, (  # noqa: PT017, S101
-                    f"{wrapper_name} wrapper error message mismatch. Got: '{e}', Expected: '{NO_MODEL_MSG}'"
+                assert str(e) == ERR_NOT_FITTED, (  # noqa: PT017, S101
+                    f"{wrapper_name} wrapper error message mismatch. Got: '{e}', Expected: '{ERR_NOT_FITTED}'"
                 )
 
     def test_guards_decorator_functionality(self) -> None:
@@ -191,7 +191,7 @@ class TestFittedStateGuards:
         wrapper = MockWrapper()
 
         # Should raise error when model is None
-        with pytest.raises(ValueError, match=NO_MODEL_MSG):
+        with pytest.raises(ValueError, match=ERR_NOT_FITTED):
             wrapper.predict([[1, 2, 3]])
 
         # Should work after fitting

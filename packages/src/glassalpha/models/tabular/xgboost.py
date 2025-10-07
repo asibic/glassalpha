@@ -62,40 +62,6 @@ class XGBoostWrapper(BaseTabularWrapper):
         "supports_feature_importance": True,
         "supports_proba": True,
         "data_modality": "tabular",
-        "parameter_rules": {
-            "max_depth": {
-                "type": "int",
-                "min": 0,
-                "description": "Maximum tree depth",
-            },
-            "n_estimators": {
-                "type": "int",
-                "min": 1,
-                "description": "Number of boosting rounds",
-            },
-            "learning_rate": {
-                "type": "float",
-                "min": 0.0,
-                "max": 1.0,
-                "typical_range": (0.01, 0.3),
-                "exclusive_min": True,
-                "description": "Step size shrinkage",
-            },
-            "subsample": {
-                "type": "float",
-                "min": 0.0,
-                "max": 1.0,
-                "exclusive_min": True,
-                "description": "Subsample ratio of training instances",
-            },
-            "colsample_bytree": {
-                "type": "float",
-                "min": 0.0,
-                "max": 1.0,
-                "exclusive_min": True,
-                "description": "Subsample ratio of columns when constructing each tree",
-            },
-        },
     }
     version = "1.0.0"
 
@@ -175,6 +141,8 @@ class XGBoostWrapper(BaseTabularWrapper):
         # Handle boosting rounds aliases
         if "n_estimators" not in params and "num_boost_round" in params:
             params["n_estimators"] = params["num_boost_round"]
+            # Remove the original to avoid XGBoost warnings
+            del params["num_boost_round"]
 
         # Keep num_class - do not filter it out, it's needed for validation
         # XGBClassifier will handle it appropriately
@@ -249,7 +217,8 @@ class XGBoostWrapper(BaseTabularWrapper):
         # Convert inputs to proper format
         X = pd.DataFrame(X)
         self.feature_names_ = list(X.columns)
-        self.n_classes = int(np.unique(y).size)
+        self.classes_ = np.unique(y)  # Store original class labels
+        self.n_classes = int(self.classes_.size)
         if self.n_classes <= 0:
             raise ValueError(f"Invalid number of classes: {self.n_classes}")
         self.n_classes_ = self.n_classes  # sklearn compatibility
@@ -269,23 +238,27 @@ class XGBoostWrapper(BaseTabularWrapper):
             # For binary, ensure num_class is not set (XGBoost handles binary automatically)
             params.pop("num_class", None)
 
+        # Canonicalize user parameters before applying them
+        kwargs = self._canonicalize_params(kwargs)
+
         # Add any additional parameters
         params.update(kwargs)
 
         # Handle softmax to softprob coercion for audit compatibility
         user_objective = params.get("objective")
-        if user_objective == "multi:softmax" and self.n_classes > 2 and require_proba:
+        if user_objective == "multi:softmax" and self.n_classes > 2:
             logger.warning(
-                "Coercing multi:softmax to multi:softprob for audit compatibility (predict_proba required)",
+                "Coercing multi:softmax to multi:softprob for audit compatibility (predict_proba required for multiclass)",
             )
             params["objective"] = "multi:softprob"
 
         # Validate objective compatibility with number of classes
         self._validate_objective_compatibility(params, self.n_classes)
 
-        # Validate num_class parameter if provided by user (not automatic)
+        # Validate num_class parameter if provided by user and objective is multiclass
         user_num_class = kwargs.get("num_class")
-        if user_num_class is not None:
+        user_objective = kwargs.get("objective")
+        if user_num_class is not None and (user_objective is None or "multi" in str(user_objective)):
             self._validate_num_class_parameter({"num_class": user_num_class}, self.n_classes)
 
         # Extract n_estimators from params (default to 50)

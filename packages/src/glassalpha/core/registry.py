@@ -60,9 +60,6 @@ class PluginRegistry:
                     "enterprise": bool(meta.get("enterprise", False)),
                 },
             )
-            # Keep existing metadata fields if present
-            if "supports" in meta:
-                info["supports"] = meta["supports"]
             logger.debug(f"Registered plugin '{name}' with object")
             return obj
 
@@ -99,9 +96,6 @@ class PluginRegistry:
                     "enterprise": bool(meta.get("enterprise", False)),
                 },
             )
-            # Keep existing metadata fields if present
-            if "supports" in meta:
-                info["supports"] = meta["supports"]
             logger.debug(f"Registered plugin '{name}' with class via decorator")
             return cls
 
@@ -203,18 +197,6 @@ class PluginRegistry:
         if include_enterprise:
             return names
         return [n for n in names if not (self._meta.get(n, {}).get("enterprise", False))]
-
-    def get_metadata(self, name: str) -> dict[str, Any]:
-        """Get metadata for a plugin.
-
-        Args:
-            name: Plugin name
-
-        Returns:
-            Dictionary of metadata for the plugin
-
-        """
-        return self._meta.get(name, {})
 
     def is_enterprise(self, name: str) -> bool:
         """Check if a plugin is enterprise-only.

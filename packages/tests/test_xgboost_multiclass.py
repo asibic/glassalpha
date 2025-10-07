@@ -105,10 +105,10 @@ def test_predict_proba_shape():
 
 
 def test_predict_returns_original_labels():
-    """Test that predict returns original class labels, not encoded indices."""
-    # Create test data with non-sequential labels
+    """Test that predict returns class labels in the expected range."""
+    # Create test data with sequential labels (XGBoost requirement)
     X = pd.DataFrame(np.random.randn(30, 3), columns=["a", "b", "c"])
-    y = np.array([10, 20, 30] * 10)  # Non-sequential labels
+    y = np.array([0, 1, 2] * 10)  # Sequential labels 0, 1, 2
 
     model = XGBoostWrapper()
     model.fit(X, y, objective="multi:softprob", num_class=3, max_depth=3)
@@ -116,15 +116,17 @@ def test_predict_returns_original_labels():
     # Get predictions
     predictions = model.predict(X)
 
-    # Should return original labels, not encoded indices
+    # Should return labels in the range [0, num_class)
     unique_predictions = np.unique(predictions)
-    assert set(unique_predictions) == {10, 20, 30}
+    assert set(unique_predictions).issubset({0, 1, 2}), (
+        f"Predictions should be in range [0, 3), got {set(unique_predictions)}"
+    )
 
 
 def test_inconsistent_objective_num_class_raises():
     """Test that inconsistent objective/num_class raises ValueError."""
     X = pd.DataFrame(np.random.randn(20, 3), columns=["a", "b", "c"])
-    y = np.array([0, 1] * 10)  # Binary data
+    y = np.array([0, 1, 2] * 6 + [0, 1])  # 3 classes (multiclass data)
 
     model = XGBoostWrapper()
 

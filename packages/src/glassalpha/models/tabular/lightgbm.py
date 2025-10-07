@@ -62,41 +62,6 @@ class LightGBMWrapper(BaseTabularWrapper):
         "supports_feature_importance": True,
         "supports_proba": True,
         "data_modality": "tabular",
-        "parameter_rules": {
-            "max_depth": {
-                "type": "int",
-                "min": -1,
-                "special_values": {-1: "no limit"},
-                "description": "Maximum tree depth",
-            },
-            "n_estimators": {
-                "type": "int",
-                "min": 1,
-                "description": "Number of boosting iterations",
-            },
-            "learning_rate": {
-                "type": "float",
-                "min": 0.0,
-                "max": 1.0,
-                "typical_range": (0.01, 0.3),
-                "exclusive_min": True,
-                "description": "Boosting learning rate",
-            },
-            "subsample": {
-                "type": "float",
-                "min": 0.0,
-                "max": 1.0,
-                "exclusive_min": True,
-                "description": "Subsample ratio of training instances",
-            },
-            "colsample_bytree": {
-                "type": "float",
-                "min": 0.0,
-                "max": 1.0,
-                "exclusive_min": True,
-                "description": "Subsample ratio of columns when constructing each tree",
-            },
-        },
     }
     version = "1.0.0"
     # Constants for magic values

@@ -35,10 +35,11 @@ def train_from_config(cfg: Any, X: pd.DataFrame, y: Any) -> Any:
     model_type = cfg.model.type
 
     # Get model class from registry (auto-imports if needed)
-    model_class = ModelRegistry.get(model_type)
-    if not model_class:
+    try:
+        model_class = ModelRegistry.get(model_type)
+    except KeyError as e:
         msg = f"Unknown model type: {model_type}"
-        raise ValueError(msg)
+        raise ValueError(msg) from e
 
     logger.info(f"Training {model_type} model from configuration")
 

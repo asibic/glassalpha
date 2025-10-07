@@ -13,49 +13,23 @@ import logging
 import os
 import sys
 from pathlib import Path
-from typing import Any
 
 import typer
 
 from .defaults import get_smart_defaults
 from .exit_codes import ExitCode
-from .json_error import JSONErrorOutput, should_use_json_output
 
 logger = logging.getLogger(__name__)
 
 
-def _output_error(
-    exit_code: int,
-    error_type: str,
-    message: str,
-    details: dict[str, Any] | None = None,
-    context: dict[str, Any] | None = None,
-    use_typer: bool = True,
-) -> None:
-    """Output error message (JSON or human-readable based on mode).
+def _output_error(message: str) -> None:
+    """Output error message to stderr.
 
     Args:
-        exit_code: Exit code to use
-        error_type: Error type (CONFIG, DATA, MODEL, etc.)
-        message: Error message
-        details: Additional error details
-        context: Contextual information
-        use_typer: Use typer.echo for human output (vs plain print)
+        message: Error message to display
 
     """
-    if should_use_json_output():
-        JSONErrorOutput.output_error(
-            exit_code=exit_code,
-            error_type=error_type,
-            message=message,
-            details=details,
-            context=context,
-        )
-    # Human-readable output
-    elif use_typer:
-        typer.echo(message, err=True)
-    else:
-        print(message, file=sys.stderr)
+    typer.echo(message, err=True)
 
 
 def print_banner(title: str = "GlassAlpha Audit Generation") -> None:
@@ -88,30 +62,6 @@ def _ensure_docs_if_pdf(output_path: str) -> None:
                     'Install: pip install "glassalpha[docs]"\n'
                     "Or use: --output audit.html",
                 )
-
-
-def _ascii(s: str) -> str:
-    """Convert Unicode characters to ASCII equivalents for CLI compatibility."""
-    return (
-        s.replace("✓", "OK")
-        .replace("•", "*")
-        .replace("—", "-")
-        .replace("–", "-")
-        .replace("…", "...")
-        .replace(""", '"').replace(""", '"')
-        .replace("'", "'")
-        .replace("❌", "X")
-        .replace("⚠️", "!")
-        .replace("🎉", "")
-        .replace("📊", "")
-        .replace("📁", "")
-        .replace("⏱️", "")
-        .replace("🛡️", "")
-        .replace("⚖️", "")
-        .replace("🔍", "")
-        .replace("📋", "")
-        .replace("🔧", "")
-    )
 
 
 def _bootstrap_components() -> None:
@@ -217,14 +167,14 @@ def _run_audit_pipeline(config, output_path: Path, selected_explainer: str | Non
 
         if not audit_results.success:
             typer.secho(
-                _ascii(f"❌ Audit pipeline failed: {audit_results.error_message}"),
+                f"Audit pipeline failed: {audit_results.error_message}",
                 fg=typer.colors.RED,
                 err=True,
             )
             raise typer.Exit(ExitCode.USER_ERROR)
 
         pipeline_time = time.time() - start_time
-        typer.secho(_ascii(f"✓ Audit pipeline completed in {pipeline_time:.2f}s"), fg=typer.colors.GREEN)
+        typer.secho(f"Audit pipeline completed in {pipeline_time:.2f}s", fg=typer.colors.GREEN)
 
         # Show audit summary
         _display_audit_summary(audit_results)
@@ -268,13 +218,13 @@ def _run_audit_pipeline(config, output_path: Path, selected_explainer: str | Non
                         audit_results.execution_info["provenance_manifest"],
                         output_path,
                     )
-                    typer.echo(_ascii(f"📋 Manifest: {manifest_path}"))
+                    typer.echo(f"Manifest: {manifest_path}")
                 except Exception as e:
                     logger.warning(f"Failed to write manifest sidecar: {e}")
 
             # Success message
             total_time = time.time() - start_time
-            typer.echo(_ascii("\n🎉 Audit Report Generated Successfully!"))
+            typer.echo("\nAudit Report Generated Successfully!")
 
         elif output_format == "html":
             typer.echo(f"\nGenerating HTML report: {output_path}")
@@ -301,13 +251,13 @@ def _run_audit_pipeline(config, output_path: Path, selected_explainer: str | Non
                         audit_results.execution_info["provenance_manifest"],
                         output_path,
                     )
-                    typer.echo(_ascii(f"📋 Manifest: {manifest_path}"))
+                    typer.echo(f"Manifest: {manifest_path}")
                 except Exception as e:
                     logger.warning(f"Failed to write manifest sidecar: {e}")
 
             # Success message
             total_time = time.time() - start_time
-            typer.echo(_ascii("\n🎉 Audit Report Generated Successfully!"))
+            typer.echo("\nAudit Report Generated Successfully!")
 
         else:
             typer.secho(f"Error: Unsupported output format '{output_format}'", fg=typer.colors.RED, err=True)
@@ -317,29 +267,29 @@ def _run_audit_pipeline(config, output_path: Path, selected_explainer: str | Non
 
         # Show final output information
         if output_format == "pdf":
-            typer.secho(_ascii(f"📁 Output: {output_path}"), fg=typer.colors.GREEN)
-            typer.echo(_ascii(f"📊 Size: {file_size:,} bytes ({file_size / 1024:.1f} KB)"))
-            typer.echo(_ascii(f"⏱️  Total time: {total_time:.2f}s"))
-            typer.echo(_ascii(f"   • Pipeline: {pipeline_time:.2f}s"))
-            typer.echo(_ascii(f"   • PDF generation: {pdf_time:.2f}s"))
+            typer.secho(f"Output: {output_path}", fg=typer.colors.GREEN)
+            typer.echo(f"Size: {file_size:,} bytes ({file_size / 1024:.1f} KB)")
+            typer.echo(f"Total time: {total_time:.2f}s")
+            typer.echo(f"   Pipeline: {pipeline_time:.2f}s")
+            typer.echo(f"   PDF generation: {pdf_time:.2f}s")
         elif output_format == "html":
-            typer.secho(_ascii(f"📁 Output: {output_path}"), fg=typer.colors.GREEN)
-            typer.echo(_ascii(f"📊 Size: {file_size:,} bytes ({file_size / 1024:.1f} KB)"))
-            typer.echo(_ascii(f"⏱️  Total time: {total_time:.2f}s"))
-            typer.echo(_ascii(f"   • Pipeline: {pipeline_time:.2f}s"))
-            typer.echo(_ascii(f"   • HTML generation: {html_time:.2f}s"))
+            typer.secho(f"Output: {output_path}", fg=typer.colors.GREEN)
+            typer.echo(f"Size: {file_size:,} bytes ({file_size / 1024:.1f} KB)")
+            typer.echo(f"Total time: {total_time:.2f}s")
+            typer.echo(f"   Pipeline: {pipeline_time:.2f}s")
+            typer.echo(f"   HTML generation: {html_time:.2f}s")
 
-        typer.echo(_ascii("\nThe audit report is ready for review and regulatory submission."))
+        typer.echo("\nThe audit report is ready for review and regulatory submission.")
 
         # Regulatory compliance message
         if config.strict_mode:
             typer.secho(
-                _ascii("\n🛡️  Strict mode: Report meets regulatory compliance requirements"),
+                "\nStrict mode: Report meets regulatory compliance requirements",
                 fg=typer.colors.YELLOW,
             )
 
     except Exception as e:
-        typer.secho(_ascii(f"\n❌ Audit failed: {e!s}"), fg=typer.colors.RED, err=True)
+        typer.secho(f"Audit failed: {e!s}", fg=typer.colors.RED, err=True)
 
         # Show more details in verbose mode
         if "--verbose" in sys.argv or "-v" in sys.argv:
@@ -350,21 +300,21 @@ def _run_audit_pipeline(config, output_path: Path, selected_explainer: str | Non
 
 def _display_audit_summary(audit_results) -> None:
     """Display a summary of audit results."""
-    typer.echo(_ascii("\n📊 Audit Summary:"))
+    typer.echo("\nAudit Summary:")
 
     # Model performance
     if audit_results.model_performance:
         perf_count = len(
             [m for m in audit_results.model_performance.values() if isinstance(m, dict) and "error" not in m],
         )
-        typer.echo(_ascii(f"  ✅ Performance metrics: {perf_count} computed"))
+        typer.echo(f"  Performance metrics: {perf_count} computed")
 
         # Show key metrics
         for name, result in audit_results.model_performance.items():
             if isinstance(result, dict) and "accuracy" in result:
                 accuracy = result["accuracy"]
-                status = "✅" if accuracy > 0.8 else "⚠️" if accuracy > 0.6 else "❌"
-                typer.echo(_ascii(f"     {status} {name}: {accuracy:.1%}"))
+                status = "GOOD" if accuracy > 0.8 else "OK" if accuracy > 0.6 else "POOR"
+                typer.echo(f"     {status} {name}: {accuracy:.1%}")
                 break
 
     # Fairness analysis
@@ -383,19 +333,19 @@ def _display_audit_summary(audit_results) -> None:
                         bias_detected.append(f"{attr}.{metric}")
 
         computed_metrics = total_metrics - failed_metrics
-        typer.echo(_ascii(f"  ⚖️  Fairness metrics: {computed_metrics}/{total_metrics} computed"))
+        typer.echo(f"  Fairness metrics: {computed_metrics}/{total_metrics} computed")
 
         if bias_detected:
-            typer.secho(_ascii(f"     ⚠️  Bias detected in: {', '.join(bias_detected[:2])}"), fg=typer.colors.YELLOW)
+            typer.secho(f"     WARNING: Bias detected in: {', '.join(bias_detected[:2])}", fg=typer.colors.YELLOW)
         elif computed_metrics > 0:
-            typer.secho(_ascii("     ✅ No bias detected"), fg=typer.colors.GREEN)
+            typer.secho("     No bias detected", fg=typer.colors.GREEN)
 
     # SHAP explanations
     if audit_results.explanations:
         has_importance = "global_importance" in audit_results.explanations
 
         if has_importance:
-            typer.echo(_ascii("  🔍 Explanations: ✅ Global feature importance"))
+            typer.echo("  Explanations: Global feature importance available")
 
             # Show top feature
             importance = audit_results.explanations.get("global_importance", {})
@@ -403,16 +353,16 @@ def _display_audit_summary(audit_results) -> None:
                 top_feature = max(importance.items(), key=lambda x: abs(x[1]))
                 typer.echo(f"     Most important: {top_feature[0]} ({top_feature[1]:+.3f})")
         else:
-            typer.echo(_ascii("  🔍 Explanations: ❌ Not available"))
+            typer.echo("  Explanations: Not available")
 
     # Data summary
     if audit_results.data_summary and "shape" in audit_results.data_summary:
         rows, cols = audit_results.data_summary["shape"]
-        typer.echo(_ascii(f"  📋 Dataset: {rows:,} samples, {cols} features"))
+        typer.echo(f"  Dataset: {rows:,} samples, {cols} features")
 
     # Selected components with fallback indication
     if audit_results.selected_components:
-        typer.echo(_ascii(f"  🔧 Components: {len(audit_results.selected_components)} selected"))
+        typer.echo(f"  Components: {len(audit_results.selected_components)} selected")
 
         # Show model (with fallback indication if applicable)
         model_info = audit_results.selected_components.get("model")
@@ -706,12 +656,7 @@ def audit(  # pragma: no cover
                 repro=repro if repro is not None else None,
             )
         except ValueError as e:
-            _output_error(
-                exit_code=ExitCode.USER_ERROR,
-                error_type="CONFIG",
-                message=str(e),
-                details={"tip": "Create a config with 'glassalpha init'"},
-            )
+            _output_error(f"Configuration error: {e}. Create a config with 'glassalpha init'")
             raise typer.Exit(ExitCode.USER_ERROR) from None
 
         # Extract resolved values
@@ -731,55 +676,30 @@ def audit(  # pragma: no cover
 
         # Check file existence early with specific error message
         if not config.exists():
-            _output_error(
-                exit_code=ExitCode.USER_ERROR,
-                error_type="CONFIG",
-                message=f"File '{config}' does not exist.",
-                context={"config_path": str(config)},
-            )
+            _output_error(f"Configuration file does not exist: {config}")
             raise typer.Exit(ExitCode.USER_ERROR)
 
         # Check override config if provided
         if override_config and not override_config.exists():
-            _output_error(
-                exit_code=ExitCode.USER_ERROR,
-                error_type="CONFIG",
-                message=f"Override file '{override_config}' does not exist.",
-                context={"override_path": str(override_config)},
-            )
+            _output_error(f"Override configuration file does not exist: {override_config}")
             raise typer.Exit(ExitCode.USER_ERROR)
 
         # Validate output directory exists before doing any work
         output_dir = output.parent if output.parent != Path() else Path.cwd()
         if not output_dir.exists():
-            _output_error(
-                exit_code=ExitCode.USER_ERROR,
-                error_type="SYSTEM",
-                message=f"Output directory does not exist: {output_dir}",
-                details={"hint": f"Create it with: mkdir -p {output_dir}"},
-                context={"output_dir": str(output_dir)},
-            )
+            _output_error(f"Output directory does not exist: {output_dir}. Create it with: mkdir -p {output_dir}")
             raise typer.Exit(ExitCode.USER_ERROR)
 
         # Check if output directory is writable
         if not os.access(output_dir, os.W_OK):
-            _output_error(
-                exit_code=ExitCode.SYSTEM_ERROR,
-                error_type="SYSTEM",
-                message=f"Output directory is not writable: {output_dir}",
-                context={"output_dir": str(output_dir)},
-            )
+            _output_error(f"Output directory is not writable: {output_dir}")
             raise typer.Exit(ExitCode.SYSTEM_ERROR)
 
         # Validate manifest sidecar path will be writable
         manifest_path = output.with_suffix(".manifest.json")
         if manifest_path.exists() and not os.access(manifest_path, os.W_OK):
             _output_error(
-                exit_code=ExitCode.SYSTEM_ERROR,
-                error_type="SYSTEM",
-                message=f"Cannot overwrite existing manifest (read-only): {manifest_path}",
-                details={"tip": "Make the file writable or remove it before running audit"},
-                context={"manifest_path": str(manifest_path)},
+                f"Cannot overwrite existing manifest (read-only): {manifest_path}. Make the file writable or remove it before running audit"
             )
             raise typer.Exit(ExitCode.SYSTEM_ERROR)
 
@@ -878,7 +798,7 @@ def audit(  # pragma: no cover
             typer.secho(f"Warning: Model type '{model_type}' not found in registry", fg=typer.colors.YELLOW)
 
         if dry_run:
-            typer.secho(_ascii("✓ Configuration valid (dry run - no report generated)"), fg=typer.colors.GREEN)
+            typer.secho("Configuration valid (dry run - no report generated)", fg=typer.colors.GREEN)
             return
 
         # Check PDF dependencies if PDF output requested
@@ -1086,90 +1006,6 @@ def doctor():  # pragma: no cover
     typer.echo()
 
 
-def _validate_model_params(config: Any) -> list[str]:  # noqa: ANN401
-    """Check model parameters for common issues using capability-based validation.
-
-    Args:
-        config: Audit configuration
-
-    Returns:
-        List of warning messages
-
-    """
-    warnings = []
-    model_type = config.model.type
-    params = config.model.params if hasattr(config.model, "params") else {}
-
-    # Get model class to access its capabilities
-    from glassalpha.core.registry import ModelRegistry  # noqa: PLC0415
-
-    try:
-        model_class = ModelRegistry.get(model_type)
-        if not model_class:
-            return warnings
-
-        # Get parameter rules from model capabilities
-        capabilities = getattr(model_class, "capabilities", {})
-        param_rules = capabilities.get("parameter_rules", {})
-
-        # Validate each parameter against its rules
-        for param_name, param_value in params.items():
-            if param_name not in param_rules:
-                continue
-
-            rule = param_rules[param_name]
-            param_type = rule.get("type")
-            description = rule.get("description", param_name)
-
-            # Check special values (e.g., LightGBM max_depth=-1)
-            special_values = rule.get("special_values", {})
-            if param_value in special_values:
-                # This is a valid special value, skip other checks
-                continue
-
-            # Type validation
-            if param_type == "int" and not isinstance(param_value, int):
-                warnings.append(f"{param_name}: {param_value} - {description} must be an integer")
-                continue
-            if param_type == "float" and not isinstance(param_value, (int, float)):
-                warnings.append(f"{param_name}: {param_value} - {description} must be a number")
-                continue
-
-            # Range validation
-            if "min" in rule:
-                min_val = rule["min"]
-                exclusive_min = rule.get("exclusive_min", False)
-                if exclusive_min:
-                    if param_value <= min_val:
-                        warnings.append(f"{param_name}: {param_value} - {description} must be > {min_val}")
-                elif param_value < min_val:
-                    warnings.append(f"{param_name}: {param_value} - {description} must be >= {min_val}")
-
-            if "max" in rule:
-                max_val = rule["max"]
-                exclusive_max = rule.get("exclusive_max", False)
-                if exclusive_max:
-                    if param_value >= max_val:
-                        warnings.append(f"{param_name}: {param_value} - {description} must be < {max_val}")
-                elif param_value > max_val:
-                    warnings.append(f"{param_name}: {param_value} - {description} must be <= {max_val}")
-
-            # Typical range warnings (not errors)
-            if "typical_range" in rule:
-                typical_min, typical_max = rule["typical_range"]
-                if param_value < typical_min or param_value > typical_max:
-                    warnings.append(
-                        f"{param_name}: {param_value} - Typically between {typical_min} and {typical_max} (unusual value)",
-                    )
-
-    except (KeyError, ImportError, AttributeError):
-        # If model class can't be loaded, skip validation
-        # This handles cases where dependencies aren't installed
-        pass
-
-    return warnings
-
-
 def validate(  # pragma: no cover
     config: Path = typer.Option(
         ...,
@@ -1328,7 +1164,7 @@ def validate(  # pragma: no cover
         # Report validation errors
         if validation_errors:
             typer.echo()
-            typer.secho(_ascii("✗ Validation failed with errors:"), fg=typer.colors.RED, err=True)
+            typer.secho("Validation failed with errors:", fg=typer.colors.RED, err=True)
             for error in validation_errors:
                 typer.secho(f"  • {error}", fg=typer.colors.RED, err=True)
             typer.echo()
@@ -1339,12 +1175,12 @@ def validate(  # pragma: no cover
             raise typer.Exit(ExitCode.VALIDATION_ERROR)
 
         # Report validation results
-        typer.secho(_ascii("\n✓ Configuration is valid"), fg=typer.colors.GREEN)
+        typer.secho("Configuration is valid", fg=typer.colors.GREEN)
 
         # Show runtime warnings
         if validation_warnings:
             typer.echo()
-            typer.secho(_ascii("⚠ Runtime warnings:"), fg=typer.colors.YELLOW)
+            typer.secho("Runtime warnings:", fg=typer.colors.YELLOW)
             for warning in validation_warnings:
                 typer.secho(f"  • {warning}", fg=typer.colors.YELLOW)
             typer.echo()
@@ -1353,22 +1189,6 @@ def validate(  # pragma: no cover
                     "Tip: Add --strict-validation to treat warnings as errors (recommended for production)",
                     fg=typer.colors.CYAN,
                 )
-
-        # Check model parameters
-        param_warnings = _validate_model_params(audit_config)
-        if param_warnings:
-            typer.echo()
-            typer.secho(_ascii("⚠ Parameter warnings:"), fg=typer.colors.YELLOW)
-            for warning in param_warnings:
-                typer.secho(f"  {warning}", fg=typer.colors.YELLOW)
-            typer.echo()
-
-            # Add direct link to relevant section
-            model_type = audit_config.model.type.replace("_", "-")
-            doc_url = f"https://glassalpha.com/docs/reference/model-parameters/#{model_type}"
-            typer.echo(_ascii("💡 See parameter reference:"))
-            typer.echo(f"   {doc_url}")
-            typer.echo("   Or run: glassalpha docs model-parameters")
 
         # Show other warnings
         if not audit_config.reproducibility.random_seed:

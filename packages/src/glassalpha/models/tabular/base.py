@@ -9,7 +9,7 @@ import logging
 from pathlib import Path
 from typing import Any
 
-from glassalpha.constants import NO_MODEL_MSG
+from glassalpha.constants import ERR_NOT_FITTED
 
 # Conditional imports
 try:
@@ -31,7 +31,7 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
-def _ensure_fitted(obj: Any, attr: str = "_fitted_", message: str = NO_MODEL_MSG) -> None:  # noqa: ANN401
+def _ensure_fitted(obj: Any, attr: str = "_fitted_", message: str = ERR_NOT_FITTED) -> None:  # noqa: ANN401
     """Ensure object is fitted, raise if not.
 
     Args:
@@ -66,7 +66,7 @@ class BaseTabularWrapper:
 
         """
         if self.model is None:
-            raise ValueError(NO_MODEL_MSG)
+            raise ValueError(ERR_NOT_FITTED)
 
     def _prepare_x(self, X: Any) -> Any:  # noqa: ANN401, N803
         """Robust DataFrame column handling - uses centralized feature alignment.
@@ -123,14 +123,14 @@ class BaseTabularWrapper:
         # If there's no overlap in feature names, this is likely an error
         if not overlap:
             raise ValueError(
-                f"Input features do not match trained feature set. Expected: {expected}, got: {list(X.columns)}"
+                f"Input features do not match trained feature set. Expected: {expected}, got: {list(X.columns)}",
             )
 
         # If we're missing too many features (more than half), also raise error
         missing_count = len(expected_cols - actual_cols)
         if missing_count > len(expected) // 2:
             raise ValueError(
-                f"Too many missing features: expected {len(expected)}, got {len(X.columns)}, missing {missing_count}"
+                f"Too many missing features: expected {len(expected)}, got {len(X.columns)}, missing {missing_count}",
             )
 
         # Otherwise reindex: drop extras, fill missing with 0

@@ -178,10 +178,12 @@ ignore = [
 
 # Per-file ignores for intentional design patterns
 [tool.ruff.lint.per-file-ignores]
+# Main __init__.py uses PEP 562 lazy loading (undefined names in __all__ are loaded dynamically)
+"src/glassalpha/__init__.py" = ["F822"]  # PEP 562: undefined names in __all__ for lazy loading
 # CLI files use clean error handling + Typer patterns + late imports for command registration
 "src/**/cli/*.py" = ["B904", "B008", "E402"]  # Clean UX exception handling + Typer defaults + late imports
 # Test files need module-level imports for mocking dependencies
-"tests/*.py" = ["E402"]  # Allow imports not at top for dependency mocking
+"tests/*.py" = ["E402", "F401", "F811"]  # Allow late imports + unused/repeated imports (testing import behavior)
 # Demo files are intentionally less strict for educational purposes
 "demo_*.py" = ["D103", "E402", "E501", "D107", "D105"]  # Allow missing docstrings, long lines
 # Config validation uses intentional tensorflow import for detection
@@ -221,6 +223,9 @@ markers = [
     "requires_xgboost: tests that need XGBoost runtime (can be skipped on incompatible environments)",
     "slow: tests that take longer than usual (e.g. full audits, can be skipped with -m 'not slow')",
     "integration: integration tests for E2E workflows (may require external dependencies)",
+    "contract: core API contract tests (must pass before release)",
+    "determinism: reproducibility tests (must pass for byte-identical guarantees)",
+    "performance: performance benchmarks (track regressions)",
 ]
 testpaths = ["tests"]
 
