@@ -13,6 +13,15 @@ import numpy as np
 import pandas as pd
 
 from glassalpha.api.result import AuditResult
+from glassalpha.exceptions import (
+    DataHashMismatchError,
+    InvalidProtectedAttributesError,
+    LengthMismatchError,
+    MultiIndexNotSupportedError,
+    NonBinaryClassificationError,
+    NoPredictProbaError,
+    ResultIDMismatchError,
+)
 
 
 def from_model(  # noqa: PLR0913
@@ -84,7 +93,6 @@ def from_model(  # noqa: PLR0913
 
     """
     from glassalpha.core.canonicalization import hash_data_for_manifest
-    from glassalpha.exceptions import NoPredictProbaError
     from glassalpha.models.detection import detect_model_type
 
     # Convert inputs to numpy arrays
@@ -226,7 +234,6 @@ def from_predictions(
 
     import glassalpha
     from glassalpha.core.canonicalization import compute_result_id, hash_data_for_manifest
-    from glassalpha.exceptions import LengthMismatchError
 
     # Convert inputs to numpy arrays
     y_true_arr = _to_numpy(y_true)
@@ -397,7 +404,6 @@ def from_config(config_path: str | Path) -> AuditResult:
     import yaml
 
     from glassalpha.core.canonicalization import hash_data_for_manifest
-    from glassalpha.exceptions import DataHashMismatchError, ResultIDMismatchError
 
     # Load YAML config
     config_path_obj = PathLib(config_path) if isinstance(config_path, str) else config_path
@@ -523,8 +529,6 @@ def _normalize_protected_attributes(
         GlassAlphaError (GAE1003): Length mismatch
 
     """
-    from glassalpha.exceptions import InvalidProtectedAttributesError, LengthMismatchError
-
     if protected_attributes is None:
         return None
 
@@ -617,8 +621,6 @@ def _validate_binary_classification(
         GlassAlphaError (GAE1004): Non-binary classification
 
     """
-    from glassalpha.exceptions import NonBinaryClassificationError
-
     # Convert to numpy
     y_arr = _to_numpy(y)
 
@@ -649,8 +651,6 @@ def _validate_no_multiindex(df: pd.DataFrame) -> None:
         GlassAlphaError (GAE1012): MultiIndex detected
 
     """
-    from glassalpha.exceptions import MultiIndexNotSupportedError
-
     if isinstance(df.index, pd.MultiIndex):
         raise MultiIndexNotSupportedError("DataFrame")
 
@@ -724,7 +724,7 @@ def _compute_performance_metrics(
             y_pred,
             sample_weight=sample_weight,
             zero_division=0,
-        )
+        ),
     )
     metrics["recall"] = float(
         recall_score(
@@ -732,7 +732,7 @@ def _compute_performance_metrics(
             y_pred,
             sample_weight=sample_weight,
             zero_division=0,
-        )
+        ),
     )
     metrics["f1"] = float(
         f1_score(
@@ -740,7 +740,7 @@ def _compute_performance_metrics(
             y_pred,
             sample_weight=sample_weight,
             zero_division=0,
-        )
+        ),
     )
 
     # Compute probability-based metrics if y_proba provided
@@ -750,7 +750,7 @@ def _compute_performance_metrics(
                 y_true,
                 y_proba,
                 sample_weight=sample_weight,
-            )
+            ),
         )
 
         # PR AUC
@@ -764,7 +764,7 @@ def _compute_performance_metrics(
                 y_true,
                 y_proba,
                 sample_weight=sample_weight,
-            )
+            ),
         )
 
         # Log loss
@@ -773,7 +773,7 @@ def _compute_performance_metrics(
                 y_true,
                 y_proba,
                 sample_weight=sample_weight,
-            )
+            ),
         )
 
     metrics["n_samples"] = len(y_true)

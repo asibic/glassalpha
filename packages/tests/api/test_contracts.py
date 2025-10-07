@@ -12,6 +12,26 @@ import pytest
 pytestmark = pytest.mark.contract
 
 
+@pytest.fixture(autouse=True)
+def _restore_modules():
+    """Save and restore sys.modules to prevent test contamination."""
+    # Save original state
+    original_modules = sys.modules.copy()
+
+    yield
+
+    # Restore original state after test
+    # Remove any new glassalpha modules added during test
+    for key in list(sys.modules.keys()):
+        if key.startswith("glassalpha") and key not in original_modules:
+            del sys.modules[key]
+
+    # Restore any deleted glassalpha modules
+    for key, module in original_modules.items():
+        if key.startswith("glassalpha") and key not in sys.modules:
+            sys.modules[key] = module
+
+
 class TestImportSpeed:
     """Import must complete in <200ms"""
 

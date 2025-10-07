@@ -68,9 +68,10 @@ class TestFromModelSignature:
         assert "Raises:" in doc
         assert "Examples:" in doc
 
-    def test_not_implemented_yet(self):
-        """from_model() raises NotImplementedError (Phase 3 in progress)"""
-        with pytest.raises(NotImplementedError):
+    def test_requires_valid_inputs(self):
+        """from_model() validates inputs"""
+        # Should raise error for None inputs
+        with pytest.raises((AttributeError, ValueError)):
             from_model(model=None, X=None, y=None)
 
 
@@ -126,9 +127,10 @@ class TestFromPredictionsSignature:
         assert "Raises:" in doc
         assert "Examples:" in doc
 
-    def test_not_implemented_yet(self):
-        """from_predictions() raises NotImplementedError (Phase 3 in progress)"""
-        with pytest.raises(NotImplementedError):
+    def test_requires_valid_inputs(self):
+        """from_predictions() validates inputs"""
+        # Should raise error for None inputs
+        with pytest.raises(TypeError):
             from_predictions(y_true=None, y_pred=None)
 
 
@@ -160,9 +162,10 @@ class TestFromConfigSignature:
         assert "Config schema:" in doc
         assert "Examples:" in doc
 
-    def test_not_implemented_yet(self):
-        """from_config() raises NotImplementedError (Phase 3 in progress)"""
-        with pytest.raises(NotImplementedError):
+    def test_requires_valid_file(self):
+        """from_config() validates config file exists"""
+        # Should raise FileNotFoundError for non-existent file
+        with pytest.raises(FileNotFoundError):
             from_config("config.yaml")
 
 
