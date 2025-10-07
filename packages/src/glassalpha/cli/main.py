@@ -28,14 +28,7 @@ app = typer.Typer(
     add_completion=False,
     no_args_is_help=True,
     pretty_exceptions_enable=True,
-    epilog="""Installation Options:
-  Minimal install: pip install glassalpha                   # LogisticRegression + basic explainers
-  SHAP + trees:    pip install 'glassalpha[explain]'        # SHAP + XGBoost + LightGBM
-  Visualization:   pip install 'glassalpha[viz]'            # Matplotlib + Seaborn
-  PDF reports:     pip install 'glassalpha[docs]'           # PDF generation
-  Everything:      pip install 'glassalpha[all]'            # All optional features
-
-For more information, visit: https://glassalpha.com""",
+    epilog="""For more information, visit: https://glassalpha.com""",
 )
 
 # Command groups
@@ -102,23 +95,11 @@ def main_callback(
         "-q",
         help="Suppress non-error output",
     ),
-    json_errors: bool = typer.Option(
-        False,
-        "--json-errors",
-        help="Output errors as JSON for CI/CD integration",
-        envvar="GLASSALPHA_JSON_ERRORS",
-    ),
 ):
     """GlassAlpha - Transparent, auditable, regulator-ready ML audits.
 
     Use 'glassalpha COMMAND --help' for more information on a command.
     """
-    # Store json_errors flag in app state for commands to access
-    import os
-
-    if json_errors:
-        os.environ["GLASSALPHA_JSON_ERRORS"] = "1"
-
     # Set logging level based on flags
     if quiet:
         logging.getLogger().setLevel(logging.ERROR)
@@ -192,10 +173,10 @@ def fetch_dataset_lazy(
     return fetch_dataset(dataset, force, dest)
 
 
-# Add models command to show available models and installation options
+# Add models command to show available models
 @app.command()
 def models():
-    """Show available models and installation options."""
+    """Show available models."""
     # Import models to trigger registration
 
     from ..core import ModelRegistry
@@ -207,7 +188,7 @@ def models():
     available_models = ModelRegistry.available_plugins()
 
     if not available_models:
-        typer.secho("No models available. Install with: pip install 'glassalpha[tabular]'", fg=typer.colors.YELLOW)
+        typer.echo("No models available.")
         return
 
     # Group models by category
@@ -216,7 +197,7 @@ def models():
     other_models = []
 
     for model, available in available_models.items():
-        status = "✅" if available else "❌"
+        status = "Available" if available else "Not available"
 
         if model in ["logistic_regression", "sklearn_generic"]:
             core_models.append((model, status, available))
@@ -229,42 +210,22 @@ def models():
     if core_models:
         typer.echo("Core Models (always available):")
         for model, status, available in core_models:
-            typer.echo(f"  {status} {model}")
+            typer.echo(f"  {status}: {model}")
         typer.echo()
 
     # Display tree models
     if tree_models:
-        available_tree = all(avail for _, _, avail in tree_models)
-        req_text = "" if available_tree else " (requires: pip install 'glassalpha[explain]')"
-        typer.echo(f"Tree Models{req_text}:")
+        typer.echo("Tree Models:")
         for model, status, available in tree_models:
-            typer.echo(f"  {status} {model}")
+            typer.echo(f"  {status}: {model}")
         typer.echo()
 
     # Display other models if any
     if other_models:
         typer.echo("Other Models:")
         for model, status, available in other_models:
-            typer.echo(f"  {status} {model}")
+            typer.echo(f"  {status}: {model}")
         typer.echo()
-
-    # Show installation options once at the end
-    typer.echo("Installation Options:")
-    typer.echo("=" * 50)
-    typer.echo("  Minimal:         pip install glassalpha")
-    typer.echo("                   → LogisticRegression + basic explainers")
-    typer.echo()
-    typer.echo("  With trees:      pip install 'glassalpha[explain]'")
-    typer.echo("                   → SHAP + XGBoost + LightGBM")
-    typer.echo()
-    typer.echo("  Visualization:   pip install 'glassalpha[viz]'")
-    typer.echo("                   → Matplotlib + Seaborn")
-    typer.echo()
-    typer.echo("  PDF reports:     pip install 'glassalpha[docs]'")
-    typer.echo("                   → PDF generation with WeasyPrint")
-    typer.echo()
-    typer.echo("  Everything:      pip install 'glassalpha[all]'")
-    typer.echo("                   → All optional features")
 
 
 if __name__ == "__main__":  # pragma: no cover

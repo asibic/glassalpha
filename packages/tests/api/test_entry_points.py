@@ -7,7 +7,6 @@ import pytest
 
 from glassalpha.api import from_config, from_model, from_predictions
 
-
 # Mark as contract test (must pass before release)
 pytestmark = pytest.mark.contract
 
@@ -189,7 +188,7 @@ class TestAPIAccessPatterns:
         assert hasattr(ga.audit, "AuditResult")
 
     def test_lazy_load_on_first_use(self):
-        """audit module lazy loads on first use"""
+        """Audit module lazy loads on first use"""
         import sys
 
         # Clear all glassalpha modules
@@ -321,4 +320,3 @@ class TestErrorCodes:
         # Check error codes
         assert "GAE2002" in doc  # Result ID mismatch
         assert "GAE2003" in doc  # Data hash mismatch
-

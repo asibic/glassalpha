@@ -8,7 +8,7 @@ from glassalpha.api.result import AuditResult
 
 __all__ = [
     "AuditResult",
+    "from_config",
     "from_model",
     "from_predictions",
-    "from_config",
 ]

@@ -31,11 +31,11 @@ def from_model(
     stability: bool = False,
 ) -> AuditResult:
     """Generate audit from fitted model.
-    
+
     Primary entry point for auditing ML models. Automatically extracts
     predictions and probabilities from the model, computes fairness metrics,
     and generates a byte-identical reproducible result.
-    
+
     Args:
         model: Fitted sklearn-compatible model with predict() method
         X: Feature matrix (n_samples, n_features)
@@ -51,22 +51,22 @@ def from_model(
         recourse: Generate recourse recommendations (default: False)
         calibration: Compute calibration metrics (default: True, requires predict_proba)
         stability: Run stability tests (default: False, slower)
-        
+
     Returns:
         AuditResult with performance, fairness, calibration, explanations
-        
+
     Raises:
         GlassAlphaError (GAE1001): Invalid protected_attributes format
         GlassAlphaError (GAE1003): Length mismatch between X, y, protected_attributes
         GlassAlphaError (GAE1004): Non-binary classification (not yet supported)
         GlassAlphaError (GAE1012): MultiIndex not supported
-        
+
     Examples:
         Basic audit (binary classification):
         >>> result = ga.audit.from_model(model, X_test, y_test)
         >>> result.performance.accuracy
         0.847
-        
+
         With protected attributes:
         >>> result = ga.audit.from_model(
         ...     model, X_test, y_test,
@@ -74,13 +74,14 @@ def from_model(
         ... )
         >>> result.fairness.demographic_parity_max_diff
         0.023
-        
+
         Missing values in protected attributes:
         >>> gender_with_nan = pd.Series([0, 1, np.nan, 1, 0])  # NaN → "Unknown"
         >>> result = ga.audit.from_model(model, X, y, protected_attributes={"gender": gender_with_nan})
-        
+
         Without explanations (faster):
         >>> result = ga.audit.from_model(model, X, y, explain=False)
+
     """
     # Phase 3: Will implement with full validation and pipeline integration
     msg = "from_model() will be implemented in Phase 3"
@@ -100,10 +101,10 @@ def from_predictions(
     calibration: bool = True,
 ) -> AuditResult:
     """Generate audit from predictions (no model required).
-    
+
     Use this when you have predictions but not the model itself
     (e.g., external model, model deleted, compliance verification).
-    
+
     Args:
         y_true: True labels (n_samples,)
         y_pred: Predicted labels (n_samples,)
@@ -115,16 +116,16 @@ def from_predictions(
         class_names: Class names (e.g., ["Denied", "Approved"])
         model_fingerprint: Optional model hash for tracking (default: "unknown")
         calibration: Compute calibration metrics (default: True, requires y_proba)
-        
+
     Returns:
         AuditResult with performance and fairness metrics.
         No explanations or recourse (requires model).
-        
+
     Raises:
         GlassAlphaError (GAE1001): Invalid protected_attributes format
         GlassAlphaError (GAE1003): Length mismatch
         GlassAlphaError (GAE1004): Non-binary classification
-        
+
     Examples:
         Binary classification with probabilities:
         >>> result = ga.audit.from_predictions(
@@ -135,7 +136,7 @@ def from_predictions(
         ... )
         >>> result.performance.roc_auc
         0.891
-        
+
         Without probabilities (no AUC/calibration):
         >>> result = ga.audit.from_predictions(
         ...     y_true=y_test,
@@ -147,6 +148,7 @@ def from_predictions(
         0.847
         >>> result.performance.get("roc_auc")  # None (no proba)
         None
+
     """
     # Phase 3: Will implement with validation
     msg = "from_predictions() will be implemented in Phase 3"
@@ -155,26 +157,26 @@ def from_predictions(
 
 def from_config(config_path: str | Path) -> AuditResult:
     """Generate audit from YAML config file.
-    
+
     Loads config, dataset, model from paths specified in YAML.
     Used for reproducible audits in CI/CD pipelines.
-    
+
     Args:
         config_path: Path to YAML config file
-        
+
     Returns:
         AuditResult matching the config specification
-        
+
     Raises:
         GlassAlphaError (GAE2002): Result ID mismatch (if expected_result_id provided)
         GlassAlphaError (GAE2003): Data hash mismatch
         FileNotFoundError: Config or referenced files not found
-        
+
     Config schema:
         model:
           path: "models/xgboost.pkl"  # Pickled model
           type: "xgboost.XGBClassifier"  # For verification
-          
+
         data:
           X_path: "data/X_test.parquet"
           y_path: "data/y_test.parquet"
@@ -184,25 +186,26 @@ def from_config(config_path: str | Path) -> AuditResult:
           expected_hashes:
             X: "sha256:abc123..."
             y: "sha256:def456..."
-            
+
         audit:
           random_seed: 42
           explain: true
           recourse: false
           calibration: true
-          
+
         validation:
           expected_result_id: "abc123..."  # Optional: fail if mismatch
-          
+
     Examples:
         Basic usage:
         >>> result = ga.audit.from_config("audit.yaml")
         >>> result.to_pdf("report.pdf")
-        
+
         Verify reproducibility:
         >>> result1 = ga.audit.from_config("audit.yaml")
         >>> result2 = ga.audit.from_config("audit.yaml")
         >>> assert result1.id == result2.id  # Byte-identical
+
     """
     # Phase 3: Will implement with config loading
     msg = "from_config() will be implemented in Phase 3"
@@ -217,23 +220,24 @@ def _normalize_protected_attributes(
     n_samples: int,
 ) -> dict[str, np.ndarray] | None:
     """Normalize protected attributes to dict of arrays with "Unknown" for NaN.
-    
+
     Validates:
     - All arrays have length n_samples
     - Converts pandas Series to numpy arrays
     - Maps NaN → "Unknown" category (string)
     - Validates attribute names are strings
-    
+
     Args:
         protected_attributes: Dict of attribute arrays or None
         n_samples: Expected number of samples
-        
+
     Returns:
         Dict of numpy arrays with NaN → "Unknown", or None
-        
+
     Raises:
         GlassAlphaError (GAE1001): Invalid format or names
         GlassAlphaError (GAE1003): Length mismatch
+
     """
     if protected_attributes is None:
         return None
@@ -248,23 +252,24 @@ def _get_probabilities(
     X: pd.DataFrame | np.ndarray,
 ) -> np.ndarray | None:
     """Extract probabilities from model (predict_proba or decision_function).
-    
+
     Tries in order:
     1. model.predict_proba(X) → returns probabilities
     2. model.decision_function(X) → returns scores
     3. Returns None if neither available
-    
+
     For binary classification, returns (n_samples,) array of positive class proba.
-    
+
     Args:
         model: Fitted model
         X: Feature matrix
-        
+
     Returns:
         Array of probabilities/scores (n_samples,) or None
-        
+
     Raises:
         GlassAlphaError (GAE1008): Only decision_function available (not probabilities)
+
     """
     # Phase 3: Implement probability extraction
     msg = "_get_probabilities will be implemented in Phase 3"
@@ -276,13 +281,14 @@ def _validate_binary_classification(
     y_pred: pd.Series | np.ndarray | None = None,
 ) -> None:
     """Validate that labels are binary (0/1 or two unique values).
-    
+
     Args:
         y: Label array
         y_pred: Predicted labels (optional, for validation)
-        
+
     Raises:
         GlassAlphaError (GAE1004): Non-binary classification
+
     """
     # Phase 3: Implement validation
     msg = "_validate_binary_classification will be implemented in Phase 3"
@@ -291,12 +297,13 @@ def _validate_binary_classification(
 
 def _validate_no_multiindex(df: pd.DataFrame) -> None:
     """Validate DataFrame does not have MultiIndex.
-    
+
     Args:
         df: DataFrame to check
-        
+
     Raises:
         GlassAlphaError (GAE1012): MultiIndex detected
+
     """
     # Phase 3: Implement validation
     msg = "_validate_no_multiindex will be implemented in Phase 3"
@@ -305,12 +312,13 @@ def _validate_no_multiindex(df: pd.DataFrame) -> None:
 
 def _extract_feature_names(X: pd.DataFrame | np.ndarray) -> list[str]:
     """Extract feature names from DataFrame or generate default names.
-    
+
     Args:
         X: Feature matrix
-        
+
     Returns:
         List of feature names (e.g., ["feature_0", "feature_1", ...] if ndarray)
+
     """
     if isinstance(X, pd.DataFrame):
         return list(X.columns)
@@ -319,14 +327,14 @@ def _extract_feature_names(X: pd.DataFrame | np.ndarray) -> list[str]:
 
 def _to_numpy(arr: pd.Series | pd.DataFrame | np.ndarray) -> np.ndarray:
     """Convert pandas Series/DataFrame to numpy array.
-    
+
     Args:
         arr: Input array
-        
+
     Returns:
         Numpy array
+
     """
     if isinstance(arr, (pd.Series, pd.DataFrame)):
         return arr.values
     return arr
-
