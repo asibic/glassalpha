@@ -246,11 +246,19 @@ class AuditReportRenderer:
         # Get base context with proper normalization
         context = normalize_audit_context(audit_results)
 
+        # Determine generation date (fixed in deterministic mode)
+        import os  # noqa: PLC0415
+
+        if os.environ.get("GLASSALPHA_DETERMINISTIC"):
+            generation_date = "2000-01-01 00:00:00 UTC"
+        else:
+            generation_date = datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S UTC")
+
         # Add basic audit information
         context.update(
             {
                 "report_title": "Machine Learning Model Audit Report",
-                "generation_date": datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S UTC"),
+                "generation_date": generation_date,
                 "version": "1.0.0",
             },
         )

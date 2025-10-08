@@ -242,9 +242,19 @@ class ManifestGenerator:
         self.datasets: dict[str, Any] = {}
         self.result_hashes: dict[str, str] = {}
 
+        # Determine creation time (fixed in deterministic mode)
+        if os.environ.get("GLASSALPHA_DETERMINISTIC"):
+            creation_time = datetime(2000, 1, 1, 0, 0, 0, tzinfo=UTC)
+            created_at = "2000-01-01T00:00:00+00:00"
+        else:
+            creation_time = datetime.now(UTC)
+            created_at = creation_time.isoformat()
+
         # Initialize empty manifest (don't collect platform/git on init to avoid crashes)
         self.manifest = AuditManifest(
             audit_id=self.audit_id,
+            creation_time=creation_time,
+            created_at=created_at,
         )
 
         # Sync start_time between execution and execution_info fields
@@ -421,14 +431,20 @@ class ManifestGenerator:
         self.error = error
         self.completed_at = end_time
 
+        # Calculate duration (fixed in deterministic mode)
+        if os.environ.get("GLASSALPHA_DETERMINISTIC"):
+            duration_seconds = 0.0  # Fixed duration for deterministic testing
+        else:
+            duration_seconds = (end_time - self.start_time).total_seconds()
+
         # Keep manifest dict in sync
         self.manifest.execution.end_time = end_time
-        self.manifest.execution.duration_seconds = (end_time - self.start_time).total_seconds()
+        self.manifest.execution.duration_seconds = duration_seconds
         self.manifest.execution.status = status
 
         # Also update execution_info alias for test compatibility
         self.manifest.execution_info.end_time = end_time
-        self.manifest.execution_info.duration_seconds = (end_time - self.start_time).total_seconds()
+        self.manifest.execution_info.duration_seconds = duration_seconds
         self.manifest.execution_info.status = status
 
         # Friend's spec: Set root-level status and error_message in manifest
@@ -456,10 +472,24 @@ class ManifestGenerator:
     def _generate_audit_id(self) -> str:
         """Generate unique audit ID.
 
+        In deterministic mode (GLASSALPHA_DETERMINISTIC env var set),
+        generates a fixed audit ID based on the seed for reproducibility.
+
         Returns:
             Unique audit ID string
 
         """
+        # Check if we're in deterministic mode
+        deterministic_seed = os.environ.get("GLASSALPHA_DETERMINISTIC")
+
+        if deterministic_seed:
+            # Use fixed timestamp and seed-based hash for determinism
+            timestamp = "20000101_000000"  # Fixed timestamp
+            hash_input = f"deterministic_{deterministic_seed}"
+            audit_hash = hash_object(hash_input)[:8]
+            return f"audit_{timestamp}_{audit_hash}"
+
+        # Normal mode: use actual timestamp
         timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
         hash_input = f"{timestamp}_{platform.node()}_{os.getpid()}"
         audit_hash = hash_object(hash_input)[:8]

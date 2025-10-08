@@ -65,6 +65,7 @@ def deterministic(seed: int, *, strict: bool = True) -> Generator[None, None, No
         "MKL_NUM_THREADS": os.environ.get("MKL_NUM_THREADS"),
         "BLIS_NUM_THREADS": os.environ.get("BLIS_NUM_THREADS"),
         "NUMEXPR_NUM_THREADS": os.environ.get("NUMEXPR_NUM_THREADS"),
+        "GLASSALPHA_DETERMINISTIC": os.environ.get("GLASSALPHA_DETERMINISTIC"),
     }
 
     # Save original random states
@@ -74,6 +75,7 @@ def deterministic(seed: int, *, strict: bool = True) -> Generator[None, None, No
     try:
         # Set environment variables for determinism
         os.environ["PYTHONHASHSEED"] = str(seed)
+        os.environ["GLASSALPHA_DETERMINISTIC"] = str(seed)  # Signal deterministic mode
 
         if strict:
             # Force single-threaded BLAS/LAPACK for determinism

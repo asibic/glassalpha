@@ -101,8 +101,8 @@ def generate_run_manifest(
     # Constraints hash (if constraints.txt exists)
     manifest["constraints"] = _get_constraints_provenance()
 
-    # Overall manifest hash (excluding this field)
-    manifest_for_hash = manifest.copy()
+    # Overall manifest hash (excluding timestamps and this field for determinism)
+    manifest_for_hash = _prepare_manifest_for_hash(manifest)
     manifest["manifest_hash"] = _compute_dict_hash(manifest_for_hash)
 
     logger.info(f"Run manifest generated with {len(manifest)} sections")
@@ -460,6 +460,37 @@ def _sanitize_config_for_hash(config: dict[str, Any]) -> dict[str, Any]:
             clean_config.pop(key, None)
 
     return clean_config
+
+
+def _prepare_manifest_for_hash(manifest: dict[str, Any]) -> dict[str, Any]:
+    """Prepare manifest for hashing by removing non-deterministic fields.
+
+    Removes timestamps and other time-dependent fields that don't affect
+    reproducibility. The hash should verify audit configuration and results
+    are identical, not that they ran at the same time.
+
+    Args:
+        manifest: Complete manifest dictionary
+
+    Returns:
+        Manifest copy with timestamps removed
+
+    """
+    import copy
+
+    manifest_copy = copy.deepcopy(manifest)
+
+    # Remove top-level timestamp
+    manifest_copy.pop("generated_at", None)
+
+    # Remove execution timestamps (keep seed and success status)
+    if "execution" in manifest_copy:
+        exec_info = manifest_copy["execution"]
+        exec_info.pop("start_time", None)
+        exec_info.pop("end_time", None)
+        exec_info.pop("duration_seconds", None)
+
+    return manifest_copy
 
 
 def _compute_dict_hash(data: dict[str, Any]) -> str:

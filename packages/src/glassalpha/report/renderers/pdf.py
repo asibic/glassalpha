@@ -122,6 +122,7 @@ class AuditPDFRenderer:
                 target=str(output_path),
                 pdf_version="1.4",  # Good compatibility
                 pdf_identifier=False,  # Deterministic output
+                custom_metadata=True,  # Use HTML meta tags for deterministic timestamps
                 pdf_variant="pdf/a-1b" if self.config.optimize_size else None,
                 presentational_hints=True,
                 optimize_images=self.config.optimize_size,

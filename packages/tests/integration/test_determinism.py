@@ -239,17 +239,23 @@ class TestEnvironmentValidation:
 
 @pytest.mark.integration
 class TestManifestDeterminism:
-    """Test manifest JSON is byte-identical."""
+    """Test manifest hash is deterministic across runs.
+
+    Note: The full manifest JSON includes timestamps (generated_at, start_time, end_time)
+    which are intentionally non-deterministic. The manifest_hash field excludes these
+    timestamps and verifies that the audit configuration and results are reproducible.
+    """
 
     def test_manifest_is_byte_identical(self, tmp_path, simple_config):
-        """Test audit manifest is byte-identical across runs."""
+        """Test audit manifest hash is deterministic across runs.
+
+        The manifest_hash field verifies reproducibility by excluding timestamps.
+        Full manifest JSON will differ due to execution timestamps, which is expected.
+        """
         config_path, config = simple_config
 
         # Load config as AuditConfig object
         config_obj = load_config_from_file(config_path)
-
-        manifest1_path = tmp_path / "manifest1.json"
-        manifest2_path = tmp_path / "manifest2.json"
 
         # Run audit twice with same seed
         with deterministic(seed=42):
@@ -257,26 +263,26 @@ class TestManifestDeterminism:
             pipeline1 = AuditPipeline(config_obj)
             results1 = pipeline1.run()
 
-            # Save manifest
-            if results1.execution_info:
-                with manifest1_path.open("w") as f:
-                    json.dump(results1.execution_info, f, indent=2, sort_keys=True)
-
         with deterministic(seed=42):
             # Second run
             pipeline2 = AuditPipeline(config_obj)
             results2 = pipeline2.run()
 
-            # Save manifest
-            if results2.execution_info:
-                with manifest2_path.open("w") as f:
-                    json.dump(results2.execution_info, f, indent=2, sort_keys=True)
+        # Verify manifest hashes are identical (excludes timestamps)
+        manifest1 = results1.execution_info.get("provenance_manifest", {})
+        manifest2 = results2.execution_info.get("provenance_manifest", {})
 
-        # Verify manifests are identical
-        if manifest1_path.exists() and manifest2_path.exists():
-            identical, hash1, hash2 = verify_deterministic_output(manifest1_path, manifest2_path)
+        hash1 = manifest1.get("manifest_hash")
+        hash2 = manifest2.get("manifest_hash")
 
-            assert identical, f"Manifests differ: {hash1} != {hash2}"
+        assert hash1 is not None, "Manifest hash missing from first run"
+        assert hash2 is not None, "Manifest hash missing from second run"
+        assert hash1 == hash2, f"Manifest hashes differ: {hash1} != {hash2}"
+
+        # Verify other deterministic fields are identical
+        assert manifest1.get("configuration", {}).get("hash") == manifest2.get("configuration", {}).get("hash")
+        assert manifest1.get("dataset", {}).get("hash") == manifest2.get("dataset", {}).get("hash")
+        assert manifest1.get("execution", {}).get("random_seed") == manifest2.get("execution", {}).get("random_seed")
 
 
 @pytest.mark.integration

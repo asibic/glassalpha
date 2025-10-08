@@ -3,6 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Fixed timestamps for deterministic PDF generation -->
+    <meta name="dcterms.created" content="2000-01-01T00:00:00+00:00" />
+    <meta name="dcterms.modified" content="2000-01-01T00:00:00+00:00" />
     <title>{{ report_title | default("ML Model Audit Report") }}</title>
 
     <style>
