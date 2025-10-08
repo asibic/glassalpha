@@ -18,9 +18,9 @@ except ImportError:
 
 from glassalpha.metrics.fairness.confidence import (
     BootstrapCI,
+    check_sample_size_adequacy,
     compute_bootstrap_ci,
     compute_statistical_power,
-    check_sample_size_adequacy,
 )
 
 
@@ -48,7 +48,7 @@ class TestBootstrapDeterminism:
             metric_fn=metric_fn,
             n_bootstrap=100,
             confidence_level=0.95,
-            seed=42
+            seed=42,
         )
 
         ci2 = compute_bootstrap_ci(
@@ -56,7 +56,7 @@ class TestBootstrapDeterminism:
             metric_fn=metric_fn,
             n_bootstrap=100,
             confidence_level=0.95,
-            seed=42
+            seed=42,
         )
 
         # Assert byte-identical results
@@ -79,10 +79,10 @@ class TestBootstrapDeterminism:
             return tp / (tp + fn) if (tp + fn) > 0 else 0.0
 
         ci1 = compute_bootstrap_ci(
-            y_true, y_pred, sensitive, metric_fn, n_bootstrap=100, seed=42
+            y_true, y_pred, sensitive, metric_fn, n_bootstrap=100, seed=42,
         )
         ci2 = compute_bootstrap_ci(
-            y_true, y_pred, sensitive, metric_fn, n_bootstrap=100, seed=123
+            y_true, y_pred, sensitive, metric_fn, n_bootstrap=100, seed=123,
         )
 
         # Should be different (with high probability)
@@ -111,7 +111,7 @@ class TestSmallSampleWarnings:
         assert "small sample" in result["message"].lower()
 
     def test_sample_size_30_or_more_ok(self):
-        """n ≥ 30 should pass without warning."""
+        """N ≥ 30 should pass without warning."""
         result = check_sample_size_adequacy(n=50, group_name="group_2")
 
         assert result["status"] == "OK"
@@ -143,7 +143,7 @@ class TestStatisticalPower:
             n_samples=100,
             effect_size=0.10,  # 10% disparity
             alpha=0.05,
-            test_type="two_proportion"
+            test_type="two_proportion",
         )
 
         assert 0.0 <= power <= 1.0, "Power should be between 0 and 1"
@@ -153,10 +153,10 @@ class TestStatisticalPower:
     def test_larger_sample_higher_power(self):
         """Larger sample size should increase statistical power."""
         power_100 = compute_statistical_power(
-            n_samples=100, effect_size=0.10, alpha=0.05
+            n_samples=100, effect_size=0.10, alpha=0.05,
         )
         power_500 = compute_statistical_power(
-            n_samples=500, effect_size=0.10, alpha=0.05
+            n_samples=500, effect_size=0.10, alpha=0.05,
         )
 
         assert power_500 > power_100, "Larger n should have higher power"
@@ -164,10 +164,10 @@ class TestStatisticalPower:
     def test_larger_effect_higher_power(self):
         """Larger effect size should increase statistical power."""
         power_small = compute_statistical_power(
-            n_samples=100, effect_size=0.05, alpha=0.05
+            n_samples=100, effect_size=0.05, alpha=0.05,
         )
         power_large = compute_statistical_power(
-            n_samples=100, effect_size=0.20, alpha=0.05
+            n_samples=100, effect_size=0.20, alpha=0.05,
         )
 
         assert power_large > power_small, "Larger effect should have higher power"
@@ -175,7 +175,7 @@ class TestStatisticalPower:
     def test_small_sample_low_power_warning(self):
         """Small samples should have low power (integration check)."""
         power = compute_statistical_power(
-            n_samples=15, effect_size=0.10, alpha=0.05
+            n_samples=15, effect_size=0.10, alpha=0.05,
         )
 
         # With n=15, power should be quite low for 10% effect
@@ -198,7 +198,7 @@ class TestBootstrapCIComputation:
 
         ci_small = compute_bootstrap_ci(
             y_true_small, y_pred_small, sensitive_small,
-            metric_fn, n_bootstrap=100, seed=42
+            metric_fn, n_bootstrap=100, seed=42,
         )
 
         # Large sample
@@ -208,7 +208,7 @@ class TestBootstrapCIComputation:
 
         ci_large = compute_bootstrap_ci(
             y_true_large, y_pred_large, sensitive_large,
-            metric_fn, n_bootstrap=100, seed=42
+            metric_fn, n_bootstrap=100, seed=42,
         )
 
         width_small = ci_small.upper - ci_small.lower
@@ -222,7 +222,7 @@ class TestBootstrapCIComputation:
         np.random.seed(42)
         y_true = np.concatenate([
             np.ones(80),   # 80% in class 1
-            np.zeros(20)   # 20% in class 0
+            np.zeros(20),   # 20% in class 0
         ])
         y_pred = np.random.randint(0, 2, 100)
         sensitive = np.random.randint(0, 2, 100)
@@ -235,7 +235,7 @@ class TestBootstrapCIComputation:
             metric_fn,
             n_bootstrap=100,
             stratify=True,  # Stratified bootstrap
-            seed=42
+            seed=42,
         )
 
         # Should complete without error
@@ -254,13 +254,13 @@ class TestBootstrapCIComputation:
         # Percentile method
         ci_percentile = compute_bootstrap_ci(
             y_true, y_pred, sensitive, metric_fn,
-            n_bootstrap=100, method="percentile", seed=42
+            n_bootstrap=100, method="percentile", seed=42,
         )
 
         # BCa method (bias-corrected and accelerated)
         ci_bca = compute_bootstrap_ci(
             y_true, y_pred, sensitive, metric_fn,
-            n_bootstrap=100, method="bca", seed=42
+            n_bootstrap=100, method="bca", seed=42,
         )
 
         # Both should be valid
@@ -294,7 +294,7 @@ class TestIntegrationWithFairnessMetrics:
             y_true, y_pred, sensitive,
             lambda yt, yp, s: tpr_metric(yt, yp, s, 0),
             n_bootstrap=100,
-            seed=42
+            seed=42,
         )
 
         # Point estimate should be close to 0.75
@@ -316,14 +316,14 @@ class TestIntegrationWithFairnessMetrics:
             y_true, y_pred, sensitive,
             lambda yt, yp, s: selection_rate(yt, yp, s, 0),
             n_bootstrap=100,
-            seed=42
+            seed=42,
         )
 
         ci_group1 = compute_bootstrap_ci(
             y_true, y_pred, sensitive,
             lambda yt, yp, s: selection_rate(yt, yp, s, 1),
             n_bootstrap=100,
-            seed=42
+            seed=42,
         )
 
         # Both should be valid
@@ -343,7 +343,7 @@ class TestBootstrapCIDataclass:
             std_error=0.05,
             confidence_level=0.95,
             n_bootstrap=100,
-            method="percentile"
+            method="percentile",
         )
 
         assert ci.point_estimate == 0.75
@@ -363,7 +363,7 @@ class TestBootstrapCIDataclass:
             std_error=0.05,
             confidence_level=0.95,
             n_bootstrap=100,
-            method="percentile"
+            method="percentile",
         )
 
         assert abs(ci.width - 0.20) < 1e-10  # 0.85 - 0.65 (floating point tolerance)
@@ -377,7 +377,7 @@ class TestBootstrapCIDataclass:
             std_error=0.05,
             confidence_level=0.95,
             n_bootstrap=100,
-            method="percentile"
+            method="percentile",
         )
 
         d = ci.to_dict()
@@ -407,7 +407,7 @@ class TestEdgeCases:
 
         # Should handle NaN gracefully
         ci = compute_bootstrap_ci(
-            y_true, y_pred, sensitive, metric_fn, n_bootstrap=10, seed=42
+            y_true, y_pred, sensitive, metric_fn, n_bootstrap=10, seed=42,
         )
 
         # Should return NaN or raise informative error
@@ -423,7 +423,7 @@ class TestEdgeCases:
             return np.mean(yp == yt)
 
         ci = compute_bootstrap_ci(
-            y_true, y_pred, sensitive, metric_fn, n_bootstrap=100, seed=42
+            y_true, y_pred, sensitive, metric_fn, n_bootstrap=100, seed=42,
         )
 
         # Should be 1.0 with very narrow CI
@@ -443,7 +443,7 @@ class TestEdgeCases:
         # Should handle imbalance gracefully
         ci = compute_bootstrap_ci(
             y_true, y_pred, sensitive, metric_fn,
-            n_bootstrap=100, stratify=True, seed=42
+            n_bootstrap=100, stratify=True, seed=42,
         )
 
         assert 0.0 <= ci.point_estimate <= 1.0

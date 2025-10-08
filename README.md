@@ -12,7 +12,17 @@ _Note: GlassAlpha is currently pre-alpha while I'm actively developing. The audi
 
 ### Run your first audit in 30 seconds
 
-Clone and install
+**Option 1: Install from PyPI (easiest)**
+
+```bash
+# Install with pipx (recommended for CLI tools)
+pipx install glassalpha
+
+# Or with pip
+pip install glassalpha
+```
+
+**Option 2: Install from source (for development)**
 
 ```bash
 git clone https://github.com/GlassAlpha/glassalpha

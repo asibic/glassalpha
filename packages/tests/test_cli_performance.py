@@ -146,7 +146,7 @@ if loaded:
             loaded = check_result.stdout.split("EAGER_LOADING:")[1].strip()
             pytest.fail(
                 f"Eager data loading detected: {loaded}\n"
-                f"Dataset listing should only register datasets, not load data files."
+                f"Dataset listing should only register datasets, not load data files.",
             )
 
         print("\n✅ datasets list: no eager data loading")

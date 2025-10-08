@@ -16,7 +16,7 @@ def test_binary_objective_with_multiclass_data_raises_error():
             "feature1": np.random.randn(100),
             "feature2": np.random.randn(100),
             "feature3": np.random.randn(100),
-        }
+        },
     )
     y = np.random.choice([0, 1, 2, 3], size=100)  # 4 classes
 
@@ -38,7 +38,7 @@ def test_multiclass_objective_with_wrong_num_class_raises_error():
         {
             "feature1": np.random.randn(100),
             "feature2": np.random.randn(100),
-        }
+        },
     )
     y = np.random.choice([0, 1, 2, 3], size=100)  # 4 classes
 
@@ -60,7 +60,7 @@ def test_multiclass_objective_with_correct_num_class_succeeds():
         {
             "feature1": np.random.randn(50),
             "feature2": np.random.randn(50),
-        }
+        },
     )
     y = np.random.choice([0, 1, 2], size=50)  # 3 classes
 
@@ -91,7 +91,7 @@ def test_binary_objective_with_binary_data_succeeds():
         {
             "feature1": np.random.randn(50),
             "feature2": np.random.randn(50),
-        }
+        },
     )
     y = np.random.choice([0, 1], size=50)  # 2 classes
 
@@ -122,7 +122,7 @@ def test_auto_inferred_objective_multiclass():
         {
             "feature1": np.random.randn(50),
             "feature2": np.random.randn(50),
-        }
+        },
     )
     y = np.random.choice([0, 1, 2, 3], size=50)  # 4 classes
 
@@ -148,7 +148,7 @@ def test_auto_inferred_objective_binary():
         {
             "feature1": np.random.randn(50),
             "feature2": np.random.randn(50),
-        }
+        },
     )
     y = np.random.choice([0, 1], size=50)  # 2 classes
 

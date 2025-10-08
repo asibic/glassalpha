@@ -5,6 +5,10 @@ Complete command-line interface reference for GlassAlpha.
 ## Installation
 
 ```bash
+# Recommended: Install with pipx
+pipx install glassalpha
+
+# Or with pip
 pip install glassalpha
 ```
 
@@ -81,19 +85,6 @@ Examples:
 - `--check-shift`: Test model robustness under demographic shifts (e.g., 'gender:+0.1'). Can specify multiple. (default: `[]`)
 - `--fail-on-degradation`: Exit with error if any metric degrades by more than this threshold (e.g., 0.05 for 5pp).
 
-### `glassalpha dashboard`
-
-Dashboard operations (Enterprise only)
-
-### `glassalpha dashboard serve`
-
-Start the monitoring dashboard (Enterprise only).
-
-**Options:**
-
-- `--port, -p`: Port to serve on (default: `8080`)
-- `--host, -h`: Host to bind to (default: `localhost`)
-
 ### `glassalpha datasets`
 
 Dataset management operations
@@ -168,20 +159,7 @@ List available components
 
 ### `glassalpha models`
 
-Show available models and installation options.
-
-### `glassalpha monitor`
-
-Monitoring operations (Enterprise only)
-
-### `glassalpha monitor drift`
-
-Monitor model drift (Enterprise only).
-
-**Options:**
-
-- `--config, -c`: Configuration file
-- `--baseline, -b`: Baseline manifest
+Show available models.
 
 ### `glassalpha prep`
 

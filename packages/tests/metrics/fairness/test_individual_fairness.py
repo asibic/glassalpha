@@ -12,12 +12,11 @@ import pandas as pd
 import pytest
 
 from glassalpha.metrics.fairness.individual import (
-    compute_consistency_score,
-    find_matched_pairs,
-    counterfactual_flip_test,
     IndividualFairnessMetrics,
+    compute_consistency_score,
+    counterfactual_flip_test,
+    find_matched_pairs,
 )
-
 
 # ============================================================================
 # Fixtures

@@ -602,9 +602,38 @@ def _get_probabilities(
         GlassAlphaError (GAE1008): Only decision_function available (not probabilities)
 
     """
-    # Phase 3: Implement probability extraction
-    msg = "_get_probabilities will be implemented in Phase 3"
-    raise NotImplementedError(msg)
+    # Convert X to numpy array for consistency
+    X_arr = _to_numpy(X)
+
+    # Try predict_proba first (preferred for probability-based metrics)
+    if hasattr(model, "predict_proba"):
+        try:
+            proba = model.predict_proba(X_arr)
+            if proba.ndim == 2:
+                # For binary classification, return positive class probabilities
+                return proba[:, 1]  # Shape: (n_samples,)
+            # For multiclass, return all probabilities as 2D array
+            return proba
+        except Exception:
+            # predict_proba failed, fall through to decision_function
+            pass
+
+    # Try decision_function (for models like SVM that don't have predict_proba)
+    if hasattr(model, "decision_function"):
+        try:
+            scores = model.decision_function(X_arr)
+            if scores.ndim == 1:
+                # For binary classification, convert decision scores to probabilities
+                # using sigmoid function for consistency with other models
+                return 1 / (1 + np.exp(-scores))  # Shape: (n_samples,)
+            # For multiclass, return raw scores (could be converted to probabilities later)
+            return scores
+        except Exception:
+            # decision_function failed, return None
+            return None
+
+    # No probability or decision function available
+    return None
 
 
 def _validate_binary_classification(

@@ -24,7 +24,7 @@ if TYPE_CHECKING:
 def _check_shap_available() -> bool:
     """Check if SHAP is available."""
     try:
-        import shap  # noqa: F401
+        import shap
 
         return True
     except ImportError:
@@ -270,8 +270,9 @@ class TestPipelineProgressIntegration:
 
     def test_pipeline_explanation_method_signature(self):
         """Test that pipeline _generate_explanations passes progress params."""
-        from glassalpha.pipeline.audit import AuditPipeline
         import inspect
+
+        from glassalpha.pipeline.audit import AuditPipeline
 
         # Verify the _generate_explanations method exists
         assert hasattr(AuditPipeline, "_generate_explanations")
@@ -289,8 +290,9 @@ class TestProgressDeterminism:
     )
     def test_progress_does_not_affect_determinism(self, sample_data):
         """Test that enabling/disabling progress produces identical results."""
-        from glassalpha.explain.shap.tree import TreeSHAPExplainer
         from sklearn.ensemble import RandomForestClassifier
+
+        from glassalpha.explain.shap.tree import TreeSHAPExplainer
 
         X, y = sample_data
 

@@ -42,7 +42,7 @@ def test_encoder_settings_exposed(sklearn_artifact: Path):
 
 
 def test_unknown_category_rates_reported(
-    sklearn_artifact: Path, toy_df: pd.DataFrame, toy_df_with_unknowns: pd.DataFrame
+    sklearn_artifact: Path, toy_df: pd.DataFrame, toy_df_with_unknowns: pd.DataFrame,
 ):
     """Provide eval data with an unseen category. Expect per-column rates in manifest
     and banded severity classification (notice/warn/fail thresholds from config).

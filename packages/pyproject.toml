@@ -73,6 +73,7 @@ dev = [
     "pytest-cov>=4.1",
     "pytest-asyncio>=0.21",
     "pytest-xdist>=3.8",  # Parallel test execution for test isolation
+    "nbmake>=1.5",  # Notebook execution testing
     "black>=23.0",
     "ruff>=0.6",
     "mypy>=1.11",

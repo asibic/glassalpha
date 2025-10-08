@@ -14,7 +14,7 @@ class TestPluginDependencies:
     def test_logistic_regression_always_available(self):
         """Test that logistic regression is always available."""
         # Import sklearn models to trigger registration
-        from glassalpha.models.tabular import sklearn  # noqa: F401
+        from glassalpha.models.tabular import sklearn
 
         available = ModelRegistry.available_plugins()
         assert "logistic_regression" in available

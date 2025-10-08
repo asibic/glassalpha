@@ -5,12 +5,10 @@ to prevent import-time failures and ensure test assertions pass.
 """
 
 from glassalpha.constants import (
-    NO_EXPLAINER_MSG,
-    # Test backward-compatible aliases too
-    NO_MODEL_MSG,
     INIT_LOG_MESSAGE,
     INIT_LOG_TEMPLATE,
     NO_EXPLAINER_MSG,
+    # Test backward-compatible aliases too
     NO_MODEL_MSG,
 )
 
@@ -79,8 +77,8 @@ def test_constants_importable_from_module() -> None:
     from glassalpha.constants import (  # noqa: PLC0415
         BINARY_CLASSES,
         BINARY_THRESHOLD,
-        NO_MODEL_MSG,
         ERR_NOT_FITTED,
+        NO_MODEL_MSG,
         STANDARD_AUDIT_TEMPLATE,
         STATUS_CLEAN,
         STATUS_DIRTY,

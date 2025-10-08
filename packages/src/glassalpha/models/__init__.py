@@ -10,7 +10,7 @@ from glassalpha.core.registry import ModelRegistry
 ModelRegistry.discover()
 
 
-def load_model_from_config(model_config) -> Any:  # noqa: ANN401
+def load_model_from_config(model_config) -> Any:
     """Load model from configuration.
 
     Args:
@@ -21,8 +21,8 @@ def load_model_from_config(model_config) -> Any:  # noqa: ANN401
 
     Raises:
         ValueError: If model type is unknown or loading fails
-    """
 
+    """
     model_type = model_config.type
     model_path = getattr(model_config, "path", None)
 

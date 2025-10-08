@@ -18,7 +18,7 @@ def test_softmax_coerced_to_softprob_with_require_proba():
         {
             "feature1": np.random.randn(50),
             "feature2": np.random.randn(50),
-        }
+        },
     )
     y = np.random.choice([0, 1, 2], size=50)  # 3 classes
 
@@ -55,7 +55,7 @@ def test_softmax_not_coerced_with_require_proba_false():
         {
             "feature1": np.random.randn(50),
             "feature2": np.random.randn(50),
-        }
+        },
     )
     y = np.random.choice([0, 1, 2], size=50)  # 3 classes
 
@@ -86,7 +86,7 @@ def test_softprob_not_coerced():
         {
             "feature1": np.random.randn(50),
             "feature2": np.random.randn(50),
-        }
+        },
     )
     y = np.random.choice([0, 1, 2], size=50)  # 3 classes
 
@@ -117,7 +117,7 @@ def test_binary_objective_not_coerced():
         {
             "feature1": np.random.randn(50),
             "feature2": np.random.randn(50),
-        }
+        },
     )
     y = np.random.choice([0, 1], size=50)  # 2 classes
 
@@ -148,7 +148,7 @@ def test_proba_shape_consistency():
         {
             "feature1": np.random.randn(30),
             "feature2": np.random.randn(30),
-        }
+        },
     )
     y_binary = np.random.choice([0, 1], size=30)
 
@@ -164,7 +164,7 @@ def test_proba_shape_consistency():
         {
             "feature1": np.random.randn(30),
             "feature2": np.random.randn(30),
-        }
+        },
     )
     y_multi = np.random.choice([0, 1, 2, 3], size=30)
 
@@ -184,7 +184,7 @@ def test_coercion_logged_only_once():
         {
             "feature1": np.random.randn(50),
             "feature2": np.random.randn(50),
-        }
+        },
     )
     y = np.random.choice([0, 1, 2], size=50)
 

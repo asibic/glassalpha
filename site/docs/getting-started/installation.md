@@ -26,6 +26,27 @@ Complete installation instructions for GlassAlpha on different platforms and env
 
 ## Installation methods
 
+### Quick install (recommended)
+
+The fastest way to get started with GlassAlpha:
+
+```bash
+# Install pipx (if not already installed)
+python3 -m pip install --user pipx
+python3 -m pipx ensurepath
+
+# Install GlassAlpha with all features
+pipx install "glassalpha[all]"
+
+# Verify installation
+glassalpha --version
+glassalpha doctor
+```
+
+**Why pipx?** Installs GlassAlpha in an isolated environment, making the `glassalpha` command globally available without dependency conflicts.
+
+**For Python projects:** Use `pip install glassalpha` in a virtual environment instead (see below).
+
 ### Feature matrix
 
 Choose your installation based on your needs:

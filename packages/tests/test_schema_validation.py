@@ -17,7 +17,7 @@ def test_valid_schema_passes():
             "age": np.random.randint(18, 80, 100),
             "income": np.random.randint(20000, 100000, 100),
             "target": np.random.randint(0, 2, 100),
-        }
+        },
     )
 
     # Valid configuration
@@ -49,7 +49,7 @@ def test_missing_target_column_error():
             "feature1": np.random.randn(50),
             "feature2": np.random.randn(50),
             "age": np.random.randint(18, 80, 50),
-        }
+        },
     )
 
     # Config references missing target
@@ -77,7 +77,7 @@ def test_missing_protected_attributes_error():
             "feature1": np.random.randn(50),
             "feature2": np.random.randn(50),
             "target": np.random.randint(0, 2, 50),
-        }
+        },
     )
 
     # Config references missing protected attributes
@@ -106,7 +106,7 @@ def test_actionable_suggestions_for_similar_columns():
             "outcome": np.random.randint(0, 2, 50),  # target-like
             "customer_age": np.random.randint(18, 80, 50),  # protected-like
             "region": np.random.choice(["North", "South"], 50),  # protected-like
-        }
+        },
     )
 
     # Config with wrong column names
@@ -140,7 +140,7 @@ def test_metadata_columns_excluded_from_features():
             "feature2": np.random.randn(50),
             "age": np.random.randint(18, 80, 50),
             "target": np.random.randint(0, 2, 50),
-        }
+        },
     )
 
     config = {
@@ -174,7 +174,7 @@ def test_data_quality_validation():
             "feature2": [1] * 100,  # Constant feature
             "age": [None] * 10 + list(range(90)),  # Missing values in protected attr
             "target": [0] * 95 + [1] * 5,  # Severe class imbalance
-        }
+        },
     )
 
     config = {
@@ -199,7 +199,7 @@ def test_schema_summary():
             "feature2": np.random.randn(100),
             "age": np.random.randint(18, 80, 100),
             "target": np.random.choice([0, 1, 2], 100),  # 3 classes
-        }
+        },
     )
 
     config = {
@@ -228,7 +228,7 @@ def test_empty_protected_attributes():
             "feature1": np.random.randn(50),
             "feature2": np.random.randn(50),
             "target": np.random.randint(0, 2, 50),
-        }
+        },
     )
 
     config = {
@@ -252,7 +252,7 @@ def test_multiple_errors_in_single_message():
         {
             "feature1": np.random.randn(50),
             "feature2": np.random.randn(50),
-        }
+        },
     )
 
     # Config with multiple missing columns

@@ -34,7 +34,7 @@ class TestFromModelMinimalAPI:
         X_df["protected"] = rng.choice([0, 1], size=100)
 
         # Train model
-        model = LogisticRegression(random_state=42, max_iter=2000, solver='liblinear')
+        model = LogisticRegression(random_state=42, max_iter=2000, solver="liblinear")
         model.fit(X_df.drop("protected", axis=1), y)
 
         # Run audit
@@ -53,7 +53,7 @@ class TestFromModelMinimalAPI:
         """Verify from_model() works with numpy arrays when feature_names provided."""
         X, y = make_classification(n_samples=100, n_features=5, random_state=42)
 
-        model = LogisticRegression(random_state=42, max_iter=2000, solver='liblinear')
+        model = LogisticRegression(random_state=42, max_iter=2000, solver="liblinear")
         model.fit(X, y)
 
         # Must provide feature_names when using arrays
@@ -73,7 +73,7 @@ class TestFromModelMinimalAPI:
         # Use n_features=5 with n_informative=2 to satisfy sklearn's requirement
         X, y = make_classification(n_samples=100, n_features=5, n_informative=2, n_redundant=0, random_state=42)
 
-        model = LogisticRegression(random_state=42, max_iter=2000, solver='liblinear')
+        model = LogisticRegression(random_state=42, max_iter=2000, solver="liblinear")
         model.fit(X, y)
 
         # No feature_names provided - should auto-generate
@@ -99,7 +99,7 @@ class TestFromModelDeterminism:
         rng = np.random.RandomState(42)
         X_df["protected"] = rng.choice([0, 1], size=100)
 
-        model = LogisticRegression(random_state=42, max_iter=2000, solver='liblinear')
+        model = LogisticRegression(random_state=42, max_iter=2000, solver="liblinear")
         model.fit(X_df.drop("protected", axis=1), y)
 
         # Run twice with same seed
@@ -132,7 +132,7 @@ class TestFromModelDeterminism:
         rng = np.random.RandomState(42)
         X_df["protected"] = rng.choice([0, 1], size=100)
 
-        model = LogisticRegression(random_state=42, max_iter=2000, solver='liblinear')
+        model = LogisticRegression(random_state=42, max_iter=2000, solver="liblinear")
         model.fit(X_df.drop("protected", axis=1), y)
 
         # Run with different seeds
@@ -164,7 +164,7 @@ class TestFromModelValidation:
         X, y = make_classification(n_samples=100, n_features=5, random_state=42)
         X_df = pd.DataFrame(X, columns=[f"f{i}" for i in range(5)])
 
-        model = LogisticRegression(random_state=42, max_iter=2000, solver='liblinear')
+        model = LogisticRegression(random_state=42, max_iter=2000, solver="liblinear")
         model.fit(X_df, y)
 
         with pytest.raises(ValueError, match="Protected attribute 'gender' not found"):
@@ -181,7 +181,7 @@ class TestFromModelValidation:
         X_df = pd.DataFrame(X, columns=[f"f{i}" for i in range(5)])
         X_df["protected"] = 0
 
-        model = LogisticRegression(random_state=42, max_iter=2000, solver='liblinear')
+        model = LogisticRegression(random_state=42, max_iter=2000, solver="liblinear")
         model.fit(X_df.drop("protected", axis=1), y)
 
         # Truncate y_test
@@ -232,7 +232,7 @@ class TestFromModelOptionalParams:
         rng = np.random.RandomState(42)
         X_df["protected"] = rng.choice([0, 1], size=100)
 
-        model = LogisticRegression(random_state=42, max_iter=2000, solver='liblinear')
+        model = LogisticRegression(random_state=42, max_iter=2000, solver="liblinear")
         model.fit(X_df.drop("protected", axis=1), y)
 
         result = AuditPipeline.from_model(
@@ -254,7 +254,7 @@ class TestFromModelOptionalParams:
         rng = np.random.RandomState(42)
         X_df["protected"] = rng.choice([0, 1], size=100)
 
-        model = LogisticRegression(random_state=42, max_iter=2000, solver='liblinear')
+        model = LogisticRegression(random_state=42, max_iter=2000, solver="liblinear")
         model.fit(X_df.drop("protected", axis=1), y)
 
         result = AuditPipeline.from_model(
@@ -275,7 +275,7 @@ class TestFromModelOptionalParams:
         rng = np.random.RandomState(42)
         X_df["protected"] = rng.choice([0, 1], size=100)
 
-        model = LogisticRegression(random_state=42, max_iter=2000, solver='liblinear')
+        model = LogisticRegression(random_state=42, max_iter=2000, solver="liblinear")
         model.fit(X_df.drop("protected", axis=1), y)
 
         result = AuditPipeline.from_model(
@@ -303,7 +303,7 @@ class TestFromModelInlineDisplay:
         rng = np.random.RandomState(42)
         X_df["protected"] = rng.choice([0, 1], size=100)
 
-        model = LogisticRegression(random_state=42, max_iter=2000, solver='liblinear')
+        model = LogisticRegression(random_state=42, max_iter=2000, solver="liblinear")
         model.fit(X_df.drop("protected", axis=1), y)
 
         result = AuditPipeline.from_model(
@@ -326,7 +326,7 @@ class TestFromModelInlineDisplay:
         rng = np.random.RandomState(42)
         X_df["protected"] = rng.choice([0, 1], size=100)
 
-        model = LogisticRegression(random_state=42, max_iter=2000, solver='liblinear')
+        model = LogisticRegression(random_state=42, max_iter=2000, solver="liblinear")
         model.fit(X_df.drop("protected", axis=1), y)
 
         result = AuditPipeline.from_model(
@@ -376,7 +376,7 @@ class TestFromModelIntegration:
                 X_test_encoded[col] = le.transform(X_test[col])
 
         # Train model
-        model = LogisticRegression(random_state=42, max_iter=2000, solver='liblinear')
+        model = LogisticRegression(random_state=42, max_iter=2000, solver="liblinear")
         model.fit(X_train_encoded, y_train)
 
         # Run audit with from_model()

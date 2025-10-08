@@ -101,7 +101,7 @@ model:
 def _has_jinja2():
     """Check if jinja2 is available in the current environment."""
     try:
-        import jinja2  # noqa: F401
+        import jinja2
 
         return True
     except ImportError:
@@ -138,12 +138,12 @@ report:
         # Check if PDF backend is available (weasyprint or reportlab)
         has_pdf_backend = False
         try:
-            import weasyprint  # noqa: F401
+            import weasyprint
 
             has_pdf_backend = True
         except ImportError:
             try:
-                import reportlab  # noqa: F401
+                import reportlab
 
                 has_pdf_backend = True
             except ImportError:
@@ -177,12 +177,12 @@ def test_environment_aware_quickstart_adaptation(tmp_path):
     # Check PDF backend availability
     has_pdf_backend = False
     try:
-        import weasyprint  # noqa: F401
+        import weasyprint
 
         has_pdf_backend = True
     except ImportError:
         try:
-            import reportlab  # noqa: F401
+            import reportlab
 
             has_pdf_backend = True
         except ImportError:

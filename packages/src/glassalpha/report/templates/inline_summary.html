@@ -413,7 +413,84 @@
           >add gates →</a
         >
       </p>
-      {% endif %} {# Footer with Export Command #}
+      {% endif %} {# Metrics Glossary #}
+      <details
+        style="
+          margin-top: 16px;
+          padding: 12px;
+          background: #f6f8fa;
+          border-radius: 6px;
+        "
+      >
+        <summary style="cursor: pointer; font-weight: 600; font-size: 13px">
+          📖 What do these metrics mean?
+        </summary>
+        <div style="margin-top: 8px; font-size: 12px; line-height: 1.6">
+          <p style="margin: 8px 0"><strong>Performance Metrics:</strong></p>
+          <ul style="margin: 0; padding-left: 20px">
+            <li>
+              <strong>Accuracy:</strong> Fraction of correct predictions (higher
+              is better, target: >0.80)
+            </li>
+            <li>
+              <strong>Precision:</strong> Of positive predictions, how many were
+              correct? (higher is better)
+            </li>
+            <li>
+              <strong>Recall:</strong> Of actual positives, how many did we
+              find? (higher is better)
+            </li>
+            <li>
+              <strong>ROC AUC:</strong> Ability to distinguish classes (higher
+              is better, >0.80 is good)
+            </li>
+          </ul>
+          <p style="margin: 8px 0"><strong>Fairness Metrics:</strong></p>
+          <ul style="margin: 0; padding-left: 20px">
+            <li>
+              <strong>Demographic Parity Gap:</strong> Difference in positive
+              prediction rates across groups (target: <0.10)
+            </li>
+            <li>
+              <strong>Equal Opportunity Gap:</strong> Difference in true
+              positive rates across groups (target: <0.10)
+            </li>
+            <li>
+              <strong>Consistency Score:</strong> Similar individuals get
+              similar predictions (target: >0.75)
+            </li>
+          </ul>
+          <p style="margin: 8px 0"><strong>Calibration Metrics:</strong></p>
+          <ul style="margin: 0; padding-left: 20px">
+            <li>
+              <strong>ECE (Expected Calibration Error):</strong> Predicted
+              probabilities match actual frequencies (target: <0.05)
+            </li>
+            <li>
+              <strong>Brier Score:</strong> Mean squared error of probability
+              predictions (lower is better, <0.15 is good)
+            </li>
+          </ul>
+          <p style="margin: 8px 0"><strong>Status Indicators:</strong></p>
+          <ul style="margin: 0; padding-left: 20px">
+            <li>✓ <strong>Pass:</strong> Metric within target range</li>
+            <li>
+              ⚠ <strong>Warning:</strong> Metric outside target but acceptable
+            </li>
+            <li>✗ <strong>Fail:</strong> Metric requires attention</li>
+          </ul>
+          <p style="margin: 12px 0 4px 0">
+            <a
+              href="https://glassalpha.com/reference/metrics/"
+              style="font-size: 12px"
+            >
+              Full metrics guide →
+            </a>
+          </p>
+        </div>
+      </details>
+
+      {# Footer with Export Command #}
       <div class="footer">
         <div class="export-cmd">
           <span>💾 Export:</span>

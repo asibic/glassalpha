@@ -8,9 +8,31 @@
 
 ## Installation
 
-### Base Installation
+### For CLI Users (Recommended)
+
+Install with pipx for isolated environment and global command availability:
 
 ```bash
+# Install pipx (if not already installed)
+python3 -m pip install --user pipx
+python3 -m pipx ensurepath
+
+# Install GlassAlpha
+pipx install glassalpha
+
+# With all optional features
+pipx install "glassalpha[all]"
+```
+
+### For Python Projects
+
+Install with pip in a virtual environment:
+
+```bash
+# Create virtual environment
+python3 -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+
 # Basic install (includes scikit-learn models and HTML reports)
 pip install glassalpha
 
@@ -25,6 +47,16 @@ pip install "glassalpha[xgboost,lightgbm]"
 
 # Everything (all optional features)
 pip install "glassalpha[all]"
+```
+
+### For Development
+
+Clone and install in editable mode:
+
+```bash
+git clone https://github.com/glassalpha/glassalpha.git
+cd glassalpha/packages
+pip install -e ".[dev,all]"
 ```
 
 ### Docker

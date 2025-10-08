@@ -123,7 +123,7 @@ def test_constant_import_from_base_module() -> None:
     """Test that base module can import the constant without errors."""
     # This is the specific regression test for the import-time failure
     try:
-        from glassalpha.models.tabular.base import _ensure_fitted  # noqa: F401, PLC0415
+        from glassalpha.models.tabular.base import _ensure_fitted  # noqa: PLC0415
 
         # If this import succeeds, the constant import is working
         assert True  # noqa: S101

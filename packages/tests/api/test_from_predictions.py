@@ -214,7 +214,7 @@ def test_from_predictions_2d_probabilities():
             [0.2, 0.8],
             [0.7, 0.3],
             [0.3, 0.7],
-        ]
+        ],
     )
 
     result = ga.audit.from_predictions(

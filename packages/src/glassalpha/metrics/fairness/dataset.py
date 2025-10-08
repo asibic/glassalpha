@@ -207,7 +207,7 @@ def compute_proxy_correlations(
                 # Pearson correlation for continuous-continuous
                 # Suppress ConstantInputWarning - we handle constant inputs gracefully
                 with warnings.catch_warnings():
-                    warnings.filterwarnings('ignore', category=ConstantInputWarning)
+                    warnings.filterwarnings("ignore", category=ConstantInputWarning)
                     corr, p_value = stats.pearsonr(
                         data[protected_attr].dropna(),
                         data[feature].dropna(),

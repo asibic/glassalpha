@@ -41,17 +41,24 @@ graph LR
 ## Run your first audit in 60 seconds
 
 ```bash
-# 1. Clone and install (90 seconds)
-git clone https://github.com/GlassAlpha/glassalpha
-cd glassalpha/packages && pip install -e .
+# 1. Install with pipx (30 seconds)
+pipx install glassalpha
 
 # 2. Generate audit (30 seconds)
-glassalpha audit --config configs/german_credit_simple.yaml --output audit.html
+glassalpha audit --config examples/german_credit_simple.yaml --output audit.html
 
 # 3. Done! Open your professional report
 open audit.html  # macOS
 # xdg-open audit.html  # Linux
 # start audit.html  # Windows
+```
+
+**Or install from source:**
+
+```bash
+git clone https://github.com/GlassAlpha/glassalpha
+cd glassalpha/packages && pip install -e .
+glassalpha audit --config configs/german_credit_simple.yaml --output audit.html
 ```
 
 **Result**: A professional audit report with model performance, fairness analysis, feature importance, individual explanations, reason codes, preprocessing verification, and complete audit trail.

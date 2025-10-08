@@ -601,7 +601,6 @@ result = ga.audit.from_model(model, X_sample, y_sample, ...)
 
 - [Fairness Metrics Reference](../reference/fairness-metrics.md) - Statistical definitions
 - [Calibration Analysis](../reference/calibration.md) - Probability calibration
-- [Statistical Confidence](../reference/fairness-metrics.md#statistical-power) - Bootstrap CIs, power analysis
 
 ### For Transition to Production
 
@@ -612,7 +611,7 @@ result = ga.audit.from_model(model, X_sample, y_sample, ...)
 ### Examples
 
 - [German Credit Audit](../examples/german-credit-audit.md) - Complete walkthrough
-- [Example Notebooks](../../examples/notebooks/) - Interactive examples including model comparison
+- [Example Notebooks](../../examples/notebooks/) - Interactive examples
 
 ## Support
 

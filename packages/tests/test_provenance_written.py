@@ -52,7 +52,7 @@ def test_generate_run_manifest_with_dataset():
             "feature1": [1, 2, 3, 4, 5],
             "feature2": ["a", "b", "c", "d", "e"],
             "target": [0, 1, 0, 1, 0],
-        }
+        },
     )
 
     manifest = generate_run_manifest(config, dataset_df=df)

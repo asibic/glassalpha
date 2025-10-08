@@ -205,7 +205,7 @@ def compute_consistency_score(
     # Check for NaN values
     if np.isnan(X).any():
         raise ValueError(
-            "Features contain NaN values. Please handle missing data before computing individual fairness."
+            "Features contain NaN values. Please handle missing data before computing individual fairness.",
         )
 
     # Normalize features for fair distance comparison (use robust scaling)

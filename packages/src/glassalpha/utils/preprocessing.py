@@ -5,7 +5,6 @@ the audit pipeline and CLI commands to avoid code duplication.
 """
 
 import logging
-from typing import Any
 
 import pandas as pd
 

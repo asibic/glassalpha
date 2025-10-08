@@ -728,7 +728,6 @@ Need more help? Post in #ml-compliance or DM @compliance-team
 ### Policy Resources
 
 - [Policy Configuration Guide](#policy-gates) - Writing policy gates
-- [Threshold Selection Guide](../guides/recourse.md#threshold-configuration) - Choosing fair thresholds
 
 ## Support
 

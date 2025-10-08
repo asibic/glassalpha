@@ -1,5 +1,4 @@
-"""
-Contract tests for dataset-level bias audit (E12).
+"""Contract tests for dataset-level bias audit (E12).
 
 Tests cover:
 1. Proxy correlation detection (protected vs non-protected features)
@@ -9,24 +8,24 @@ Tests cover:
 5. Train/test split imbalance detection
 """
 
+from typing import Dict, List
+
 import numpy as np
 import pandas as pd
 import pytest
-from typing import Dict, List
 
 from glassalpha.metrics.fairness.dataset import (
-    compute_dataset_bias_metrics,
-    compute_proxy_correlations,
-    compute_distribution_drift,
-    compute_sampling_bias_power,
-    bin_continuous_attribute,
-    detect_split_imbalance,
-    ProxyCorrelationResult,
-    DistributionDriftResult,
-    SamplingBiasResult,
     DatasetBiasMetrics,
+    DistributionDriftResult,
+    ProxyCorrelationResult,
+    SamplingBiasResult,
+    bin_continuous_attribute,
+    compute_dataset_bias_metrics,
+    compute_distribution_drift,
+    compute_proxy_correlations,
+    compute_sampling_bias_power,
+    detect_split_imbalance,
 )
-
 
 # ============================================================================
 # FIXTURES

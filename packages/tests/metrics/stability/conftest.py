@@ -26,7 +26,7 @@ def simple_model():
     X = np.random.randn(100, 4)
     y = (X[:, 0] + X[:, 1] > 0).astype(int)
 
-    model = LogisticRegression(random_state=42, max_iter=2000, solver='liblinear')
+    model = LogisticRegression(random_state=42, max_iter=2000, solver="liblinear")
     model.fit(X, y)
     return model
 
@@ -45,7 +45,7 @@ def simple_model_dataframe():
     )
     y = (df["age"] + df["income"] / 1000 > 50).astype(int)
 
-    model = LogisticRegression(random_state=42, max_iter=2000, solver='liblinear')
+    model = LogisticRegression(random_state=42, max_iter=2000, solver="liblinear")
     model.fit(df, y)
     return model, df
 
@@ -73,7 +73,7 @@ def single_feature_model():
     )
     y = (df["age"] > 40).astype(int)
 
-    model = LogisticRegression(random_state=42, max_iter=2000, solver='liblinear')
+    model = LogisticRegression(random_state=42, max_iter=2000, solver="liblinear")
     model.fit(df, y)
     return model
 

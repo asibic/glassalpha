@@ -12,7 +12,7 @@ def test_select_explainer_with_explicit_unavailable_priority():
         # Try to request treeshap for a model where it's not available
         # This should give a helpful error message
         try:
-            import shap  # noqa: F401
+            import shap
 
             pytest.skip("SHAP is installed, cannot test missing dependency case")
         except ImportError:

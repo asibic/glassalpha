@@ -3,6 +3,7 @@
 import numpy as np
 import pandas as pd
 import pytest
+
 from glassalpha.metrics.fairness.bias_detection import (
     DemographicParityMetric,
     EqualOpportunityMetric,
@@ -32,7 +33,7 @@ def test_equal_opportunity_with_numpy():
     # Create test data with different TPRs
     y_true = np.array([1, 1, 1, 1, 0, 0, 0, 0])
     y_pred = np.array(
-        [1, 1, 0, 0, 0, 0, 0, 0]
+        [1, 1, 0, 0, 0, 0, 0, 0],
     )  # TPR=0.5 for group 0, TPR=0 for group 1
     sensitive = np.array([0, 0, 0, 0, 1, 1, 1, 1])  # Two groups
 
@@ -71,7 +72,7 @@ def test_fairness_runner_with_dataframe():
     y_true = np.array([1, 0, 1, 0, 1, 0])
     y_pred = np.array([1, 1, 1, 0, 0, 0])
     sensitive_df = pd.DataFrame(
-        {"gender": [0, 0, 1, 1, 1, 0], "age": [25, 30, 35, 40, 45, 50]}
+        {"gender": [0, 0, 1, 1, 1, 0], "age": [25, 30, 35, 40, 45, 50]},
     )
 
     metrics = [DemographicParityMetric, EqualOpportunityMetric]

@@ -53,7 +53,7 @@ class TestGermanCreditCalibrationCI:
         )
 
         # Train LogisticRegression
-        model = LogisticRegression(random_state=42, max_iter=2000, solver='liblinear')
+        model = LogisticRegression(random_state=42, max_iter=2000, solver="liblinear")
         model.fit(X_train, y_train)
 
         # Get predictions

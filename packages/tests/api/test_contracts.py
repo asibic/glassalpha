@@ -249,7 +249,7 @@ else:
 """
         result = subprocess.run(
             [sys.executable, "-c", code],
-            capture_output=True,
+            check=False, capture_output=True,
             text=True,
             timeout=5,
         )
@@ -278,7 +278,7 @@ else:
 """
         result = subprocess.run(
             [sys.executable, "-c", code],
-            capture_output=True,
+            check=False, capture_output=True,
             text=True,
             timeout=5,
         )
@@ -307,7 +307,7 @@ else:
 """
         result = subprocess.run(
             [sys.executable, "-c", code],
-            capture_output=True,
+            check=False, capture_output=True,
             text=True,
             timeout=5,
         )

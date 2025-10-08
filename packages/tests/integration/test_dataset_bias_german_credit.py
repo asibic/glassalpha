@@ -1,5 +1,4 @@
-"""
-Integration test for dataset bias metrics with German Credit dataset.
+"""Integration test for dataset bias metrics with German Credit dataset.
 
 Tests E12 functionality end-to-end with real data.
 """

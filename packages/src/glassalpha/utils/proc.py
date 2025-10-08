@@ -98,7 +98,7 @@ def run_command_safely(*args: str, **kwargs) -> subprocess.CompletedProcess[str]
         "capture_output": True,
         "text": True,
         "encoding": "utf-8",
-        **kwargs
+        **kwargs,
     }
 
     return subprocess.run(args, **run_kwargs)

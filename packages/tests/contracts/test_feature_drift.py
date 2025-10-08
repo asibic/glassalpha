@@ -149,7 +149,7 @@ class TestFeatureDriftContract:
 
         # Skip if sklearn not available
         try:
-            import sklearn  # noqa: F401, PLC0415
+            import sklearn  # noqa: PLC0415
         except ImportError:
             pytest.skip("sklearn not available")
 

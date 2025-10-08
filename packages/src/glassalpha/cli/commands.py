@@ -404,7 +404,7 @@ def _display_audit_summary(audit_results) -> None:
 
 def _binarize_sensitive_features_for_shift(
     sensitive_features: "pd.DataFrame",
-    shift_specs: list[str]
+    shift_specs: list[str],
 ) -> "pd.DataFrame":
     """Binarize sensitive features for shift analysis.
 
@@ -419,7 +419,6 @@ def _binarize_sensitive_features_for_shift(
         DataFrame with binarized attributes for shift analysis
 
     """
-    import pandas as pd
     # Create a copy to avoid modifying the original
     binarized = sensitive_features.copy()
 
@@ -443,13 +442,13 @@ def _binarize_sensitive_features_for_shift(
         col = binarized[attribute]
 
         # Skip if already binary (0/1 or boolean)
-        if col.dtype in [bool, 'int8', 'int16', 'int32', 'int64']:
+        if col.dtype in [bool, "int8", "int16", "int32", "int64"]:
             unique_vals = col.unique()
             if set(unique_vals).issubset({0, 1}):
                 continue  # Already binary
 
         # Handle categorical attributes
-        if col.dtype == 'object' or col.dtype.name == 'category':
+        if col.dtype == "object" or col.dtype.name == "category":
             unique_vals = col.dropna().unique()
 
             # For binary categorical (e.g., "male"/"female")
@@ -474,7 +473,7 @@ def _binarize_sensitive_features_for_shift(
                 typer.secho(f"Warning: Cannot binarize '{attribute}' - insufficient categories", fg=typer.colors.YELLOW)
 
         # Handle numeric attributes (e.g., age)
-        elif col.dtype in ['int64', 'float64']:
+        elif col.dtype in ["int64", "float64"]:
             # For numeric attributes, create binary based on median split
             median_val = col.median()
             binarized[attribute] = (col > median_val).astype(int)
@@ -518,7 +517,7 @@ def _run_shift_analysis(
 
         # Handle built-in datasets vs file paths
         if audit_config.data.dataset == "german_credit":
-            from ..datasets import load_german_credit, get_german_credit_schema
+            from ..datasets import get_german_credit_schema, load_german_credit
             data = load_german_credit()
             schema = get_german_credit_schema()
         else:
@@ -541,13 +540,13 @@ def _run_shift_analysis(
         model = load_model_from_config(audit_config.model)
 
         # Train model if not loaded from file
-        if not hasattr(model, '_is_fitted') or not model._is_fitted:
+        if not hasattr(model, "_is_fitted") or not model._is_fitted:
             typer.echo("Training model...")
             from ..pipeline.train import train_from_config
             # Create a minimal config for training
-            train_config = type('TrainConfig', (), {
-                'model': audit_config.model,
-                'reproducibility': audit_config.reproducibility
+            train_config = type("TrainConfig", (), {
+                "model": audit_config.model,
+                "reproducibility": audit_config.reproducibility,
             })()
             model = train_from_config(train_config, X_test, y_test)
 

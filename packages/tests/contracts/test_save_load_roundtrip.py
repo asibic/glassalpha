@@ -18,7 +18,7 @@ class TestSaveLoadRoundtrip:
     def test_xgboost_wrapper_roundtrip(self) -> None:
         """Test XGBoost wrapper save/load preserves state and functionality."""
         try:
-            import xgboost as xgb  # noqa: F401, PLC0415
+            import xgboost as xgb  # noqa: PLC0415
 
             from glassalpha.models.tabular.xgboost import XGBoostWrapper  # noqa: PLC0415
         except ImportError:
@@ -87,7 +87,7 @@ class TestSaveLoadRoundtrip:
     def test_sklearn_wrapper_roundtrip(self) -> None:
         """Test sklearn wrapper save/load preserves state and functionality."""
         try:
-            import sklearn  # noqa: F401, PLC0415
+            import sklearn  # noqa: PLC0415
 
             from glassalpha.models.tabular.sklearn import LogisticRegressionWrapper  # noqa: PLC0415
         except ImportError:
@@ -156,7 +156,7 @@ class TestSaveLoadRoundtrip:
     def test_lightgbm_wrapper_roundtrip(self) -> None:
         """Test LightGBM wrapper save/load preserves state and functionality."""
         try:
-            import lightgbm  # noqa: F401, PLC0415
+            import lightgbm  # noqa: PLC0415
 
             from glassalpha.models.tabular.lightgbm import LightGBMWrapper  # noqa: PLC0415
         except ImportError:

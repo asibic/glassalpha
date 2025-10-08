@@ -100,7 +100,7 @@ class TestWheelPackaging:
 
     def test_templates_package_has_init(self) -> None:
         """Ensure templates directory has __init__.py for package recognition."""
-        import glassalpha.report.templates  # noqa: F401, PLC0415
+        import glassalpha.report.templates  # noqa: PLC0415
 
         # If this import succeeds, the package is properly configured
         # The __init__.py file makes setuptools treat it as a package
