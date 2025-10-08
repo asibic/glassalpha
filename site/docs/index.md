@@ -1,3 +1,8 @@
+---
+hide:
+  - navigation
+---
+
 # GlassAlpha
 
 GlassAlpha makes **deterministic, regulator-ready PDF audit reports** for tabular ML models. It's an open-source ([Apache 2.0](reference/trust-deployment.md#licensing-dependencies)) toolkit for reproducible, audit-ready model documentation.
@@ -6,26 +11,41 @@ _Note: GlassAlpha is currently pre-alpha while I'm still making significant chan
 
 ## How it works
 
+<div class="index-hero-diagram" markdown>
+
 ```mermaid
-graph LR
-    A[Your Model<br/>+ Data] --> B[GlassAlpha CLI]
-    B --> C[Audit Pipeline]
-    C --> D[Performance<br/>Analysis]
-    C --> E[Fairness<br/>Testing]
-    C --> F[Explainability<br/>SHAP/Coef]
-    C --> G[Calibration<br/>Testing]
-    D --> H[Professional<br/>PDF Report]
+graph TB
+    A[Your Model + Data]
+    B[GlassAlpha CLI]
+
+    subgraph Pipeline[Audit Pipeline]
+        D[Performance Analysis]
+        E[Fairness Testing]
+        F[Explainability SHAP/Coef]
+        G[Calibration Testing]
+    end
+
+    H[Professional PDF Report]
+    I[Evidence Pack<br/>SHA256 Verified]
+    J[Regulatory Submission]
+
+    A --> B
+    B --> Pipeline
+    D --> H
     E --> H
     F --> H
     G --> H
-    H --> I[Evidence Pack<br/>SHA256 Verified]
-    I --> J[Regulatory<br/>Submission]
+    H --> I
+    I --> J
 
     style A fill:#e1f5ff
+    style Pipeline fill:#f0f0f0
     style H fill:#d4edda
     style I fill:#fff3cd
     style J fill:#f8d7da
 ```
+
+</div>
 
 **Single command**: `glassalpha audit --config your_config.yaml --output audit.pdf`
 

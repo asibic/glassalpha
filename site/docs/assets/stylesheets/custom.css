@@ -1,0 +1,31 @@
+/* Make Mermaid diagrams responsive and readable */
+.mermaid {
+  /* Desktop: larger diagrams */
+  max-width: 100%;
+  margin: 2rem auto;
+}
+
+.mermaid svg {
+  max-width: 100%;
+  height: auto;
+  /* Increase default size on desktop */
+  min-height: 400px;
+}
+
+/* Mobile: stack vertically when narrow */
+@media (max-width: 768px) {
+  .mermaid svg {
+    min-height: 600px; /* Taller for vertical flow */
+  }
+}
+
+/* Homepage hero diagram - extra large */
+.index-hero-diagram .mermaid svg {
+  min-height: 500px;
+}
+
+@media (max-width: 768px) {
+  .index-hero-diagram .mermaid svg {
+    min-height: 700px;
+  }
+}
