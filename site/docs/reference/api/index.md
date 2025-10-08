@@ -99,8 +99,12 @@ policy:
     max_bias: 0.10
   fail_on_violation: true
 
-output:
-  pdf_path: reports/audit.pdf
+report:
+  template: standard_audit
+  output_format: pdf
+
+manifest:
+  enabled: true
 ```
 
 **[→ Full Configuration API Documentation](api-config.md)**
@@ -136,7 +140,7 @@ result = pipeline.run()
 
 ---
 
-## API Comparison
+## API comparison
 
 ### When to Use Each API
 
@@ -313,7 +317,7 @@ result  # Display inline
 
 ---
 
-## API Details
+## API details
 
 ### [Audit API (from_model)](api-audit.md)
 

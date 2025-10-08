@@ -16,8 +16,8 @@ jobs:
   test:
     runs-on: ubuntu-latest
     env:
-      COV_FLOOR_OVERALL: "70" # Restored after comprehensive test improvements
-      COV_FLOOR_CRITICAL: "65" # TEMPORARY: lowered to prevent CI timeout issues
+      COV_FLOOR_OVERALL: "70" # Overall coverage target (trend monitoring, does not fail build)
+      COV_FLOOR_CRITICAL: "65" # Critical modules coverage gate (fails build if below threshold)
     strategy:
       matrix:
         python-version: ["3.11", "3.12"]
@@ -333,11 +333,14 @@ jobs:
       - name: Lint with ruff
         working-directory: packages
         run: |
-          # TODO: TEMPORARY — lint checks disabled to unblock CI. Re-enable ruff and black once code stabilizes.
-          echo "⚠️  Skipping lint checks (ruff, black) temporarily"
-          # ruff check src/ tests/
-          # black --check src/ tests/
-          # mypy --strict src/ # Disabled during architectural foundation phase
+          echo "🔍 Running ruff linter..."
+          ruff check src/ tests/ --exit-zero || echo "⚠️  Ruff found issues (not failing build)"
+          echo ""
+          echo "🎨 Running black formatter check..."
+          black --check src/ tests/ || echo "⚠️  Black found formatting issues (not failing build)"
+          echo ""
+          echo "Note: Linting warnings do not fail the build currently"
+          # mypy --strict src/ # Disabled during architectural foundation phase - re-enable when type hints are comprehensive
   docs:
     runs-on: ubuntu-latest
     steps:

@@ -1,4 +1,4 @@
-# Configuration API Reference
+# Configuration API reference
 
 Programmatic API for creating, validating, and managing audit configurations.
 
@@ -376,7 +376,7 @@ Get predefined profile configuration.
 def get_profile(profile_name: str) -> dict
 ```
 
-### Available Profiles
+### Available profiles
 
 | Profile              | Description                               | Use Case                                    |
 | -------------------- | ----------------------------------------- | ------------------------------------------- |
@@ -397,7 +397,7 @@ profile_dict = ga.config.get_profile("financial_services")
 print(profile_dict)
 ```
 
-### Custom Profiles
+### Custom profiles
 
 Create custom profiles by extending base profiles:
 
@@ -450,16 +450,16 @@ def validate(
 
 **Raises:** `ValidationError` with detailed message if invalid
 
-### Validation Rules
+### Validation rules
 
-#### Standard Mode
+#### Standard mode
 
 - Required fields present (`model`, `data`)
 - Valid model type
 - Data files exist
 - Schema matches data (if schema provided)
 
-#### Strict Mode (Regulatory)
+#### Strict mode (regulatory)
 
 All standard checks plus:
 
@@ -583,9 +583,9 @@ print("✅ Audit complete and compliant")
 
 ---
 
-## Configuration File Format (YAML)
+## Configuration file format (YAML)
 
-### Minimal Example
+### Minimal example
 
 ```yaml
 # Minimal audit configuration
@@ -600,7 +600,7 @@ data:
 random_seed: 42
 ```
 
-### Full Example
+### Full example
 
 ```yaml
 # Complete audit configuration
@@ -659,9 +659,12 @@ policy:
     max_bias: "ECOA Regulation B"
   fail_on_violation: true
 
-output:
-  pdf_path: reports/credit_audit_2025-q1.pdf
-  json_path: reports/metrics_2025-q1.json
+report:
+  template: standard_audit
+  output_format: pdf
+
+manifest:
+  enabled: true
   manifest_path: reports/manifest_2025-q1.json
   template: financial_services
   include_plots: true

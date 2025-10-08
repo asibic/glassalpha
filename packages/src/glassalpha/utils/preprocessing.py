@@ -96,9 +96,7 @@ def preprocess_auto(X: pd.DataFrame) -> pd.DataFrame:
         sanitized_feature_names = []
         for name in feature_names:
             # Replace problematic characters with underscores
-            sanitized = (
-                name.replace("<", "lt").replace(">", "gt").replace("[", "_").replace("]", "_").replace(" ", "_")
-            )
+            sanitized = name.replace("<", "lt").replace(">", "gt").replace("[", "_").replace("]", "_").replace(" ", "_")
             # Ensure no double underscores
             sanitized = "_".join(filter(None, sanitized.split("_")))
             sanitized_feature_names.append(sanitized)

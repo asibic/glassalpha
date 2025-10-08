@@ -152,7 +152,7 @@ def _run_audit_pipeline(config, output_path: Path, selected_explainer: str | Non
     # Fallback to HTML if PDF requested but not available
     if output_format == "pdf" and not _PDF_AVAILABLE:
         typer.echo("⚠️  PDF backend not available. Generating HTML report instead.")
-        typer.echo("💡 To enable PDF reports: pip install 'glassalpha[docs]'\n")
+        typer.echo("💡 To enable PDF reports: pip install 'glassalpha[pdf]' or pip install weasyprint\n")
         output_format = "html"
         # Update output path extension if needed
         if output_path.suffix.lower() == ".pdf":
@@ -403,9 +403,9 @@ def _display_audit_summary(audit_results) -> None:
 
 
 def _binarize_sensitive_features_for_shift(
-    sensitive_features: "pd.DataFrame",
+    sensitive_features,
     shift_specs: list[str],
-) -> "pd.DataFrame":
+):
     """Binarize sensitive features for shift analysis.
 
     Shift analysis requires binary attributes (0/1), but datasets may have
@@ -419,6 +419,7 @@ def _binarize_sensitive_features_for_shift(
         DataFrame with binarized attributes for shift analysis
 
     """
+    import pandas as pd
     # Create a copy to avoid modifying the original
     binarized = sensitive_features.copy()
 
@@ -427,6 +428,7 @@ def _binarize_sensitive_features_for_shift(
     for spec in shift_specs:
         try:
             from ..metrics.shift import parse_shift_spec
+
             attribute, _ = parse_shift_spec(spec)
             shift_attributes.add(attribute)
         except ValueError:
@@ -481,7 +483,9 @@ def _binarize_sensitive_features_for_shift(
             typer.echo(f"  Binarized '{attribute}': median={median_val:.1f}, above=1")
 
         else:
-            typer.secho(f"Warning: Cannot binarize '{attribute}' - unsupported dtype {col.dtype}", fg=typer.colors.YELLOW)
+            typer.secho(
+                f"Warning: Cannot binarize '{attribute}' - unsupported dtype {col.dtype}", fg=typer.colors.YELLOW
+            )
 
     return binarized
 
@@ -518,6 +522,7 @@ def _run_shift_analysis(
         # Handle built-in datasets vs file paths
         if audit_config.data.dataset == "german_credit":
             from ..datasets import get_german_credit_schema, load_german_credit
+
             data = load_german_credit()
             schema = get_german_credit_schema()
         else:
@@ -530,6 +535,7 @@ def _run_shift_analysis(
 
         # Preprocess features for model training (handle categorical encoding)
         from ..utils.preprocessing import preprocess_auto
+
         X_test = preprocess_auto(X_test)
 
         # Binarize sensitive features for shift analysis (shift analysis requires binary attributes)
@@ -543,11 +549,16 @@ def _run_shift_analysis(
         if not hasattr(model, "_is_fitted") or not model._is_fitted:
             typer.echo("Training model...")
             from ..pipeline.train import train_from_config
+
             # Create a minimal config for training
-            train_config = type("TrainConfig", (), {
-                "model": audit_config.model,
-                "reproducibility": audit_config.reproducibility,
-            })()
+            train_config = type(
+                "TrainConfig",
+                (),
+                {
+                    "model": audit_config.model,
+                    "reproducibility": audit_config.reproducibility,
+                },
+            )()
             model = train_from_config(train_config, X_test, y_test)
 
         # Generate predictions
@@ -808,7 +819,8 @@ def audit(  # pragma: no cover
         manifest_path = output.with_suffix(".manifest.json")
         if manifest_path.exists() and not os.access(manifest_path, os.W_OK):
             _output_error(
-                f"Cannot overwrite existing manifest (read-only): {manifest_path}. Make the file writable or remove it before running audit",
+                f"Cannot overwrite existing manifest (read-only): {manifest_path}. "
+                "Make the file writable or remove it before running audit",
             )
             raise typer.Exit(ExitCode.SYSTEM_ERROR)
 
@@ -953,6 +965,15 @@ def audit(  # pragma: no cover
         # Users should see "File not found", not internal stack traces
         raise typer.Exit(ExitCode.USER_ERROR) from None
     except ValueError as e:
+        # Check if this is a StrictModeError (which inherits from ValueError)
+        # StrictModeError should return VALIDATION_ERROR for CI integration
+        from ..config.strict import StrictModeError
+
+        if isinstance(e, StrictModeError):
+            typer.secho(f"Strict mode validation failed: {e}", fg=typer.colors.RED, err=True)
+            raise typer.Exit(ExitCode.VALIDATION_ERROR) from None
+
+        # Other ValueErrors are user configuration errors
         typer.secho(f"Configuration error: {e}", fg=typer.colors.RED, err=True)
         # Intentional: Clean error message for end users
         raise typer.Exit(ExitCode.USER_ERROR) from None
@@ -1268,7 +1289,8 @@ def validate(  # pragma: no cover
                         # Could validate against known schema here if we store it
                         typer.echo(f"  ✓ Using built-in dataset: {audit_config.data.dataset}")
                 except Exception:
-                    pass  # Built-in dataset validation is optional
+                    # Built-in dataset validation is optional - don't fail if it doesn't work
+                    pass
 
         # Report validation errors
         if validation_errors:
@@ -1314,6 +1336,8 @@ def validate(  # pragma: no cover
         # CLI UX: Clean error messages, no Python tracebacks for users
         raise typer.Exit(ExitCode.USER_ERROR) from None
     except ValueError as e:
+        # All ValueErrors in validation context are validation failures
+        # (including StrictModeError which inherits from ValueError)
         typer.secho(f"Validation failed: {e}", fg=typer.colors.RED, err=True)
         # Intentional: User-friendly validation errors
         raise typer.Exit(ExitCode.VALIDATION_ERROR) from None
@@ -1547,7 +1571,7 @@ def reasons(  # pragma: no cover
 
         typer.echo(f"Loading model from: {model}")
         with open(model, "rb") as f:
-            model_obj = pickle.load(f)
+            model_obj = pickle.load(f)  # nosec: B301
 
         typer.echo(f"Loading data from: {data}")
         df = pd.read_csv(data)
@@ -1796,7 +1820,7 @@ def recourse(  # pragma: no cover
 
         typer.echo(f"Loading model from: {model}")
         with open(model, "rb") as f:
-            model_obj = pickle.load(f)
+            model_obj = pickle.load(f)  # nosec: B301
 
         typer.echo(f"Loading data from: {data}")
         df = pd.read_csv(data)

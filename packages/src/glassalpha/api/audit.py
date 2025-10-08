@@ -1,4 +1,4 @@
-"""Audit entry points: from_model, from_predictions, from_config.
+"""Audit entry points: from_model, from_predictions, from_config, run_audit.
 
 Phase 3: Main API surface for generating audit results.
 """
@@ -420,7 +420,7 @@ def from_config(config_path: str | Path) -> AuditResult:
     # Load model
     model_path = base_dir / config["model"]["path"]
     with open(model_path, "rb") as f:
-        model = pickle.load(f)
+        model = pickle.load(f)  # nosec: B301
 
     # Load data
     X_path = base_dir / config["data"]["X_path"]
@@ -616,6 +616,7 @@ def _get_probabilities(
             return proba
         except Exception:
             # predict_proba failed, fall through to decision_function
+            # This is intentional - we want to try decision_function next
             pass
 
     # Try decision_function (for models like SVM that don't have predict_proba)
@@ -629,7 +630,7 @@ def _get_probabilities(
             # For multiclass, return raw scores (could be converted to probabilities later)
             return scores
         except Exception:
-            # decision_function failed, return None
+            # decision_function failed, return None to indicate no probabilities available
             return None
 
     # No probability or decision function available
@@ -886,3 +887,181 @@ def _compute_calibration_metrics(
     )
 
     return calib_result
+
+
+def run_audit(
+    config_path: Path | str,
+    output_path: Path | str,
+    *,
+    strict: bool | None = None,
+    profile: str | None = None,
+    override_config: Path | str | None = None,
+) -> Path:
+    """Run complete audit pipeline from configuration file and generate report.
+
+    This is the programmatic equivalent of `glassalpha audit` CLI command.
+    Use this function when you want to run audits from Python scripts without
+    spawning subprocess calls.
+
+    Args:
+        config_path: Path to audit configuration YAML file
+        output_path: Path where report should be saved (PDF or HTML)
+        strict: Enable strict mode for regulatory compliance (optional)
+        profile: Override audit profile from config (optional)
+        override_config: Additional config file to override settings (optional)
+
+    Returns:
+        Path: Path to generated report file
+
+    Raises:
+        FileNotFoundError: If config_path does not exist
+        ValueError: If configuration is invalid
+        RuntimeError: If audit pipeline fails
+
+    Examples:
+        Basic usage:
+        >>> from glassalpha.api import run_audit
+        >>> report_path = run_audit("audit.yaml", "report.pdf")
+        >>> print(f"Report generated: {report_path}")
+
+        With strict mode:
+        >>> report_path = run_audit("prod.yaml", "report.pdf", strict=True)
+
+        With profile override:
+        >>> report_path = run_audit(
+        ...     "base.yaml",
+        ...     "report.pdf",
+        ...     profile="tabular_compliance"
+        ... )
+
+    """
+    from glassalpha.config import load_config_from_file
+    from glassalpha.pipeline.audit import run_audit_pipeline
+    from glassalpha.report import render_audit_pdf, PDFConfig
+    from datetime import datetime
+    import os
+
+    # Convert to Path objects
+    config_path = Path(config_path)
+    output_path = Path(output_path)
+    if override_config:
+        override_config = Path(override_config)
+
+    # Validate config file exists
+    if not config_path.exists():
+        raise FileNotFoundError(f"Configuration file does not exist: {config_path}")
+
+    # Validate override config if provided
+    if override_config and not override_config.exists():
+        raise FileNotFoundError(f"Override configuration file does not exist: {override_config}")
+
+    # Ensure output directory exists
+    output_dir = output_path.parent if output_path.parent != Path() else Path.cwd()
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    # Check if output directory is writable
+    if not os.access(output_dir, os.W_OK):
+        raise RuntimeError(f"Output directory is not writable: {output_dir}")
+
+    # Load configuration
+    audit_config = load_config_from_file(
+        config_path,
+        override_path=override_config,
+        profile_name=profile,
+        strict=strict,
+    )
+
+    # Determine explainer selection
+    from glassalpha.explain.registry import ExplainerRegistry
+
+    selected_explainer = ExplainerRegistry.find_compatible(
+        audit_config.model.type,
+        audit_config.model_dump(),
+    )
+
+    # Run audit pipeline
+    audit_results = run_audit_pipeline(audit_config, selected_explainer=selected_explainer)
+
+    if not audit_results.success:
+        raise RuntimeError(f"Audit pipeline failed: {audit_results.error_message}")
+
+    # Determine output format from extension or config
+    output_format = output_path.suffix.lower().lstrip(".")
+    if output_format not in ("pdf", "html"):
+        # Fall back to config
+        output_format = (
+            getattr(audit_config.report, "output_format", "html")
+            if hasattr(audit_config, "report")
+            else "html"
+        )
+
+    # Generate report
+    if output_format == "pdf":
+        # Check PDF dependencies
+        try:
+            from glassalpha.report import _PDF_AVAILABLE
+        except ImportError:
+            _PDF_AVAILABLE = False
+
+        if not _PDF_AVAILABLE:
+            # Fall back to HTML
+            output_format = "html"
+            if output_path.suffix.lower() == ".pdf":
+                output_path = output_path.with_suffix(".html")
+
+    if output_format == "pdf":
+        from glassalpha.report import render_audit_pdf, PDFConfig
+
+        pdf_config = PDFConfig(
+            page_size="A4",
+            title="ML Model Audit Report",
+            author="GlassAlpha",
+            subject="Machine Learning Model Compliance Assessment",
+            optimize_size=True,
+        )
+
+        pdf_path = render_audit_pdf(
+            audit_results=audit_results,
+            output_path=output_path,
+            config=pdf_config,
+            report_title=f"ML Model Audit Report - {datetime.now().strftime('%Y-%m-%d')}",
+            generation_date=datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC"),
+        )
+
+        # Generate manifest sidecar if available
+        if hasattr(audit_results, "execution_info") and "provenance_manifest" in audit_results.execution_info:
+            from glassalpha.provenance import write_manifest_sidecar
+
+            try:
+                write_manifest_sidecar(
+                    audit_results.execution_info["provenance_manifest"],
+                    output_path,
+                )
+            except Exception:
+                pass  # Non-critical
+
+        return pdf_path
+    else:
+        # HTML output
+        from glassalpha.report import render_audit_report
+
+        render_audit_report(
+            audit_results=audit_results,
+            output_path=output_path,
+            report_title=f"ML Model Audit Report - {datetime.now().strftime('%Y-%m-%d')}",
+            generation_date=datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC"),
+        )
+
+        # Generate manifest sidecar if available
+        if hasattr(audit_results, "execution_info") and "provenance_manifest" in audit_results.execution_info:
+            from glassalpha.provenance import write_manifest_sidecar
+
+            try:
+                write_manifest_sidecar(
+                    audit_results.execution_info["provenance_manifest"],
+                    output_path,
+                )
+            except Exception:
+                pass  # Non-critical
+
+        return output_path

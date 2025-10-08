@@ -64,13 +64,15 @@ def simple_dataset():
     # Non-proxy: random feature
     random_feature = rng.normal(0, 1, size=n)
 
-    df = pd.DataFrame({
-        "gender": gender,
-        "zip_code": zip_code,
-        "age": age,
-        "random_feature": random_feature,
-        "label": rng.choice([0, 1], size=n),
-    })
+    df = pd.DataFrame(
+        {
+            "gender": gender,
+            "zip_code": zip_code,
+            "age": age,
+            "random_feature": random_feature,
+            "label": rng.choice([0, 1], size=n),
+        }
+    )
 
     return df
 
@@ -82,21 +84,25 @@ def imbalanced_split_dataset():
 
     # Train set: 70% male
     train_gender = rng.choice(["Male", "Female"], size=140, p=[0.7, 0.3])
-    train_df = pd.DataFrame({
-        "gender": train_gender,
-        "feature1": rng.normal(0, 1, size=140),
-        "label": rng.choice([0, 1], size=140),
-        "split": "train",
-    })
+    train_df = pd.DataFrame(
+        {
+            "gender": train_gender,
+            "feature1": rng.normal(0, 1, size=140),
+            "label": rng.choice([0, 1], size=140),
+            "split": "train",
+        }
+    )
 
     # Test set: 40% male (imbalanced)
     test_gender = rng.choice(["Male", "Female"], size=60, p=[0.4, 0.6])
-    test_df = pd.DataFrame({
-        "gender": test_gender,
-        "feature1": rng.normal(0, 1, size=60),
-        "label": rng.choice([0, 1], size=60),
-        "split": "test",
-    })
+    test_df = pd.DataFrame(
+        {
+            "gender": test_gender,
+            "feature1": rng.normal(0, 1, size=60),
+            "label": rng.choice([0, 1], size=60),
+            "split": "test",
+        }
+    )
 
     return pd.concat([train_df, test_df], ignore_index=True)
 
@@ -107,19 +113,23 @@ def drift_dataset():
     rng = np.random.RandomState(42)
 
     # Train: normal(0, 1)
-    train_df = pd.DataFrame({
-        "continuous_feature": rng.normal(0, 1, size=150),
-        "categorical_feature": rng.choice(["A", "B", "C"], size=150, p=[0.5, 0.3, 0.2]),
-        "split": "train",
-    })
+    train_df = pd.DataFrame(
+        {
+            "continuous_feature": rng.normal(0, 1, size=150),
+            "categorical_feature": rng.choice(["A", "B", "C"], size=150, p=[0.5, 0.3, 0.2]),
+            "split": "train",
+        }
+    )
 
     # Test: normal(0.5, 1) - drifted continuous
     # and different categorical distribution
-    test_df = pd.DataFrame({
-        "continuous_feature": rng.normal(0.5, 1, size=50),
-        "categorical_feature": rng.choice(["A", "B", "C"], size=50, p=[0.2, 0.3, 0.5]),
-        "split": "test",
-    })
+    test_df = pd.DataFrame(
+        {
+            "continuous_feature": rng.normal(0.5, 1, size=50),
+            "categorical_feature": rng.choice(["A", "B", "C"], size=50, p=[0.2, 0.3, 0.5]),
+            "split": "test",
+        }
+    )
 
     return pd.concat([train_df, test_df], ignore_index=True)
 
@@ -270,12 +280,16 @@ def test_distribution_drift_no_drift():
     rng = np.random.RandomState(42)
 
     # Same distribution in train and test
-    train_data = pd.DataFrame({
-        "feature": rng.normal(0, 1, size=100),
-    })
-    test_data = pd.DataFrame({
-        "feature": rng.normal(0, 1, size=100),
-    })
+    train_data = pd.DataFrame(
+        {
+            "feature": rng.normal(0, 1, size=100),
+        }
+    )
+    test_data = pd.DataFrame(
+        {
+            "feature": rng.normal(0, 1, size=100),
+        }
+    )
 
     result = compute_distribution_drift(
         train_data=train_data,
@@ -311,8 +325,9 @@ def test_distribution_drift_deterministic(drift_dataset, seed):
     )
 
     # Results should be identical (KS-test is deterministic)
-    assert result1.drift_tests["continuous_feature"]["statistic"] == \
-           result2.drift_tests["continuous_feature"]["statistic"]
+    assert (
+        result1.drift_tests["continuous_feature"]["statistic"] == result2.drift_tests["continuous_feature"]["statistic"]
+    )
 
 
 # ============================================================================
@@ -325,9 +340,11 @@ def test_sampling_bias_power_adequate_sample(seed):
     rng = np.random.RandomState(seed)
 
     # Large, balanced sample
-    data = pd.DataFrame({
-        "gender": rng.choice(["Male", "Female"], size=400, p=[0.5, 0.5]),
-    })
+    data = pd.DataFrame(
+        {
+            "gender": rng.choice(["Male", "Female"], size=400, p=[0.5, 0.5]),
+        }
+    )
 
     result = compute_sampling_bias_power(
         data=data,
@@ -348,9 +365,11 @@ def test_sampling_bias_power_inadequate_sample(seed):
     rng = np.random.RandomState(seed)
 
     # Small sample
-    data = pd.DataFrame({
-        "gender": rng.choice(["Male", "Female"], size=30, p=[0.5, 0.5]),
-    })
+    data = pd.DataFrame(
+        {
+            "gender": rng.choice(["Male", "Female"], size=30, p=[0.5, 0.5]),
+        }
+    )
 
     result = compute_sampling_bias_power(
         data=data,
@@ -371,9 +390,11 @@ def test_sampling_bias_power_imbalanced_groups(seed):
     rng = np.random.RandomState(seed)
 
     # Very imbalanced: 90% Male, 10% Female
-    data = pd.DataFrame({
-        "gender": rng.choice(["Male", "Female"], size=200, p=[0.9, 0.1]),
-    })
+    data = pd.DataFrame(
+        {
+            "gender": rng.choice(["Male", "Female"], size=200, p=[0.9, 0.1]),
+        }
+    )
 
     result = compute_sampling_bias_power(
         data=data,
@@ -393,9 +414,11 @@ def test_sampling_bias_power_imbalanced_groups(seed):
 def test_sampling_bias_power_deterministic(seed):
     """Test that power calculation is deterministic."""
     rng = np.random.RandomState(seed)
-    data = pd.DataFrame({
-        "gender": rng.choice(["Male", "Female"], size=100, p=[0.5, 0.5]),
-    })
+    data = pd.DataFrame(
+        {
+            "gender": rng.choice(["Male", "Female"], size=100, p=[0.5, 0.5]),
+        }
+    )
 
     result1 = compute_sampling_bias_power(
         data=data,
@@ -547,10 +570,12 @@ def test_split_imbalance_not_detected():
     train_gender = rng.choice(["Male", "Female"], size=140, p=[0.5, 0.5])
     test_gender = rng.choice(["Male", "Female"], size=60, p=[0.5, 0.5])
 
-    data = pd.DataFrame({
-        "gender": np.concatenate([train_gender, test_gender]),
-        "split": ["train"] * 140 + ["test"] * 60,
-    })
+    data = pd.DataFrame(
+        {
+            "gender": np.concatenate([train_gender, test_gender]),
+            "split": ["train"] * 140 + ["test"] * 60,
+        }
+    )
 
     result = detect_split_imbalance(
         data=data,
@@ -570,17 +595,21 @@ def test_split_imbalance_multiple_protected_attrs(seed):
     rng = np.random.RandomState(seed)
 
     # Gender: imbalanced, Race: balanced
-    train_df = pd.DataFrame({
-        "gender": rng.choice(["Male", "Female"], size=140, p=[0.7, 0.3]),
-        "race": rng.choice(["White", "Black"], size=140, p=[0.5, 0.5]),
-        "split": "train",
-    })
+    train_df = pd.DataFrame(
+        {
+            "gender": rng.choice(["Male", "Female"], size=140, p=[0.7, 0.3]),
+            "race": rng.choice(["White", "Black"], size=140, p=[0.5, 0.5]),
+            "split": "train",
+        }
+    )
 
-    test_df = pd.DataFrame({
-        "gender": rng.choice(["Male", "Female"], size=60, p=[0.4, 0.6]),
-        "race": rng.choice(["White", "Black"], size=60, p=[0.5, 0.5]),
-        "split": "test",
-    })
+    test_df = pd.DataFrame(
+        {
+            "gender": rng.choice(["Male", "Female"], size=60, p=[0.4, 0.6]),
+            "race": rng.choice(["White", "Black"], size=60, p=[0.5, 0.5]),
+            "split": "test",
+        }
+    )
 
     data = pd.concat([train_df, test_df], ignore_index=True)
 
@@ -613,8 +642,7 @@ def test_split_imbalance_deterministic(imbalanced_split_dataset, seed):
     )
 
     # Results should be identical
-    assert result1.imbalance_tests["gender"]["p_value"] == \
-           result2.imbalance_tests["gender"]["p_value"]
+    assert result1.imbalance_tests["gender"]["p_value"] == result2.imbalance_tests["gender"]["p_value"]
 
 
 # ============================================================================
@@ -711,11 +739,13 @@ def test_dataset_bias_handles_missing_values(seed):
     """Test that dataset bias metrics handle missing values gracefully."""
     rng = np.random.RandomState(seed)
 
-    data = pd.DataFrame({
-        "gender": rng.choice(["Male", "Female", None], size=100, p=[0.45, 0.45, 0.1]),
-        "feature": rng.normal(0, 1, size=100),
-        "split": "train",
-    })
+    data = pd.DataFrame(
+        {
+            "gender": rng.choice(["Male", "Female", None], size=100, p=[0.45, 0.45, 0.1]),
+            "feature": rng.normal(0, 1, size=100),
+            "split": "train",
+        }
+    )
 
     # Should not crash on missing values
     result = compute_dataset_bias_metrics(

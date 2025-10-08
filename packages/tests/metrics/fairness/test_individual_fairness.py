@@ -37,11 +37,13 @@ def simple_data():
     gender = np.random.randint(0, 2, n)
 
     # Create DataFrame
-    df = pd.DataFrame({
-        "income": income,
-        "age": age,
-        "gender": gender,
-    })
+    df = pd.DataFrame(
+        {
+            "income": income,
+            "age": age,
+            "gender": gender,
+        }
+    )
 
     # Simple predictions (higher income → higher score)
     predictions = 1 / (1 + np.exp(-(income - 45000) / 10000))
@@ -53,11 +55,13 @@ def simple_data():
 def disparate_treatment_data():
     """Data with clear disparate treatment (same features, different predictions by gender)."""
     # Two pairs of individuals with identical non-protected features
-    df = pd.DataFrame({
-        "income": [50000, 50000, 60000, 60000],
-        "age": [30, 30, 40, 40],
-        "gender": [0, 1, 0, 1],  # Only difference is gender
-    })
+    df = pd.DataFrame(
+        {
+            "income": [50000, 50000, 60000, 60000],
+            "age": [30, 30, 40, 40],
+            "gender": [0, 1, 0, 1],  # Only difference is gender
+        }
+    )
 
     # Predictions differ by gender (disparate treatment)
     predictions = np.array([0.3, 0.7, 0.4, 0.8])  # Same features, different outcomes
@@ -68,11 +72,13 @@ def disparate_treatment_data():
 @pytest.fixture
 def fair_data():
     """Data with no disparate treatment (same features → same predictions)."""
-    df = pd.DataFrame({
-        "income": [50000, 50000, 60000, 60000],
-        "age": [30, 30, 40, 40],
-        "gender": [0, 1, 0, 1],
-    })
+    df = pd.DataFrame(
+        {
+            "income": [50000, 50000, 60000, 60000],
+            "age": [30, 30, 40, 40],
+            "gender": [0, 1, 0, 1],
+        }
+    )
 
     # Predictions same regardless of gender (fair treatment)
     predictions = np.array([0.5, 0.5, 0.6, 0.6])
@@ -141,11 +147,13 @@ def test_consistency_score_euclidean_vs_mahalanobis(simple_data):
 
 def test_consistency_score_perfect_consistency():
     """Perfect consistency: identical features → identical predictions."""
-    df = pd.DataFrame({
-        "income": [50000, 50000, 60000, 60000],
-        "age": [30, 30, 40, 40],
-        "gender": [0, 1, 0, 1],
-    })
+    df = pd.DataFrame(
+        {
+            "income": [50000, 50000, 60000, 60000],
+            "age": [30, 30, 40, 40],
+            "gender": [0, 1, 0, 1],
+        }
+    )
 
     # Same features → same predictions (perfect consistency)
     predictions = np.array([0.5, 0.5, 0.6, 0.6])
@@ -260,11 +268,13 @@ def test_matched_pairs_no_pairs_when_fair(fair_data):
 
 def test_matched_pairs_handles_no_similar_features():
     """Should handle case where no individuals have similar features."""
-    df = pd.DataFrame({
-        "income": [30000, 50000, 70000, 90000],  # All very different
-        "age": [20, 40, 60, 80],
-        "gender": [0, 1, 0, 1],
-    })
+    df = pd.DataFrame(
+        {
+            "income": [30000, 50000, 70000, 90000],  # All very different
+            "age": [20, 40, 60, 80],
+            "gender": [0, 1, 0, 1],
+        }
+    )
     predictions = np.array([0.3, 0.5, 0.7, 0.9])
 
     pairs = find_matched_pairs(
@@ -282,11 +292,13 @@ def test_matched_pairs_handles_no_similar_features():
 
 def test_matched_pairs_deterministic():
     """Matched pairs should be deterministic with same seed."""
-    df = pd.DataFrame({
-        "income": [50000, 50100, 60000, 60100],
-        "age": [30, 31, 40, 41],
-        "gender": [0, 1, 0, 1],
-    })
+    df = pd.DataFrame(
+        {
+            "income": [50000, 50100, 60000, 60100],
+            "age": [30, 31, 40, 41],
+            "gender": [0, 1, 0, 1],
+        }
+    )
     predictions = np.array([0.3, 0.7, 0.4, 0.8])
 
     pairs1 = find_matched_pairs(
@@ -382,11 +394,13 @@ def test_flip_test_no_treatment_when_fair(fair_data):
 
 def test_flip_test_multiclass_protected_attribute():
     """Flip test should handle protected attributes with >2 categories."""
-    df = pd.DataFrame({
-        "income": [50000, 50000, 50000],
-        "age": [30, 30, 30],
-        "race": [0, 1, 2],  # 3 categories
-    })
+    df = pd.DataFrame(
+        {
+            "income": [50000, 50000, 50000],
+            "age": [30, 30, 30],
+            "race": [0, 1, 2],  # 3 categories
+        }
+    )
 
     # Model that treats races differently
     class RaceDisparateModel:
@@ -415,10 +429,12 @@ def test_flip_test_multiclass_protected_attribute():
 
 def test_flip_test_deterministic():
     """Flip test should be deterministic with same seed."""
-    df = pd.DataFrame({
-        "income": [50000, 60000],
-        "gender": [0, 1],
-    })
+    df = pd.DataFrame(
+        {
+            "income": [50000, 60000],
+            "gender": [0, 1],
+        }
+    )
 
     class SimpleModel:
         def predict_proba(self, X):
@@ -531,10 +547,12 @@ def test_individual_fairness_metrics_json_serializable(simple_data):
 
 def test_handles_small_sample_size():
     """Should handle small datasets gracefully."""
-    df = pd.DataFrame({
-        "income": [50000, 60000],
-        "gender": [0, 1],
-    })
+    df = pd.DataFrame(
+        {
+            "income": [50000, 60000],
+            "gender": [0, 1],
+        }
+    )
     predictions = np.array([0.4, 0.6])
 
     # Should not crash
@@ -552,10 +570,12 @@ def test_handles_small_sample_size():
 
 def test_handles_all_identical_predictions():
     """Should handle case where all predictions are identical."""
-    df = pd.DataFrame({
-        "income": [50000, 60000, 70000],
-        "gender": [0, 1, 0],
-    })
+    df = pd.DataFrame(
+        {
+            "income": [50000, 60000, 70000],
+            "gender": [0, 1, 0],
+        }
+    )
     predictions = np.array([0.5, 0.5, 0.5])  # All same
 
     score = compute_consistency_score(
@@ -573,11 +593,13 @@ def test_handles_all_identical_predictions():
 
 def test_handles_missing_values():
     """Should handle missing values gracefully."""
-    df = pd.DataFrame({
-        "income": [50000, np.nan, 70000],
-        "age": [30, 40, np.nan],
-        "gender": [0, 1, 0],
-    })
+    df = pd.DataFrame(
+        {
+            "income": [50000, np.nan, 70000],
+            "age": [30, 40, np.nan],
+            "gender": [0, 1, 0],
+        }
+    )
     predictions = np.array([0.4, 0.5, 0.6])
 
     # Should either handle NaN or raise clear error

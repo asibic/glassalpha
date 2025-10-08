@@ -5,10 +5,6 @@ Complete command-line interface reference for GlassAlpha.
 ## Installation
 
 ```bash
-# Recommended: Install with pipx
-pipx install glassalpha
-
-# Or with pip
 pip install glassalpha
 ```
 
@@ -37,13 +33,14 @@ This is the main command for GlassAlpha. It loads a configuration file,
 runs the audit pipeline, and generates a deterministic PDF report.
 
 Smart Defaults:
-If no --config is provided, searches for: glassalpha.yaml, audit.yaml, config.yaml
-If no --output is provided, uses {config_name}.html
-Strict mode auto-enables for prod*/production* configs
-Repro mode auto-enables in CI environments and for test\* configs
+    If no --config is provided, searches for: glassalpha.yaml, audit.yaml, config.yaml
+    If no --output is provided, uses {config_name}.html
+    Strict mode auto-enables for prod*/production* configs
+    Repro mode auto-enables in CI environments and for test* configs
 
-Examples: # Minimal usage (uses smart defaults)
-glassalpha audit
+Examples:
+    # Minimal usage (uses smart defaults)
+    glassalpha audit
 
     # Explicit paths
     glassalpha audit --config audit.yaml --output report.html
@@ -74,7 +71,7 @@ glassalpha audit
 - `--config, -c`: Path to audit configuration YAML file (auto-detects glassalpha.yaml, audit.yaml, config.yaml)
 - `--output, -o`: Path for output report (defaults to {config_name}.html)
 - `--strict, -s`: Enable strict mode for regulatory compliance (auto-enabled for prod*/production* configs)
-- `--repro`: Enable deterministic reproduction mode (auto-enabled in CI and for test\* configs)
+- `--repro`: Enable deterministic reproduction mode (auto-enabled in CI and for test* configs)
 - `--profile, -p`: Override audit profile
 - `--override`: Additional config file to override settings
 - `--dry-run`: Validate configuration without generating report (default: `False`)
@@ -172,8 +169,9 @@ This command computes the file hash (SHA256) of a preprocessing artifact.
 Optionally, it can also compute the params hash (canonical hash of learned
 parameters) by loading and introspecting the artifact.
 
-Examples: # Just file hash (fast, no loading)
-glassalpha prep hash artifacts/preprocessor.joblib
+Examples:
+    # Just file hash (fast, no loading)
+    glassalpha prep hash artifacts/preprocessor.joblib
 
     # File and params hash (slower, loads artifact)
     glassalpha prep hash artifacts/preprocessor.joblib --params
@@ -194,8 +192,9 @@ This command loads the artifact, extracts all learned parameters,
 and displays a human-readable summary. Optionally saves the full
 manifest to a JSON file.
 
-Examples: # Quick inspection
-glassalpha prep inspect artifacts/preprocessor.joblib
+Examples:
+    # Quick inspection
+    glassalpha prep inspect artifacts/preprocessor.joblib
 
     # Detailed inspection
     glassalpha prep inspect artifacts/preprocessor.joblib --verbose
@@ -219,8 +218,9 @@ Validate a preprocessing artifact.
 This command performs comprehensive validation of a preprocessing artifact,
 including hash verification, class allowlisting, and version compatibility.
 
-Examples: # Basic validation (classes + versions)
-glassalpha prep validate artifacts/preprocessor.joblib
+Examples:
+    # Basic validation (classes + versions)
+    glassalpha prep validate artifacts/preprocessor.joblib
 
     # Validate with expected hashes
     glassalpha prep validate artifacts/preprocessor.joblib \
@@ -287,8 +287,9 @@ Validate a configuration file.
 This command checks if a configuration file is valid without
 running the audit pipeline.
 
-Examples: # Basic validation
-glassalpha validate --config audit.yaml
+Examples:
+    # Basic validation
+    glassalpha validate --config audit.yaml
 
     # Validate for specific profile
     glassalpha validate -c audit.yaml --profile tabular_compliance
@@ -330,5 +331,5 @@ GlassAlpha uses standard exit codes:
 
 ---
 
-_This documentation is automatically generated from the CLI code._
-_Last updated: See git history for this file._
+*This documentation is automatically generated from the CLI code.*
+*Last updated: See git history for this file.*

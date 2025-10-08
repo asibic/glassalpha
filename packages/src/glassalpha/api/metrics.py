@@ -323,7 +323,7 @@ class FairnessMetrics(ReadonlyMetrics):
         # Color bars by fairness threshold (0.80 parity threshold)
         if metric in ["selection_rate", "tpr", "fpr"]:
             mean_val = np.mean(values)
-            for bar, val in zip(bars, values):
+            for bar, val in zip(bars, values, strict=False):
                 ratio = val / mean_val if mean_val > 0 else 1.0
                 if 0.8 <= ratio <= 1.25:  # Within 80% parity
                     bar.set_color("green")

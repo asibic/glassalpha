@@ -148,7 +148,7 @@ model:
 data:
   train: "data/train.csv"
   test: "data/test.csv"
-  target: "is_fraud"
+  target_column: "is_fraud"
   protected_attributes:
     - "geography" # Proxy for race/ethnicity
     - "merchant_category" # Could correlate with demographics

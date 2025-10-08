@@ -154,7 +154,7 @@ model:
 data:
   train: "data/train_deidentified.csv"
   test: "data/test_deidentified.csv"
-  target: "readmitted_30d"
+  target_column: "readmitted_30d"
   protected_attributes:
     - "race"
     - "ethnicity"

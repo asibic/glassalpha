@@ -148,9 +148,14 @@ Ensure your audit config includes the protected attributes you want to test:
 
 ```yaml
 # audit.yaml
+audit_profile: tabular_compliance
+
+reproducibility:
+  random_seed: 42
+
 data:
   path: "data/test.csv"
-  target: "outcome"
+  target_column: "outcome"
   protected_attributes:
     - gender_male # Binary: 0 or 1
     - age_group # Binary: 0 or 1
@@ -161,11 +166,11 @@ model:
 
 metrics:
   fairness:
-    threshold: 0.5
+    metrics:
+      - demographic_parity
+      - equal_opportunity
   calibration:
     enabled: true
-
-seed: 42
 ```
 
 ### CLI flags

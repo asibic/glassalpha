@@ -75,8 +75,7 @@ def build_config_from_model(
 
     if n_samples_X != n_samples_y:
         raise ValueError(
-            f"X_test and y_test have different sample counts: "
-            f"X_test={n_samples_X}, y_test={n_samples_y}",
+            f"X_test and y_test have different sample counts: X_test={n_samples_X}, y_test={n_samples_y}",
         )
 
     logger.info(f"Validated data shapes: {n_samples_X} samples")

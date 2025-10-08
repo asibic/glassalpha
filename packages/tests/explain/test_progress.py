@@ -225,6 +225,7 @@ class TestKernelSHAPProgress:
         assert hasattr(explainer, "explain")
         # The explain method should accept show_progress and strict_mode kwargs
         import inspect
+
         sig = inspect.signature(explainer.explain)
         assert "kwargs" in sig.parameters  # Has **kwargs
 

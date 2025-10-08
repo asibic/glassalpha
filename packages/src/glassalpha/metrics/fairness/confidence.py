@@ -99,10 +99,13 @@ def compute_bootstrap_ci(
         )
 
     # Generate bootstrap samples
+    from tqdm.auto import tqdm
+
     n_samples = len(y_true)
     bootstrap_estimates = []
 
-    for _ in range(n_bootstrap):
+    # Add progress bar for bootstrap iterations (disable for small n_bootstrap)
+    for _ in tqdm(range(n_bootstrap), desc="Bootstrap fairness CIs", leave=False, disable=n_bootstrap < 100):
         # Stratified sampling preserves class proportions
         if stratify:
             # Sample indices maintaining class balance

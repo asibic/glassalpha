@@ -26,9 +26,11 @@ def _import_xgboost():
 
         return xgb
     except ImportError as e:
-        raise ImportError(
-            "XGBoost is required for this model but not installed. Install it with: pip install 'glassalpha[xgboost]'",
-        ) from e
+        msg = (
+            "XGBoost is required but not installed. "
+            "Install with: pip install 'glassalpha[xgboost]' or pip install xgboost"
+        )
+        raise ImportError(msg) from e
 
 
 def register_xgboost():
@@ -40,9 +42,11 @@ def register_xgboost():
         # Return a dummy class that raises an error when instantiated
         class UnavailableXGBoost:
             def __init__(self, *args, **kwargs):
-                raise ImportError(
-                    "XGBoost is not installed. Install it with: pip install 'glassalpha[xgboost]'",
+                msg = (
+                    "XGBoost is not installed. "
+                    "Install with: pip install 'glassalpha[xgboost]' or pip install xgboost"
                 )
+                raise ImportError(msg)
 
         return UnavailableXGBoost
 

@@ -152,7 +152,7 @@ model:
 data:
   train: "data/train.csv"
   test: "data/test.csv"
-  target: "loss_ratio"
+  target_column: "loss_ratio"
   protected_attributes:
     - "gender"
     - "age_group"

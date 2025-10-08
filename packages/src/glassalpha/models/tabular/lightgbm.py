@@ -25,10 +25,11 @@ def _import_lightgbm():
 
         return lgb
     except ImportError as e:
-        raise ImportError(
-            "LightGBM is required for this model but not installed. "
-            "Install it with: pip install 'glassalpha[lightgbm]'",
-        ) from e
+        msg = (
+            "LightGBM is required but not installed. "
+            "Install with: pip install 'glassalpha[lightgbm]' or pip install lightgbm"
+        )
+        raise ImportError(msg) from e
 
 
 def register_lightgbm():
@@ -40,9 +41,11 @@ def register_lightgbm():
         # Return a dummy class that raises an error when instantiated
         class UnavailableLightGBM:
             def __init__(self, *args, **kwargs):
-                raise ImportError(
-                    "LightGBM is not installed. Install it with: pip install 'glassalpha[lightgbm]'",
+                msg = (
+                    "LightGBM is not installed. "
+                    "Install with: pip install 'glassalpha[lightgbm]' or pip install lightgbm"
                 )
+                raise ImportError(msg)
 
         return UnavailableLightGBM
 

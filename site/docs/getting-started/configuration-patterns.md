@@ -71,16 +71,12 @@ policy:
     max_bias: "ECOA Regulation B § 1002.2"
   fail_on_violation: false # Warning only in dev
 
-output:
-  pdf_path: reports/credit_audit_{date}.pdf
-  json_path: reports/metrics_{date}.json
-  manifest_path: reports/manifest_{date}.json
-  template: financial_services
+report:
+  template: standard_audit
+  output_format: pdf
 
-metadata:
-  project: "Credit Model Q1 2025"
-  auditor: "Risk Team"
-  regulatory_submission: false
+manifest:
+  enabled: true
 ```
 
 **To run:**
@@ -153,20 +149,12 @@ policy:
     min_auc: "SR 11-7 Section 4.1"
   fail_on_violation: true # Fail CI/CD if gates violated
 
-output:
-  pdf_path: regulatory_submissions/credit_audit_2025_q1.pdf
-  json_path: regulatory_submissions/metrics_2025_q1.json
-  manifest_path: regulatory_submissions/manifest_2025_q1.json
-  template: financial_services
-  include_plots: true
+report:
+  template: standard_audit
+  output_format: pdf
 
-metadata:
-  project: "Credit Model Q1 2025 Regulatory Audit"
-  auditor: "Jane Smith, Model Risk Manager"
-  department: "Model Risk Management"
-  regulatory_submission: true
-  submission_date: "2025-03-15"
-  examiner: "Federal Reserve Bank"
+manifest:
+  enabled: true
 ```
 
 **To run with strict validation:**
@@ -235,10 +223,12 @@ policy:
     min_recall: "Patient Safety Guidelines"
   fail_on_violation: true
 
-output:
-  pdf_path: clinical_audits/readmission_audit_{date}.pdf
-  json_path: clinical_audits/metrics_{date}.json
-  template: healthcare
+report:
+  template: standard_audit
+  output_format: pdf
+
+manifest:
+  enabled: true
 
 metadata:
   project: "30-Day Readmission Model"
@@ -303,10 +293,12 @@ policy:
     min_recall: "Risk Appetite Statement"
   fail_on_violation: false # Warning only
 
-output:
-  pdf_path: fraud_audits/fraud_model_audit.pdf
-  json_path: fraud_audits/metrics.json
-  template: fraud_detection
+report:
+  template: standard_audit
+  output_format: pdf
+
+manifest:
+  enabled: true
 
 metadata:
   project: "Transaction Fraud Detection v3"
@@ -371,10 +363,12 @@ policy:
     max_bias: "NAIC Model Act Section 5"
   fail_on_violation: true
 
-output:
-  pdf_path: regulatory/insurance_audit_{state}_{date}.pdf
-  json_path: regulatory/metrics_{state}_{date}.json
-  template: insurance
+report:
+  template: standard_audit
+  output_format: pdf
+
+manifest:
+  enabled: true
 
 metadata:
   project: "Auto Insurance Underwriting"
@@ -463,10 +457,12 @@ policy:
     max_ece: ${MAX_ECE}
   fail_on_violation: true # Fail CI/CD if violated
 
-output:
-  pdf_path: ${CI_ARTIFACTS_DIR}/audit_${CI_COMMIT_SHA}.pdf
-  json_path: ${CI_ARTIFACTS_DIR}/metrics_${CI_COMMIT_SHA}.json
-  manifest_path: ${CI_ARTIFACTS_DIR}/manifest_${CI_COMMIT_SHA}.json
+report:
+  template: standard_audit
+  output_format: pdf
+
+manifest:
+  enabled: true
 
 metadata:
   ci_job: ${CI_JOB_ID}

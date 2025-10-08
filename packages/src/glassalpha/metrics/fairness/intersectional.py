@@ -41,14 +41,14 @@ def parse_intersection_spec(spec: str) -> tuple[str, str]:
     parts = spec.split("*")
     if len(parts) != 2:
         raise ValueError(
-            f"Invalid intersection format '{spec}'. " "Must be 'attr1*attr2' for two-way intersections.",
+            f"Invalid intersection format '{spec}'. Must be 'attr1*attr2' for two-way intersections.",
         )
 
     attr1, attr2 = [p.strip() for p in parts]
 
     if not attr1 or not attr2:
         raise ValueError(
-            f"Invalid intersection '{spec}'. " "Both attributes must be non-empty.",
+            f"Invalid intersection '{spec}'. Both attributes must be non-empty.",
         )
 
     return attr1, attr2

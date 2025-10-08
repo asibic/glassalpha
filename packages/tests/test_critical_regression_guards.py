@@ -229,7 +229,7 @@ class TestArchitecturalConstraints:
         critical_imports = [
             "glassalpha.config.schema",
             "glassalpha.metrics.core",
-                        "glassalpha.runtime.repro",
+            "glassalpha.runtime.repro",
         ]
 
         import_failures = []

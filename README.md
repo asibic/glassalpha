@@ -73,6 +73,7 @@ degradation_threshold: 0.05 # Max 5pp metric drop under demographic shifts
 ## Core Capabilities
 
 ### Supported Models
+
 ### Compliance & Fairness
 
 - **Group Fairness** (E5): Demographic parity, TPR/FPR, with [statistical confidence intervals](site/docs/reference/fairness-metrics.md)

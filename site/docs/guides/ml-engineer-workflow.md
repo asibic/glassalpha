@@ -59,7 +59,7 @@ model:
 data:
   train: "data/train.csv"
   test: "data/test.csv"
-  target: "default"
+  target_column: "default"
   protected_attributes:
     - "gender"
     - "age_group"

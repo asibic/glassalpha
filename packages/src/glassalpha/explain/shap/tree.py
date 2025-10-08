@@ -27,8 +27,12 @@ def _import_shap():
         import shap
 
         return shap, True
-    except ImportError:
-        return None, False
+    except ImportError as e:
+        msg = (
+            "TreeSHAP requires the 'shap' library. "
+            "Install with: pip install 'glassalpha[shap]' or pip install shap"
+        )
+        raise ImportError(msg) from e
 
 
 # Check if shap is available for registration (but don't import yet)

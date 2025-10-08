@@ -13,7 +13,6 @@ class FeatureNotAvailable(Exception):
     """Raised when attempting to use an enterprise feature without license."""
 
 
-
 def is_enterprise() -> bool:
     """Check if enterprise features are enabled.
 

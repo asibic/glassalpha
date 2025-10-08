@@ -11,6 +11,7 @@ help:
 	@echo "📦 build      - Build wheel"
 	@echo "📥 install    - Install wheel (for testing)"
 	@echo "🧪 test       - Run full test suite"
+	@echo "📊 coverage   - Run tests with coverage report (terminal + HTML)"
 	@echo "🔍 lint       - Run linting"
 	@echo "🧹 clean      - Clean build artifacts"
 	@echo "🪝 hooks      - Install git hooks (pre-commit + pre-push)"
@@ -38,6 +39,18 @@ install: build
 # Use pytest-xdist for parallel execution and test isolation (prevents test pollution)
 test:
 	pytest -n auto -q
+
+# Test with coverage report
+coverage:
+	@echo "🔍 Running tests with coverage..."
+	pytest --cov=glassalpha --cov-report=term-missing --cov-report=html -q --disable-warnings
+	@echo ""
+	@echo "✅ Coverage report generated:"
+	@echo "   Terminal: See output above"
+	@echo "   HTML: Open htmlcov/index.html in browser"
+	@echo ""
+	@echo "📊 Running coverage gate..."
+	python .ci/coverage_gate.py
 
 # Linting
 lint:

@@ -62,7 +62,7 @@ result1.equals(result2, rtol=1e-5, atol=1e-8)
 
 ## Default Tolerances by Metric Type
 
-### Performance Metrics (Standard)
+### Performance metrics (standard)
 
 **Default**: `rtol=1e-5`, `atol=1e-8`
 
@@ -85,7 +85,7 @@ result1.equals(result2, rtol=1e-5, atol=1e-8)
 
 ---
 
-### Calibration Metrics (Looser)
+### Calibration metrics (looser)
 
 **Default**: `rtol=1e-4`, `atol=1e-6`
 
@@ -115,7 +115,7 @@ result1.equals(result2, rtol=1e-5, atol=1e-8)
 
 ---
 
-### Fairness Metrics (Standard)
+### Fairness metrics (standard)
 
 **Default**: `rtol=1e-5`, `atol=1e-8`
 
@@ -133,7 +133,7 @@ result1.equals(result2, rtol=1e-5, atol=1e-8)
 
 ---
 
-### Count Metrics (Exact)
+### Count metrics (exact)
 
 **Default**: `rtol=0.0`, `atol=0.0`
 
@@ -189,7 +189,7 @@ assert np.allclose(perf1.precision, perf2.precision, rtol=1e-6, atol=1e-9)
 
 ## Reproducibility Validation
 
-### CI/CD: Byte-Identical Config
+### CI/CD: Byte-identical config
 
 For **maximum reproducibility** in CI/CD:
 

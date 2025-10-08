@@ -495,7 +495,7 @@ def bin_continuous_attribute(
     # Create categories
     categories = []
     for i in range(len(bins) - 1):
-        categories.append(f"[{bins[i]:.1f}, {bins[i+1]:.1f})")
+        categories.append(f"[{bins[i]:.1f}, {bins[i + 1]:.1f})")
 
     # Bin the values
     binned = pd.cut(values, bins=bins, labels=categories, include_lowest=True)

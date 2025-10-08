@@ -141,6 +141,19 @@ jobs:
           PY
         working-directory: packages
 
+      # Test example notebooks (catch breaking changes before users do)
+      - name: Test example notebooks
+        env:
+          MPLBACKEND: Agg
+          TQDM_DISABLE: "1"
+        run: |
+          cd examples/notebooks
+          pytest ../../packages/tests/notebooks/ \
+            --nbmake *.ipynb \
+            --nbmake-timeout=600 \
+            -v || echo "::warning::Notebook tests failed (non-blocking)"
+        continue-on-error: true # Don't block CI on notebook failures initially
+
       # Run tests with coverage collection
       - name: Run tests with coverage
         env:

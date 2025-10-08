@@ -62,10 +62,12 @@ class TestIntersectionalGroupCreation:
     def test_create_binary_binary_groups(self):
         """Test creating groups from two binary attributes."""
         # Create data with all 4 combinations present
-        df = pd.DataFrame({
-            "gender": ["M", "M", "F", "F", "M", "F"],
-            "race": ["White", "Black", "White", "Black", "White", "Black"],
-        })
+        df = pd.DataFrame(
+            {
+                "gender": ["M", "M", "F", "F", "M", "F"],
+                "race": ["White", "Black", "White", "Black", "White", "Black"],
+            }
+        )
 
         groups = create_intersectional_groups(df, "gender", "race")
 
@@ -79,10 +81,12 @@ class TestIntersectionalGroupCreation:
 
     def test_create_groups_with_numeric_values(self):
         """Test creating groups with numeric attribute values."""
-        df = pd.DataFrame({
-            "age_group": [0, 1, 0, 1, 0, 1],
-            "income_group": [0, 0, 1, 1, 0, 1],
-        })
+        df = pd.DataFrame(
+            {
+                "age_group": [0, 1, 0, 1, 0, 1],
+                "income_group": [0, 0, 1, 1, 0, 1],
+            }
+        )
 
         groups = create_intersectional_groups(df, "age_group", "income_group")
 
@@ -96,19 +100,23 @@ class TestIntersectionalGroupCreation:
 
     def test_create_groups_missing_attribute(self):
         """Test error when attribute missing."""
-        df = pd.DataFrame({
-            "gender": ["M", "F"],
-        })
+        df = pd.DataFrame(
+            {
+                "gender": ["M", "F"],
+            }
+        )
 
         with pytest.raises(ValueError, match="Attribute 'race' not found"):
             create_intersectional_groups(df, "gender", "race")
 
     def test_create_groups_deterministic(self):
         """Test group creation is deterministic."""
-        df = pd.DataFrame({
-            "gender": ["M", "F", "M", "F"],
-            "race": ["White", "Black", "White", "Black"],
-        })
+        df = pd.DataFrame(
+            {
+                "gender": ["M", "F", "M", "F"],
+                "race": ["White", "Black", "White", "Black"],
+            }
+        )
 
         groups1 = create_intersectional_groups(df, "gender", "race")
         groups2 = create_intersectional_groups(df, "gender", "race")
@@ -286,8 +294,9 @@ class TestIntersectionalFairnessMetrics:
                     if not np.isnan(ci["ci_lower"]) and not np.isnan(ci["ci_upper"]):
                         # Allow small numerical tolerance (1% of CI width)
                         tolerance = 0.01 * (ci["ci_upper"] - ci["ci_lower"])
-                        assert ci["ci_lower"] - tolerance <= ci["point_estimate"] <= ci["ci_upper"] + tolerance, \
+                        assert ci["ci_lower"] - tolerance <= ci["point_estimate"] <= ci["ci_upper"] + tolerance, (
                             f"CI bounds [{ci['ci_lower']}, {ci['ci_upper']}] do not bracket point estimate {ci['point_estimate']}"
+                        )
 
                     ci_count += 1
 
@@ -335,10 +344,12 @@ class TestSmallSampleHandling:
     def test_small_group_warning(self):
         """Test WARNING for groups with n<30."""
         # Create data with small group
-        df = pd.DataFrame({
-            "gender": ["M"] * 50 + ["F"] * 25,  # F group has n=25 < 30
-            "race": ["White"] * 50 + ["Black"] * 25,
-        })
+        df = pd.DataFrame(
+            {
+                "gender": ["M"] * 50 + ["F"] * 25,  # F group has n=25 < 30
+                "race": ["White"] * 50 + ["Black"] * 25,
+            }
+        )
         y_true = np.random.randint(0, 2, size=75)
         y_pred = y_true.copy()
 
@@ -366,10 +377,12 @@ class TestSmallSampleHandling:
     def test_very_small_group_error(self):
         """Test ERROR for groups with n<10."""
         # Create data with very small group
-        df = pd.DataFrame({
-            "gender": ["M"] * 50 + ["F"] * 5,  # F group has n=5 < 10
-            "race": ["White"] * 50 + ["Black"] * 5,
-        })
+        df = pd.DataFrame(
+            {
+                "gender": ["M"] * 50 + ["F"] * 5,  # F group has n=5 < 10
+                "race": ["White"] * 50 + ["Black"] * 5,
+            }
+        )
         y_true = np.random.randint(0, 2, size=55)
         y_pred = y_true.copy()
 
@@ -392,10 +405,12 @@ class TestSmallSampleHandling:
     def test_empty_group_handling(self):
         """Test handling of empty intersectional groups."""
         # Create data where one intersection doesn't exist
-        df = pd.DataFrame({
-            "gender": ["M"] * 50,  # No F group
-            "race": ["White"] * 30 + ["Black"] * 20,
-        })
+        df = pd.DataFrame(
+            {
+                "gender": ["M"] * 50,  # No F group
+                "race": ["White"] * 30 + ["Black"] * 20,
+            }
+        )
         y_true = np.random.randint(0, 2, size=50)
         y_pred = y_true.copy()
 
@@ -418,10 +433,12 @@ class TestEdgeCases:
 
     def test_single_value_attribute(self):
         """Test when one attribute has only one value."""
-        df = pd.DataFrame({
-            "gender": ["M"] * 100,  # Only one value
-            "race": np.random.choice(["White", "Black"], size=100),
-        })
+        df = pd.DataFrame(
+            {
+                "gender": ["M"] * 100,  # Only one value
+                "race": np.random.choice(["White", "Black"], size=100),
+            }
+        )
         y_true = np.random.randint(0, 2, size=100)
         y_pred = y_true.copy()
 
@@ -439,10 +456,12 @@ class TestEdgeCases:
 
     def test_all_same_prediction(self):
         """Test when all predictions are the same."""
-        df = pd.DataFrame({
-            "gender": np.random.choice(["M", "F"], size=100),
-            "race": np.random.choice(["White", "Black"], size=100),
-        })
+        df = pd.DataFrame(
+            {
+                "gender": np.random.choice(["M", "F"], size=100),
+                "race": np.random.choice(["White", "Black"], size=100),
+            }
+        )
         y_true = np.random.randint(0, 2, size=100)
         y_pred = np.ones(100, dtype=int)  # All predict 1
 
@@ -460,10 +479,12 @@ class TestEdgeCases:
 
     def test_perfect_predictions(self):
         """Test when predictions are perfect."""
-        df = pd.DataFrame({
-            "gender": np.random.choice(["M", "F"], size=100),
-            "race": np.random.choice(["White", "Black"], size=100),
-        })
+        df = pd.DataFrame(
+            {
+                "gender": np.random.choice(["M", "F"], size=100),
+                "race": np.random.choice(["White", "Black"], size=100),
+            }
+        )
         y_true = np.random.randint(0, 2, size=100)
         y_pred = y_true.copy()  # Perfect predictions
 

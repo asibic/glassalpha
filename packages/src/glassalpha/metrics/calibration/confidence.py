@@ -302,10 +302,13 @@ def _bootstrap_metric(
         CalibrationCI with bounds and metadata
 
     """
+    from tqdm.auto import tqdm
+
     n_samples = len(y_true)
     bootstrap_estimates = []
 
-    for _ in range(n_bootstrap):
+    # Add progress bar for bootstrap iterations
+    for _ in tqdm(range(n_bootstrap), desc=f"Bootstrap {metric_name}", leave=False, disable=n_bootstrap < 100):
         # Simple random resample with replacement
         indices = rng.choice(n_samples, size=n_samples, replace=True)
 

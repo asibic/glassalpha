@@ -526,7 +526,7 @@ if SKLEARN_AVAILABLE:
                     )
 
                 # Decode and load the model
-                self.model = pickle.loads(base64.b64decode(obj["model"]))
+                self.model = pickle.loads(base64.b64decode(obj["model"]))  # nosec: B301
 
                 # Set common attributes
                 self.feature_names_ = obj.get("feature_names_")

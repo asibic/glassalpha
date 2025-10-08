@@ -24,8 +24,7 @@ def test_german_credit_dataset_bias_full_analysis():
 
     # Define protected attributes and features
     protected_attrs = ["gender", "foreign_worker"]
-    feature_cols = [col for col in data.columns
-                   if col not in protected_attrs + ["credit_risk", "split"]]
+    feature_cols = [col for col in data.columns if col not in protected_attrs + ["credit_risk", "split"]]
 
     # Compute dataset bias metrics
     result = compute_dataset_bias_metrics(
@@ -55,8 +54,9 @@ def test_german_credit_dataset_bias_full_analysis():
     gender_correlations = result.proxy_correlations.correlations["gender"]
     severities = [v["severity"] for v in gender_correlations.values()]
     # Should have at least one WARNING or ERROR
-    assert any(s in ["WARNING", "ERROR"] for s in severities), \
+    assert any(s in ["WARNING", "ERROR"] for s in severities), (
         "Expected to find some concerning proxy correlations in German Credit"
+    )
 
     # Check distribution drift results
     assert len(result.distribution_drift.drift_tests) > 0
@@ -255,13 +255,13 @@ def test_german_credit_sampling_bias_power_warnings():
 
     # Minority group should have low power (WARNING or ERROR)
     minority_power = result.power_by_group["gender"][minority_group]
-    assert minority_power["severity"] in ["WARNING", "ERROR"], \
+    assert minority_power["severity"] in ["WARNING", "ERROR"], (
         f"Expected low power for minority group with n=15, got {minority_power['severity']}"
+    )
 
     # Majority group should have better power
     majority_power = result.power_by_group["gender"][majority_group]
-    assert majority_power["power"] > minority_power["power"], \
-        "Expected majority group to have higher power"
+    assert majority_power["power"] > minority_power["power"], "Expected majority group to have higher power"
 
 
 def test_german_credit_continuous_binning():
