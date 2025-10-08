@@ -130,10 +130,16 @@ def quickstart(
 
         # Check if output directory already exists
         if output.exists() and any(output.iterdir()):
-            overwrite = typer.confirm(
-                f"Directory '{output}' already exists and is not empty. Overwrite?",
-                default=False,
-            )
+            try:
+                overwrite = typer.confirm(
+                    f"Directory '{output}' already exists and is not empty. Overwrite?",
+                    default=False,
+                )
+            except (EOFError, RuntimeError):
+                # Handle non-interactive environments - don't overwrite by default
+                typer.echo("Directory exists. Use --no-interactive to skip confirmation.")
+                overwrite = False
+
             if not overwrite:
                 typer.echo("Cancelled.")
                 raise typer.Exit(ExitCode.SUCCESS)
@@ -178,7 +184,12 @@ def _ask_dataset() -> str:
     typer.echo("  2. Adult Income (income prediction, 48842 samples)")
     typer.echo()
 
-    choice = typer.prompt("Select dataset (1-2)", type=int, default=1)
+    try:
+        choice = typer.prompt("Select dataset (1-2)", type=int, default=1, show_default=True)
+    except (EOFError, RuntimeError):
+        # Handle non-interactive environments or EOF
+        typer.echo("Using default: 1")
+        choice = 1
 
     dataset_map = {
         1: "german_credit",
@@ -208,7 +219,12 @@ def _ask_model() -> str:
     typer.echo("  3. Logistic Regression (simple, coefficient explainability)")
     typer.echo()
 
-    choice = typer.prompt("Select model (1-3)", type=int, default=1)
+    try:
+        choice = typer.prompt("Select model (1-3)", type=int, default=1, show_default=True)
+    except (EOFError, RuntimeError):
+        # Handle non-interactive environments or EOF
+        typer.echo("Using default: 1")
+        choice = 1
 
     model_map = {
         1: "xgboost",

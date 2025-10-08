@@ -386,12 +386,16 @@ class AuditPDFRenderer:
         try:
             # Import PyPDF2 for metadata manipulation
             try:
-                import PyPDF2
+                # Try modern pypdf first, then fall back to older PyPDF2
+                try:
+                    from pypdf import PdfReader, PdfWriter  # pypdf 3.x  # noqa: PLC0415
+                except ImportError:
+                    from PyPDF2 import PdfReader, PdfWriter  # pypdf 2.x fallback  # noqa: PLC0415
 
                 # Read the PDF
                 with open(pdf_path, "rb") as file:
-                    reader = PyPDF2.PdfReader(file)
-                    writer = PyPDF2.PdfWriter()
+                    reader = PdfReader(file)
+                    writer = PdfWriter()
 
                     # Copy all pages
                     for page in reader.pages:
@@ -415,7 +419,7 @@ class AuditPDFRenderer:
                 logger.debug("PDF metadata set successfully")
 
             except ImportError:
-                logger.warning("PyPDF2 not available - PDF metadata not set")
+                logger.debug("pypdf not available - PDF metadata not set (optional)")
 
         except Exception as e:
             logger.warning(f"Failed to set PDF metadata: {e}")

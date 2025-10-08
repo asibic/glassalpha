@@ -47,6 +47,7 @@ class AuditResults:
     # Model information
     model_info: dict[str, Any] = field(default_factory=dict)
     selected_components: dict[str, Any] = field(default_factory=dict)
+    trained_model: Any = None  # The actual trained model object for export
 
     # Audit metadata
     execution_info: dict[str, Any] = field(default_factory=dict)
@@ -304,6 +305,9 @@ class AuditPipeline:
         """
         from datetime import UTC, datetime  # noqa: PLC0415
 
+        # Store progress callback for use in nested methods
+        self._progress_callback = progress_callback
+
         # Friend's spec: Before doing work - capture start time
         start = datetime.now(UTC).isoformat()
 
@@ -348,6 +352,9 @@ class AuditPipeline:
 
             # Update manifest generator with execution info
             self.manifest_generator.mark_completed("completed", None)
+
+            # Store the trained model for export
+            self.results.trained_model = self.model
 
             self.results.success = True
             logger.info("Audit pipeline completed successfully")
@@ -1004,6 +1011,9 @@ class AuditPipeline:
         """
         logger.info("Computing audit metrics")
 
+        # Get progress callback from instance if available
+        progress_callback = getattr(self, "_progress_callback", None)
+
         # Extract data components
         X, y_true, sensitive_features = self.data_loader.extract_features_target(data, schema)
 
@@ -1096,7 +1106,9 @@ class AuditPipeline:
             logger.info("Using model's default predictions (multiclass or no probabilities available)")
 
         # Compute performance metrics
+        self._update_progress(progress_callback, "Computing performance metrics", 62)
         self._compute_performance_metrics(y_true, y_pred, y_proba)
+        self._update_progress(progress_callback, "Performance metrics complete", 65)
 
         # Friend's spec: Ensure accuracy is always computed for each model type
         try:
@@ -1117,10 +1129,14 @@ class AuditPipeline:
 
         # Compute fairness metrics if sensitive features available
         if sensitive_features is not None:
+            self._update_progress(progress_callback, "Computing fairness metrics", 67)
             self._compute_fairness_metrics(y_true, y_pred, y_proba, sensitive_features, X)
+            self._update_progress(progress_callback, "Fairness metrics complete", 72)
 
         # Compute stability metrics (E6+ perturbation sweeps)
+        self._update_progress(progress_callback, "Computing stability metrics", 75)
         self._compute_stability_metrics(X, sensitive_features)
+        self._update_progress(progress_callback, "Stability metrics complete", 78)
 
         # Compute drift metrics (placeholder for now)
         self._compute_drift_metrics(X, y_true)

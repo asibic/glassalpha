@@ -1,6 +1,6 @@
 [project]
 name = "glassalpha"
-version = "0.1.0"
+version = "0.2.0"
 description = "AI Compliance Toolkit - transparent, auditable, regulator-ready ML audits"
 authors = [{ name = "GlassAlpha Team" }]
 readme = "README.md"

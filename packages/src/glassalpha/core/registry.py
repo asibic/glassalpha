@@ -142,6 +142,18 @@ class PluginRegistry:
         names = set(self._objects) | set(self._entry_points) | set(self._aliases.keys())
         return sorted(names)
 
+    def primary_names(self) -> list[str]:
+        """Get list of primary plugin names (excluding aliases).
+
+        Returns:
+            Sorted list of primary plugin names (aliases are excluded)
+
+        """
+        self._ensure_discovered()
+        # Only return actual registered names, not aliases
+        names = set(self._objects) | set(self._entry_points)
+        return sorted(names)
+
     def get_metadata(self, name: str) -> dict[str, Any]:
         """Get metadata for a plugin.
 
@@ -319,12 +331,16 @@ def list_components(component_type: str | None = None, include_enterprise: bool 
     if component_type:
         registry = registries.get(component_type)
         if registry:
-            return {component_type: registry.names()}
+            # Use primary_names to exclude aliases for cleaner output
+            names = registry.primary_names() if hasattr(registry, "primary_names") else registry.names()
+            return {component_type: names}
         return {}
 
     result = {}
     for name, registry in registries.items():
-        result[name] = registry.names()
+        # Use primary_names to exclude aliases for cleaner output
+        names = registry.primary_names() if hasattr(registry, "primary_names") else registry.names()
+        result[name] = names
 
     return result
 

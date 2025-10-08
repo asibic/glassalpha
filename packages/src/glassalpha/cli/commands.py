@@ -123,12 +123,16 @@ def _bootstrap_components() -> None:
     logger.debug("Component bootstrap completed")
 
 
-def _run_audit_pipeline(config, output_path: Path, selected_explainer: str | None = None) -> None:
+def _run_audit_pipeline(config, output_path: Path, selected_explainer: str | None = None):
     """Execute the complete audit pipeline and generate report in specified format.
 
     Args:
         config: Validated audit configuration
         output_path: Path where report should be saved
+        selected_explainer: Optional explainer override
+
+    Returns:
+        tuple: (audit_results, trained_model) where trained_model is the model used in the audit
 
     """
     import time
@@ -175,7 +179,9 @@ def _run_audit_pipeline(config, output_path: Path, selected_explainer: str | Non
 
             # Run the actual audit pipeline with progress callback
             audit_results = run_audit_pipeline(
-                config, progress_callback=update_progress, selected_explainer=selected_explainer
+                config,
+                progress_callback=update_progress,
+                selected_explainer=selected_explainer,
             )
 
         if not audit_results.success:
@@ -301,6 +307,8 @@ def _run_audit_pipeline(config, output_path: Path, selected_explainer: str | Non
                 fg=typer.colors.YELLOW,
             )
 
+        return audit_results
+
     except Exception as e:
         typer.secho(f"Audit failed: {e!s}", fg=typer.colors.RED, err=True)
 
@@ -326,8 +334,18 @@ def _display_audit_summary(audit_results) -> None:
         for name, result in audit_results.model_performance.items():
             if isinstance(result, dict) and "accuracy" in result:
                 accuracy = result["accuracy"]
-                status = "GOOD" if accuracy > 0.8 else "OK" if accuracy > 0.6 else "POOR"
-                typer.echo(f"     {status} {name}: {accuracy:.1%}")
+
+                # Warn about suspiciously high accuracy (>98%) which may indicate data leakage or overfitting
+                if accuracy > 0.98:
+                    status = "SUSPICIOUS"
+                    typer.echo(f"     {status} {name}: {accuracy:.1%}")
+                    typer.secho(
+                        "     ⚠️  Accuracy >98% may indicate data leakage or overfitting",
+                        fg=typer.colors.YELLOW,
+                    )
+                else:
+                    status = "GOOD" if accuracy > 0.8 else "OK" if accuracy > 0.6 else "POOR"
+                    typer.echo(f"     {status} {name}: {accuracy:.1%}")
                 break
 
     # Fairness analysis
@@ -738,6 +756,11 @@ def audit(  # pragma: no cover
         "--fail-on-degradation",
         help="Exit with error if any metric degrades by more than this threshold (e.g., 0.05 for 5pp).",
     ),
+    save_model: Path | None = typer.Option(
+        None,
+        "--save-model",
+        help="Save the trained model to the specified path (e.g., model.pkl). Required for reasons/recourse commands.",
+    ),
 ):
     """Generate a compliance audit PDF report with optional shift testing.
 
@@ -944,7 +967,22 @@ def audit(  # pragma: no cover
 
         # Run audit pipeline
         typer.echo("\nRunning audit pipeline...")
-        _run_audit_pipeline(audit_config, output, selected_explainer)
+        audit_results = _run_audit_pipeline(audit_config, output, selected_explainer)
+
+        # Save model if requested
+        if save_model and audit_results:
+            try:
+                import joblib
+
+                model_to_save = audit_results.trained_model
+                if model_to_save is not None:
+                    save_model.parent.mkdir(parents=True, exist_ok=True)
+                    joblib.dump(model_to_save, save_model)
+                    typer.secho(f"✓ Model saved to: {save_model}", fg=typer.colors.GREEN)
+                else:
+                    typer.secho("⚠️  No model available to save", fg=typer.colors.YELLOW)
+            except Exception as e:
+                typer.secho(f"⚠️  Failed to save model: {e}", fg=typer.colors.YELLOW)
 
         # Run shift analysis if requested (E6.5)
         if check_shift:
@@ -1389,19 +1427,21 @@ def docs(  # pragma: no cover
     """
     import webbrowser
 
-    base_url = "https://glassalpha.com/docs"
+    base_url = "https://glassalpha.com"
 
     # Build URL based on topic
     if topic:
         # Normalize topic (replace underscores with hyphens)
         topic_normalized = topic.replace("_", "-")
-        url = f"{base_url}/reference/{topic_normalized}/"
 
         # Special cases for common topics
-        if topic_normalized in ["quickstart", "installation"]:
+        if topic_normalized in ["quickstart", "installation", "configuration", "overview", "datasets", "custom-data"]:
             url = f"{base_url}/getting-started/{topic_normalized}/"
-        elif topic_normalized in ["cli", "troubleshooting", "faq"]:
+        elif topic_normalized in ["cli", "troubleshooting", "faq", "contributing", "api"]:
             url = f"{base_url}/reference/{topic_normalized}/"
+        else:
+            # Default to guides section for most topics
+            url = f"{base_url}/guides/{topic_normalized}/"
     else:
         url = base_url
 

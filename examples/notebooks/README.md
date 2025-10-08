@@ -101,6 +101,6 @@ All notebooks follow this pattern:
 
 ## Support
 
-- **Documentation**: [glassalpha.com/docs](https://glassalpha.com/docs)
+- **Documentation**: [glassalpha.com](https://glassalpha.com)
 - **GitHub Issues**: [Report bugs or request features](https://github.com/GlassAlpha/glassalpha/issues)
 - **Discussions**: [Ask questions](https://github.com/GlassAlpha/glassalpha/discussions)

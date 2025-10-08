@@ -195,18 +195,39 @@ def compute_consistency_score(
     if not feature_cols:
         raise ValueError("No non-protected features available for distance computation")
 
-    X = features[feature_cols].values
+    # Extract features and ensure they're numeric
+    X_df = features[feature_cols]
+
+    # Convert to numeric, handling categorical columns
+    X_numeric = pd.DataFrame()
+    for col in X_df.columns:
+        if pd.api.types.is_numeric_dtype(X_df[col]):
+            X_numeric[col] = X_df[col]
+        else:
+            # Convert categorical/object to numeric codes
+            X_numeric[col] = pd.Categorical(X_df[col]).codes
+
+    X = X_numeric.values
     n_samples = len(X)
 
     # Validate inputs
     if len(predictions) != n_samples:
         raise ValueError(f"Predictions length {len(predictions)} != features length {n_samples}")
 
-    # Check for NaN values
-    if np.isnan(X).any():
-        raise ValueError(
-            "Features contain NaN values. Please handle missing data before computing individual fairness.",
-        )
+    # Check for NaN values (handle non-numeric types gracefully)
+    try:
+        has_nan = np.isnan(X).any() if np.issubdtype(X.dtype, np.number) else pd.isna(X).any()
+        if has_nan:
+            raise ValueError(
+                "Features contain NaN values. Please handle missing data before computing individual fairness.",
+            )
+    except (TypeError, ValueError):
+        # If X contains mixed types or objects, use pandas for NaN detection
+        has_nan = pd.DataFrame(X).isna().any().any()
+        if has_nan:
+            raise ValueError(
+                "Features contain NaN values. Please handle missing data before computing individual fairness.",
+            )
 
     # Normalize features for fair distance comparison (use robust scaling)
     X_normalized = _robust_scale(X)
@@ -345,7 +366,16 @@ def find_matched_pairs(
     if seed is not None:
         np.random.seed(seed)
 
-    X = features.values
+    # Convert features to numeric if needed
+    X_numeric = pd.DataFrame()
+    for col in features.columns:
+        if pd.api.types.is_numeric_dtype(features[col]):
+            X_numeric[col] = features[col]
+        else:
+            # Convert categorical/object to numeric codes
+            X_numeric[col] = pd.Categorical(features[col]).codes
+
+    X = X_numeric.values
     n_samples = len(X)
 
     # Normalize features

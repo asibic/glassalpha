@@ -189,7 +189,12 @@ def _ask_use_case() -> str:
     typer.echo("  4. Production deployment / Regulatory submission")
     typer.echo()
 
-    choice = typer.prompt("Select option (1-4)", type=int, default=1)
+    try:
+        choice = typer.prompt("Select option (1-4)", type=int, default=1, show_default=True)
+    except (EOFError, RuntimeError):
+        # Handle non-interactive environments or EOF
+        typer.echo("Using default: 1")
+        choice = 1
 
     template_map = {
         1: "quickstart",
@@ -222,7 +227,12 @@ def _customize_template(template_name: str, template_content: str) -> str:
     typer.echo()
 
     # Ask about customization
-    customize = typer.confirm("Would you like to customize the configuration?", default=False)
+    try:
+        customize = typer.confirm("Would you like to customize the configuration?", default=False)
+    except (EOFError, RuntimeError):
+        # Handle non-interactive environments or EOF
+        typer.echo("Using default: No")
+        customize = False
 
     if not customize:
         return template_content
@@ -232,11 +242,18 @@ def _customize_template(template_name: str, template_content: str) -> str:
     # Common customizations based on template
     if template_name in ("development", "production"):
         # Ask about data path
-        use_custom_data = typer.confirm("Use custom dataset (vs. built-in)?", default=False)
+        try:
+            use_custom_data = typer.confirm("Use custom dataset (vs. built-in)?", default=False)
+        except (EOFError, RuntimeError):
+            use_custom_data = False
 
         if use_custom_data:
-            data_path = typer.prompt("Data file path", default="data/my_data.csv")
-            target_col = typer.prompt("Target column name", default="target")
+            try:
+                data_path = typer.prompt("Data file path", default="data/my_data.csv")
+                target_col = typer.prompt("Target column name", default="target")
+            except (EOFError, RuntimeError):
+                data_path = "data/my_data.csv"
+                target_col = "target"
 
             # Replace dataset with custom path
             template_content = template_content.replace(
@@ -255,7 +272,11 @@ def _customize_template(template_name: str, template_content: str) -> str:
     typer.echo("  2. XGBoost (recommended)")
     typer.echo("  3. LightGBM (fast + accurate)")
 
-    model_choice = typer.prompt("Select model (1-3)", type=int, default=2)
+    try:
+        model_choice = typer.prompt("Select model (1-3)", type=int, default=2)
+    except (EOFError, RuntimeError):
+        typer.echo("Using default: 2")
+        model_choice = 2
 
     model_map = {
         1: "logistic_regression",
