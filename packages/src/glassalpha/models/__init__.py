@@ -3,8 +3,15 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
 from glassalpha.core.registry import ModelRegistry
+from glassalpha.exceptions import GlassAlphaError
+
+
+class ModelLoadError(GlassAlphaError):
+    """Raised when model loading fails."""
+
 
 # Discover models from entry points
 ModelRegistry.discover()
@@ -45,4 +52,4 @@ def load_model_from_config(model_config) -> Any:
     return model
 
 
-__all__ = ["ModelRegistry", "load_model_from_config"]
+__all__ = ["ModelLoadError", "ModelRegistry", "load_model_from_config"]

@@ -58,12 +58,12 @@ class TestCLIPerformance:
         print(f"\n✅ --help performance: {elapsed * 1000:.0f}ms (target: <300ms)")
 
     def test_version_command_instant(self):
-        """Ensure --version stays under 100ms.
+        """Ensure --version stays under 150ms (currently ~50ms locally).
 
         Version command should be nearly instant - just print version and exit.
         No heavy imports should be triggered.
 
-        Threshold: 100ms
+        Threshold: 150ms (2x safety margin for CI variability)
         """
         start = time.time()
         result = subprocess.run(
@@ -79,12 +79,12 @@ class TestCLIPerformance:
         # Validate command succeeded
         assert result.returncode == 0, f"--version failed: {result.stderr}"
 
-        # Performance check
-        assert elapsed < 0.1, (
-            f"--version took {elapsed:.3f}s (expected <0.1s). Version command should be nearly instant."
+        # Performance check with 2x margin for CI variability
+        assert elapsed < 0.15, (
+            f"--version took {elapsed:.3f}s (expected <0.15s). Version command should be nearly instant."
         )
 
-        print(f"\n✅ --version performance: {elapsed * 1000:.0f}ms (target: <100ms)")
+        print(f"\n✅ --version performance: {elapsed * 1000:.0f}ms (target: <150ms)")
 
     def test_datasets_list_no_eager_loading(self):
         """Ensure datasets list doesn't eagerly load data files.

@@ -206,7 +206,7 @@ class LightGBMWrapper(BaseTabularWrapper):
         self._is_fitted = True  # Loaded model is fitted
         return self
 
-    def fit(self, X: Any, y: Any, **kwargs: Any) -> "LightGBMWrapper":  # noqa: N803, ANN401
+    def fit(self, X: Any, y: Any, **kwargs: Any) -> "LightGBMWrapper":  # noqa: ANN401
         """Train LightGBM model on provided data.
 
         Args:
@@ -237,12 +237,12 @@ class LightGBMWrapper(BaseTabularWrapper):
 
             # Sanitize feature names for LightGBM (it doesn't accept special JSON characters)
             sanitized_names, self._feature_name_mapping = self._sanitize_feature_names(list(X.columns))
-            X_processed = self._prepare_x(X)  # noqa: N806
+            X_processed = self._prepare_x(X)
             # Rename columns with sanitized names
             if hasattr(X_processed, "columns"):
                 X_processed.columns = sanitized_names
         else:
-            X_processed = self._prepare_x(X)  # noqa: N806
+            X_processed = self._prepare_x(X)
             self._feature_name_mapping = None
 
         lgb = _import_lightgbm()
@@ -290,7 +290,7 @@ class LightGBMWrapper(BaseTabularWrapper):
 
     # Removed custom _prepare_x - now uses base class version with centralized align_features
 
-    def predict(self, X: pd.DataFrame) -> np.ndarray:  # noqa: N803
+    def predict(self, X: pd.DataFrame) -> np.ndarray:
         """Generate predictions for input data.
 
         Args:
@@ -303,7 +303,7 @@ class LightGBMWrapper(BaseTabularWrapper):
         self._ensure_fitted()
 
         # Use _prepare_X for robust feature handling
-        X_processed = self._prepare_x(X)  # noqa: N806
+        X_processed = self._prepare_x(X)
 
         # Get raw predictions
         predictions = self.model.predict(X_processed, num_iteration=self.model.best_iteration)
@@ -320,7 +320,7 @@ class LightGBMWrapper(BaseTabularWrapper):
         logger.debug(f"Generated predictions for {len(X)} samples")
         return predictions
 
-    def predict_proba(self, X: pd.DataFrame) -> np.ndarray:  # noqa: N803
+    def predict_proba(self, X: pd.DataFrame) -> np.ndarray:
         """Generate probability predictions for input data.
 
         Args:
@@ -333,7 +333,7 @@ class LightGBMWrapper(BaseTabularWrapper):
         self._ensure_fitted()
 
         # Use _prepare_X for robust feature handling
-        X_processed = self._prepare_x(X)  # noqa: N806
+        X_processed = self._prepare_x(X)
 
         # Get raw predictions (probabilities)
         predictions = self.model.predict(X_processed, num_iteration=self.model.best_iteration)
@@ -450,3 +450,20 @@ class LightGBMWrapper(BaseTabularWrapper):
         """String representation of the wrapper."""
         status = "loaded" if self.model else "not loaded"
         return f"LightGBMWrapper(status={status}, n_classes={self.n_classes}, version={self.version})"
+
+
+# Register LightGBM model with ModelRegistry at module import
+try:
+    from glassalpha.core.registry import ModelRegistry
+
+    # Check if LightGBM is actually available before registering
+    _import_lightgbm()
+    ModelRegistry.register(
+        "lightgbm",
+        LightGBMWrapper,
+        import_check="lightgbm",
+        extra_hint="lightgbm",
+    )
+except ImportError:
+    # LightGBM not available - model will show as unavailable in registry
+    pass

@@ -42,10 +42,7 @@ def register_xgboost():
         # Return a dummy class that raises an error when instantiated
         class UnavailableXGBoost:
             def __init__(self, *args, **kwargs):
-                msg = (
-                    "XGBoost is not installed. "
-                    "Install with: pip install 'glassalpha[xgboost]' or pip install xgboost"
-                )
+                msg = "XGBoost is not installed. Install with: pip install 'glassalpha[xgboost]' or pip install xgboost"
                 raise ImportError(msg)
 
         return UnavailableXGBoost
@@ -99,7 +96,7 @@ class XGBoostWrapper(BaseTabularWrapper):
         else:
             logger.info("XGBoostWrapper initialized without model")
 
-    def _to_dmatrix(self, X, y=None):  # noqa: N803
+    def _to_dmatrix(self, X, y=None):
         """Convert input to XGBoost DMatrix with proper feature alignment.
 
         Args:
@@ -417,7 +414,7 @@ class XGBoostWrapper(BaseTabularWrapper):
                 logger.debug("Could not determine number of classes, defaulting to binary")
                 self.n_classes_ = 2
 
-    def predict(self, X):  # noqa: N803
+    def predict(self, X):
         """Generate predictions for input data.
 
         Args:
@@ -435,7 +432,7 @@ class XGBoostWrapper(BaseTabularWrapper):
             return (raw >= 0.5).astype(int)
         return np.argmax(raw, axis=1)
 
-    def predict_proba(self, X):  # noqa: N803
+    def predict_proba(self, X):
         """Generate probability predictions for input data.
 
         Args:
@@ -550,3 +547,20 @@ class XGBoostWrapper(BaseTabularWrapper):
         """String representation of the wrapper."""
         status = "loaded" if self.model else "not loaded"
         return f"XGBoostWrapper(status={status}, n_classes={self.n_classes}, version={self.version})"
+
+
+# Register XGBoost model with ModelRegistry at module import
+try:
+    from glassalpha.core.registry import ModelRegistry
+
+    # Check if XGBoost is actually available before registering
+    _import_xgboost()
+    ModelRegistry.register(
+        "xgboost",
+        XGBoostWrapper,
+        import_check="xgboost",
+        extra_hint="xgboost",
+    )
+except ImportError:
+    # XGBoost not available - model will show as unavailable in registry
+    pass

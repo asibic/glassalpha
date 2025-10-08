@@ -272,7 +272,7 @@ if SKLEARN_AVAILABLE:
 
             logger.info("LogisticRegressionWrapper initialized")
 
-        def fit(self, X, y=None, **kwargs: Any) -> LogisticRegressionWrapper:  # noqa: N803, ANN001, ANN401
+        def fit(self, X, y=None, **kwargs: Any) -> LogisticRegressionWrapper:  # noqa: ANN401
             """Fit the logistic regression model.
 
             Args:
@@ -312,7 +312,7 @@ if SKLEARN_AVAILABLE:
                 self.feature_names_ = list(X.columns)
 
             # Use base class _prepare_x for consistent preprocessing
-            X_processed = self._prepare_x(X)  # noqa: N806
+            X_processed = self._prepare_x(X)
             self.model.fit(X_processed, y)
 
             # Set fitted state and classes
@@ -323,26 +323,26 @@ if SKLEARN_AVAILABLE:
 
             return self
 
-        def predict(self, X) -> Any:  # noqa: N803, ANN001, ANN401
+        def predict(self, X) -> Any:  # noqa: ANN401
             """Make predictions using base class error handling."""
             self._ensure_fitted()
 
             # Use base class _prepare_x for robust feature handling
-            X_processed = self._prepare_x(X)  # noqa: N806
+            X_processed = self._prepare_x(X)
             predictions = self.model.predict(X_processed)
 
             # Ensure 1D numpy array output
             return np.array(predictions).flatten()
 
-        def predict_proba(self, X) -> Any:  # noqa: N803, ANN001, ANN401
+        def predict_proba(self, X) -> Any:  # noqa: ANN401
             """Get prediction probabilities using base class error handling."""
             self._ensure_fitted()
 
             # Use base class _prepare_x for robust feature handling
-            X_processed = self._prepare_x(X)  # noqa: N806
+            X_processed = self._prepare_x(X)
             return self.model.predict_proba(X_processed)
 
-        def _validate_and_reorder_features(self, X) -> Any:  # noqa: N803, ANN001, ANN401
+        def _validate_and_reorder_features(self, X) -> Any:  # noqa: ANN401
             """Validate and reorder features to match training data per friend's spec."""
             # If no stored feature names, return as-is
             if self.feature_names_ is None:
@@ -598,14 +598,14 @@ if SKLEARN_AVAILABLE:
 
             logger.info("SklearnGenericWrapper initialized")
 
-        def predict(self, X) -> Any:  # noqa: N803, ANN001, ANN401
+        def predict(self, X) -> Any:  # noqa: ANN401
             """Make predictions."""
             if self.model is None:
                 msg = "No model loaded"
                 raise AttributeError(msg)
             return self.model.predict(X)
 
-        def predict_proba(self, X) -> Any:  # noqa: N803, ANN001, ANN401
+        def predict_proba(self, X) -> Any:  # noqa: ANN401
             """Get prediction probabilities if supported."""
             if self.model is None:
                 msg = "No model loaded"
@@ -681,3 +681,14 @@ else:
             """Initialize stub - raises ImportError."""
             msg = "scikit-learn not available - install sklearn or fix CI environment"
             raise ImportError(msg)
+
+
+# Register sklearn models with ModelRegistry at module import
+try:
+    from glassalpha.core.registry import ModelRegistry
+
+    ModelRegistry.register("logistic_regression", LogisticRegressionWrapper)
+    ModelRegistry.register("sklearn_generic", SklearnGenericWrapper)
+except ImportError:
+    # Registry import failed - models will be unavailable
+    pass

@@ -68,7 +68,7 @@ class BaseTabularWrapper:
         if self.model is None:
             raise ValueError(ERR_NOT_FITTED)
 
-    def _prepare_x(self, X: Any) -> Any:  # noqa: ANN401, N803
+    def _prepare_x(self, X: Any) -> Any:  # noqa: ANN401
         """Robust DataFrame column handling - uses centralized feature alignment.
 
         Contract compliance: Uses shared align_features function for consistent
@@ -83,7 +83,7 @@ class BaseTabularWrapper:
         """
         return self._align_features(X)
 
-    def _align_features(self, X: Any) -> Any:  # noqa: ANN401, N803
+    def _align_features(self, X: Any) -> Any:  # noqa: ANN401
         """Shared feature alignment helper - contract compliance.
 
         Implements the exact feature drift contract:
