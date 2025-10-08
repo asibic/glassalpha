@@ -20,7 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- None
+- Temporarily disabled Docker workflow to focus CI resources on PyPI distribution (reassess in Phase 3)
 
 ### Fixed
 
