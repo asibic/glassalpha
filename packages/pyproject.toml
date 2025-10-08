@@ -77,6 +77,7 @@ dev = [
     "ruff>=0.6",
     "mypy>=1.11",
     "pre-commit>=3.5",
+    "build>=1.0",  # Required for wheel packaging tests
     "types-PyYAML>=6.0.12",  # Type stubs for YAML
 ]
 

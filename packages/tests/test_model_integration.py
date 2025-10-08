@@ -231,12 +231,18 @@ class TestLogisticRegressionWrapper:
         assert info["status"] == "loaded"
 
     def test_model_saving_and_loading(self, trained_logistic_model, tmp_path):
-        """Test model saving and loading functionality."""
+        """Test model saving and loading functionality.
+
+        Uses unique file paths to prevent parallel test interference.
+        """
+        import uuid
+
         model, X_df, y, feature_names = trained_logistic_model
         wrapper = LogisticRegressionWrapper(model=model)
 
-        # Save model
-        save_path = tmp_path / "test_model.pkl"
+        # Save model with unique path to avoid parallel test conflicts
+        unique_id = uuid.uuid4().hex[:8]
+        save_path = tmp_path / f"model_{unique_id}.pkl"
         wrapper.save(save_path)
 
         assert save_path.exists()
