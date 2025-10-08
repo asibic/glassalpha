@@ -63,45 +63,6 @@ class TestModelRegistryAutoImport:
         # Should be the same object
         assert model_class_1 is model_class_2
 
-    def test_model_capabilities_include_parameter_rules(self):
-        """Models have parameter_rules in their capabilities."""
-        pytest.importorskip("lightgbm")
-
-        model_class = ModelRegistry.get("lightgbm")
-        capabilities = getattr(model_class, "capabilities", {})
-
-        assert "parameter_rules" in capabilities
-        param_rules = capabilities["parameter_rules"]
-
-        # Check specific rules
-        assert "max_depth" in param_rules
-        assert "n_estimators" in param_rules
-        assert "learning_rate" in param_rules
-
-    def test_lightgbm_max_depth_special_value(self):
-        """LightGBM declares max_depth=-1 as special value."""
-        pytest.importorskip("lightgbm")
-
-        model_class = ModelRegistry.get("lightgbm")
-        capabilities = getattr(model_class, "capabilities", {})
-        param_rules = capabilities.get("parameter_rules", {})
-
-        max_depth_rule = param_rules.get("max_depth", {})
-        special_values = max_depth_rule.get("special_values", {})
-
-        # max_depth=-1 should be declared as special (means "no limit")
-        assert -1 in special_values
-
-    def test_logistic_regression_c_parameter_rule(self):
-        """LogisticRegression declares C parameter must be positive."""
-        pytest.importorskip("sklearn")
-
-        model_class = ModelRegistry.get("logistic_regression")
-        capabilities = getattr(model_class, "capabilities", {})
-        param_rules = capabilities.get("parameter_rules", {})
-
-        c_rule = param_rules.get("C", {})
-
-        # C must be positive (exclusive_min=True means > 0, not >= 0)
-        assert c_rule.get("min") == 0.0
-        assert c_rule.get("exclusive_min") is True
+    # Note: parameter_rules feature removed - was over-engineered and redundant
+    # Parameter validation is handled by underlying libraries (sklearn, xgboost, lightgbm)
+    # Complex cross-parameter validation done imperatively in wrapper fit() methods

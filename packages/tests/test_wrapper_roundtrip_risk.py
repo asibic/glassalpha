@@ -14,8 +14,12 @@ import pandas as pd
 import pytest
 
 
+@pytest.mark.xdist_group(name="sklearn_pickle")
 class TestWrapperRoundtripRisk:
-    """Test wrapper save/load critical paths that prevent customer data loss."""
+    """Test wrapper save/load critical paths that prevent customer data loss.
+
+    Note: sklearn pickle tests run in single worker due to pytest-xdist class identity issues.
+    """
 
     def test_xgboost_fit_save_load_predict_roundtrip(self):
         """XGBoost fit → save → load → predict must work with all metadata intact."""
@@ -28,7 +32,7 @@ class TestWrapperRoundtripRisk:
                 "feature_1": rng.normal(size=50),
                 "feature_2": rng.uniform(size=50),
                 "feature_3": rng.exponential(size=50),
-            }
+            },
         )
         y_train = (X_train.feature_1 + X_train.feature_2 > 0).astype(int)
 
@@ -84,7 +88,7 @@ class TestWrapperRoundtripRisk:
                 "revenue_growth": np.random.normal(0, 1, 30),
                 "customer_satisfaction": np.random.uniform(0, 10, 30),
                 "market_share": np.random.beta(2, 5, 30),
-            }
+            },
         )
         y_train = np.random.binomial(1, 0.3, 30)
 
@@ -121,7 +125,7 @@ class TestWrapperRoundtripRisk:
             {
                 "x1": np.concatenate([rng.normal(-2, 1, 25), rng.normal(2, 1, 25)]),
                 "x2": np.concatenate([rng.normal(-2, 1, 25), rng.normal(2, 1, 25)]),
-            }
+            },
         )
         y_train = np.concatenate([np.zeros(25), np.ones(25)])
 

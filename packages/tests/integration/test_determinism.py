@@ -16,6 +16,7 @@ import pytest
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 
+from glassalpha.config.loader import load_config_from_file
 from glassalpha.pipeline.audit import AuditPipeline
 from glassalpha.utils.determinism import (
     compute_file_hash,
@@ -46,22 +47,19 @@ def simple_config(tmp_path, tiny_binary_data):
     df["target"] = y
     df.to_csv(data_path, index=False)
 
-    # Create config
+    # Create config (valid AuditConfig schema)
     config = {
+        "audit_profile": "tabular_compliance",
         "data": {
+            "dataset": "custom",  # Required for external files
             "path": str(data_path),
             "target_column": "target",
-            "features": list(X.columns),
         },
         "model": {
             "type": "logistic_regression",
         },
-        "audit": {
-            "seed": 42,
-            "strict_mode": True,
-        },
-        "output": {
-            "format": "html",
+        "reproducibility": {
+            "random_seed": 42,
         },
     }
 
@@ -247,13 +245,16 @@ class TestManifestDeterminism:
         """Test audit manifest is byte-identical across runs."""
         config_path, config = simple_config
 
+        # Load config as AuditConfig object
+        config_obj = load_config_from_file(config_path)
+
         manifest1_path = tmp_path / "manifest1.json"
         manifest2_path = tmp_path / "manifest2.json"
 
         # Run audit twice with same seed
         with deterministic(seed=42):
             # First run
-            pipeline1 = AuditPipeline(config)
+            pipeline1 = AuditPipeline(config_obj)
             results1 = pipeline1.run()
 
             # Save manifest
@@ -263,7 +264,7 @@ class TestManifestDeterminism:
 
         with deterministic(seed=42):
             # Second run
-            pipeline2 = AuditPipeline(config)
+            pipeline2 = AuditPipeline(config_obj)
             results2 = pipeline2.run()
 
             # Save manifest
@@ -295,6 +296,9 @@ class TestPDFDeterminism:
         """
         config_path, config = simple_config
 
+        # Load config as AuditConfig object
+        config_obj = load_config_from_file(config_path)
+
         pdf1_path = tmp_path / "audit1.pdf"
         pdf2_path = tmp_path / "audit2.pdf"
 
@@ -303,13 +307,13 @@ class TestPDFDeterminism:
             # First PDF
             from glassalpha.report.renderer import render_audit_report
 
-            pipeline1 = AuditPipeline(config)
+            pipeline1 = AuditPipeline(config_obj)
             results1 = pipeline1.run()
             render_audit_report(results1, output_path=pdf1_path)
 
         with deterministic(seed=42):
             # Second PDF
-            pipeline2 = AuditPipeline(config)
+            pipeline2 = AuditPipeline(config_obj)
             results2 = pipeline2.run()
             render_audit_report(results2, output_path=pdf2_path)
 
