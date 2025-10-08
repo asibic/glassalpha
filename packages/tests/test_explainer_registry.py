@@ -9,8 +9,12 @@ import pytest
 from glassalpha.core import ExplainerRegistry
 
 
+@pytest.mark.xdist_group(name="explainer_registry")
 class TestExplainerRegistry:
-    """Test explainer registration and discovery."""
+    """Test explainer registration and discovery.
+
+    Note: Tests run serially to preserve registry state across test methods.
+    """
 
     def test_shap_explainers_are_registered(self):
         """Test that SHAP explainers are properly registered."""
@@ -70,13 +74,21 @@ class TestExplainerRegistry:
 
     def test_explainer_registry_availability(self):
         """Test availability checking for explainers."""
+
+        # Register a test explainer for this test
+        @ExplainerRegistry.register("test_explainer_avail", import_check="test_dep")
+        class TestExplainer:
+            @classmethod
+            def is_compatible(cls, *, model=None, model_type=None, config=None):
+                return True
+
         available = ExplainerRegistry.available_plugins()
 
         # Should return dict with plugin names and availability status
         assert isinstance(available, dict)
 
         # Should include our test explainer
-        assert "test_explainer" in available
+        assert "test_explainer_avail" in available
 
     def test_explainer_registry_lazy_import(self):
         """Test that SHAP import is lazy and doesn't crash registry."""
