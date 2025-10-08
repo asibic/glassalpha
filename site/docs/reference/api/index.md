@@ -313,7 +313,8 @@ result  # Display inline
 - **[Data Scientist Workflow](../../guides/data-scientist-workflow.md)** - Notebook development guide
 - **[ML Engineer Workflow](../../guides/ml-engineer-workflow.md)** - Production deployment guide
 - **[Configuration Guide](../../getting-started/configuration.md)** - YAML configuration format
-- **[Example Notebooks](../../../examples/notebooks/)** - Interactive examples
+- **[Quickstart Notebook](https://colab.research.google.com/github/GlassAlpha/glassalpha/blob/main/examples/notebooks/quickstart_colab.ipynb)** - Try in Colab (zero setup)
+- **[Example Tutorials](../../examples/index.md)** - Detailed walkthroughs
 
 ---
 

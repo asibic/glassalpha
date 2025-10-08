@@ -458,9 +458,45 @@ result.performance.get("roc_auc", None)
 ```python
 # Strict equality (byte-identical IDs)
 result1 == result2
+```
 
-# Tolerance-based equality (cross-platform)
-result1.equals(result2, rtol=1e-5, atol=1e-8)
+#### AuditResult.equals() {#auditresultequals}
+
+```python
+result.equals(other, rtol=1e-5, atol=1e-8) -> bool
+```
+
+Compare two audit results with numerical tolerance for cross-platform reproducibility.
+
+**Parameters:**
+
+- `other` (AuditResult): Another audit result to compare against
+- `rtol` (float, default 1e-5): Relative tolerance for floating point comparisons
+- `atol` (float, default 1e-8): Absolute tolerance for floating point comparisons
+
+**Returns:**
+
+- `bool`: True if results are numerically equivalent within tolerance
+
+**Notes:**
+
+- Uses `numpy.allclose()` semantics for metric value comparisons
+- Compares all metric sections: performance, fairness, calibration, stability
+- Ignores metadata like timestamps but validates core audit identity
+- Essential for cross-platform validation and CI/CD pipelines
+
+**Examples:**
+
+```python
+# Basic usage
+if result1.equals(result2):
+    print("Results are numerically equivalent")
+
+# Custom tolerance for high-precision metrics
+result1.equals(result2, rtol=1e-7, atol=1e-10)
+
+# Cross-platform validation
+linux_result.equals(cloud_result, rtol=1e-4)  # Account for platform differences
 ```
 
 #### Display
@@ -612,7 +648,8 @@ except ga.InvalidProtectedAttributesError as e:
 - **[Missing Data Guide](../../guides/missing-data.md)** - Handling NaN in protected attributes
 - **[Probability Requirements](../../guides/probability-requirements.md)** - When probabilities are needed
 - **[Reproducibility in Configuration](../../getting-started/configuration.md#reproducibility-settings)** - Ensuring deterministic results
-- **[Example Notebooks](../../../examples/)** - Interactive examples
+- **[Quickstart Notebook](https://colab.research.google.com/github/GlassAlpha/glassalpha/blob/main/examples/notebooks/quickstart_colab.ipynb)** - Try in Colab
+- **[Example Tutorials](../../examples/index.md)** - Detailed walkthroughs
 - **[CLI Reference](../cli.md)** - Command-line interface
 
 ---

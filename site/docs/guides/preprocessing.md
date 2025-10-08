@@ -638,7 +638,6 @@ A: Minimal (<1 second overhead):
 
 The actual transformation time is the same as without verification.
 
-
 ## Support
 
 If you encounter issues with preprocessing artifact verification:
@@ -647,6 +646,26 @@ If you encounter issues with preprocessing artifact verification:
 2. Run `glassalpha prep validate` for detailed diagnostics
 3. Review audit logs for specific error messages
 4. Open an issue: https://github.com/yourusername/glassalpha/issues
+
+## Determinism {#determinism}
+
+Preprocessing artifacts must be deterministic for reproducible audits. GlassAlpha enforces this through:
+
+### Hash-Based Validation
+
+Every preprocessing artifact includes dual hashes:
+
+- **File hash**: SHA256 of the serialized artifact
+- **Params hash**: Canonical hash of learned parameters (immutables, thresholds, etc.)
+
+### Version Compatibility
+
+Artifacts are validated against the current GlassAlpha version. The preprocessing module maintains backward compatibility for minor version changes but requires explicit migration for major version updates.
+
+### Strict Mode Requirements
+
+In strict mode, preprocessing artifacts must be explicitly provided via `mode: artifact`. Auto mode is not permitted for regulatory submissions.
+
 ## Related Documentation
 
 - [Configuration Reference](../getting-started/configuration.md)

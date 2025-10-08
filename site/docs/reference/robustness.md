@@ -1,10 +1,10 @@
 # Robustness Testing
 
 !!! info "Part of Understanding Section"
-    Model robustness testing validates stability under adversarial perturbations. Related topics:
-    
+Model robustness testing validates stability under adversarial perturbations. Related topics:
+
     - **[Testing Demographic Shifts](../guides/shift-testing.md)** - Robustness to population changes
-    - **[Individual Fairness](fairness-metrics.md#individual-fairness)** - Consistency score (similar concept)
+    - **[Individual Fairness](fairness-metrics.md#individual-fairness-e11)** - Consistency score (similar concept)
     - **[Configuration Guide](../getting-started/configuration.md)** - How to enable stability metrics
 
 # Robustness Testing
@@ -321,7 +321,7 @@ reproducibility:
 ## Related Features
 
 - **[Calibration Analysis](calibration.md)**: Validates probability accuracy
-- **[Individual Fairness](fairness-metrics.md#individual-fairness)**: Consistency score (similar to robustness)
+- **[Individual Fairness](fairness-metrics.md#individual-fairness-e11)**: Consistency score (similar to robustness)
 - **[Shift Testing](../guides/shift-testing.md)**: Tests robustness to demographic distribution changes
 
 ## Implementation Details

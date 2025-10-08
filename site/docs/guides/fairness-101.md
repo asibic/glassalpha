@@ -416,7 +416,7 @@ fairness:
       - [age_group, income_bracket]
 ```
 
-**Learn more**: [Intersectional Fairness Guide](../reference/fairness-metrics.md#intersectional-analysis)
+**Learn more**: [Intersectional Fairness Guide](../reference/fairness-metrics.md#intersectional-fairness-e51)
 
 ---
 

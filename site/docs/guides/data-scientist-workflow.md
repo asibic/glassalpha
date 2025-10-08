@@ -611,7 +611,8 @@ result = ga.audit.from_model(model, X_sample, y_sample, ...)
 ### Examples
 
 - [German Credit Audit](../examples/german-credit-audit.md) - Complete walkthrough
-- [Example Notebooks](../../examples/notebooks/) - Interactive examples
+- [Example Tutorials](../examples/index.md) - Walkthrough guides
+- [Interactive Notebooks](https://github.com/GlassAlpha/glassalpha/tree/main/examples/notebooks) - Jupyter notebooks on GitHub
 
 ## Support
 

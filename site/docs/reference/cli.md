@@ -160,6 +160,8 @@ List available components
 
 Show available models.
 
+## Preprocessing Commands
+
 ### `glassalpha prep`
 
 Preprocessing artifact management

@@ -620,7 +620,8 @@ with mlflow.start_run():
 
 ## Related Documentation
 
-- **[Notebooks](../../examples/notebooks/)** - Interactive examples using `from_model()` API
+- **[Quickstart Notebook](https://colab.research.google.com/github/GlassAlpha/glassalpha/blob/main/examples/notebooks/quickstart_colab.ipynb)** - Interactive examples using `from_model()` API
+- **[Example Tutorials](../../examples/index.md)** - Detailed walkthroughs
 - **[Data Scientist Workflow](../../guides/data-scientist-workflow.md)** - Notebook-based development
 - **[Configuration API](api-config.md)** - Programmatic configuration
 - **[Pipeline API](api-pipeline.md)** - Lower-level audit pipeline

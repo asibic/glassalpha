@@ -1,8 +1,8 @@
 # Fairness Metrics Reference
 
 !!! info "Part of Understanding Section"
-    This page explains fairness concepts in depth. For practical usage, see:
-    
+This page explains fairness concepts in depth. For practical usage, see:
+
     - **[Detecting Dataset Bias](../guides/dataset-bias.md)** - Pre-model fairness checks
     - **[Testing Demographic Shifts](../guides/shift-testing.md)** - Robustness testing
     - **[Quick Start](../getting-started/quickstart.md)** - Get started in 5 minutes
@@ -161,7 +161,7 @@ Sample Size Warnings:
 }
 ```
 
-## Intersectional Fairness (E5.1)
+## Intersectional Fairness (E5.1) {#intersectional-fairness-e51}
 
 ### What It Is
 
@@ -301,7 +301,7 @@ Intersections multiply sample requirements:
 }
 ```
 
-## Individual Fairness (E11)
+## Individual Fairness (E11) {#individual-fairness-e11}
 
 ### What It Is
 
