@@ -735,4 +735,4 @@ For manager-specific questions:
 
 - GitHub Discussions: [GlassAlpha/glassalpha/discussions](https://github.com/GlassAlpha/glassalpha/discussions)
 - Email: [enterprise@glassalpha.com](mailto:enterprise@glassalpha.com)
-- Documentation: [glassalpha.com/docs](https://glassalpha.com/docs)
+- Documentation: [glassalpha.com](https://glassalpha.com)

@@ -620,4 +620,4 @@ For research-specific questions:
 
 - GitHub Discussions: [GlassAlpha/glassalpha/discussions](https://github.com/GlassAlpha/glassalpha/discussions)
 - Email: [research@glassalpha.com](mailto:research@glassalpha.com)
-- Documentation: [glassalpha.com/docs](https://glassalpha.com/docs)
+- Documentation: [glassalpha.com](https://glassalpha.com)

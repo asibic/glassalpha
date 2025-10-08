@@ -557,4 +557,4 @@ For validation-specific questions:
 
 - GitHub Discussions: [GlassAlpha/glassalpha/discussions](https://github.com/GlassAlpha/glassalpha/discussions)
 - Email: [contact@glassalpha.com](mailto:contact@glassalpha.com)
-- Documentation: [glassalpha.com/docs](https://glassalpha.com/docs)
+- Documentation: [glassalpha.com](https://glassalpha.com)
