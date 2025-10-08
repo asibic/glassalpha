@@ -52,7 +52,7 @@ def test_sklearn_basic_functionality():
     # Simple test that sklearn works
     X, y = make_classification(n_samples=100, n_features=4, random_state=42)
 
-    model = LogisticRegression(random_state=42, max_iter=1000)
+    model = LogisticRegression(random_state=42, max_iter=2000, solver='liblinear')
     model.fit(X, y)
 
     predictions = model.predict(X)

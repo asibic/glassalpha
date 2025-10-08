@@ -77,3 +77,28 @@ def check_command_available(command: str) -> bool:
     """
     result, success = run_text_with_success(command, "--version")
     return success and result is not None
+
+
+def run_command_safely(*args: str, **kwargs) -> subprocess.CompletedProcess[str]:
+    """Run subprocess command safely with text mode and error handling.
+
+    Args:
+        *args: Command arguments to pass to subprocess.run
+        **kwargs: Additional keyword arguments for subprocess.run
+
+    Returns:
+        CompletedProcess object with stdout/stderr as strings
+
+    Raises:
+        subprocess.SubprocessError: If the command fails and check=True
+
+    """
+    # Ensure text mode is enabled for safety
+    run_kwargs = {
+        "capture_output": True,
+        "text": True,
+        "encoding": "utf-8",
+        **kwargs
+    }
+
+    return subprocess.run(args, **run_kwargs)

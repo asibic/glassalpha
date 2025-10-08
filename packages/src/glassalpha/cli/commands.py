@@ -402,6 +402,91 @@ def _display_audit_summary(audit_results) -> None:
                 typer.echo(f"     Preprocessing: {prep_mode}")
 
 
+def _binarize_sensitive_features_for_shift(
+    sensitive_features: "pd.DataFrame",
+    shift_specs: list[str]
+) -> "pd.DataFrame":
+    """Binarize sensitive features for shift analysis.
+
+    Shift analysis requires binary attributes (0/1), but datasets may have
+    categorical attributes that need to be binarized.
+
+    Args:
+        sensitive_features: DataFrame with sensitive attributes
+        shift_specs: List of shift specifications to determine which attributes to binarize
+
+    Returns:
+        DataFrame with binarized attributes for shift analysis
+
+    """
+    import pandas as pd
+    # Create a copy to avoid modifying the original
+    binarized = sensitive_features.copy()
+
+    # Get unique attribute names from shift specs
+    shift_attributes = set()
+    for spec in shift_specs:
+        try:
+            from ..metrics.shift import parse_shift_spec
+            attribute, _ = parse_shift_spec(spec)
+            shift_attributes.add(attribute)
+        except ValueError:
+            # Skip invalid specs
+            continue
+
+    # Binarize each attribute needed for shift analysis
+    for attribute in shift_attributes:
+        if attribute not in binarized.columns:
+            typer.secho(f"Warning: Attribute '{attribute}' not found in sensitive features", fg=typer.colors.YELLOW)
+            continue
+
+        col = binarized[attribute]
+
+        # Skip if already binary (0/1 or boolean)
+        if col.dtype in [bool, 'int8', 'int16', 'int32', 'int64']:
+            unique_vals = col.unique()
+            if set(unique_vals).issubset({0, 1}):
+                continue  # Already binary
+
+        # Handle categorical attributes
+        if col.dtype == 'object' or col.dtype.name == 'category':
+            unique_vals = col.dropna().unique()
+
+            # For binary categorical (e.g., "male"/"female")
+            if len(unique_vals) == 2:
+                # Map first value to 0, second to 1
+                val1, val2 = unique_vals
+                binarized[attribute] = col.map({val1: 0, val2: 1}).astype(int)
+
+            # For multi-class categorical, create binary indicators for each class
+            elif len(unique_vals) > 2:
+                # For shift analysis, we need to choose a reference category
+                # Use the most frequent as reference (0) and others as 1
+                value_counts = col.value_counts()
+                reference_val = value_counts.index[0]
+
+                # Create binary indicator (1 if not reference, 0 if reference)
+                binarized[attribute] = (col != reference_val).astype(int)
+
+                typer.echo(f"  Binarized '{attribute}': reference='{reference_val}', others=1")
+
+            else:
+                typer.secho(f"Warning: Cannot binarize '{attribute}' - insufficient categories", fg=typer.colors.YELLOW)
+
+        # Handle numeric attributes (e.g., age)
+        elif col.dtype in ['int64', 'float64']:
+            # For numeric attributes, create binary based on median split
+            median_val = col.median()
+            binarized[attribute] = (col > median_val).astype(int)
+
+            typer.echo(f"  Binarized '{attribute}': median={median_val:.1f}, above=1")
+
+        else:
+            typer.secho(f"Warning: Cannot binarize '{attribute}' - unsupported dtype {col.dtype}", fg=typer.colors.YELLOW)
+
+    return binarized
+
+
 def _run_shift_analysis(
     audit_config,
     output: Path,
@@ -431,15 +516,40 @@ def _run_shift_analysis(
         typer.echo("\nLoading test data...")
         data_loader = TabularDataLoader()
 
-        # Load data
-        data = data_loader.load(audit_config.data.path, audit_config.data)
+        # Handle built-in datasets vs file paths
+        if audit_config.data.dataset == "german_credit":
+            from ..datasets import load_german_credit, get_german_credit_schema
+            data = load_german_credit()
+            schema = get_german_credit_schema()
+        else:
+            # Load from file path
+            data = data_loader.load(audit_config.data.path, audit_config.data)
+            schema = audit_config.data
 
         # Extract features, target, and sensitive features
-        X_test, y_test, sensitive_features = data_loader.extract_features_target(data, audit_config.data)
+        X_test, y_test, sensitive_features = data_loader.extract_features_target(data, schema)
+
+        # Preprocess features for model training (handle categorical encoding)
+        from ..utils.preprocessing import preprocess_auto
+        X_test = preprocess_auto(X_test)
+
+        # Binarize sensitive features for shift analysis (shift analysis requires binary attributes)
+        sensitive_features_binarized = _binarize_sensitive_features_for_shift(sensitive_features, shift_specs)
 
         # Load model using same approach as audit pipeline
         typer.echo("Loading model...")
         model = load_model_from_config(audit_config.model)
+
+        # Train model if not loaded from file
+        if not hasattr(model, '_is_fitted') or not model._is_fitted:
+            typer.echo("Training model...")
+            from ..pipeline.train import train_from_config
+            # Create a minimal config for training
+            train_config = type('TrainConfig', (), {
+                'model': audit_config.model,
+                'reproducibility': audit_config.reproducibility
+            })()
+            model = train_from_config(train_config, X_test, y_test)
 
         # Generate predictions
         typer.echo("Generating predictions...")
@@ -475,7 +585,7 @@ def _run_shift_analysis(
                 result = run_shift_analysis(
                     y_true=y_test,
                     y_pred=y_pred,
-                    sensitive_features=sensitive_features,
+                    sensitive_features=sensitive_features_binarized,
                     attribute=attribute,
                     shift=shift_value,
                     y_proba=y_proba,

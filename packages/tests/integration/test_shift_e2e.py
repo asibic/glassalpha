@@ -272,20 +272,11 @@ class TestShiftSimulatorIntegration:
         assert any(m in degradation for m in performance_metrics), "No performance metrics in degradation"
 
 
-@pytest.mark.skip(
-    reason="CLI tests require binary attributes. Need to add binarization support to CLI or use different dataset."
-)
 class TestShiftSimulatorCLIIntegration:
     """Integration tests for shift simulator CLI.
 
-    Note: These tests are currently skipped because the German Credit dataset
-    has categorical protected attributes (gender='male'/'female'), but the
-    shift module requires binary (0/1) attributes.
-
-    To fix:
-    1. Add automatic binarization in CLI (convert categorical to binary), OR
-    2. Use a test fixture with pre-binarized attributes, OR
-    3. Add binary columns to German Credit dataset (e.g., 'gender_male')
+    Tests the complete workflow from CLI to JSON export for demographic
+    shift analysis (E6.5).
     """
 
     @pytest.fixture
@@ -298,16 +289,15 @@ audit_profile: tabular_compliance
 
 # Data configuration
 data:
-  path: "german_credit"  # Built-in dataset
-  target: "credit_risk"
+  dataset: "german_credit"  # Built-in dataset
+  target_column: "credit_risk"
   protected_attributes:
     - gender
-    - age_years
+    - age_group
 
 # Model configuration
 model:
   type: xgboost
-  path: null  # Will be trained inline
   params:
     n_estimators: 50
     max_depth: 3
@@ -315,28 +305,30 @@ model:
 
 # Preprocessing configuration
 preprocessing:
-  enabled: false
+  mode: "auto"
 
 # Explainer configuration
-explainer:
-  type: treeshap
+explainers:
+  strategy: "first_compatible"
+  priority:
+    - treeshap
   config:
-    max_samples: 100
+    treeshap:
+      max_samples: 100
 
 # Metrics configuration
 metrics:
   fairness:
-    enabled: true
-    threshold: 0.5
-  calibration:
-    enabled: true
+    - demographic_parity
+    - equal_opportunity
 
-# Output configuration
-output:
-  format: pdf
+# Report configuration
+report:
+  output_format: pdf
 
-# Seed for reproducibility
-seed: 42
+# Reproducibility configuration
+reproducibility:
+  random_seed: 42
 """
         config_path.write_text(config_content)
         return config_path
@@ -356,7 +348,7 @@ seed: 42
         exit_code = _run_shift_analysis(
             audit_config=config,
             output=output,
-            shift_specs=["gender_male:+0.1"],
+            shift_specs=["gender:+0.1"],
             threshold=None,
         )
 
@@ -374,8 +366,8 @@ seed: 42
         assert "shift_analysis" in data
         assert "shifts" in data["shift_analysis"]
         assert len(data["shift_analysis"]["shifts"]) == 1
-        assert data["shift_analysis"]["shifts"][0]["shift_specification"]["attribute"] == "gender_male"
-        assert data["shift_analysis"]["shifts"][0]["shift_specification"]["shift"] == 0.1
+        assert data["shift_analysis"]["shifts"][0]["shift_specification"]["attribute"] == "gender"
+        assert data["shift_analysis"]["shifts"][0]["shift_specification"]["shift_value"] == 0.1
 
     def test_cli_multiple_shifts(self, german_credit_config, tmp_path):
         """Test CLI with multiple shift specifications."""
@@ -388,7 +380,7 @@ seed: 42
         exit_code = _run_shift_analysis(
             audit_config=config,
             output=output,
-            shift_specs=["gender_male:+0.1", "gender_male:-0.05"],
+            shift_specs=["gender:+0.1", "age_group:-0.05"],
             threshold=None,
         )
 
@@ -401,6 +393,10 @@ seed: 42
 
         assert len(data["shift_analysis"]["shifts"]) == 2
         assert data["shift_analysis"]["summary"]["total_shifts"] == 2
+        # Verify both attributes are present
+        attributes = [shift["shift_specification"]["attribute"] for shift in data["shift_analysis"]["shifts"]]
+        assert "gender" in attributes
+        assert "age_group" in attributes
 
     def test_cli_threshold_enforcement(self, german_credit_config, tmp_path):
         """Test that CLI respects degradation threshold."""
@@ -414,7 +410,7 @@ seed: 42
         _exit_code = _run_shift_analysis(
             audit_config=config,
             output=output,
-            shift_specs=["gender_male:+0.2"],  # Large shift
+            shift_specs=["gender:+0.2"],  # Large shift
             threshold=0.001,  # Very strict (0.1pp)
         )
 

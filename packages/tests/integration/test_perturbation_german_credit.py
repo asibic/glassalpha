@@ -55,7 +55,7 @@ class TestGermanCreditPerturbation:
         )
 
         # Train LogisticRegression
-        model = LogisticRegression(random_state=42, max_iter=1000)
+        model = LogisticRegression(random_state=42, max_iter=2000, solver='liblinear')
         model.fit(X_train, y_train)
 
         return model, X_test, y_test

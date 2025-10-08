@@ -24,6 +24,7 @@ from glassalpha.core.registry import ModelRegistry
 from glassalpha.data import TabularDataLoader, TabularDataSchema
 from glassalpha.metrics.registry import MetricRegistry
 from glassalpha.utils import ManifestGenerator, get_component_seed, set_global_seed
+from glassalpha.utils.preprocessing import preprocess_auto
 
 logger = logging.getLogger(__name__)
 
@@ -1949,118 +1950,21 @@ class AuditPipeline:
             Processed features DataFrame suitable for training
 
         """
-        from sklearn.compose import ColumnTransformer  # noqa: PLC0415
-        from sklearn.preprocessing import OneHotEncoder  # noqa: PLC0415
+        # Use shared preprocessing utility
+        X_processed = preprocess_auto(X)
 
-        logger.warning(
-            "Using AUTO preprocessing mode - this is NOT compliant for regulatory audits. "
-            "Use mode='artifact' with a verified preprocessing artifact for production.",
-        )
-
-        # Identify categorical and numeric columns
+        # Store preprocessing info for audit results
         categorical_cols = list(X.select_dtypes(include=["object"]).columns)
         numeric_cols = list(X.select_dtypes(exclude=["object"]).columns)
 
-        logger.debug(f"Categorical columns: {categorical_cols}")
-        logger.debug(f"Numeric columns: {numeric_cols}")
+        self.results.execution_info["preprocessing"] = {
+            "mode": "auto",
+            "warning": "not_compliant",
+            "categorical_cols": categorical_cols,
+            "numeric_cols": numeric_cols,
+        }
 
-        if not categorical_cols:
-            # No categorical columns, return as-is
-            logger.debug("No categorical columns detected, returning original DataFrame")
-            # Still mark as auto preprocessing
-            self.results.execution_info["preprocessing"] = {"mode": "auto", "warning": "not_compliant"}
-            return X
-
-        # Build ColumnTransformer with OneHotEncoder for categorical features
-        transformers = []
-
-        if categorical_cols:
-            transformers.append(
-                (
-                    "categorical",
-                    OneHotEncoder(sparse_output=False, handle_unknown="ignore", drop=None),
-                    categorical_cols,
-                ),
-            )
-
-        if numeric_cols:
-            transformers.append(
-                (
-                    "numeric",
-                    "passthrough",  # Pass numeric columns through unchanged
-                    numeric_cols,
-                ),
-            )
-
-        # Create and fit the ColumnTransformer
-        preprocessor = ColumnTransformer(transformers=transformers, remainder="drop")
-
-        try:
-            # Fit and transform the data
-            X_transformed = preprocessor.fit_transform(X)  # noqa: N806
-
-            # Get feature names after transformation
-            feature_names = []
-
-            # Add categorical feature names (one-hot encoded)
-            if categorical_cols:
-                cat_transformer = preprocessor.named_transformers_["categorical"]
-                if hasattr(cat_transformer, "get_feature_names_out"):
-                    cat_features = cat_transformer.get_feature_names_out(categorical_cols)
-                else:
-                    # Fallback for older sklearn versions
-                    cat_features = []
-                    for i, col in enumerate(categorical_cols):
-                        unique_vals = cat_transformer.categories_[i]
-                        cat_features.extend([f"{col}_{val}" for val in unique_vals])
-                feature_names.extend(cat_features)
-
-            # Add numeric feature names
-            if numeric_cols:
-                feature_names.extend(numeric_cols)
-
-            # Sanitize feature names for XGBoost compatibility (no [, ], <, >)
-            sanitized_feature_names = []
-            for name in feature_names:
-                # Replace problematic characters with underscores
-                sanitized = (
-                    name.replace("<", "lt").replace(">", "gt").replace("[", "_").replace("]", "_").replace(" ", "_")
-                )
-                # Ensure no double underscores
-                sanitized = "_".join(filter(None, sanitized.split("_")))
-                sanitized_feature_names.append(sanitized)
-
-            # Convert back to DataFrame with sanitized feature names
-            X_processed = pd.DataFrame(X_transformed, columns=sanitized_feature_names, index=X.index)  # noqa: N806
-
-            logger.info(f"Preprocessed {len(categorical_cols)} categorical columns with OneHotEncoder")
-            logger.info(f"Final feature count: {len(sanitized_feature_names)} (from {len(X.columns)} original)")
-            logger.debug(f"Sanitized feature names: {sanitized_feature_names[:5]}...")
-
-            # Store preprocessing info
-            self.results.execution_info["preprocessing"] = {
-                "mode": "auto",
-                "warning": "not_compliant",
-                "categorical_cols": categorical_cols,
-                "numeric_cols": numeric_cols,
-            }
-
-            return X_processed  # noqa: TRY300
-
-        except Exception as e:
-            logger.exception(f"Preprocessing failed: {e}")  # noqa: TRY401
-            logger.warning("Falling back to simple preprocessing")
-
-            # Fallback: simple label encoding as before
-            X_processed = X.copy()  # noqa: N806
-            for col in categorical_cols:
-                if X_processed[col].dtype == "object":
-                    unique_values = X_processed[col].unique()
-                    value_map = {val: idx for idx, val in enumerate(unique_values)}
-                    X_processed[col] = X_processed[col].map(value_map)
-                    logger.debug(f"Label encoded column '{col}': {value_map}")
-
-            return X_processed
+        return X_processed
 
     def _ensure_components_loaded(self) -> None:
         """Ensure all required components are imported and registered."""

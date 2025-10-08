@@ -228,40 +228,88 @@ class TestNoHeavyImportsOnInit:
     """No heavy dependencies loaded on import"""
 
     def test_sklearn_not_loaded(self):
-        """Sklearn not loaded on import glassalpha"""
-        # Remove glassalpha and sklearn from sys.modules
-        modules_to_remove = [key for key in sys.modules.keys() if key.startswith(("glassalpha", "sklearn"))]
-        for key in modules_to_remove:
-            del sys.modules[key]
+        """Sklearn not loaded on import glassalpha
 
-        import glassalpha as ga
+        Runs in subprocess to avoid polluting sys.modules for parallel tests.
+        """
+        import subprocess
 
-        sklearn_modules = [key for key in sys.modules.keys() if key.startswith("sklearn")]
+        code = """
+import sys
+import glassalpha as ga
 
-        assert len(sklearn_modules) == 0, f"sklearn should not be loaded on import, found: {sklearn_modules}"
+# Sklearn should not be loaded on import
+sklearn_modules = [key for key in sys.modules.keys() if key.startswith("sklearn")]
+if sklearn_modules:
+    print(f"FAILED: sklearn loaded: {sklearn_modules}")
+    sys.exit(1)
+else:
+    print("OK: sklearn not loaded")
+    sys.exit(0)
+"""
+        result = subprocess.run(
+            [sys.executable, "-c", code],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+
+        assert result.returncode == 0, f"sklearn was loaded on import: {result.stdout}"
 
     def test_xgboost_not_loaded(self):
-        """Xgboost not loaded on import glassalpha"""
-        # Remove glassalpha and xgboost from sys.modules
-        modules_to_remove = [key for key in sys.modules.keys() if key.startswith(("glassalpha", "xgboost"))]
-        for key in modules_to_remove:
-            del sys.modules[key]
+        """Xgboost not loaded on import glassalpha
 
-        import glassalpha as ga
+        Runs in subprocess to avoid polluting sys.modules for parallel tests.
+        """
+        import subprocess
 
-        xgboost_modules = [key for key in sys.modules.keys() if key.startswith("xgboost")]
+        code = """
+import sys
+import glassalpha as ga
 
-        assert len(xgboost_modules) == 0, f"xgboost should not be loaded on import, found: {xgboost_modules}"
+# Xgboost should not be loaded on import
+xgboost_modules = [key for key in sys.modules.keys() if key.startswith("xgboost")]
+if xgboost_modules:
+    print(f"FAILED: xgboost loaded: {xgboost_modules}")
+    sys.exit(1)
+else:
+    print("OK: xgboost not loaded")
+    sys.exit(0)
+"""
+        result = subprocess.run(
+            [sys.executable, "-c", code],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+
+        assert result.returncode == 0, f"xgboost was loaded on import: {result.stdout}"
 
     def test_matplotlib_not_loaded(self):
-        """Matplotlib not loaded on import glassalpha"""
-        # Remove glassalpha and matplotlib from sys.modules
-        modules_to_remove = [key for key in sys.modules.keys() if key.startswith(("glassalpha", "matplotlib"))]
-        for key in modules_to_remove:
-            del sys.modules[key]
+        """Matplotlib not loaded on import glassalpha
 
-        import glassalpha as ga
+        Runs in subprocess to avoid polluting sys.modules for parallel tests.
+        """
+        import subprocess
 
-        matplotlib_modules = [key for key in sys.modules.keys() if key.startswith("matplotlib")]
+        code = """
+import sys
+import glassalpha as ga
 
-        assert len(matplotlib_modules) == 0, f"matplotlib should not be loaded on import, found: {matplotlib_modules}"
+# Matplotlib should not be loaded on import
+matplotlib_modules = [key for key in sys.modules.keys() if key.startswith("matplotlib")]
+if matplotlib_modules:
+    print(f"FAILED: matplotlib loaded: {matplotlib_modules}")
+    sys.exit(1)
+else:
+    print("OK: matplotlib not loaded")
+    sys.exit(0)
+"""
+        result = subprocess.run(
+            [sys.executable, "-c", code],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+
+        assert result.returncode == 0, f"matplotlib was loaded on import: {result.stdout}"

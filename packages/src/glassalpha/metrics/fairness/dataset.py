@@ -8,13 +8,14 @@ Detects bias at the data source level before model training:
 - Split imbalance: Train/test protected group distribution differences
 """
 
+import warnings
 from dataclasses import dataclass, field
 from typing import Any
 
 import numpy as np
 import pandas as pd
 from scipy import stats
-from scipy.stats import chi2_contingency, ks_2samp
+from scipy.stats import ConstantInputWarning, chi2_contingency, ks_2samp
 
 # ============================================================================
 # DATA STRUCTURES
@@ -204,10 +205,13 @@ def compute_proxy_correlations(
 
             if protected_is_numeric and feature_is_numeric:
                 # Pearson correlation for continuous-continuous
-                corr, p_value = stats.pearsonr(
-                    data[protected_attr].dropna(),
-                    data[feature].dropna(),
-                )
+                # Suppress ConstantInputWarning - we handle constant inputs gracefully
+                with warnings.catch_warnings():
+                    warnings.filterwarnings('ignore', category=ConstantInputWarning)
+                    corr, p_value = stats.pearsonr(
+                        data[protected_attr].dropna(),
+                        data[feature].dropna(),
+                    )
             elif not protected_is_numeric and not feature_is_numeric:
                 # Cramér's V for categorical-categorical
                 contingency_table = pd.crosstab(data[protected_attr], data[feature])

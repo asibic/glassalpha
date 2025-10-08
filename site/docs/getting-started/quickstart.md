@@ -58,6 +58,66 @@ open audit.pdf  # macOS
 - [Try other datasets](data-sources.md)
 - [Understand the configuration](configuration.md)
 
+---
+
+## Python API (Notebooks & Scripts)
+
+**Perfect for**: Jupyter notebooks, interactive exploration, programmatic workflows
+
+Generate audits without YAML files using the `from_model()` API:
+
+```python
+import glassalpha as ga
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split
+
+# Load data
+df = ga.datasets.load_german_credit()
+X = df.drop(columns=["credit_risk"])
+y = df["credit_risk"]
+
+# Split data
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.3, random_state=42
+)
+
+# Train model
+model = RandomForestClassifier(random_state=42)
+model.fit(X_train, y_train)
+
+# Generate audit (3 lines)
+result = ga.audit.from_model(
+    model=model,
+    X=X_test,
+    y=y_test,
+    protected_attributes={
+        "age": X_test["age"],
+        "gender": X_test["gender"]
+    },
+    random_seed=42
+)
+
+# View inline in Jupyter
+result  # Auto-displays HTML summary
+
+# Or export PDF
+result.to_pdf("audit.pdf")
+```
+
+**What you get:**
+
+- ✅ Auto-detection of model type (XGBoost, LightGBM, sklearn)
+- ✅ Inline HTML display in Jupyter notebooks
+- ✅ Full fairness and performance metrics
+- ✅ SHAP explanations (if model supports TreeSHAP)
+- ✅ Byte-identical reproducibility with `random_seed`
+
+**Try it now**: [Open our Colab quickstart notebook](https://colab.research.google.com/github/GlassAlpha/glassalpha/blob/main/examples/notebooks/quickstart_colab.ipynb) (zero setup, runs in browser)
+
+**API Reference**: See [`from_model()` documentation](../reference/api/api-audit.md) for all parameters
+
+---
+
 ## The 10-minute version
 
 Get up and running with GlassAlpha in less than 10 minutes. This guide will take you from installation to generating your first professional audit PDF.
