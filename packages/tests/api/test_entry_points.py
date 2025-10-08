@@ -194,22 +194,30 @@ class TestAPIAccessPatterns:
         """Audit module lazy loads on first use"""
         import sys
 
-        # Clear all glassalpha modules
-        modules_to_remove = [key for key in sys.modules.keys() if key.startswith("glassalpha")]
-        for key in modules_to_remove:
-            del sys.modules[key]
+        # Save original modules
+        original_modules = sys.modules.copy()
 
-        # Import glassalpha
-        import glassalpha as ga
+        try:
+            # Clear all glassalpha modules
+            modules_to_remove = [key for key in sys.modules.keys() if key.startswith("glassalpha")]
+            for key in modules_to_remove:
+                del sys.modules[key]
 
-        # Verify audit not loaded yet
-        assert "glassalpha.api" not in sys.modules
+            # Import glassalpha
+            import glassalpha as ga
 
-        # Access audit attribute
-        _ = ga.audit
+            # Verify audit not loaded yet
+            assert "glassalpha.api" not in sys.modules
 
-        # Verify loaded now
-        assert "glassalpha.api" in sys.modules
+            # Access audit attribute
+            _ = ga.audit
+
+            # Verify loaded now
+            assert "glassalpha.api" in sys.modules
+        finally:
+            # Restore original modules to avoid contaminating subsequent tests
+            sys.modules.clear()
+            sys.modules.update(original_modules)
 
 
 class TestTypeAnnotations:

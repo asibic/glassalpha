@@ -10,9 +10,15 @@ echo "=============================================="
 # Navigate to packages directory
 cd "$(dirname "$0")"
 
-# Activate virtual environment
-echo "📦 Activating virtual environment..."
-source venv/bin/activate
+# Check if we're in a virtual environment
+if [ -z "$VIRTUAL_ENV" ]; then
+    echo "❌ No virtual environment detected!"
+    echo "   Please activate your venv first:"
+    echo "   cd .. && source .venv/bin/activate && cd packages"
+    exit 1
+fi
+
+echo "📦 Using virtual environment: $VIRTUAL_ENV"
 
 echo ""
 echo "🧹 Step 1: Auto-fixing with Ruff..."

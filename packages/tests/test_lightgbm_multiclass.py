@@ -5,13 +5,16 @@ import pandas as pd
 import pytest
 
 try:
+    import lightgbm
+
     from glassalpha.models.tabular.lightgbm import LightGBMWrapper
 
     LIGHTGBM_AVAILABLE = True
 except ImportError:
     LIGHTGBM_AVAILABLE = False
+    LightGBMWrapper = None  # type: ignore
 
-pytestmark = pytest.mark.skipif(not LIGHTGBM_AVAILABLE, reason="LightGBM not available")
+pytestmark = pytest.mark.skipif(not LIGHTGBM_AVAILABLE, reason="LightGBM not installed")
 
 
 def test_lightgbm_multiclass_auto_num_class():

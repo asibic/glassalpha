@@ -135,3 +135,15 @@ class DecoratorFriendlyRegistry(PluginRegistry):
 
         """
         return self._meta.get(name, {}).get("enterprise", False)
+
+    def get_metadata(self, name: str) -> dict[str, Any]:
+        """Get metadata for a plugin.
+
+        Args:
+            name: Plugin name
+
+        Returns:
+            Dictionary of metadata for the plugin
+
+        """
+        return self._meta.get(name, {}).copy()

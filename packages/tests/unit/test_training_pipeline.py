@@ -12,6 +12,16 @@ import pytest
 from glassalpha.pipeline.train import train_from_config
 
 
+def _has_lightgbm():
+    """Check if lightgbm is installed."""
+    try:
+        import lightgbm
+
+        return True
+    except ImportError:
+        return False
+
+
 def _create_mock_config(model_type="logistic_regression", **kwargs):
     """Create a mock configuration object for testing."""
 
@@ -47,7 +57,7 @@ def _create_test_data(samples=20):
             "age": list(range(20, 20 + samples)),
             "income": [50000 + i * 1000 for i in range(samples)],
             "credit_score": [650 + i * 10 for i in range(samples)],
-        }
+        },
     )
     # Create balanced binary classification with enough samples per class for CV
     y = [i % 2 for i in range(samples)]  # 0, 1, 0, 1, ... pattern
@@ -88,6 +98,10 @@ class TestTrainingPipeline:
         predictions = model.predict(X)
         assert len(predictions) == len(y)
 
+    @pytest.mark.skipif(
+        not _has_lightgbm(),
+        reason="LightGBM not installed",
+    )
     def test_train_lightgbm_basic(self):
         """Test basic training of LightGBM model."""
         config = _create_mock_config("lightgbm")
@@ -249,7 +263,7 @@ class TestTrainingPipeline:
             {
                 "age": [25, 30, 35, 40, 45],
                 "income": [50000, 60000, 70000, 80000, 90000],
-            }
+            },
         )
         y = ["low", "low", "medium", "high", "high"]  # Categorical target
 
@@ -271,7 +285,7 @@ class TestTrainingPipeline:
                 "age": [25, 30, None, 40, 45],
                 "income": [50000, 60000, 70000, None, 90000],
                 "credit_score": [650, 700, 750, 800, 850],
-            }
+            },
         )
         y = [0, 0, 1, 1, 1]
 
@@ -462,7 +476,7 @@ class TestTrainingPipeline:
             {
                 "int_feature": [1, 2, 3, 4, 5],
                 "float_feature": [1.1, 2.2, 3.3, 4.4, 5.5],
-            }
+            },
         )
         y = [0, 1, 0, 1, 0]
 
@@ -483,7 +497,7 @@ class TestTrainingPipeline:
             {
                 "feature1": [1, 2],
                 "feature2": [3, 4],
-            }
+            },
         )
         y = [0, 1]
 
@@ -531,7 +545,7 @@ class TestTrainingPipeline:
             {
                 f"feature_{i}": range(50)
                 for i in range(100)  # 100 features, 50 samples
-            }
+            },
         )
         y = [i % 3 for i in range(50)]  # 3-class classification
 

@@ -8,7 +8,7 @@ and contract assertions to prevent drift and ensure consistency.
 NO_MODEL_MSG = "Model not loaded. Load a model first."
 NO_EXPLAINER_MSG = "No compatible explainer found"
 INIT_LOG_MESSAGE = "Initialized audit pipeline with profile: {profile}"
-ERR_NOT_FITTED = "Model not fitted"
+ERR_NOT_FITTED = "Model not loaded. Load a model first."
 INIT_LOG_TEMPLATE = INIT_LOG_MESSAGE
 
 # Status values

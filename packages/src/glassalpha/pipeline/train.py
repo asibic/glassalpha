@@ -61,9 +61,13 @@ def train_from_config(cfg: Any, X: pd.DataFrame, y: Any) -> Any:
     logger.info(f"Fitting model with parameters: {list(params.keys())}")
     logger.info(f"Parameter values: {params}")
 
-    # Check if we need probability predictions for calibration
+    # Check if we need probability predictions
+    # Default to True for audit purposes (needed for AUC, calibration, etc.)
+    # Only set to False if user explicitly requests it via config
+    require_proba = getattr(cfg.model, "require_proba", True)
+
+    # Also check calibration config for later use
     calibration_config = getattr(cfg.model, "calibration", None)
-    require_proba = bool(calibration_config and calibration_config.method)
 
     try:
         model.fit(X, y, require_proba=require_proba, **params)

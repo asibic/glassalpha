@@ -35,8 +35,9 @@ install: build
 	python3 -m pip install --force-reinstall --no-deps dist/*.whl
 
 # Test suite (requires dependencies)
+# Use pytest-xdist for parallel execution and test isolation (prevents test pollution)
 test:
-	pytest -q
+	pytest -n auto -q
 
 # Linting
 lint:

@@ -142,6 +142,18 @@ class PluginRegistry:
         names = set(self._objects) | set(self._entry_points) | set(self._aliases.keys())
         return sorted(names)
 
+    def get_metadata(self, name: str) -> dict[str, Any]:
+        """Get metadata for a plugin.
+
+        Args:
+            name: Plugin name
+
+        Returns:
+            Dictionary of metadata for the plugin
+
+        """
+        return self._meta.get(name, {}).copy()
+
     def available_plugins(self) -> dict[str, bool]:
         """Get availability status of all plugins.
 

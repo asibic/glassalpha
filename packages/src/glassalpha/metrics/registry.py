@@ -12,8 +12,13 @@ Provides metadata for each metric including:
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 from typing import Literal
+
+from glassalpha.core.decor_registry import DecoratorFriendlyRegistry
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -243,3 +248,29 @@ def get_default_tolerance(key: str) -> tuple[float, float]:
         return (spec.default_rtol, spec.default_atol)
     # Fallback: standard tolerance
     return (1e-5, 1e-8)
+
+
+class MetricRegistryClass(DecoratorFriendlyRegistry):
+    """Registry for metric classes with metadata support.
+
+    Follows the same pattern as ExplainerRegistry and ModelRegistry.
+    Supports decorator-based registration and priority-based selection.
+    """
+
+    def get_metric_type(self, name: str) -> str | None:
+        """Get metric type (performance, fairness, drift, calibration).
+
+        Args:
+            name: Metric name
+
+        Returns:
+            Metric type string or None if not found
+
+        """
+        meta = self._meta.get(name, {})
+        return meta.get("metric_type")
+
+
+# Create the real metric registry instance
+MetricRegistry = MetricRegistryClass(group="glassalpha.metrics")
+MetricRegistry.discover()  # Safe discovery without heavy imports

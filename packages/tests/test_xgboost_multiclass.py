@@ -143,7 +143,7 @@ def test_predict_before_fit_raises():
     X = pd.DataFrame(np.random.randn(10, 3), columns=["a", "b", "c"])
     model = XGBoostWrapper()
 
-    with pytest.raises(ValueError, match="Model not fitted"):
+    with pytest.raises(ValueError, match="Model not loaded"):
         model.predict(X)
 
 

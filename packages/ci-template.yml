@@ -152,29 +152,29 @@ jobs:
 
           # Run contract guard tests (fast feedback)
           echo "Running contract guard tests..."
-          pytest -xvs tests/contracts/ --cov=src --cov-report=term-missing
+          pytest -n auto -xvs tests/contracts/ --cov=src --cov-report=term-missing
 
           # Run core functionality tests (works with any dependency level)
           echo "Running core functionality tests..."
-          pytest -q tests/test_core_foundation.py tests/test_cli_basic.py tests/test_config_loading.py tests/test_plugin_dependencies.py --cov=src --cov-report=term-missing --cov-append
+          pytest -n auto -q tests/test_core_foundation.py tests/test_cli_basic.py tests/test_config_loading.py tests/test_plugin_dependencies.py --cov=src --cov-report=term-missing --cov-append
 
           # Run model tests (depends on dependency level)
           if [ "${{ matrix.dependencies }}" = "core" ]; then
             echo "Running core model tests (LogisticRegression only)..."
-            pytest -q tests/test_model_integration.py -k "logistic" --cov=src --cov-report=term-missing --cov-append
+            pytest -n auto -q tests/test_model_integration.py -k "logistic" --cov=src --cov-report=term-missing --cov-append
           else
             echo "Running full model tests (all models available)..."
-            pytest -q tests/test_model_integration.py tests/test_xgboost_basic.py --cov=src --cov-report=term-missing --cov-append
+            pytest -n auto -q tests/test_model_integration.py tests/test_xgboost_basic.py --cov=src --cov-report=term-missing --cov-append
           fi
 
           # Run hot spot tests with coverage
           echo "Running hot spot tests with coverage..."
-          pytest -q tests/test_pipeline_basic.py::test_pipeline_logs_initialization tests/test_end_to_end.py::test_multiple_model_types tests/test_model_integration.py::test_model_saving_and_loading --cov=src --cov-report=term-missing --cov-append
+          pytest -n auto -q tests/test_pipeline_basic.py::test_pipeline_logs_initialization tests/test_end_to_end.py::test_multiple_model_types tests/test_model_integration.py::test_model_saving_and_loading --cov=src --cov-report=term-missing --cov-append
 
           # Run full test suite with coverage (skip if core-only)
           if [ "${{ matrix.dependencies }}" = "full" ]; then
             echo "Running full test suite with coverage..."
-            pytest -q --cov=src --cov-report=term-missing
+            pytest -n auto -q --cov=src --cov-report=term-missing
           fi
         working-directory: packages
 

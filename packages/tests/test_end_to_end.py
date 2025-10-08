@@ -229,9 +229,18 @@ class TestEndToEndWorkflow:
 
         model_configs = [
             {"type": "xgboost", "params": {"objective": "binary:logistic", "n_estimators": 10}},
-            {"type": "lightgbm", "params": {"objective": "binary", "num_leaves": 10, "n_estimators": 10}},
             {"type": "logistic_regression", "params": {"max_iter": 2000, "solver": "lbfgs"}},
         ]
+
+        # Add LightGBM if available
+        try:
+            import lightgbm
+
+            model_configs.append(
+                {"type": "lightgbm", "params": {"objective": "binary", "num_leaves": 10, "n_estimators": 10}},
+            )
+        except ImportError:
+            pass
 
         for _i, model_config in enumerate(model_configs):
             config_dict = {

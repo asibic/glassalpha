@@ -25,3 +25,31 @@ linux_only = pytest.mark.skipif(
     not sys.platform.startswith("linux"),
     reason="PDF rendering via WeasyPrint is verified on Linux in CI.",
 )
+
+
+@pytest.fixture(autouse=True)
+def isolate_tests(request):
+    """Ensure test isolation by cleaning up between tests."""
+    import gc
+    import tempfile
+
+    # Skip isolation for tests that explicitly test module loading
+    if "lazy_load" in request.node.name or "import" in request.node.name.lower():
+        yield
+        return
+
+    # Save original temp directory
+    original_tempdir = tempfile.gettempdir()
+
+    yield  # Run the test
+
+    # Force garbage collection to clean up any cached objects
+    gc.collect()
+
+    # Restore temp directory
+    tempfile.tempdir = original_tempdir
+
+    # Clear any test-specific environment variables
+    test_env_vars = [k for k in os.environ if k.startswith("TEST_") or k.startswith("GLASSALPHA_TEST_")]
+    for var in test_env_vars:
+        os.environ.pop(var, None)

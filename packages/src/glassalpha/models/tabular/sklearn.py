@@ -221,6 +221,10 @@ if SKLEARN_AVAILABLE:
             "supports_proba": True,
             "data_modality": "tabular",
             "feature_names": True,
+            "parameter_rules": {
+                "C": {"min": 0.0, "exclusive_min": True},  # C must be > 0
+                "max_iter": {"min": 1},  # max_iter must be >= 1
+            },
         }
         version = "1.0.0"
         model_type = "logistic_regression"

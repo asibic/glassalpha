@@ -246,9 +246,9 @@ class XGBoostWrapper(BaseTabularWrapper):
 
         # Handle softmax to softprob coercion for audit compatibility
         user_objective = params.get("objective")
-        if user_objective == "multi:softmax" and self.n_classes > 2:
+        if user_objective == "multi:softmax" and self.n_classes > 2 and require_proba:
             logger.warning(
-                "Coercing multi:softmax to multi:softprob for audit compatibility (predict_proba required for multiclass)",
+                "Coercing multi:softmax to multi:softprob for audit compatibility (predict_proba required)",
             )
             params["objective"] = "multi:softprob"
 
