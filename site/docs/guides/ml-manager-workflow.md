@@ -55,11 +55,13 @@ Support model development teams:
 Work with legal, risk, and compliance teams to establish thresholds:
 
 **Example requirements discussion:**
+
 - Legal: "ECOA requires no disparate impact - what's acceptable threshold?"
 - Risk: "What calibration error is acceptable for our risk appetite?"
 - Compliance: "SR 11-7 requires monitoring - what metrics should we track?"
 
 **Documented requirements:**
+
 ```yaml
 # Policy: Credit Models Baseline (v1.0)
 # Effective: 2025-01-01
@@ -165,18 +167,21 @@ review_cycle:
 
 Create team-facing documentation:
 
-```markdown
+````markdown
 # Credit Model Compliance Policy (v1.0)
 
 ## What Changed
+
 Effective January 1, 2025, all credit models must meet baseline compliance gates.
 
 ## Required Actions
+
 1. Update your audit config to reference this policy
 2. Run audit with `--policy-gates configs/policy/org_credit_baseline_v1.yaml`
 3. Address any failed gates before requesting deployment approval
 
 ## Policy Gates
+
 - **Calibration**: ECE < 5% (ERROR - blocks deployment)
 - **Fairness**: Demographic parity < 10% (ERROR - blocks deployment)
 - **Performance**: AUC ≥ 0.75 (ERROR - blocks deployment)
@@ -184,6 +189,7 @@ Effective January 1, 2025, all credit models must meet baseline compliance gates
 - **Equalized Odds**: < 15% (WARNING - requires documentation)
 
 ## How to Use
+
 ```bash
 glassalpha audit \
   --config your_model_config.yaml \
@@ -191,17 +197,21 @@ glassalpha audit \
   --strict \
   --output audit_report.pdf
 ```
+````
 
 ## Getting Help
+
 - **Policy questions**: Contact Risk Management Team
 - **Technical support**: #ml-compliance Slack channel
 - **Approval requests**: Submit audit report to Model Review Board
 
 ## Resources
+
 - [ML Engineer Workflow](../guides/ml-engineer-workflow.md)
-- [Policy FAQ](../compliance/policy-faq.md)
+- [Compliance Readiness Checklist](../compliance/compliance-readiness-checklist.md)
 - [Example Configs](../examples/policy-examples/)
-```
+
+````
 
 #### Step 4: Pilot with one team
 
@@ -214,9 +224,10 @@ glassalpha audit \
   --config models/current_model.yaml \
   --policy-gates ../configs/policy/org_credit_baseline_v1.yaml \
   --strict
-```
+````
 
 **Pilot checklist:**
+
 - [ ] Policy gates run successfully
 - [ ] Failed gates are actionable (clear fix path)
 - [ ] Documentation is sufficient for self-service
@@ -344,17 +355,20 @@ Monthly report to leadership:
 # Model Compliance Report - January 2025
 
 ## Executive Summary
+
 - **Total Models**: 24 in production
 - **Compliance Status**: 21 passed (87.5%), 2 blocked (8.3%), 1 under review (4.2%)
 - **Top Issue**: Calibration quality (2 models failing ECE threshold)
 - **Action Required**: Credit Model v2 and Loan Pricing v1 need recalibration
 
 ## Portfolio Overview
+
 [Include: portfolio_dashboard.pdf]
 
 ## Models Requiring Attention
 
 ### Credit Model v2 (BLOCKED)
+
 - **Issue**: Calibration ECE = 0.078 (threshold: 0.05)
 - **Impact**: Cannot deploy to production
 - **Owner**: Credit Risk Team
@@ -362,6 +376,7 @@ Monthly report to leadership:
 - **Risk**: Low (model not yet in production)
 
 ### Loan Pricing v1 (REVIEW)
+
 - **Issue**: Equalized odds difference = 0.17 (warning threshold: 0.15)
 - **Impact**: Requires documentation and monitoring
 - **Owner**: Lending Team
@@ -369,11 +384,13 @@ Monthly report to leadership:
 - **Risk**: Medium (model in production, regulatory review possible)
 
 ## Trends
+
 - Fairness metrics improving quarter-over-quarter
 - Average audit turnaround time: 3.2 days (down from 5.1 days)
 - 95% of models meeting calibration requirements (up from 87%)
 
 ## Recommendations
+
 1. Increase training on calibration techniques
 2. Update policy to require monthly re-audit for models with warning-level gates
 3. Invest in automated monitoring for production models
@@ -388,21 +405,25 @@ Monthly report to leadership:
 **Training deck outline:**
 
 1. **Why Model Auditing Matters** (10 min)
+
    - Regulatory landscape (SR 11-7, ECOA, EU AI Act)
    - Real-world consequences of model bias
    - Company policy and requirements
 
 2. **GlassAlpha Basics** (15 min)
+
    - Architecture overview
    - Config-driven approach
    - Policy gates and compliance
 
 3. **Hands-On: Your First Audit** (20 min)
+
    - Live demo with German Credit dataset
    - Interpreting audit reports
    - Addressing failed gates
 
 4. **Production Workflow** (10 min)
+
    - CI/CD integration
    - Registry submission
    - Approval process
@@ -435,12 +456,13 @@ glassalpha-template-credit/
 
 **README template:**
 
-```markdown
+````markdown
 # Credit Model Audit Template
 
 Quick-start template for credit model compliance audits.
 
 ## Quick Start
+
 ```bash
 # 1. Clone this template
 # 2. Add your model and data
@@ -453,27 +475,34 @@ vim configs/prod_audit.yaml
 # 4. Run audit
 glassalpha audit --config configs/prod_audit.yaml --output audit.pdf
 ```
+````
 
 ## Configuration
+
 - `dev_audit.yaml`: Fast iteration (reduced samples, skips slow sections)
 - `prod_audit.yaml`: Full audit (required for deployment approval)
 
 ## Policy Gates
+
 This template uses organization baseline policy (v1.0):
+
 - Calibration ECE < 5%
 - Demographic parity < 10%
 - AUC ≥ 0.75
 
-See [Policy Documentation](../docs/policy.md) for details.
+See [Policy Gates](#policy-gates) section above for details.
 
 ## CI/CD
+
 Push to main triggers automatic audit. Failed gates block merge.
 
 ## Getting Help
+
 - Slack: #ml-compliance
 - Docs: [ML Engineer Workflow](https://docs.company.com/ml-compliance)
 - Support: ml-compliance@company.com
-```
+
+````
 
 #### Step 3: Conduct training sessions
 
@@ -492,11 +521,12 @@ training_log = {
     "teams_represented": ["credit-risk", "fraud", "lending"],
     "feedback_score": 4.6
 }
-```
+````
 
 #### Step 4: Create self-service resources
 
 **Internal wiki:**
+
 - FAQ: Common audit errors and fixes
 - Troubleshooting guide: Step-by-step debugging
 - Best practices: Team-specific recommendations
@@ -532,45 +562,49 @@ Need more help? Post in #ml-compliance or DM @compliance-team
 
 #### Evaluation criteria matrix
 
-| Criterion | Weight | GlassAlpha | Vendor A | Vendor B | Internal Build |
-|---|---|---|---|---|---|
-| **Functionality** |  |  |  |  |  |
-| Fairness metrics | 10% | 9/10 | 8/10 | 9/10 | 6/10 |
-| Explainability | 10% | 9/10 | 7/10 | 8/10 | 5/10 |
-| Calibration testing | 5% | 9/10 | 6/10 | 7/10 | 4/10 |
-| Custom models | 5% | 8/10 | 9/10 | 7/10 | 10/10 |
-| **Integration** |  |  |  |  |  |
-| CI/CD integration | 10% | 9/10 | 7/10 | 8/10 | 9/10 |
-| Existing ML pipeline | 10% | 8/10 | 6/10 | 7/10 | 10/10 |
-| API quality | 5% | 9/10 | 8/10 | 7/10 | 7/10 |
-| **Compliance** |  |  |  |  |  |
-| Audit trails | 10% | 10/10 | 8/10 | 7/10 | 5/10 |
-| Reproducibility | 10% | 10/10 | 7/10 | 6/10 | 6/10 |
-| Regulatory templates | 5% | 8/10 | 9/10 | 8/10 | 3/10 |
-| **Operations** |  |  |  |  |  |
-| On-premise deployment | 10% | 10/10 | 5/10 | 6/10 | 10/10 |
-| Maintenance burden | 5% | 9/10 | 8/10 | 8/10 | 4/10 |
-| Training requirements | 5% | 8/10 | 7/10 | 6/10 | 5/10 |
-| **Total Score** |  | **90%** | 73% | 72% | 67% |
+| Criterion             | Weight | GlassAlpha | Vendor A | Vendor B | Internal Build |
+| --------------------- | ------ | ---------- | -------- | -------- | -------------- |
+| **Functionality**     |        |            |          |          |                |
+| Fairness metrics      | 10%    | 9/10       | 8/10     | 9/10     | 6/10           |
+| Explainability        | 10%    | 9/10       | 7/10     | 8/10     | 5/10           |
+| Calibration testing   | 5%     | 9/10       | 6/10     | 7/10     | 4/10           |
+| Custom models         | 5%     | 8/10       | 9/10     | 7/10     | 10/10          |
+| **Integration**       |        |            |          |          |                |
+| CI/CD integration     | 10%    | 9/10       | 7/10     | 8/10     | 9/10           |
+| Existing ML pipeline  | 10%    | 8/10       | 6/10     | 7/10     | 10/10          |
+| API quality           | 5%     | 9/10       | 8/10     | 7/10     | 7/10           |
+| **Compliance**        |        |            |          |          |                |
+| Audit trails          | 10%    | 10/10      | 8/10     | 7/10     | 5/10           |
+| Reproducibility       | 10%    | 10/10      | 7/10     | 6/10     | 6/10           |
+| Regulatory templates  | 5%     | 8/10       | 9/10     | 8/10     | 3/10           |
+| **Operations**        |        |            |          |          |                |
+| On-premise deployment | 10%    | 10/10      | 5/10     | 6/10     | 10/10          |
+| Maintenance burden    | 5%     | 9/10       | 8/10     | 8/10     | 4/10           |
+| Training requirements | 5%     | 8/10       | 7/10     | 6/10     | 5/10           |
+| **Total Score**       |        | **90%**    | 73%      | 72%      | 67%            |
 
 #### Pilot program structure
 
 **Week 1-2: Setup**
+
 - Install GlassAlpha
 - Configure for 2-3 representative models
 - Train 3-5 team members
 
 **Week 3-4: Parallel Run**
+
 - Run GlassAlpha audits alongside existing process
 - Compare outputs
 - Measure time/effort savings
 
 **Week 5-6: Evaluation**
+
 - Team feedback survey
 - Cost-benefit analysis
 - Decision presentation to leadership
 
 **Success criteria:**
+
 - 80%+ of audits complete successfully
 - 50%+ time savings vs manual process
 - 4/5+ satisfaction score from teams
@@ -615,6 +649,7 @@ Need more help? Post in #ml-compliance or DM @compliance-team
 ### Challenge: Team pushback on compliance overhead
 
 **Solution:**
+
 - Show time savings: "10 hours manual → 30 minutes automated"
 - Emphasize risk reduction: "Avoid regulatory fines"
 - Provide templates: "80% pre-configured, just add your model"
@@ -623,6 +658,7 @@ Need more help? Post in #ml-compliance or DM @compliance-team
 ### Challenge: Policy too strict, blocking deployments
 
 **Solution:**
+
 - Review gates with stakeholders
 - Consider tiered thresholds (warning vs error)
 - Allow documented exceptions with approval
@@ -631,6 +667,7 @@ Need more help? Post in #ml-compliance or DM @compliance-team
 ### Challenge: Teams bypassing audits
 
 **Solution:**
+
 - Enforce at CI/CD level (audit required for merge)
 - Require audit report for deployment approval
 - Track non-compliance in performance reviews
@@ -639,6 +676,7 @@ Need more help? Post in #ml-compliance or DM @compliance-team
 ### Challenge: Inconsistent audit quality
 
 **Solution:**
+
 - Provide templates and standards
 - Automated validation in CI (config linting)
 - Peer review process for audits
@@ -647,24 +685,28 @@ Need more help? Post in #ml-compliance or DM @compliance-team
 ## Metrics to Track
 
 ### Adoption Metrics
+
 - Number of teams using GlassAlpha
 - Audits per month
 - Template adoption rate
 - Training attendance
 
 ### Quality Metrics
+
 - Failed gate rate by team
 - Time from audit to approval
 - Number of reaudits required
 - Audit completeness score
 
 ### Impact Metrics
+
 - Time savings per audit (vs manual)
 - Deployment velocity (time to production)
 - Regulatory findings (should decrease)
 - Compliance incidents (should decrease)
 
 ### Team Satisfaction
+
 - Survey scores (quarterly)
 - Support ticket volume
 - Training effectiveness ratings
@@ -685,8 +727,8 @@ Need more help? Post in #ml-compliance or DM @compliance-team
 
 ### Policy Resources
 
-- [Policy Configuration Guide](../guides/policy-configuration.md) - Writing policy gates
-- [Threshold Selection Guide](../guides/threshold-selection.md) - Choosing fair thresholds
+- [Policy Configuration Guide](#policy-gates) - Writing policy gates
+- [Threshold Selection Guide](../guides/recourse.md#threshold-configuration) - Choosing fair thresholds
 
 ## Support
 
@@ -695,4 +737,3 @@ For manager-specific questions:
 - GitHub Discussions: [GlassAlpha/glassalpha/discussions](https://github.com/GlassAlpha/glassalpha/discussions)
 - Email: [enterprise@glassalpha.com](mailto:enterprise@glassalpha.com)
 - Documentation: [glassalpha.com/docs](https://glassalpha.com/docs)
-

@@ -352,14 +352,14 @@
 
 ## Troubleshooting Common Issues
 
-| Issue                        | Fix                                                                                |
-| ---------------------------- | ---------------------------------------------------------------------------------- |
-| Missing confidence intervals | Re-run with bootstrap enabled: `calibration.n_bootstrap: 1000`                     |
-| Small sample sizes (n<30)    | Collect more data or aggregate groups                                              |
-| Wide confidence intervals    | Acknowledge as limitation in report                                                |
-| Failed policy gates          | See gate-specific remediation in [Policy Guide](../guides/policy-configuration.md) |
-| Non-reproducible results     | Ensure seed set: `random_seed: 42` and `--strict` flag used                        |
-| Missing limitations section  | Add explicit limitations in model card                                             |
+| Issue                        | Fix                                                                                            |
+| ---------------------------- | ---------------------------------------------------------------------------------------------- |
+| Missing confidence intervals | Re-run with bootstrap enabled: `calibration.n_bootstrap: 1000`                                 |
+| Small sample sizes (n<30)    | Collect more data or aggregate groups                                                          |
+| Wide confidence intervals    | Acknowledge as limitation in report                                                            |
+| Failed policy gates          | See gate-specific remediation in [Policy Guide](../guides/ml-manager-workflow.md#policy-gates) |
+| Non-reproducible results     | Ensure seed set: `random_seed: 42` and `--strict` flag used                                    |
+| Missing limitations section  | Add explicit limitations in model card                                                         |
 
 ---
 

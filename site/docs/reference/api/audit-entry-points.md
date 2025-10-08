@@ -412,7 +412,7 @@ validation:
 ### Related
 
 - [Configuration Guide](../../getting-started/configuration.md) - YAML config format
-- [Reproducibility Guide](../../guides/reproducibility.md) - Ensuring deterministic results
+- [Reproducibility in Configuration](../../getting-started/configuration.md#reproducibility-settings) - Ensuring deterministic results
 - [CI/CD Examples](../../guides/ml-engineer-workflow.md#cicd-integration) - GitHub Actions examples
 
 ---
@@ -553,7 +553,7 @@ assert result.id == result2.id  # Byte-identical
 ### Related
 
 - [Metric Definitions](../fairness-metrics.md) - Detailed metric explanations
-- [Reproducibility Guide](../../guides/reproducibility.md) - Ensuring deterministic results
+- [Reproducibility in Configuration](../../getting-started/configuration.md#reproducibility-settings) - Ensuring deterministic results
 
 ---
 
@@ -611,7 +611,7 @@ except ga.InvalidProtectedAttributesError as e:
 - **[Configuration Guide](../../getting-started/configuration.md)** - YAML config format
 - **[Missing Data Guide](../../guides/missing-data.md)** - Handling NaN in protected attributes
 - **[Probability Requirements](../../guides/probability-requirements.md)** - When probabilities are needed
-- **[Reproducibility Guide](../../guides/reproducibility.md)** - Ensuring deterministic results
+- **[Reproducibility in Configuration](../../getting-started/configuration.md#reproducibility-settings)** - Ensuring deterministic results
 - **[Example Notebooks](../../../examples/)** - Interactive examples
 - **[CLI Reference](../cli.md)** - Command-line interface
 

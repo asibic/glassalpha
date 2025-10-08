@@ -370,7 +370,7 @@ for key, val1 in result1.performance.items():
 ## Related Documentation
 
 - [API Reference: AuditResult.equals()](audit-entry-points.md#auditresultequals)
-- [Reproducibility Guide](../../guides/reproducibility.md) - Ensuring deterministic audits
+- [Reproducibility in Configuration](../../getting-started/configuration.md#reproducibility-settings) - Ensuring deterministic audits
 - [Stability Index](stability-index.md) - API stability levels
 
 ---

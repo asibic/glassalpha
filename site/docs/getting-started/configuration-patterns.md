@@ -564,8 +564,8 @@ configs/
 ## Related Documentation
 
 - **[Configuration Guide](configuration.md)** - Full config reference
-- **[Policy Gates](../guides/policy-gates.md)** - Compliance thresholds
-- **[Strict Mode](../reference/strict-mode.md)** - Regulatory requirements
+- **[Policy Gates](../guides/ml-manager-workflow.md#policy-gates)** - Compliance thresholds
+- **[Strict Mode](configuration.md#strict-mode)** - Regulatory requirements
 - **[ML Engineer Workflow](../guides/ml-engineer-workflow.md)** - CI/CD integration
 - **[Banking Compliance](../compliance/banking-guide.md)** - SR 11-7 requirements
 
