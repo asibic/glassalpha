@@ -14,12 +14,6 @@ from .features import (
     check_feature,
     is_enterprise,
 )
-from .interfaces import (
-    AuditProfileInterface,
-    ExplainerInterface,
-    MetricInterface,
-    ModelInterface,
-)
 
 # Import NoOp components to auto-register them
 from .noop_components import (
@@ -54,12 +48,8 @@ def __getattr__(name: str):
 
 
 __all__ = [
-    # Interfaces
-    "ModelInterface",
-    "ExplainerInterface",
-    "MetricInterface",
+    # Data interface
     "DataInterface",
-    "AuditProfileInterface",
     # Registries
     "ModelRegistry",
     "ExplainerRegistry",

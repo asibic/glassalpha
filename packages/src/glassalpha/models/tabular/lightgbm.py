@@ -1,8 +1,7 @@
 """LightGBM model wrapper for GlassAlpha.
 
-This wrapper implements the ModelInterface protocol and enables LightGBM models
-to work within the GlassAlpha pipeline. It supports SHAP explanations and
-provides feature importance capabilities.
+This wrapper enables LightGBM models to work within the GlassAlpha pipeline.
+It supports SHAP explanations and provides feature importance capabilities.
 """
 
 import logging
@@ -49,14 +48,14 @@ def register_lightgbm():
 
 
 class LightGBMWrapper(BaseTabularWrapper):
-    """Wrapper for LightGBM models implementing ModelInterface protocol.
+    """Wrapper for LightGBM models with GlassAlpha compatibility.
 
     This class wraps LightGBM models to make them compatible with the GlassAlpha
     audit pipeline. It supports loading pre-trained models, predictions, and
     capability declaration for plugin selection.
     """
 
-    # Required class attributes for ModelInterface
+    # Model capabilities
     capabilities: ClassVar[dict[str, Any]] = {
         "supports_shap": True,
         "supports_feature_importance": True,

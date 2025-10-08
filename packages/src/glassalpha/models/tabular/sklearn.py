@@ -214,7 +214,7 @@ if SKLEARN_AVAILABLE:
     class LogisticRegressionWrapper(BaseTabularWrapper):
         """Wrapper for scikit-learn LogisticRegression with GlassAlpha compatibility."""
 
-        # Required class attributes for ModelInterface
+        # Model capabilities
         capabilities: ClassVar[dict[str, Any]] = {
             "supports_shap": True,
             "supports_feature_importance": True,

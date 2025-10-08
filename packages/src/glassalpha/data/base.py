@@ -1,16 +1,9 @@
-"""Base data interface for different data modalities.
+"""Base data interface for tabular data loading.
 
-This module defines the common interface that all data loaders
-must implement to enable consistent data handling across
-different modalities (tabular, text, image).
-
-**v1.0 Limitation**: The current implementation is optimized for tabular data.
-All methods assume pandas DataFrames as the primary data structure.
-Future versions (v2.0+) will support text and image modalities through
-modality-specific subclasses (TextDataInterface, ImageDataInterface).
+This module defines the base interface for tabular data loaders.
+All data loaders work with pandas DataFrames as the primary data structure.
 """
 
-from abc import ABC, abstractmethod
 from pathlib import Path
 
 import numpy as np
@@ -26,16 +19,13 @@ class DataSchema(BaseModel):
     sensitive_features: list[str] | None = None
 
 
-class DataInterface(ABC):
-    """Protocol for data loaders across different modalities.
+class DataInterface:
+    """Base class for data loaders.
 
-    **v1.0 Note**: Current implementation assumes tabular data (pandas DataFrame).
-    Methods are designed with extensibility in mind but currently handle only
-    structured/tabular datasets. Text and image modalities will be supported
-    in v2.0 through specialized subclasses.
+    Provides common interface for loading and validating tabular datasets.
+    TabularDataLoader is the primary implementation used in the pipeline.
     """
 
-    @abstractmethod
     def load(self, path: Path, schema: DataSchema | None = None) -> pd.DataFrame:
         """Load data from file.
 
@@ -47,8 +37,8 @@ class DataInterface(ABC):
             Loaded data as DataFrame
 
         """
+        raise NotImplementedError("Subclasses must implement load()")
 
-    @abstractmethod
     def validate_schema(self, data: pd.DataFrame, schema: DataSchema) -> None:
         """Validate data against schema.
 
@@ -60,8 +50,8 @@ class DataInterface(ABC):
             ValueError: If data doesn't match schema
 
         """
+        raise NotImplementedError("Subclasses must implement validate_schema()")
 
-    @abstractmethod
     def extract_features_target(
         self,
         data: pd.DataFrame,
@@ -77,8 +67,8 @@ class DataInterface(ABC):
             Tuple of (features, target, sensitive_features)
 
         """
+        raise NotImplementedError("Subclasses must implement extract_features_target()")
 
-    @abstractmethod
     def hash_data(self, data: pd.DataFrame) -> str:
         """Generate deterministic hash of data.
 
@@ -89,8 +79,8 @@ class DataInterface(ABC):
             Hex string hash of data content
 
         """
+        raise NotImplementedError("Subclasses must implement hash_data()")
 
-    @abstractmethod
     def split_data(
         self,
         data: pd.DataFrame,
@@ -110,3 +100,4 @@ class DataInterface(ABC):
             Tuple of (train_data, test_data)
 
         """
+        raise NotImplementedError("Subclasses must implement split_data()")

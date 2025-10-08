@@ -22,13 +22,6 @@ from glassalpha.core import (
 )
 
 
-def test_interfaces_are_protocols():
-    """Verify interfaces use Protocol pattern."""
-    from glassalpha.core.interfaces import ModelInterface
-
-    assert hasattr(ModelInterface, "__subclasshook__")
-
-
 def test_passthrough_model_works():
     """Test PassThrough model generates predictions."""
     model = PassThroughModel(default_value=0.7)
@@ -75,9 +68,6 @@ def test_noop_metric_works():
 
 def test_registry_registration():
     """Test components are registered via entry points."""
-    # Import PassThroughModel from its actual location
-    from glassalpha.core.noop_components import PassThroughModel
-
     # Check PassThrough model is registered via entry point
     model_cls = ModelRegistry.get("passthrough")
     assert model_cls is not None
