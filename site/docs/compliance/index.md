@@ -5,25 +5,24 @@ Welcome to GlassAlpha compliance documentation. This guide helps you find the ri
 ## Compliance Workflow at a Glance
 
 ```mermaid
-graph TD
-    Start[Model Ready<br/>for Audit] --> Config[Create Audit<br/>Configuration]
-    Config --> Policy[Apply Policy<br/>Gates]
-    Policy --> Run[Run Audit<br/>glassalpha audit]
+graph TB
+    Start[Model Ready]
+    Start --> Config[Create Config]
+    Config --> Run[Run Audit]
 
-    Run --> Analysis{Audit<br/>Results}
+    Run --> Analysis{Results?}
 
     Analysis -->|Pass| Evidence[Generate<br/>Evidence Pack]
     Analysis -->|Fail| Remediate[Fix Issues]
-    Analysis -->|Warning| Document[Document<br/>Mitigation]
+    Analysis -->|Warning| Document[Document<br/>Justification]
 
     Remediate --> Run
     Document --> Evidence
 
-    Evidence --> Review[Compliance<br/>Officer Review]
+    Evidence --> Review[Compliance<br/>Review]
     Review --> Validate[Independent<br/>Validation]
-
     Validate --> Submit[Submit to<br/>Regulator]
-    Submit --> Archive[Archive<br/>7 years]
+    Submit --> Archive[Archive<br/>7 Years]
 
     style Start fill:#e1f5ff
     style Analysis fill:#fff3cd

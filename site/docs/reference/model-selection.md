@@ -3,29 +3,43 @@
 Choose the right model for your ML audit based on your data, requirements, and constraints.
 
 !!! info "Quick Links"
+
 - **Already chosen a model?** → [Model Parameters Reference](model-parameters.md) for detailed parameter documentation
 - **Need explainer info?** → [Explainer Selection Guide](explainers.md) to pair your model with the right explainer
 - **Ready to configure?** → [Configuration Guide](../getting-started/configuration.md) for YAML setup
 
-## Quick Decision Tree
+## Quick Decision: Which Model Should I Use?
 
-```
-                    Start Here
-                        ↓
-            Do you need maximum accuracy?
-                   ↙        ↘
-                 YES         NO
-                  ↓           ↓
-     Is dataset size > 100K rows?    Use LogisticRegression
-            ↙           ↘             (fast, interpretable,
-          YES           NO             always available)
-           ↓             ↓
-    Use LightGBM    Use XGBoost
-    (faster,        (more accurate,
-     lower memory)   industry standard)
+```mermaid
+graph TB
+    Start[Choose Model]
+    Start --> Size{Dataset size?}
+
+    Size -->|< 1K rows| Simple[LogisticRegression]
+    Size -->|1K-100K| Med{Need speed?}
+    Size -->|> 100K| Large[LightGBM]
+
+    Med -->|Yes fast| Fast[LightGBM]
+    Med -->|Best accuracy| Acc[XGBoost]
+
+    Simple --> Check1[Quick baseline]
+    Fast --> Check2[Fast training]
+    Acc --> Check3[Best performance]
+    Large --> Check4[Large scale]
+
+    style Simple fill:#e1f5ff
+    style Fast fill:#fff3cd
+    style Acc fill:#d4edda
+    style Large fill:#d4edda
 ```
 
-**TL;DR**:
+**Rule of Thumb**:
+
+- **Starting out?** → LogisticRegression (always available, fast, interpretable)
+- **Production system?** → XGBoost (best accuracy-interpretability balance)
+- **Very large data?** → LightGBM (handles 1M+ rows efficiently)
+
+**Quick selection**:
 
 - **Just testing?** → LogisticRegression
 - **Small-medium dataset (<100K)?** → XGBoost

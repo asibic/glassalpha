@@ -6,43 +6,30 @@ Decision guide for selecting the optimal explainability method for your ML model
 
 ## Quick decision tree
 
+<div class="decision-diagram" markdown>
+
 ```mermaid
-graph TD
-    Start[What type of<br/>model?] --> ModelType{Model<br/>Architecture}
+graph TB
+    Start[Model type?]
+    Start --> ModelType{Architecture?}
 
-    ModelType -->|Tree-based<br/>XGBoost, RF, LGBM| TreeBased[Tree-Based Models]
-    ModelType -->|Linear<br/>LogReg, LinReg| Linear[Linear Models]
-    ModelType -->|Neural Network<br/>Deep Learning| NN[Neural Networks]
-    ModelType -->|Ensemble<br/>Mixed types| Ensemble[Ensemble Models]
-    ModelType -->|Black Box<br/>Proprietary| BlackBox[Black Box Models]
+    ModelType -->|Tree| TreeSHAP[✓ TreeSHAP<br/>Fast & Exact]
+    ModelType -->|Linear| Coefficients[✓ Coefficients<br/>Instant]
+    ModelType -->|Neural Net<br/>Simple| GradientSHAP[✓ Gradient SHAP<br/>Moderate Speed]
+    ModelType -->|Neural Net<br/>Deep| DeepSHAP[✓ Deep SHAP<br/>Most Accurate]
+    ModelType -->|Ensemble<br/>Mixed| KernelSHAP[✓ Kernel SHAP<br/>Model Agnostic]
+    ModelType -->|Black Box| LIME[✓ LIME<br/>Fast Approximation]
 
-    TreeBased --> TreeSpeed{Speed<br/>priority?}
-    TreeSpeed -->|Fast<br/>&lt;1 sec| TreeSHAP[✓ TreeSHAP<br/>Speed: ★★★★★<br/>Accuracy: ★★★★★]
-    TreeSpeed -->|Accuracy<br/>matters more| TreeSHAPAcc[✓ TreeSHAP<br/>same choice]
-
-    Linear --> LinearSpeed{Need<br/>global?}
-    LinearSpeed -->|Yes| Coefficients[✓ Coefficients<br/>Speed: ★★★★★<br/>Accuracy: ★★★★★]
-    LinearSpeed -->|No, local| KernelLinear[✓ LIME/Kernel<br/>Speed: ★★★<br/>Accuracy: ★★★★]
-
-    NN --> NNComplex{Network<br/>complexity?}
-    NNComplex -->|Simple<br/>&lt;3 layers| GradientSHAP[✓ Gradient SHAP<br/>Speed: ★★★<br/>Accuracy: ★★★★]
-    NNComplex -->|Deep<br/>many layers| DeepSHAP[✓ Deep SHAP<br/>Speed: ★★<br/>Accuracy: ★★★★★]
-
-    Ensemble --> EnsembleComp{All trees?}
-    EnsembleComp -->|Yes| TreeSHAP
-    EnsembleComp -->|Mixed| KernelSHAP[✓ Kernel SHAP<br/>Speed: ★★<br/>Accuracy: ★★★★]
-
-    BlackBox --> BBSpeed{Speed<br/>acceptable?}
-    BBSpeed -->|Yes| KernelSHAP
-    BBSpeed -->|No| LIME[✓ LIME<br/>Speed: ★★★<br/>Accuracy: ★★★]
-
+    style Start fill:#e1f5ff
     style TreeSHAP fill:#d4edda
     style Coefficients fill:#d4edda
     style GradientSHAP fill:#fff3cd
     style DeepSHAP fill:#fff3cd
-    style KernelSHAP fill:#f8d7da
+    style KernelSHAP fill:#fff3cd
     style LIME fill:#fff3cd
 ```
+
+</div>
 
 ---
 
@@ -532,26 +519,26 @@ feature_importance = pd.DataFrame({
 ## Speed vs accuracy trade-offs
 
 ```mermaid
-graph LR
-    subgraph "Speed Priority (Production)"
-        A1[TreeSHAP<br/>0.8s] --> A2[Coefficients<br/>0.01s]
-        A2 --> A3[LIME<br/>0.3s/instance]
-    end
+graph TB
+    Start[Choose Priority]
 
-    subgraph "Balanced (Research)"
-        B1[Gradient SHAP<br/>12s] --> B2[Kernel SHAP<br/>n=100, 45s]
-    end
+    Start --> Speed[Speed Priority<br/>Production]
+    Start --> Balanced[Balanced<br/>Research]
+    Start --> Accuracy[Accuracy Priority<br/>Regulatory]
 
-    subgraph "Accuracy Priority (Audit)"
-        C1[Deep SHAP<br/>90s] --> C2[Kernel SHAP<br/>n=1000, 350s]
-    end
+    Speed --> S1[TreeSHAP: 0.8s]
+    Speed --> S2[Coefficients: 0.01s]
 
-    style A1 fill:#d4edda
-    style A2 fill:#d4edda
-    style B1 fill:#fff3cd
-    style B2 fill:#fff3cd
-    style C1 fill:#f8d7da
-    style C2 fill:#f8d7da
+    Balanced --> B1[Gradient SHAP: 12s]
+    Balanced --> B2[Kernel SHAP: 45s]
+
+    Accuracy --> A1[Deep SHAP: 90s]
+    Accuracy --> A2[Kernel SHAP: 350s]
+
+    style Start fill:#e1f5ff
+    style Speed fill:#d4edda
+    style Balanced fill:#fff3cd
+    style Accuracy fill:#f8d7da
 ```
 
 **Recommendation by use case**:

@@ -4,6 +4,11 @@ site_url: https://glassalpha.com
 repo_url: https://github.com/GlassAlpha/glassalpha
 repo_name: GlassAlpha/glassalpha
 edit_uri: edit/main/site/docs/
+docs_dir: docs
+
+# Explicit watch for live reload
+watch:
+  - docs
 
 theme:
   name: material
@@ -50,7 +55,6 @@ theme:
 
 plugins:
   - search
-  - mermaid2
   - blog:
       archive: false
       authors: true
@@ -87,7 +91,7 @@ markdown_extensions:
       custom_fences:
         - name: mermaid
           class: mermaid
-          format: !!python/name:mermaid2.fence_mermaid_custom
+          format: !!python/name:pymdownx.superfences.fence_code_format
   - pymdownx.tabbed:
       alternate_style: true
   - pymdownx.tilde
@@ -99,6 +103,7 @@ nav:
   - Getting Started:
       - Overview: getting-started/overview.md
       - Quick Start: getting-started/quickstart.md
+      - Quick Reference: getting-started/quick-reference.md
       - Installation: getting-started/installation.md
       - Using Your Own Data: getting-started/custom-data.md
       - Configuration: getting-started/configuration.md

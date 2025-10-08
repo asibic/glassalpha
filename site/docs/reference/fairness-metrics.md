@@ -26,6 +26,41 @@ All metrics include:
 - Statistical power analysis
 - Deterministic computation (reproducible with seeds)
 
+## Which Fairness Metric Should I Use?
+
+```mermaid
+graph TB
+    Start[Choose Metric]
+    Start --> Context{Context?}
+
+    Context -->|Lending/Credit| Credit{What matters?}
+    Credit -->|Equal approval rates| DP[Demographic Parity]
+    Credit -->|Equal opportunity| EO[Equal Opportunity]
+
+    Context -->|Hiring| Hire[Demographic Parity + Predictive Parity]
+    Context -->|Healthcare| Health[Equal Opportunity + Calibration]
+    Context -->|Criminal Justice| CJ[Predictive Equality + Calibration]
+
+    Context -->|Not sure| General{What's the harm?}
+    General -->|Denying benefits| EO2[Equal Opportunity]
+    General -->|False accusations| PE[Predictive Equality]
+    General -->|Unequal treatment| DP2[Demographic Parity]
+
+    style DP fill:#d4edda
+    style EO fill:#d4edda
+    style Hire fill:#fff3cd
+    style Health fill:#fff3cd
+```
+
+**Quick Guide**:
+
+- **Lending/Credit**: Equal Opportunity (ensure qualified applicants have equal chance)
+- **Hiring**: Demographic Parity (equal consideration across groups)
+- **Healthcare**: Equal Opportunity + Calibration (accurate risk across groups)
+- **Criminal Justice**: Predictive Equality (equal false positive rates)
+
+**When in doubt**: Use all three (Demographic Parity, Equal Opportunity, Predictive Parity) and compare results.
+
 ## Group Fairness with Confidence Intervals (E10)
 
 ### Metrics Computed
@@ -71,6 +106,30 @@ Automatic warnings for small sample sizes:
 | n < 10          | 🔴 ERROR   | Unreliable     | Collect more data |
 | 10 ≤ n < 30     | ⚠️ WARNING | Low confidence | Flag uncertainty  |
 | n ≥ 30          | ✅ OK      | Adequate       | Proceed           |
+
+### Sample Size Calculator
+
+**Rule of Thumb**: Minimum samples needed per group:
+
+| Desired Precision | Min Disparity to Detect | Samples Needed per Group |
+| ----------------- | ----------------------- | ------------------------ |
+| High (CI ±0.02)   | 0.05                    | 200+                     |
+| Medium (CI ±0.05) | 0.10                    | 100+                     |
+| Low (CI ±0.10)    | 0.15                    | 30+                      |
+
+**Formula**: For 80% power to detect 10% disparity at α=0.05:
+
+```
+n ≈ 16 * (p * (1-p)) / (effect_size²)
+where p ≈ 0.5, effect_size = 0.10
+n ≈ 100 per group
+```
+
+**Practical Guidance**:
+
+- **n < 30**: Report only descriptive statistics, flag as inconclusive
+- **30 ≤ n < 100**: Report with wide confidence intervals, note limited power
+- **n ≥ 100**: Standard reporting with confidence intervals
 
 ### Statistical Power
 
@@ -160,6 +219,42 @@ Sample Size Warnings:
   }
 }
 ```
+
+### Visual Examples
+
+**What Does Disparity Look Like in Practice?**
+
+> **Note**: Visual examples with screenshots coming soon. For now, see [German Credit Audit walkthrough](../examples/german-credit-audit.md) for real report examples showing these scenarios.
+
+#### Example 1: No Bias Detected (PASS)
+
+**Scenario**: Credit model demographic parity analysis
+
+- **Max disparity**: 0.03 (well within 0.10 threshold)
+- **Confidence interval**: [-0.02, 0.08] (narrow, precise)
+- **Sample sizes**: All groups n>100
+- **Interpretation**: No evidence of bias. CI is narrow and doesn't exclude zero by much, but disparity is minimal.
+- **Action**: Model passes fairness check
+
+#### Example 2: Potential Bias (WARNING)
+
+**Scenario**: Hiring model equal opportunity analysis
+
+- **Max disparity**: 0.12 (exceeds 0.10 threshold)
+- **Confidence interval**: [0.05, 0.19] (excludes zero)
+- **Sample sizes**: All groups n>80
+- **Interpretation**: Statistically significant disparity. CI excludes zero, indicating true difference likely exists.
+- **Action**: Investigate model for bias, review training data, consider fairness constraints
+
+#### Example 3: Insufficient Data (CAUTION)
+
+**Scenario**: Insurance risk model with small minority group
+
+- **Small group**: n=18 samples
+- **Disparity**: 0.15
+- **Confidence interval**: [-0.15, 0.30] (very wide, includes zero)
+- **Interpretation**: Inconclusive - wide CI indicates high uncertainty. Can't determine if disparity is real or noise.
+- **Action**: (1) Collect more data for small group, (2) Document limitation in report, (3) Consider aggregating with similar groups
 
 ## Intersectional Fairness (E5.1) {#intersectional-fairness-e51}
 

@@ -411,6 +411,48 @@ metrics:
     metrics: [demographic_parity, equal_opportunity]
 ```
 
+## Common pitfalls (and how to avoid them)
+
+### Pitfall 1: Absolute vs relative paths
+
+❌ **Don't**: Use absolute paths like `/Users/yourname/data.csv` in configs
+
+✅ **Do**: Use relative paths from working directory: `data/train.csv`
+
+**Why**: Breaks reproducibility across environments. Configs with absolute paths won't work on other machines or in CI/CD.
+
+### Pitfall 2: Slow first audit
+
+⚠️ **Expected**: First audit takes 30-60 seconds (dataset download + imports)
+
+✅ **Normal**: Subsequent audits complete in 3-5 seconds
+
+**When to worry**: If consistently >2 minutes, reduce `explainer.background_samples` in config
+
+### Pitfall 3: Protected attributes not found
+
+❌ **Error**: `DataSchemaError: Column 'gender' not found`
+
+✅ **Fix**: Check spelling, ensure column exists in CSV, verify data loading
+
+**Tip**: Print `df.columns` before running audit to verify column names match exactly (case-sensitive)
+
+### Pitfall 4: Small sample size warnings
+
+⚠️ **Warning**: "Group has n<30 samples - low statistical power"
+
+✅ **Options**: (1) Collect more data, (2) Aggregate groups, (3) Document limitation in report
+
+**Don't ignore**: Low power means unreliable fairness metrics - statistical tests lack sensitivity
+
+### Pitfall 5: Model type mismatch
+
+❌ **Error**: `ExplainerCompatibilityError: treeshap not compatible with LogisticRegression`
+
+✅ **Fix**: Use `coefficients` explainer for linear models, `treeshap` for tree models (XGBoost, LightGBM, RandomForest)
+
+**Reference**: See [Model-Explainer Compatibility](../reference/model-explainer-compatibility.md) for full matrix
+
 ## Next steps
 
 ### Try advanced features

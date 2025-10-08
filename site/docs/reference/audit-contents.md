@@ -8,56 +8,38 @@ Complete breakdown of what's included in every GlassAlpha audit report.
 
 This section shows you exactly what auditors, regulators, and validators look for in each section of a GlassAlpha audit report.
 
+<div class="audit-diagram" markdown>
+
 ```mermaid
-graph TD
-    Report[GlassAlpha Audit Report] --> Header[📋 Report Header]
-    Report --> Perf[📊 Performance Section]
-    Report --> Fair[⚖️ Fairness Section]
-    Report --> Explain[🔍 Explainability Section]
-    Report --> Cal[🎯 Calibration Section]
-    Report --> Manifest[🔒 Reproducibility Manifest]
+graph TB
+    Report[GlassAlpha<br/>Audit Report]
 
-    Header --> H1[Model ID & Version<br/>✓ Auditor checks: Unique identifier<br/>✓ Links to model registry]
-    Header --> H2[Audit Timestamp<br/>✓ Auditor checks: When was this generated?<br/>✓ ISO 8601 format]
-    Header --> H3[Compliance Profile<br/>✓ Auditor checks: Which regulations apply?<br/>✓ e.g., 'SR 11-7', 'GDPR Article 22']
+    Report --> Header[📋 Report Header<br/>ID, Timestamp, Profile]
+    Report --> Perf[📊 Performance<br/>Metrics & Errors]
+    Report --> Fair[⚖️ Fairness<br/>Bias Detection]
+    Report --> Explain[🔍 Explainability<br/>Feature Importance]
+    Report --> Cal[🎯 Calibration<br/>Probability Accuracy]
+    Report --> Manifest[🔒 Reproducibility<br/>Hashes & Seeds]
 
-    Perf --> P1[Confusion Matrix<br/>✓ Auditor checks: Error patterns by class<br/>✓ False negatives = missed good customers]
-    Perf --> P2[Accuracy: 0.85<br/>✓ Auditor checks: Is this acceptable?<br/>✓ Banking: typically requires >80%]
-    Perf --> P3[AUC-ROC: 0.92<br/>✓ Auditor checks: Discrimination ability<br/>✓ >0.80 is generally good]
-    Perf --> P4[Precision/Recall<br/>✓ Auditor checks: Balance of errors<br/>✓ Which error type is worse?]
+    Header --> H[✓ Model ID<br/>✓ Timestamp<br/>✓ Compliance Profile]
+    Perf --> P[✓ Confusion Matrix<br/>✓ Accuracy/AUC<br/>✓ Precision/Recall]
+    Fair --> F[✓ Demographic Parity<br/>✓ Equal Opportunity<br/>✓ Group Breakdown]
+    Explain --> E[✓ Feature Importance<br/>✓ SHAP Values<br/>✓ Sample Cases]
+    Cal --> C[✓ Calibration Curve<br/>✓ ECE < 0.05<br/>✓ Confidence Intervals]
+    Manifest --> M[✓ Config Hash<br/>✓ Data Hash<br/>✓ Random Seeds<br/>✓ Package Versions]
 
-    Fair --> F1[Demographic Parity: 0.08<br/>✓ Auditor checks: <10% threshold<br/>✓ PASS: Within tolerance]
-    Fair --> F2[Equal Opportunity: 0.12<br/>✓ Auditor checks: >10% threshold<br/>✓ FAIL: Qualified applicants treated unequally]
-    Fair --> F3[Group Breakdown Table<br/>✓ Auditor checks: Sample sizes n≥30?<br/>✓ Which group is disadvantaged?]
-    Fair --> F4[Statistical Significance<br/>✓ Auditor checks: p-values <0.05?<br/>✓ Is disparity real or noise?]
-
-    Explain --> E1[Feature Importance Plot<br/>✓ Auditor checks: Top 10 features<br/>✓ Are protected attributes leaking?]
-    Explain --> E2[SHAP Summary Plot<br/>✓ Auditor checks: Feature distributions<br/>✓ Positive vs negative contributions]
-    Explain --> E3[Sample Explanations<br/>✓ Auditor checks: 3-5 representative cases<br/>✓ Do explanations make sense?]
-    Explain --> E4[Method Documentation<br/>✓ Auditor checks: Which explainer used?<br/>✓ TreeSHAP, Coefficients, etc.]
-
-    Cal --> C1[Calibration Curve<br/>✓ Auditor checks: Diagonal alignment<br/>✓ Predicted probabilities match reality?]
-    Cal --> C2[Expected Calibration Error: 0.04<br/>✓ Auditor checks: <0.05 is good<br/>✓ >0.10 is concerning]
-    Cal --> C3[Brier Score: 0.18<br/>✓ Auditor checks: Lower is better<br/>✓ Compare to baseline]
-    Cal --> C4[Confidence Intervals<br/>✓ Auditor checks: Statistical uncertainty<br/>✓ Wide intervals = need more data]
-
-    Manifest --> M1[Config Hash: sha256:abc123...<br/>✓ Auditor checks: Exact configuration used<br/>✓ Can reproduce with this hash]
-    Manifest --> M2[Data Hash: sha256:def456...<br/>✓ Auditor checks: Which data version?<br/>✓ Tamper detection]
-    Manifest --> M3[Random Seeds: [42, 123, 789]<br/>✓ Auditor checks: All randomness seeded?<br/>✓ Required for byte-identical reproduction]
-    Manifest --> M4[Package Versions<br/>✓ Auditor checks: sklearn==1.3.0, etc.<br/>✓ Environment reproducibility]
-    Manifest --> M5[Git Commit: 7f8a9b2<br/>✓ Auditor checks: Exact code version<br/>✓ Can inspect source code]
-
+    style Report fill:#e1f5ff
     style Header fill:#e1f5ff
     style Perf fill:#d4edda
     style Fair fill:#fff3cd
     style Explain fill:#e7d4f5
     style Cal fill:#ffd7e5
     style Manifest fill:#d1ecf1
-
-    style F2 fill:#f8d7da
 ```
 
-### What auditors look for: section-by-section checklist
+</div>
+
+### What auditors look for: Section-by-section checklist
 
 #### 📋 Report Header (5 seconds)
 

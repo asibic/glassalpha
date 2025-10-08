@@ -3,43 +3,30 @@
 ## Which guide do I need?
 
 ```mermaid
-graph TD
-    Start[What do you need?] --> Dev{Are you<br/>implementing?}
-    Dev -->|Yes| DevType{What's your focus?}
-    DevType -->|Local dev + CI/CD| MLEng[ML Engineer Workflow]
-    DevType -->|Notebooks + exploration| DataSci[Quick Start + Custom Data]
-    DevType -->|Independent verification| Validator[Model Validator Workflow]
+graph TB
+    Start[What do you need?]
+    Start --> Dev{Implementing?}
 
-    Dev -->|No| Role{What's your role?}
-    Role -->|Compliance/Risk| CompType{What do you need?}
-    CompType -->|Evidence for regulator| CompOff[Compliance Officer Workflow]
-    CompType -->|Understand requirements| Industry{What industry?}
-    Industry -->|Banking/Credit| Banking[Banking Guide + SR 11-7]
+    Dev -->|Yes| DevType{Your focus?}
+    DevType -->|CI/CD| MLEng[ML Engineer Guide]
+    DevType -->|Notebooks| DataSci[Quickstart + Custom Data]
+    DevType -->|Validation| Validator[Validator Guide]
+
+    Dev -->|No| Role{Your role?}
+    Role -->|Compliance| CompOff[Compliance Officer Guide]
+    Role -->|Industry needs| Industry{Industry?}
+    Industry -->|Banking| Banking[Banking + SR 11-7]
     Industry -->|Insurance| Insurance[Insurance Guide]
     Industry -->|Healthcare| Healthcare[Healthcare Guide]
-    Industry -->|Fraud Detection| Fraud[Fraud Detection Guide]
+    Industry -->|Fraud| Fraud[Fraud Detection]
 
-    Role -->|Just exploring| Explore[Start with Quick Start]
+    Role -->|Exploring| Explore[Start with Quickstart]
 
-    MLEng --> MLEngLink[guides/ml-engineer-workflow.md]
-    DataSci --> DataSciLink[getting-started/quickstart.md]
-    Validator --> ValidatorLink[guides/validator-workflow.md]
-    CompOff --> CompOffLink[guides/compliance-workflow.md]
-    Banking --> BankingLink[compliance/banking-guide.md]
-    Insurance --> InsuranceLink[compliance/insurance-guide.md]
-    Healthcare --> HealthcareLink[compliance/healthcare-guide.md]
-    Fraud --> FraudLink[compliance/fraud-guide.md]
-    Explore --> ExploreLink[getting-started/quickstart.md]
-
-    style MLEngLink fill:#d4edda
-    style DataSciLink fill:#d4edda
-    style ValidatorLink fill:#d4edda
-    style CompOffLink fill:#d4edda
-    style BankingLink fill:#fff3cd
-    style InsuranceLink fill:#fff3cd
-    style HealthcareLink fill:#fff3cd
-    style FraudLink fill:#fff3cd
-    style ExploreLink fill:#e1f5ff
+    style MLEng fill:#d4edda
+    style DataSci fill:#d4edda
+    style Validator fill:#d4edda
+    style CompOff fill:#d4edda
+    style Explore fill:#e1f5ff
 ```
 
 **Quick navigation:**

@@ -15,15 +15,24 @@ if [ "$(printf '%s\n' "$required_version" "$python_version" | sort -V | head -n1
     exit 1
 fi
 
+# Block Python 3.13 due to compatibility issues
+if [[ "$python_version" == "3.13" ]]; then
+    echo "❌ Python 3.13 has compatibility issues. Use Python 3.12 instead."
+    exit 1
+fi
+
 echo "✅ Python version check passed: $python_version"
 
-# Create virtual environment
-echo "📦 Creating virtual environment..."
-python3 -m venv venv
+# Use existing root .venv instead of creating new one
+if [ ! -d "../.venv" ]; then
+    echo "❌ Root .venv not found. Create it first:"
+    echo "   cd /Users/gabe/Sites/glassalpha && python3.12 -m venv .venv"
+    exit 1
+fi
 
 # Activate virtual environment
-echo "🔌 Activating virtual environment..."
-source venv/bin/activate
+echo "🔌 Activating root virtual environment..."
+source ../.venv/bin/activate
 
 # Upgrade core tools
 echo "⬆️  Upgrading pip, wheel, and build tools..."
@@ -55,8 +64,9 @@ python -m pytest tests/test_core_foundation.py -v
 echo ""
 echo "🎉 Development environment setup complete!"
 echo ""
-echo "To activate the environment in the future, run:"
-echo "  source venv/bin/activate"
+echo "To activate the environment in the future:"
+echo "  direnv will auto-activate when you cd to the project"
+echo "  Or manually: source ../.venv/bin/activate"
 echo ""
 echo "To run tests:"
 echo "  pytest"

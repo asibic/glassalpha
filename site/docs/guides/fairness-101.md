@@ -18,19 +18,24 @@ GlassAlpha implements the three most widely-used fairness metrics. Here's what t
 
 ```mermaid
 graph TB
-    Start[Which aspect of<br/>fairness matters?] --> Concern{What's your<br/>primary concern?}
+    Start[Which fairness<br/>aspect matters?]
+    Start --> Concern{Primary<br/>concern?}
 
-    Concern -->|Equal access<br/>to opportunities| DP[Demographic Parity]
-    Concern -->|Equal treatment<br/>of qualified people| EO[Equal Opportunity]
-    Concern -->|Consistent decisions<br/>across groups| EOdds[Equalized Odds]
+    Concern -->|Equal access| DP[Demographic<br/>Parity]
+    Concern -->|Qualified treated equally| EO[Equal<br/>Opportunity]
+    Concern -->|Consistent errors| EOdds[Equalized<br/>Odds]
 
-    DP --> DPEx[Example: Equal loan<br/>approval rates by race]
-    EO --> EOEx[Example: Qualified applicants<br/>approved equally by gender]
-    EOdds --> EOddsEx[Example: Both qualified AND<br/>unqualified treated equally]
+    DP --> DPEx[Equal approval<br/>rates by race]
+    EO --> EOEx[Qualified approved<br/>equally by gender]
+    EOdds --> EOddsEx[Both qualified and<br/>unqualified equal]
 
-    style DP fill:#e1f5ff
+    style Start fill:#e1f5ff
+    style DP fill:#d4edda
     style EO fill:#d4edda
-    style EOdds fill:#fff3cd
+    style EOdds fill:#d4edda
+    style DPEx fill:#fff3cd
+    style EOEx fill:#fff3cd
+    style EOddsEx fill:#fff3cd
 ```
 
 ---
@@ -170,32 +175,21 @@ Status: WARNING (FPR disparity in Age 56+)
 ## Visual comparison: which metric detects what?
 
 ```mermaid
-graph LR
-    subgraph "Scenario: Credit Approval Model"
-        A[1000 Applications] --> B{Model Predictions}
-        B --> C[Group A: 60% approved]
-        B --> D[Group B: 60% approved]
-    end
+graph TB
+    A[Credit Model:<br/>Equal 60% Approval Rates]
 
-    subgraph "Fairness Checks"
-        C --> E1[Demographic Parity:<br/>✓ PASS]
-        D --> E1
+    A --> DP[Demographic Parity:<br/>✓ PASS]
+    A --> EO[Equal Opportunity:<br/>❌ FAIL]
+    A --> EOdds[Equalized Odds:<br/>❌ FAIL]
 
-        C --> E2[Equal Opportunity:<br/>❌ FAIL]
-        D --> E2
+    DP --> DPWhy[Both groups<br/>60% approved]
+    EO --> EOWhy[Group A: 85% TPR<br/>Group B: 70% TPR]
+    EOdds --> EOddsWhy[Group A: 5% FPR<br/>Group B: 10% FPR]
 
-        C --> E3[Equalized Odds:<br/>❌ FAIL]
-        D --> E3
-    end
-
-    subgraph "Why Different Results?"
-        E2 --> F[Group A: 85% of creditworthy approved<br/>Group B: 70% of creditworthy approved]
-        E3 --> G[Group A: 5% FPR<br/>Group B: 10% FPR]
-    end
-
-    style E1 fill:#d4edda
-    style E2 fill:#f8d7da
-    style E3 fill:#f8d7da
+    style A fill:#e1f5ff
+    style DP fill:#d4edda
+    style EO fill:#f8d7da
+    style EOdds fill:#f8d7da
 ```
 
 **The punchline**: A model can have equal approval rates (demographic parity ✓) but still treat qualified people unfairly (equal opportunity ❌) or have inconsistent error rates (equalized odds ❌).
@@ -333,16 +327,18 @@ Use this table to choose the right fairness metric for your use case:
 Enforcing fairness constraints typically reduces overall accuracy:
 
 ```mermaid
-graph LR
-    A[Unconstrained Model<br/>Accuracy: 85%] --> B{Apply Fairness<br/>Constraint}
-    B -->|Demographic Parity| C[Accuracy: 82%<br/>DPD: 0.02]
-    B -->|Equal Opportunity| D[Accuracy: 83%<br/>EOD: 0.03]
-    B -->|Equalized Odds| E[Accuracy: 81%<br/>EqOdds: 0.04]
+graph TB
+    A[Unconstrained<br/>Accuracy: 85%]
+    A --> B{Apply Fairness<br/>Constraint}
+
+    B -->|Demographic Parity| C[Accuracy: 82%<br/>Disparity: 2%]
+    B -->|Equal Opportunity| D[Accuracy: 83%<br/>Disparity: 3%]
+    B -->|Equalized Odds| E[Accuracy: 81%<br/>Disparity: 4%]
 
     style A fill:#e1f5ff
-    style C fill:#fff3cd
-    style D fill:#fff3cd
-    style E fill:#f8d7da
+    style C fill:#d4edda
+    style D fill:#d4edda
+    style E fill:#fff3cd
 ```
 
 **Why this happens**:

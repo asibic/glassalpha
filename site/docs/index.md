@@ -11,32 +11,32 @@ _Note: GlassAlpha is currently pre-alpha while I'm still making significant chan
 
 ## How it works
 
+**Single command**: `glassalpha audit --config your_config.yaml --output audit.pdf`
+
 <div class="index-hero-diagram" markdown>
 
 ```mermaid
 graph TB
     A[Your Model + Data]
-    B[GlassAlpha CLI]
+    A --> B[GlassAlpha CLI]
+
+    B --> Pipeline
 
     subgraph Pipeline[Audit Pipeline]
         D[Performance Analysis]
         E[Fairness Testing]
-        F[Explainability SHAP/Coef]
+        F[Explainability]
         G[Calibration Testing]
     end
 
-    H[Professional PDF Report]
-    I[Evidence Pack<br/>SHA256 Verified]
-    J[Regulatory Submission]
-
-    A --> B
-    B --> Pipeline
     D --> H
     E --> H
     F --> H
     G --> H
-    H --> I
-    I --> J
+
+    H[Professional PDF]
+    H --> I[Evidence Pack SHA256]
+    I --> J[Regulatory Submission]
 
     style A fill:#e1f5ff
     style Pipeline fill:#f0f0f0
@@ -46,8 +46,6 @@ graph TB
 ```
 
 </div>
-
-**Single command**: `glassalpha audit --config your_config.yaml --output audit.pdf`
 
 ## Quick links
 
