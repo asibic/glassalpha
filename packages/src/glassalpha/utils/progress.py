@@ -144,3 +144,6 @@ class _PassthroughProgressBar:
             desc: Description text
 
         """
+
+    def refresh(self) -> None:
+        """Refresh progress bar display (no-op)."""

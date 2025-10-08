@@ -9,7 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- None
+- **QW3: User-Facing Progress Bars** (P0 Feature - Notebook UX Completion)
+  - CLI `audit` command shows progress bar during execution
+  - `from_model()` API shows progress bar in notebooks (auto-detects Jupyter vs terminal)
+  - Progress bars respect strict mode (disabled in strict mode for professional output)
+  - Progress bars respect `GLASSALPHA_NO_PROGRESS=1` environment variable
+  - Bootstrap operations (fairness + calibration CIs) show nested progress bars
+  - Auto-detection of notebook environment via `tqdm.auto`
+  - Why critical: Provides visual feedback during 30-60 second audits, improves UX
 
 ### Changed
 
@@ -17,7 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- None
+- Added `refresh()` method to `_PassthroughProgressBar` for API completeness
 
 ---
 

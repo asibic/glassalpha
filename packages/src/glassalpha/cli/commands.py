@@ -137,6 +137,7 @@ def _run_audit_pipeline(config, output_path: Path, selected_explainer: str | Non
     # Import here to avoid circular imports and startup overhead
     from ..pipeline.audit import run_audit_pipeline
     from ..report import render_audit_report
+    from ..utils.progress import get_progress_bar
 
     start_time = time.time()
 
@@ -159,11 +160,23 @@ def _run_audit_pipeline(config, output_path: Path, selected_explainer: str | Non
             output_path = output_path.with_suffix(".html")
 
     try:
-        # Step 1: Run audit pipeline
-        typer.echo("  Loading data and initializing components...")
+        # Step 1: Run audit pipeline with progress bar
+        # Check if progress should be shown (respects strict mode, env vars)
+        show_progress = not config.strict_mode
 
-        # Run the actual audit pipeline
-        audit_results = run_audit_pipeline(config, selected_explainer=selected_explainer)
+        # Create progress bar (auto-detects notebook vs terminal)
+        with get_progress_bar(total=100, desc="Running audit", disable=not show_progress, leave=False) as pbar:
+
+            def update_progress(message: str, percent: int):
+                """Update progress bar with current step."""
+                pbar.set_description(f"Audit: {message}")
+                pbar.n = percent
+                pbar.refresh()
+
+            # Run the actual audit pipeline with progress callback
+            audit_results = run_audit_pipeline(
+                config, progress_callback=update_progress, selected_explainer=selected_explainer
+            )
 
         if not audit_results.success:
             typer.secho(
@@ -419,7 +432,6 @@ def _binarize_sensitive_features_for_shift(
         DataFrame with binarized attributes for shift analysis
 
     """
-    import pandas as pd
     # Create a copy to avoid modifying the original
     binarized = sensitive_features.copy()
 
@@ -484,7 +496,8 @@ def _binarize_sensitive_features_for_shift(
 
         else:
             typer.secho(
-                f"Warning: Cannot binarize '{attribute}' - unsupported dtype {col.dtype}", fg=typer.colors.YELLOW
+                f"Warning: Cannot binarize '{attribute}' - unsupported dtype {col.dtype}",
+                fg=typer.colors.YELLOW,
             )
 
     return binarized

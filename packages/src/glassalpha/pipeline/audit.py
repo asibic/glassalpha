@@ -274,8 +274,21 @@ class AuditPipeline:
 
         logger.info("Running audit pipeline with in-memory model and data")
 
-        # Run pipeline
-        results = pipeline.run()
+        # Create progress bar (auto-detects notebook, respects strict mode)
+        from glassalpha.utils.progress import get_progress_bar  # noqa: PLC0415
+
+        show_progress = not audit_config.strict_mode
+
+        with get_progress_bar(total=100, desc="Audit", disable=not show_progress, leave=False) as pbar:
+
+            def update_progress(message: str, percent: int):
+                """Update progress bar with current step."""
+                pbar.set_description(f"Audit: {message}")
+                pbar.n = percent
+                pbar.refresh()
+
+            # Run pipeline with progress callback
+            results = pipeline.run(progress_callback=update_progress)
 
         return results
 
@@ -585,8 +598,8 @@ class AuditPipeline:
             temp_config.reproducibility = getattr(self.config, "reproducibility", None)
 
             # Extract features and target for training
-            X, y, _ = self.data_loader.extract_features_target(data, schema)  # noqa: N806
-            X_processed = self._preprocess_for_training(X)  # noqa: N806
+            X, y, _ = self.data_loader.extract_features_target(data, schema)
+            X_processed = self._preprocess_for_training(X)
 
             # Use train_from_config for consistency
             from .train import train_from_config  # noqa: PLC0415
@@ -630,8 +643,8 @@ class AuditPipeline:
             logger.info("Training new model from configuration")
 
             # Extract features and target
-            X, y, _ = self.data_loader.extract_features_target(data, schema)  # noqa: N806
-            X_processed = self._preprocess_for_training(X)  # noqa: N806
+            X, y, _ = self.data_loader.extract_features_target(data, schema)
+            X_processed = self._preprocess_for_training(X)
 
             # Use the new train_from_config function
             from .train import train_from_config  # noqa: PLC0415
@@ -743,7 +756,7 @@ class AuditPipeline:
         logger.info("Generating model explanations")
 
         # Extract features for explanation
-        X, y_target, _ = self.data_loader.extract_features_target(data, schema)  # noqa: N806
+        X, y_target, _ = self.data_loader.extract_features_target(data, schema)
 
         # For in-memory models from from_model(), check if we need to exclude protected attributes
         # Only exclude if model was trained on fewer features than provided
@@ -754,10 +767,10 @@ class AuditPipeline:
                 protected_cols = [col for col in schema.sensitive_features if col in X.columns]
                 if protected_cols:
                     logger.info(f"Excluding protected attributes from model input: {protected_cols}")
-                    X = X.drop(columns=protected_cols)  # noqa: N806
+                    X = X.drop(columns=protected_cols)
 
         # Preprocess features same way as training
-        X_processed = self._preprocess_for_training(X)  # noqa: N806
+        X_processed = self._preprocess_for_training(X)
 
         # Generate explanations with explainer seed
         with self._get_seeded_context("explainer"):
@@ -992,11 +1005,11 @@ class AuditPipeline:
         logger.info("Computing audit metrics")
 
         # Extract data components
-        X, y_true, sensitive_features = self.data_loader.extract_features_target(data, schema)  # noqa: N806
+        X, y_true, sensitive_features = self.data_loader.extract_features_target(data, schema)
 
         # For in-memory models from from_model(), check if we need to exclude protected attributes
         # Only exclude if model was trained on fewer features than provided
-        X_for_model = X  # noqa: N806
+        X_for_model = X
         if self._runtime_model is not None and schema.sensitive_features:
             model_n_features = getattr(self._runtime_model, "n_features_in_", None)
             if model_n_features is not None and model_n_features < len(X.columns):
@@ -1004,10 +1017,10 @@ class AuditPipeline:
                 protected_cols = [col for col in schema.sensitive_features if col in X.columns]
                 if protected_cols:
                     logger.info(f"Excluding protected attributes from model input: {protected_cols}")
-                    X_for_model = X.drop(columns=protected_cols)  # noqa: N806
+                    X_for_model = X.drop(columns=protected_cols)
 
         # Use processed features for predictions (same as training)
-        X_processed = self._preprocess_for_training(X_for_model)  # noqa: N806
+        X_processed = self._preprocess_for_training(X_for_model)
 
         # Friend's spec: Fit-or-fail approach - never skip metrics
         if self.model is None:
@@ -1542,7 +1555,7 @@ class AuditPipeline:
 
     def _compute_stability_metrics(
         self,
-        X: pd.DataFrame,  # noqa: N803
+        X: pd.DataFrame,
         sensitive_features: pd.DataFrame | None,
     ) -> None:
         """Compute stability metrics (E6+ perturbation sweeps).
@@ -1607,7 +1620,7 @@ class AuditPipeline:
                 "status": "failed",
             }
 
-    def _compute_drift_metrics(self, X: pd.DataFrame, y: np.ndarray) -> None:  # noqa: N803, ARG002
+    def _compute_drift_metrics(self, X: pd.DataFrame, y: np.ndarray) -> None:  # noqa: ARG002
         """Compute drift metrics (placeholder implementation).
 
         Args:
@@ -1743,11 +1756,11 @@ class AuditPipeline:
 
         """
         if callback:
-            callback(progress, message)
+            callback(message, progress)
 
         logger.debug(f"Progress: {progress}% - {message}")
 
-    def _preprocess_for_training(self, X: pd.DataFrame) -> pd.DataFrame:  # noqa: N803  # noqa: N803 -> pd.DataFrame:
+    def _preprocess_for_training(self, X: pd.DataFrame) -> pd.DataFrame:
         """Preprocess features for model training.
 
         Uses artifact-based preprocessing if configured, otherwise falls back to
@@ -1765,7 +1778,7 @@ class AuditPipeline:
             return self._preprocess_with_artifact(X)
         return self._preprocess_auto(X)
 
-    def _preprocess_with_artifact(self, X: pd.DataFrame) -> pd.DataFrame:  # noqa: N803
+    def _preprocess_with_artifact(self, X: pd.DataFrame) -> pd.DataFrame:
         """Preprocess using production artifact (artifact mode).
 
         Args:
@@ -1880,7 +1893,7 @@ class AuditPipeline:
 
         # Transform the data
         logger.info("Transforming data with artifact preprocessor...")
-        X_transformed = artifact.transform(X)  # noqa: N806
+        X_transformed = artifact.transform(X)
 
         # Note: Output shape validation against model is deferred until after model loading
         # (validate_output_shape requires the model's n_features_in_ and feature_names_in_)
@@ -1937,7 +1950,7 @@ class AuditPipeline:
         logger.info(f"Artifact preprocessing complete: {X_transformed.shape}")
         return X_transformed
 
-    def _preprocess_auto(self, X: pd.DataFrame) -> pd.DataFrame:  # noqa: N803
+    def _preprocess_auto(self, X: pd.DataFrame) -> pd.DataFrame:
         """Auto preprocessing (fallback mode - NOT compliant for production).
 
         Handles categorical features (like German Credit strings "< 0 DM") with OneHotEncoder

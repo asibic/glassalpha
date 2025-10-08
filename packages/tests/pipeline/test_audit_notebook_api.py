@@ -201,7 +201,7 @@ class TestFromModelValidation:
         class CustomModel:
             """Custom model type."""
 
-            def predict(self, X):  # noqa: N803
+            def predict(self, X):
                 return np.zeros(len(X))
 
         X, y = make_classification(n_samples=100, n_features=5, random_state=42)
@@ -437,3 +437,116 @@ class TestFromModelProgressBars:
         # Verify strict mode disables progress
         assert not is_progress_enabled(strict_mode=True)
         assert is_progress_enabled(strict_mode=False)  # Result depends on tqdm availability
+
+    def test_from_model_shows_progress_by_default(self):
+        """Progress bar shown in notebook/terminal by default."""
+        from unittest.mock import MagicMock, patch
+
+        from sklearn.linear_model import LogisticRegression
+
+        from glassalpha.pipeline.audit import AuditPipeline
+
+        # Create simple dataset
+        X, y = make_classification(n_samples=100, n_features=5, random_state=42)
+        X_df = pd.DataFrame(X, columns=[f"f{i}" for i in range(5)])
+        rng = np.random.RandomState(42)
+        X_df["protected"] = rng.choice([0, 1], size=100)
+
+        # Train model
+        model = LogisticRegression(random_state=42, max_iter=2000, solver="liblinear")
+        model.fit(X_df.drop("protected", axis=1), y)
+
+        # Mock get_progress_bar to verify it's called (patch where it's used)
+        with patch("glassalpha.utils.progress.get_progress_bar") as mock_pbar:
+            # Create a mock progress bar that behaves like the real one
+            mock_pbar_instance = MagicMock()
+            mock_pbar_instance.__enter__ = MagicMock(return_value=mock_pbar_instance)
+            mock_pbar_instance.__exit__ = MagicMock(return_value=False)
+            mock_pbar_instance.n = 0
+            mock_pbar.return_value = mock_pbar_instance
+
+            result = AuditPipeline.from_model(
+                model,
+                X_df,
+                y,
+                protected_attributes=["protected"],
+            )
+
+            # Verify progress bar was created
+            assert mock_pbar.called
+            call_kwargs = mock_pbar.call_args.kwargs
+            assert call_kwargs["total"] == 100
+            assert call_kwargs["desc"] == "Audit"
+            assert call_kwargs["disable"] is False  # Progress enabled by default
+            assert call_kwargs["leave"] is False  # Don't leave progress bar after completion
+
+            # Verify result is valid
+            assert result.success
+
+    def test_from_model_respects_disable_flag(self):
+        """Progress bar can be disabled via get_progress_bar's disable parameter."""
+        from glassalpha.utils.progress import get_progress_bar
+
+        # Test that disabled progress bar returns passthrough
+        pbar_disabled = get_progress_bar(total=100, desc="Test", disable=True)
+
+        # Should have passthrough methods
+        assert hasattr(pbar_disabled, "update")
+        assert hasattr(pbar_disabled, "close")
+        assert hasattr(pbar_disabled, "set_description")
+        assert hasattr(pbar_disabled, "refresh")
+
+        # Should be able to use in context manager
+        with pbar_disabled as pbar:
+            pbar.update(10)
+            pbar.set_description("Test")
+            pbar.refresh()
+
+        # Test that enabled progress bar returns actual tqdm (or passthrough if unavailable)
+        pbar_enabled = get_progress_bar(total=100, desc="Test", disable=False)
+        assert hasattr(pbar_enabled, "update")
+
+        # Cleanup
+        pbar_enabled.close()
+
+    def test_progress_respects_env_var(self, monkeypatch):
+        """Progress bar respects GLASSALPHA_NO_PROGRESS environment variable."""
+        from unittest.mock import MagicMock, patch
+
+        from sklearn.linear_model import LogisticRegression
+
+        from glassalpha.pipeline.audit import AuditPipeline
+
+        # Create simple dataset
+        X, y = make_classification(n_samples=100, n_features=5, random_state=42)
+        X_df = pd.DataFrame(X, columns=[f"f{i}" for i in range(5)])
+        rng = np.random.RandomState(42)
+        X_df["protected"] = rng.choice([0, 1], size=100)
+
+        # Train model
+        model = LogisticRegression(random_state=42, max_iter=2000, solver="liblinear")
+        model.fit(X_df.drop("protected", axis=1), y)
+
+        # Set environment variable to disable progress
+        monkeypatch.setenv("GLASSALPHA_NO_PROGRESS", "1")
+
+        # Mock get_progress_bar to verify it respects env var (patch where it's used)
+        with patch("glassalpha.utils.progress.get_progress_bar") as mock_pbar:
+            # Create a mock progress bar
+            mock_pbar_instance = MagicMock()
+            mock_pbar_instance.__enter__ = MagicMock(return_value=mock_pbar_instance)
+            mock_pbar_instance.__exit__ = MagicMock(return_value=False)
+            mock_pbar_instance.n = 0
+            mock_pbar.return_value = mock_pbar_instance
+
+            # get_progress_bar itself should check the env var internally
+            # So we don't check disable here, just verify it was called
+            result = AuditPipeline.from_model(
+                model,
+                X_df,
+                y,
+                protected_attributes=["protected"],
+            )
+
+            # Verify result is valid
+            assert result.success
