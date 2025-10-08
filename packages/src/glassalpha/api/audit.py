@@ -95,7 +95,7 @@ def from_model(  # noqa: PLR0913
     from glassalpha.core.canonicalization import hash_data_for_manifest
     from glassalpha.models.detection import detect_model_type
 
-    # Convert inputs to numpy arrays
+    # Convert inputs to numpy arrays for metrics computation
     X_arr = _to_numpy(X)
     y_arr = _to_numpy(y)
 
@@ -113,14 +113,16 @@ def from_model(  # noqa: PLR0913
     model_type = detect_model_type(model)
 
     # Generate predictions
-    y_pred = model.predict(X_arr)
+    # IMPORTANT: Pass original X (not X_arr) to support sklearn pipelines with ColumnTransformer
+    # These pipelines require DataFrame input with column names
+    y_pred = model.predict(X)
 
     # Try to get probabilities
     y_proba = None
     if calibration or explain:
         # Check for predict_proba
         if hasattr(model, "predict_proba"):
-            y_proba_raw = model.predict_proba(X_arr)
+            y_proba_raw = model.predict_proba(X)
             # Extract positive class for binary classification
             if y_proba_raw.ndim == 2 and y_proba_raw.shape[1] == 2:
                 y_proba = y_proba_raw[:, 1]
@@ -935,11 +937,12 @@ def run_audit(
         ... )
 
     """
+    import os
+    from datetime import datetime
+
     from glassalpha.config import load_config_from_file
     from glassalpha.pipeline.audit import run_audit_pipeline
-    from glassalpha.report import render_audit_pdf, PDFConfig
-    from datetime import datetime
-    import os
+    from glassalpha.report import PDFConfig, render_audit_pdf
 
     # Convert to Path objects
     config_path = Path(config_path)
@@ -990,9 +993,7 @@ def run_audit(
     if output_format not in ("pdf", "html"):
         # Fall back to config
         output_format = (
-            getattr(audit_config.report, "output_format", "html")
-            if hasattr(audit_config, "report")
-            else "html"
+            getattr(audit_config.report, "output_format", "html") if hasattr(audit_config, "report") else "html"
         )
 
     # Generate report
@@ -1010,7 +1011,7 @@ def run_audit(
                 output_path = output_path.with_suffix(".html")
 
     if output_format == "pdf":
-        from glassalpha.report import render_audit_pdf, PDFConfig
+        from glassalpha.report import PDFConfig, render_audit_pdf
 
         pdf_config = PDFConfig(
             page_size="A4",
@@ -1041,27 +1042,26 @@ def run_audit(
                 pass  # Non-critical
 
         return pdf_path
-    else:
-        # HTML output
-        from glassalpha.report import render_audit_report
+    # HTML output
+    from glassalpha.report import render_audit_report
 
-        render_audit_report(
-            audit_results=audit_results,
-            output_path=output_path,
-            report_title=f"ML Model Audit Report - {datetime.now().strftime('%Y-%m-%d')}",
-            generation_date=datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC"),
-        )
+    render_audit_report(
+        audit_results=audit_results,
+        output_path=output_path,
+        report_title=f"ML Model Audit Report - {datetime.now().strftime('%Y-%m-%d')}",
+        generation_date=datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC"),
+    )
 
-        # Generate manifest sidecar if available
-        if hasattr(audit_results, "execution_info") and "provenance_manifest" in audit_results.execution_info:
-            from glassalpha.provenance import write_manifest_sidecar
+    # Generate manifest sidecar if available
+    if hasattr(audit_results, "execution_info") and "provenance_manifest" in audit_results.execution_info:
+        from glassalpha.provenance import write_manifest_sidecar
 
-            try:
-                write_manifest_sidecar(
-                    audit_results.execution_info["provenance_manifest"],
-                    output_path,
-                )
-            except Exception:
-                pass  # Non-critical
+        try:
+            write_manifest_sidecar(
+                audit_results.execution_info["provenance_manifest"],
+                output_path,
+            )
+        except Exception:
+            pass  # Non-critical
 
-        return output_path
+    return output_path
