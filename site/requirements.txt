@@ -4,6 +4,7 @@ mkdocs-material==9.6.21
 
 # MkDocs plugins
 mkdocs-open-in-new-tab>=1.0.8
+mkdocs-mermaid2-plugin>=1.1.1
 
 # Dependencies for material theme extensions
 pymdown-extensions==10.16.1

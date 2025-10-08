@@ -50,6 +50,7 @@ theme:
 
 plugins:
   - search
+  - mermaid2
   - blog:
       archive: false
       authors: true
@@ -82,7 +83,11 @@ markdown_extensions:
   - pymdownx.mark
   - pymdownx.smartsymbols
   - pymdownx.snippets
-  - pymdownx.superfences
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:mermaid2.fence_mermaid_custom
   - pymdownx.tabbed:
       alternate_style: true
   - pymdownx.tilde
@@ -146,6 +151,7 @@ nav:
 
   # === EXAMPLES (Simple → Advanced) ===
   - Examples:
+      - Overview: examples/index.md
       - German Credit Audit: examples/german-credit-audit.md
       - Fraud Detection: examples/fraud-detection-audit.md
       - Healthcare Bias Detection: examples/healthcare-bias-detection.md
