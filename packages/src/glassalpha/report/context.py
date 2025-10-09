@@ -84,7 +84,30 @@ def normalize_audit_context(audit_results: Any, *, compact: bool = False) -> dic
                 context["calibration_ci"] = calibration_ci
 
     if hasattr(audit_results, "fairness_analysis"):
-        context["fairness_analysis"] = audit_results.fairness_analysis
+        # Make a copy to avoid mutating original data
+        fairness_analysis_copy = (
+            dict(audit_results.fairness_analysis)
+            if isinstance(audit_results.fairness_analysis, dict)
+            else audit_results.fairness_analysis
+        )
+
+        # COMPACT MODE FIX: Remove large nested structures from fairness_analysis
+        # before passing to template (prevents template loop from dumping full dict)
+        if compact and isinstance(fairness_analysis_copy, dict):
+            # Remove individual_fairness from the dict that goes to template loop
+            # (we'll add it back as flattened version below)
+            if "individual_fairness" in fairness_analysis_copy:
+                individual_fairness_full = fairness_analysis_copy.pop("individual_fairness")
+            else:
+                individual_fairness_full = None
+        else:
+            individual_fairness_full = (
+                audit_results.fairness_analysis.get("individual_fairness")
+                if isinstance(audit_results.fairness_analysis, dict)
+                else None
+            )
+
+        context["fairness_analysis"] = fairness_analysis_copy
         context["fairness_metrics"] = context["fairness_analysis"]  # Compatibility alias
 
         # Extract nested features for template convenience
@@ -104,7 +127,10 @@ def normalize_audit_context(audit_results: Any, *, compact: bool = False) -> dic
                 context["intersectional_fairness"] = intersectional
 
             # E11: Individual fairness
-            individual = audit_results.fairness_analysis.get("individual_fairness")
+            # Use the extracted individual_fairness_full if in compact mode
+            individual = (
+                individual_fairness_full if compact else audit_results.fairness_analysis.get("individual_fairness")
+            )
             if individual and isinstance(individual, dict) and "error" not in individual:
                 # Flatten nested structure for template
                 flattened = {}

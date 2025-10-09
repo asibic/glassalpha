@@ -1,0 +1,7 @@
+# GlassAlpha Minimal Configuration
+# The simplest working config - 5 lines to your first audit
+# Documentation: https://glassalpha.com/getting-started/quickstart/
+
+data: { dataset: german_credit, target_column: credit_risk }
+model: { type: logistic_regression }
+reproducibility: { random_seed: 42 }

@@ -942,7 +942,6 @@ def run_audit(
 
     from glassalpha.config import load_config_from_file
     from glassalpha.pipeline.audit import run_audit_pipeline
-    from glassalpha.report import PDFConfig, render_audit_pdf
 
     # Convert to Path objects
     config_path = Path(config_path)
@@ -1011,7 +1010,14 @@ def run_audit(
                 output_path = output_path.with_suffix(".html")
 
     if output_format == "pdf":
-        from glassalpha.report import PDFConfig, render_audit_pdf
+        try:
+            from glassalpha.report import PDFConfig, render_audit_pdf
+        except ImportError:
+            raise RuntimeError(
+                "PDF generation requires additional dependencies.\n"
+                "Install with: pip install 'glassalpha[docs]'\n"
+                "Or use HTML output: --output audit.html",
+            ) from None
 
         pdf_config = PDFConfig(
             page_size="A4",

@@ -18,8 +18,9 @@ from platformdirs import user_data_dir
 from .. import __version__
 from .exit_codes import ExitCode
 
-# Configure logging
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+# Configure logging with WARNING as default (clean output for users)
+# User can override with --verbose (INFO) or --quiet (ERROR only)
+logging.basicConfig(level=logging.WARNING, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
 # Main CLI app
 app = typer.Typer(
@@ -104,7 +105,7 @@ def main_callback(
     if quiet:
         logging.getLogger().setLevel(logging.ERROR)
     elif verbose:
-        logging.getLogger().setLevel(logging.DEBUG)
+        logging.getLogger().setLevel(logging.INFO)  # INFO shows progress, not DEBUG details
 
     # First-run detection - show helpful tip once
     _show_first_run_tip()

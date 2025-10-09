@@ -210,8 +210,18 @@ def _run_audit_pipeline(config, output_path: Path, selected_explainer: str | Non
         # Step 2: Generate report in specified format
         if output_format == "pdf":
             # Import PDF dependencies only when needed
-            from ..report import PDFConfig, render_audit_pdf
+            try:
+                from ..report import PDFConfig, render_audit_pdf
+            except ImportError:
+                _output_error(
+                    "PDF generation requires additional dependencies.\n"
+                    "Install with: pip install 'glassalpha[docs]'\n"
+                    "Falling back to HTML output...",
+                )
+                output_format = "html"
+                output_path = output_path.with_suffix(".html")
 
+        if output_format == "pdf":
             typer.echo(f"\nGenerating PDF report: {output_path}")
 
             # Create PDF configuration
@@ -313,17 +323,17 @@ def _run_audit_pipeline(config, output_path: Path, selected_explainer: str | Non
                     f"⚠️  Large report size ({file_size_mb:.1f} MB) detected",
                     fg=typer.colors.YELLOW,
                 )
-                typer.echo("💡 Tips to reduce size:")
-                typer.echo("   • Use --compact-report (excludes individual fairness pairs, saves ~50-80MB)")
+                typer.echo("💡 Note: You used --full-report which includes all individual fairness pairs")
+                typer.echo("   • Use default (compact mode) for <1MB reports")
                 typer.echo("   • Use --fast for development (reduces bootstrap samples)")
-                typer.echo("   • Full data available in manifest.json sidecar")
-            elif file_size_mb > 10:
-                # Moderate file (10-50MB) - gentle warning
+                typer.echo("   • Full data always available in manifest.json sidecar")
+            elif file_size_mb > 1:
+                # Moderate file (1-50MB) - gentle warning
                 typer.secho(
-                    f"⚠️  Report size ({file_size_mb:.1f} MB) may be difficult to email",
+                    f"⚠️  Report size ({file_size_mb:.1f} MB) is larger than expected",
                     fg=typer.colors.YELLOW,
                 )
-                typer.echo("💡 Tip: Use --compact-report for smaller files (<5MB)")
+                typer.echo("💡 Tip: Default compact mode should produce <1MB reports")
 
             typer.echo(f"Total time: {total_time:.2f}s")
             typer.echo(f"   Pipeline: {pipeline_time:.2f}s")
@@ -818,9 +828,9 @@ def audit(  # pragma: no cover
         help="Sample N rows from dataset for faster iteration (useful for large datasets during development)",
     ),
     compact_report: bool = typer.Option(
-        False,
-        "--compact-report",
-        help="Generate compact report (<5MB) by excluding individual fairness matched pairs from HTML. Full data saved in manifest.json.",
+        True,
+        "--compact-report/--full-report",
+        help="Generate compact report (<1MB, default) by excluding individual fairness matched pairs from HTML. Use --full-report for complete data (may be 50-100MB). Full data always saved in manifest.json.",
     ),
 ):
     """Generate a compliance audit PDF report with optional shift testing.
@@ -1062,7 +1072,19 @@ def audit(  # pragma: no cover
                 model_to_save = audit_results.trained_model
                 if model_to_save is not None:
                     save_model.parent.mkdir(parents=True, exist_ok=True)
-                    joblib.dump(model_to_save, save_model)
+
+                    # Save model with feature metadata for validation
+                    model_artifact = {
+                        "model": model_to_save,
+                        "feature_names": (
+                            list(audit_results.data_info.get("feature_columns", []))
+                            if hasattr(audit_results, "data_info") and audit_results.data_info
+                            else None
+                        ),
+                        "glassalpha_version": "0.2.0",
+                    }
+
+                    joblib.dump(model_artifact, save_model)
                     typer.secho(f"✓ Model saved to: {save_model}", fg=typer.colors.GREEN)
                 else:
                     typer.secho("⚠️  No model available to save", fg=typer.colors.YELLOW)
@@ -1722,10 +1744,37 @@ def reasons(  # pragma: no cover
 
         typer.echo(f"Loading model from: {model}")
         # Use joblib for loading (matches saving with joblib.dump in audit command)
-        model_obj = joblib.load(model)
+        loaded = joblib.load(model)
+
+        # Handle both old format (model only) and new format (dict with metadata)
+        if isinstance(loaded, dict) and "model" in loaded:
+            model_obj = loaded["model"]
+            expected_features = loaded.get("feature_names")
+        else:
+            model_obj = loaded
+            expected_features = None
 
         typer.echo(f"Loading data from: {data}")
         df = pd.read_csv(data)
+
+        # Validate feature alignment if metadata available
+        if expected_features is not None:
+            available_features = list(df.columns)
+            if set(expected_features) - set(available_features):
+                missing = set(expected_features) - set(available_features)
+                typer.secho(
+                    f"Error: Model expects features not in data: {missing}\n\n"
+                    f"Model was trained on {len(expected_features)} features: {expected_features[:5]}...\n"
+                    f"Data has {len(available_features)} columns: {available_features[:5]}...\n\n"
+                    f"Fix: Ensure data has same features as training data.\n"
+                    f"Use the same dataset that was used for training, or preprocess to match.",
+                    fg=typer.colors.RED,
+                    err=True,
+                )
+                raise typer.Exit(ExitCode.USER_ERROR)
+
+            # Reorder columns to match training order
+            df = df[expected_features]
 
         if instance < 0 or instance >= len(df):
             typer.secho(
@@ -1981,10 +2030,37 @@ def recourse(  # pragma: no cover
         # Use joblib for loading (matches saving with joblib.dump in audit command)
         import joblib
 
-        model_obj = joblib.load(model)
+        loaded = joblib.load(model)
+
+        # Handle both old format (model only) and new format (dict with metadata)
+        if isinstance(loaded, dict) and "model" in loaded:
+            model_obj = loaded["model"]
+            expected_features = loaded.get("feature_names")
+        else:
+            model_obj = loaded
+            expected_features = None
 
         typer.echo(f"Loading data from: {data}")
         df = pd.read_csv(data)
+
+        # Validate feature alignment if metadata available
+        if expected_features is not None:
+            available_features = list(df.columns)
+            if set(expected_features) - set(available_features):
+                missing = set(expected_features) - set(available_features)
+                typer.secho(
+                    f"Error: Model expects features not in data: {missing}\n\n"
+                    f"Model was trained on {len(expected_features)} features: {expected_features[:5]}...\n"
+                    f"Data has {len(available_features)} columns: {available_features[:5]}...\n\n"
+                    f"Fix: Ensure data has same features as training data.\n"
+                    f"Use the same dataset that was used for training, or preprocess to match.",
+                    fg=typer.colors.RED,
+                    err=True,
+                )
+                raise typer.Exit(ExitCode.USER_ERROR)
+
+            # Reorder columns to match training order
+            df = df[expected_features]
 
         if instance < 0 or instance >= len(df):
             typer.secho(
