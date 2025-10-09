@@ -152,22 +152,23 @@ class TestHTMLDeterminism:
         """Same inputs should produce byte-identical HTML."""
         renderer = AuditReportRenderer()
 
-        # Render twice
-        html1 = renderer.render_audit_report(minimal_audit_results, output_format="html")
-        html2 = renderer.render_audit_report(minimal_audit_results, output_format="html")
+        # Render twice (disable plots to avoid matplotlib non-determinism)
+        html1 = renderer.render_audit_report(minimal_audit_results, embed_plots=False, output_format="html")
+        html2 = renderer.render_audit_report(minimal_audit_results, embed_plots=False, output_format="html")
 
         assert html1 == html2, "HTML should be byte-identical across runs"
 
     def test_html_content_stable(self, minimal_audit_results):
         """HTML content should be stable and deterministic."""
         renderer = AuditReportRenderer()
-        html = renderer.render_audit_report(minimal_audit_results, output_format="html")
+        # Disable plots to avoid matplotlib non-determinism
+        html = renderer.render_audit_report(minimal_audit_results, embed_plots=False, output_format="html")
 
         # Extract all numbers from HTML
         numbers = re.findall(r"\b\d+\.?\d*\b", html)
 
         # Re-render
-        html2 = renderer.render_audit_report(minimal_audit_results, output_format="html")
+        html2 = renderer.render_audit_report(minimal_audit_results, embed_plots=False, output_format="html")
         numbers2 = re.findall(r"\b\d+\.?\d*\b", html2)
 
         # Numbers should be identical

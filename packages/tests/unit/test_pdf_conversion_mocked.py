@@ -35,7 +35,18 @@ def minimal_audit_results():
         model_info={"type": "LogisticRegression", "features": 5},
         selected_components={"model": "sklearn", "explainer": "treeshap"},
         execution_info={"start_time": "2025-01-01T00:00:00", "duration_seconds": 30, "seed": 42},
-        manifest={"config_hash": "abc123", "data_hash": "def456", "git_sha": "xyz789"},
+        manifest={
+            "config_hash": "abc123",
+            "data_hash": "def456",
+            "git_sha": "xyz789",
+            "tool_version": "0.2.0",
+            "execution": {
+                "status": "completed",
+                "start_time": "2025-01-01T00:00:00",
+                "end_time": "2025-01-01T00:00:30",
+                "duration_seconds": 30,
+            },
+        },
     )
 
 
@@ -43,9 +54,10 @@ def minimal_audit_results():
 class TestPDFConversionMocked:
     """Test PDF conversion with mocked WeasyPrint."""
 
+    @patch("glassalpha.report.renderers.pdf.AuditPDFRenderer._set_pdf_metadata")
     @patch("glassalpha.report.renderers.pdf.CSS")
     @patch("glassalpha.report.renderers.pdf.HTML")
-    def test_weasyprint_called_with_html_content(self, mock_html_class, mock_css_class, tmp_path):
+    def test_weasyprint_called_with_html_content(self, mock_html_class, mock_css_class, _mock_metadata, tmp_path):
         """WeasyPrint should be called with HTML content."""
         output_path = tmp_path / "test.pdf"
 
@@ -59,6 +71,12 @@ class TestPDFConversionMocked:
         mock_css_instance = Mock()
         mock_css_class.return_value = mock_css_instance
 
+        # Mock write_pdf to create file so stat() works
+        def create_file(*_args, **_kwargs):
+            output_path.write_bytes(b"%PDF-1.4\n")
+
+        mock_rendered_doc.write_pdf.side_effect = create_file
+
         renderer = PDFRenderer()
         renderer.convert_html_to_pdf("<html>test</html>", output_path)
 
@@ -67,9 +85,10 @@ class TestPDFConversionMocked:
         call_args = mock_html_class.call_args
         assert "test" in str(call_args)  # HTML content passed
 
+    @patch("glassalpha.report.renderers.pdf.AuditPDFRenderer._set_pdf_metadata")
     @patch("glassalpha.report.renderers.pdf.CSS")
     @patch("glassalpha.report.renderers.pdf.HTML")
-    def test_weasyprint_write_pdf_called(self, mock_html_class, mock_css_class, tmp_path):
+    def test_weasyprint_write_pdf_called(self, mock_html_class, mock_css_class, _mock_metadata, tmp_path):
         """WeasyPrint write_pdf should be called with output path."""
         output_path = tmp_path / "test.pdf"
 
@@ -83,6 +102,12 @@ class TestPDFConversionMocked:
         mock_css_instance = Mock()
         mock_css_class.return_value = mock_css_instance
 
+        # Mock write_pdf to create file so stat() works
+        def create_file(*_args, **_kwargs):
+            output_path.write_bytes(b"%PDF-1.4\n")
+
+        mock_rendered_doc.write_pdf.side_effect = create_file
+
         renderer = PDFRenderer()
         renderer.convert_html_to_pdf("<html>test</html>", output_path)
 
@@ -91,9 +116,10 @@ class TestPDFConversionMocked:
         call_args = mock_rendered_doc.write_pdf.call_args
         assert output_path in call_args[0] or str(output_path) in str(call_args[1].values())
 
+    @patch("glassalpha.report.renderers.pdf.AuditPDFRenderer._set_pdf_metadata")
     @patch("glassalpha.report.renderers.pdf.CSS")
     @patch("glassalpha.report.renderers.pdf.HTML")
-    def test_pdf_conversion_creates_output_file(self, mock_html_class, mock_css_class, tmp_path):
+    def test_pdf_conversion_creates_output_file(self, mock_html_class, mock_css_class, _mock_metadata, tmp_path):
         """PDF conversion should create output file."""
         output_path = tmp_path / "test.pdf"
 
@@ -175,7 +201,18 @@ class TestPDFConversionMocked:
             model_info={"type": "LogisticRegression", "features": 5},
             selected_components={"model": "sklearn", "explainer": "treeshap"},
             execution_info={"start_time": "2025-01-01T00:00:00", "duration_seconds": 30, "seed": 42},
-            manifest={"config_hash": "abc123", "data_hash": "def456", "git_sha": "xyz789"},
+            manifest={
+                "config_hash": "abc123",
+                "data_hash": "def456",
+                "git_sha": "xyz789",
+                "tool_version": "0.2.0",
+                "execution": {
+                    "status": "completed",
+                    "start_time": "2025-01-01T00:00:00",
+                    "end_time": "2025-01-01T00:00:30",
+                    "duration_seconds": 30,
+                },
+            },
         )
 
         # Mock successful PDF generation
@@ -207,9 +244,10 @@ class TestPDFConversionMocked:
         assert hasattr(renderer, "config")
         assert hasattr(renderer, "convert_html_to_pdf")
 
+    @patch("glassalpha.report.renderers.pdf.AuditPDFRenderer._set_pdf_metadata")
     @patch("glassalpha.report.renderers.pdf.CSS")
     @patch("glassalpha.report.renderers.pdf.HTML")
-    def test_pdf_conversion_with_stylesheets(self, mock_html_class, mock_css_class, tmp_path):
+    def test_pdf_conversion_with_stylesheets(self, mock_html_class, mock_css_class, _mock_metadata, tmp_path):
         """PDF conversion should handle stylesheets."""
         output_path = tmp_path / "test.pdf"
 
@@ -221,6 +259,12 @@ class TestPDFConversionMocked:
         # Mock CSS
         mock_css_instance = Mock()
         mock_css_class.return_value = mock_css_instance
+
+        # Mock write_pdf to create file so stat() works
+        def create_file(*_args, **_kwargs):
+            output_path.write_bytes(b"%PDF-1.4\n")
+
+        mock_rendered_doc.write_pdf.side_effect = create_file
 
         renderer = PDFRenderer()
         renderer.convert_html_to_pdf("<html>test</html>", output_path)

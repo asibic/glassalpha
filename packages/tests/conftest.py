@@ -10,6 +10,7 @@ import threading
 # MUST set BEFORE any imports that might use it
 # Use assignment (not setdefault) to override any existing values
 os.environ["GLASSALPHA_NO_PROGRESS"] = "1"
+os.environ["GLASSALPHA_DETERMINISTIC"] = "1"
 os.environ["PYTHONHASHSEED"] = "0"
 os.environ["TZ"] = "UTC"
 os.environ["MPLBACKEND"] = "Agg"
