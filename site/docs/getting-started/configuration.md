@@ -9,7 +9,158 @@ Start with the [Quick Start Guide](quickstart.md) to generate your first audit, 
 
 GlassAlpha uses YAML configuration files to define every aspect of the audit process. Configuration files are policy-as-code, enabling version control, review processes, and reproducible audits.
 
+## Progressive Configuration Levels
+
+Choose the complexity level that matches your needs:
+
+### Level 1: Minimal (5 lines) - Getting Started
+
+Perfect for your first audit. Uses built-in datasets and sensible defaults.
+
+```yaml
+data: { dataset: german_credit, target_column: credit_risk }
+model: { type: logistic_regression }
+reproducibility: { random_seed: 42 }
+```
+
+**What you get**: Working audit with performance metrics, basic explanations, and reproducibility.
+
+**Use when**: Learning GlassAlpha, quick prototyping, demos.
+
+[See full minimal.yaml →](https://github.com/GlassAlpha/glassalpha/blob/main/packages/configs/minimal.yaml)
+
+??? example "Run this config"
+`bash
+    glassalpha audit --config minimal.yaml --output audit.html --fast
+    `
+
+---
+
+### Level 2: Intermediate (20 lines) - Common Use Cases
+
+Adds fairness analysis and protected attributes. Most teams start here.
+
+```yaml
+audit_profile: tabular_compliance
+
+data:
+  dataset: german_credit
+  target_column: credit_risk
+  protected_attributes:
+    - gender
+    - age_group
+
+model:
+  type: logistic_regression
+  params:
+    random_state: 42
+    max_iter: 1000
+
+explainers:
+  strategy: first_compatible
+  priority: [coefficients]
+
+metrics:
+  fairness: [demographic_parity, equal_opportunity]
+
+reproducibility:
+  random_seed: 42
+```
+
+**What you get**: Everything from Level 1 + fairness analysis across protected groups.
+
+**Use when**: Checking for bias, compliance requirements, team reviews.
+
+[See full fairness_focused.yaml →](https://github.com/GlassAlpha/glassalpha/blob/main/packages/configs/fairness_focused.yaml)
+
+---
+
+### Level 3: Production (50+ lines) - Full Compliance
+
+Comprehensive configuration for regulatory submissions.
+
+```yaml
+audit_profile: tabular_compliance
+
+data:
+  dataset: german_credit
+  target_column: credit_risk
+  protected_attributes:
+    - gender
+    - age_group
+    - foreign_worker
+
+model:
+  type: xgboost
+  save_path: models/production_model.pkl
+  params:
+    objective: binary:logistic
+    n_estimators: 100
+    max_depth: 6
+    learning_rate: 0.1
+    random_state: 42
+
+explainers:
+  strategy: first_compatible
+  priority: [treeshap, kernelshap]
+  config:
+    treeshap:
+      max_samples: 1000
+
+metrics:
+  performance: [accuracy, precision, recall, f1, auc_roc]
+  fairness: [demographic_parity, equal_opportunity, equalized_odds]
+
+reproducibility:
+  random_seed: 42
+  deterministic: true
+  capture_environment: true
+
+report:
+  output_format: html
+  title: "Production Model Audit Report"
+
+manifest:
+  enabled: true
+  include_git_info: true
+```
+
+**What you get**: Complete audit trail, full metrics, model saving for reasons/recourse.
+
+**Use when**: Regulatory submission, production deployments, audit evidence.
+
+[See full production.yaml →](https://github.com/GlassAlpha/glassalpha/blob/main/packages/configs/production.yaml)
+
+---
+
+## Configuration Templates
+
+Pre-built templates for common scenarios:
+
+| Template                     | Use Case                | Complexity | Key Features                             |
+| ---------------------------- | ----------------------- | ---------- | ---------------------------------------- |
+| **minimal.yaml**             | Learning, demos         | 5 lines    | Basic audit                              |
+| **fairness_focused.yaml**    | Bias detection          | 20 lines   | Protected attributes, fairness metrics   |
+| **calibration_focused.yaml** | Probability calibration | 20 lines   | Calibration curves, confidence intervals |
+| **production.yaml**          | Regulatory compliance   | 50+ lines  | Full audit trail, all features           |
+
+Copy a template to get started:
+
+```bash
+# Copy template to your project
+cp packages/configs/fairness_focused.yaml my_audit.yaml
+
+# Customize and run
+glassalpha audit --config my_audit.yaml --output audit.html
+```
+
+---
+
+## Detailed Configuration Reference
+
 ### Basic structure
+
+Every configuration has this structure (minimal → production):
 
 ```yaml
 # Required: Audit profile determines component selection

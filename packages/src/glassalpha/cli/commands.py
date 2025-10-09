@@ -299,7 +299,15 @@ def _run_audit_pipeline(config, output_path: Path, selected_explainer: str | Non
             typer.echo("\nAudit Report Generated Successfully!")
 
         else:
-            typer.secho(f"Error: Unsupported output format '{output_format}'", fg=typer.colors.RED, err=True)
+            typer.secho(
+                f"Error: Unsupported output format '{output_format}'\n\n"
+                f"Supported formats:\n"
+                f"  - html (recommended): --output audit.html\n"
+                f"  - pdf (requires weasyprint): --output audit.pdf\n\n"
+                f"Fix: Change output file extension to .html or .pdf",
+                fg=typer.colors.RED,
+                err=True,
+            )
             raise typer.Exit(ExitCode.USER_ERROR)
 
         typer.echo("=" * 50)
@@ -903,12 +911,21 @@ def audit(  # pragma: no cover
 
         # Check file existence early with specific error message
         if not config.exists():
-            _output_error(f"Configuration file does not exist: {config}")
+            _output_error(
+                f"Configuration file does not exist: {config}\n\n"
+                f"Fix options:\n"
+                f"  1. Create a minimal config: glassalpha init --template quickstart\n"
+                f"  2. Use a built-in example: glassalpha audit --config packages/configs/minimal.yaml\n"
+                f"  3. Specify correct path: glassalpha audit --config path/to/your/config.yaml",
+            )
             raise typer.Exit(ExitCode.USER_ERROR)
 
         # Check override config if provided
         if override_config and not override_config.exists():
-            _output_error(f"Override configuration file does not exist: {override_config}")
+            _output_error(
+                f"Override configuration file does not exist: {override_config}\n\n"
+                f"Fix: Check file path and spelling, or remove --override flag",
+            )
             raise typer.Exit(ExitCode.USER_ERROR)
 
         # Validate output directory exists before doing any work
@@ -1366,11 +1383,56 @@ def validate(  # pragma: no cover
         typer.echo(f"Model type: {audit_config.model.type}")
         typer.echo(f"Strict mode: {'valid' if strict else 'not checked'}")
 
-        # Runtime availability validation
+        # Semantic validation
         validation_errors = []
         validation_warnings = []
 
-        # Check model availability
+        # 1. Check if data source exists (if path specified)
+        if hasattr(audit_config.data, "path") and audit_config.data.path:
+            from pathlib import Path as PathLib
+
+            data_path = PathLib(audit_config.data.path)
+            if not data_path.exists():
+                validation_errors.append(
+                    f"Data file not found: {data_path}\n"
+                    f"Fix: Create the file or use a built-in dataset:\n"
+                    f"  data:\n"
+                    f"    dataset: german_credit  # or adult_income",
+                )
+
+        # 2. Check if protected attributes are specified for fairness metrics
+        if hasattr(audit_config.metrics, "fairness") and audit_config.metrics.fairness:
+            if not hasattr(audit_config.data, "protected_attributes") or not audit_config.data.protected_attributes:
+                validation_warnings.append(
+                    "Fairness metrics requested but no protected_attributes specified.\n"
+                    "Add protected_attributes to data section:\n"
+                    "  data:\n"
+                    "    protected_attributes:\n"
+                    "      - gender\n"
+                    "      - age_group",
+                )
+
+        # 3. Check model/explainer compatibility
+        model_type = audit_config.model.type
+        if hasattr(audit_config.explainers, "priority") and audit_config.explainers.priority:
+            explainer_priorities = audit_config.explainers.priority
+            # Check for common incompatibilities
+            if model_type == "logistic_regression" and "treeshap" in explainer_priorities:
+                validation_warnings.append(
+                    f"Explainer 'treeshap' is not compatible with '{model_type}'.\n"
+                    f"Recommend: Use 'coefficients' explainer for linear models:\n"
+                    f"  explainers:\n"
+                    f"    priority: [coefficients]",
+                )
+            elif model_type in ["xgboost", "lightgbm"] and "coefficients" in explainer_priorities:
+                validation_warnings.append(
+                    f"Explainer 'coefficients' is not ideal for '{model_type}'.\n"
+                    f"Recommend: Use 'treeshap' for tree models:\n"
+                    f"  explainers:\n"
+                    f"    priority: [treeshap]",
+                )
+
+        # 4. Check model availability
         available_models = ModelRegistry.available_plugins()
         if not available_models.get(audit_config.model.type, False):
             msg = (
@@ -1382,7 +1444,7 @@ def validate(  # pragma: no cover
             else:
                 validation_warnings.append(msg + " (Will fallback to logistic_regression)")
 
-        # Check explainer availability and compatibility
+        # 5. Check explainer availability and compatibility
         if audit_config.explainers.priority:
             available_explainers = ExplainerRegistry.available_plugins()
             requested_explainers = audit_config.explainers.priority
