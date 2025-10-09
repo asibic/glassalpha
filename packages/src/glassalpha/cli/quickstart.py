@@ -354,7 +354,7 @@ reproducibility:
 # Report configuration
 report:
   template: standard_audit
-  output_format: pdf
+  output_format: html
 
 # Manifest configuration
 manifest:
@@ -396,11 +396,26 @@ def _create_run_script(path: Path, dataset: str, model: str) -> None:
 """Example audit script for {dataset} dataset with {model} model.
 
 This script demonstrates the simplest way to run a GlassAlpha audit programmatically.
+
+Requirements:
+    - GlassAlpha must be installed: pip install 'glassalpha[all]'
+    - For development from source: pip install -e ".[all]" from packages/ directory
 """
 
+import sys
 from pathlib import Path
 
-from glassalpha.api import run_audit
+# Check if glassalpha is installed
+try:
+    from glassalpha.api import run_audit
+except ImportError:
+    print("Error: GlassAlpha not installed.")
+    print()
+    print("Install with one of these commands:")
+    print("  pip install 'glassalpha[all]'  # From PyPI")
+    print("  cd ../packages && pip install -e '.[all]'  # From source")
+    print()
+    sys.exit(1)
 
 if __name__ == "__main__":
     print("=" * 60)
@@ -410,7 +425,7 @@ if __name__ == "__main__":
 
     # Configuration paths
     config_path = Path("audit_config.yaml")
-    output_path = Path("reports/audit_report.pdf")
+    output_path = Path("reports/audit_report.html")
 
     print(f"Configuration: {{config_path}}")
     print(f"Output: {{output_path}}")
@@ -430,7 +445,7 @@ if __name__ == "__main__":
         print(f"  Report: {{report_path}}")
         print()
         print("Next steps:")
-        print("  1. Open reports/audit_report.pdf to view the audit")
+        print("  1. Open reports/audit_report.html to view the audit")
         print("  2. Modify audit_config.yaml to customize metrics")
         print("  3. Try CLI for shift testing: glassalpha audit --check-shift gender:+0.1")
         print()
@@ -464,7 +479,14 @@ Run your first audit in 3 commands:
 ```bash
 cd {path.parent.name}
 python run_audit.py
-open reports/audit_report.pdf
+open reports/audit_report.html
+```
+
+**Note**: Make sure GlassAlpha is installed first:
+```bash
+pip install 'glassalpha[all]'  # From PyPI
+# OR from source:
+cd ../packages && pip install -e '.[all]'
 ```
 
 ## Project Structure

@@ -201,7 +201,7 @@ report:
   template: "standard_audit"
 
   # Output format (PDF is primary target)
-  output_format: "pdf"
+  output_format: "html" # Use HTML for fast generation (change to "pdf" for regulatory submission)
 
   # Report sections to include
   include_sections:

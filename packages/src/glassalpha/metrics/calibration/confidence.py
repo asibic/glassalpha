@@ -246,6 +246,8 @@ def compute_bin_wise_ci(
             continue
 
         bootstrap_obs_freqs = []
+        # Note: Progress bar not added here as this is nested within bin loop
+        # and would create too many progress bars. Bin-wise CI is fast anyway.
         for _ in range(n_bootstrap):
             # Resample within this bin
             indices = np.where(in_bin)[0]
@@ -302,26 +304,34 @@ def _bootstrap_metric(
         CalibrationCI with bounds and metadata
 
     """
-    from tqdm.auto import tqdm
+    from ...utils.progress import get_progress_bar
 
     n_samples = len(y_true)
     bootstrap_estimates = []
 
-    # Add progress bar for bootstrap iterations
-    for _ in tqdm(range(n_bootstrap), desc=f"Bootstrap {metric_name}", leave=False, disable=n_bootstrap < 100):
-        # Simple random resample with replacement
-        indices = rng.choice(n_samples, size=n_samples, replace=True)
+    # Add progress bar for bootstrap iterations (respects strict mode and env vars)
+    with get_progress_bar(
+        total=n_bootstrap,
+        desc=f"Bootstrap {metric_name}",
+        leave=False,
+        disable=n_bootstrap < 100,
+    ) as pbar:
+        for _ in range(n_bootstrap):
+            # Simple random resample with replacement
+            indices = rng.choice(n_samples, size=n_samples, replace=True)
 
-        y_true_boot = y_true[indices]
-        y_prob_boot = y_prob[indices]
+            y_true_boot = y_true[indices]
+            y_prob_boot = y_prob[indices]
 
-        try:
-            boot_estimate = metric_fn(y_true_boot, y_prob_boot)
-            if not np.isnan(boot_estimate):
-                bootstrap_estimates.append(boot_estimate)
-        except Exception as e:  # noqa: BLE001
-            logger.debug(f"Bootstrap iteration failed: {e}")
-            continue
+            try:
+                boot_estimate = metric_fn(y_true_boot, y_prob_boot)
+                if not np.isnan(boot_estimate):
+                    bootstrap_estimates.append(boot_estimate)
+            except Exception as e:  # noqa: BLE001
+                logger.debug(f"Bootstrap iteration failed: {e}")
+                continue
+
+            pbar.update(1)
 
     if len(bootstrap_estimates) == 0:
         logger.warning(f"All bootstrap iterations failed for {metric_name}")

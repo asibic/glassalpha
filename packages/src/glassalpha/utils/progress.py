@@ -71,8 +71,19 @@ def get_progress_bar(
         # Return passthrough wrapper that does nothing
         return _PassthroughProgressBar(iterable)
 
-    # Create tqdm progress bar
-    return tqdm(iterable=iterable, desc=desc, total=total, disable=False, leave=leave, **kwargs)
+    # Create tqdm progress bar with explicit cleanup settings
+    # mininterval=1.0 reduces monitor thread wake-ups
+    # delay=0.5 prevents spawning monitor for very short operations
+    return tqdm(
+        iterable=iterable,
+        desc=desc,
+        total=total,
+        disable=False,
+        leave=leave,
+        mininterval=1.0,  # Update display at most once per second
+        delay=0.5,  # Don't create monitor thread for operations <0.5s
+        **kwargs,
+    )
 
 
 def is_progress_enabled(strict_mode: bool = False) -> bool:

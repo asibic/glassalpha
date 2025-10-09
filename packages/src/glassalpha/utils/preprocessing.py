@@ -32,7 +32,11 @@ def preprocess_auto(X: pd.DataFrame) -> pd.DataFrame:
     # In strict mode audits, this should be WARNING (if it even runs)
     logger.info(
         "Using AUTO preprocessing (development mode). "
-        "For regulatory audits, use mode='artifact' with a verified preprocessing artifact.",
+        "This is fine for experimentation and testing. "
+        "For production/regulatory audits: "
+        "(1) Save preprocessing with scripts/create_preprocessing_artifacts.py, "
+        "(2) Use 'preprocessing: artifact: path/to/artifact.joblib' in config, "
+        "(3) Run with --strict flag for validation.",
     )
 
     # Identify categorical and numeric columns

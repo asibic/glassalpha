@@ -28,10 +28,7 @@ def _import_shap():
 
         return shap, True
     except ImportError as e:
-        msg = (
-            "TreeSHAP requires the 'shap' library. "
-            "Install with: pip install 'glassalpha[shap]' or pip install shap"
-        )
+        msg = "TreeSHAP requires the 'shap' library. Install with: pip install 'glassalpha[shap]' or pip install shap"
         raise ImportError(msg) from e
 
 
@@ -224,7 +221,20 @@ class TreeSHAPExplainer(ExplainerBase):
                 if not shap_available:
                     msg = "SHAP library required for TreeSHAP explainer"
                     raise ImportError(msg)
-                self.explainer = shap_lib.TreeExplainer(self.model)
+                # Force single-threaded SHAP to prevent orphaned C++ worker threads
+                # that survive process termination (critical for clean shutdown)
+                import os
+
+                old_num_threads = os.environ.get("OMP_NUM_THREADS")
+                os.environ["OMP_NUM_THREADS"] = "1"
+                try:
+                    self.explainer = shap_lib.TreeExplainer(self.model)
+                finally:
+                    # Restore original thread count
+                    if old_num_threads is not None:
+                        os.environ["OMP_NUM_THREADS"] = old_num_threads
+                    else:
+                        os.environ.pop("OMP_NUM_THREADS", None)
             except RuntimeError as e:  # More specific exception
                 logger.warning(f"TreeExplainer init failed, falling back to None: {e}")
                 self.explainer = None
@@ -290,13 +300,25 @@ class TreeSHAPExplainer(ExplainerBase):
 
             # For TreeSHAP, we can't wrap the internal loop, but we can show a progress indicator
             # if the dataset is large enough
-            if progress_enabled and n > 100:
-                # Show progress bar for computation
-                with get_progress_bar(total=n, desc="Computing TreeSHAP", leave=False) as pbar:
+            # Force single-threaded computation to prevent orphaned threads
+            import os
+
+            old_num_threads = os.environ.get("OMP_NUM_THREADS")
+            os.environ["OMP_NUM_THREADS"] = "1"
+            try:
+                if progress_enabled and n > 100:
+                    # Show progress bar for computation
+                    with get_progress_bar(total=n, desc="Computing TreeSHAP", leave=False) as pbar:
+                        vals = self.explainer.shap_values(x)
+                        pbar.update(n)  # Update all at once since we can't track internal progress
+                else:
                     vals = self.explainer.shap_values(x)
-                    pbar.update(n)  # Update all at once since we can't track internal progress
-            else:
-                vals = self.explainer.shap_values(x)
+            finally:
+                # Restore original thread count
+                if old_num_threads is not None:
+                    os.environ["OMP_NUM_THREADS"] = old_num_threads
+                else:
+                    os.environ.pop("OMP_NUM_THREADS", None)
             return np.array(vals)
         # Fallback: zero matrix with correct shape (tests usually check shape, not exact values)
         return np.zeros((n, p))

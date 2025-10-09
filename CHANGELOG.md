@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **QW3: User-Facing Progress Bars** (P0 Feature - Notebook UX Completion)
+
   - CLI `audit` command shows progress bar during execution
   - `from_model()` API shows progress bar in notebooks (auto-detects Jupyter vs terminal)
   - Progress bars respect strict mode (disabled in strict mode for professional output)
@@ -18,9 +19,53 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Auto-detection of notebook environment via `tqdm.auto`
   - Why critical: Provides visual feedback during 30-60 second audits, improves UX
 
+- **Distribution Infrastructure (P0 - PyPI Blockers)**
+
+  - Packaging validation: `check-manifest` and `validate-pyproject` in CI
+  - `twine check` validates wheel metadata before upload
+  - Import time test enforces <200ms budget for CLI responsiveness
+  - Import time tolerance: 200ms local, 300ms CI
+  - Lazy loading verification: Heavy dependencies not loaded at import
+
+- **Cross-Platform Wheel Building (P0)**
+
+  - cibuildwheel workflow for Linux (x86_64) + macOS (x86_64, arm64)
+  - Python 3.11, 3.12, 3.13 wheel building
+  - Deterministic build environment (pinned BLAS threads, locale, timezone)
+  - Smoke tests verify wheel installs and basic import on all platforms
+  - TestPyPI publication on RC tags (e.g., `v0.2.1rc1`)
+
+- **Testing Infrastructure (P1)**
+
+  - Deterministic test environment via `pytest_sessionstart` hook
+  - Environment pinning: `PYTHONHASHSEED=0`, `TZ=UTC`, `LC_ALL=C`, single-threaded BLAS
+  - Property-based tests with Hypothesis for calibration metrics
+    - ECE/MCE/Brier score invariants (range checks, MCE >= ECE)
+    - Perfect calibration edge cases
+    - Determinism verification across runs
+    - Bootstrap CI coverage validation
+  - Property-based tests for fairness/threshold selection
+    - Youden threshold maximization property
+    - Prevalence threshold matches positive rate
+    - Rate metrics in [0, 1] range
+    - Confusion matrix sum invariants
+  - Notebook testing with pytest-nbmake
+    - Automated execution of all example notebooks in CI
+    - 180-second timeout per notebook
+    - Validates API examples don't break
+
+- **Security and Quality Gates (P1)**
+  - pip-audit security scanning in CI (CVE detection)
+  - Security report artifact uploaded for review (90-day retention)
+  - Tox configuration for multi-Python testing (3.11, 3.12, 3.13)
+  - Minimum dependency testing via `constraints/min.txt`
+  - Pre-commit hooks (ruff, black, mypy, codespell, yamllint)
+
 ### Changed
 
 - Temporarily disabled Docker workflow to focus CI resources on PyPI distribution (reassess in Phase 3)
+- Added Hypothesis (>=6.92) to dev dependencies for property testing
+- Updated CI to include security job in deployment gate
 
 ### Fixed
 

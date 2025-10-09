@@ -148,11 +148,14 @@ report:
 Execute the fraud detection audit:
 
 ```bash
-# Generate comprehensive audit
+# Generate comprehensive audit (use --fast for quick demos)
 glassalpha audit \
   --config fraud_detection_audit.yaml \
   --output fraud_detection_audit.pdf \
-  --strict
+  --fast
+
+# For production/regulatory: omit --fast and add --strict
+# glassalpha audit --config fraud_detection_audit.yaml --output audit.pdf --strict
 ```
 
 ### Expected execution

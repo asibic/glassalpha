@@ -146,7 +146,8 @@ def _run_audit_pipeline(config, output_path: Path, selected_explainer: str | Non
     start_time = time.time()
 
     # Determine output format from config and check PDF availability
-    output_format = getattr(config.report, "output_format", "pdf") if hasattr(config, "report") else "pdf"
+    # Default to HTML for better performance (PDF generation can take 10+ minutes for large reports)
+    output_format = getattr(config.report, "output_format", "html") if hasattr(config, "report") else "html"
 
     # Check if PDF backend is available
     try:
@@ -162,6 +163,13 @@ def _run_audit_pipeline(config, output_path: Path, selected_explainer: str | Non
         # Update output path extension if needed
         if output_path.suffix.lower() == ".pdf":
             output_path = output_path.with_suffix(".html")
+    elif output_format == "pdf" and _PDF_AVAILABLE:
+        # Warn about potential slow PDF generation
+        typer.secho(
+            "⚠️  PDF generation may take 10+ minutes for complex audits. Consider using HTML format for faster results.",
+            fg=typer.colors.YELLOW,
+        )
+        typer.echo("   Tip: Set 'output_format: html' in your config for faster generation.\n")
 
     try:
         # Step 1: Run audit pipeline with progress bar
@@ -293,7 +301,16 @@ def _run_audit_pipeline(config, output_path: Path, selected_explainer: str | Non
             typer.echo(f"   PDF generation: {pdf_time:.2f}s")
         elif output_format == "html":
             typer.secho(f"Output: {output_path}", fg=typer.colors.GREEN)
-            typer.echo(f"Size: {file_size:,} bytes ({file_size / 1024:.1f} KB)")
+            file_size_mb = file_size / (1024 * 1024)
+            typer.echo(f"Size: {file_size:,} bytes ({file_size_mb:.1f} MB)")
+
+            # Warn if file size is large (>10MB is problematic for email/sharing)
+            if file_size_mb > 10:
+                typer.secho(
+                    f"⚠️  Warning: Large file size ({file_size_mb:.1f} MB) may be difficult to share via email",
+                    fg=typer.colors.YELLOW,
+                )
+
             typer.echo(f"Total time: {total_time:.2f}s")
             typer.echo(f"   Pipeline: {pipeline_time:.2f}s")
             typer.echo(f"   HTML generation: {html_time:.2f}s")
@@ -468,8 +485,13 @@ def _binarize_sensitive_features_for_shift(
     # Binarize each attribute needed for shift analysis
     for attribute in shift_attributes:
         if attribute not in binarized.columns:
-            typer.secho(f"Warning: Attribute '{attribute}' not found in sensitive features", fg=typer.colors.YELLOW)
-            continue
+            # Provide helpful error message listing available attributes
+            available = ", ".join(binarized.columns.tolist())
+            raise ValueError(
+                f"Attribute '{attribute}' not found in sensitive_features. "
+                f"Available: [{available}]. "
+                f"Add '{attribute}' to 'protected_attributes' in your config to enable shift analysis.",
+            )
 
         col = binarized[attribute]
 
@@ -558,8 +580,18 @@ def _run_shift_analysis(
             schema = get_german_credit_schema()
         else:
             # Load from file path
+            from ..data.tabular import TabularDataSchema
+
             data = data_loader.load(audit_config.data.path, audit_config.data)
-            schema = audit_config.data
+            # Convert DataConfig to TabularDataSchema
+            schema = TabularDataSchema(
+                target=audit_config.data.target_column,
+                features=audit_config.data.feature_columns
+                or [col for col in data.columns if col != audit_config.data.target_column],
+                sensitive_features=audit_config.data.protected_attributes,
+                categorical_features=None,  # Optional: will be inferred if not provided
+                numeric_features=None,  # Optional: will be inferred if not provided
+            )
 
         # Extract features, target, and sensitive features
         X_test, y_test, sensitive_features = data_loader.extract_features_target(data, schema)
@@ -761,6 +793,16 @@ def audit(  # pragma: no cover
         "--save-model",
         help="Save the trained model to the specified path (e.g., model.pkl). Required for reasons/recourse commands.",
     ),
+    fast: bool = typer.Option(
+        False,
+        "--fast",
+        help="Fast demo mode: reduce bootstrap samples to 100 for lightning-quick audits (~2-3s vs ~5-7s)",
+    ),
+    sample: int | None = typer.Option(
+        None,
+        "--sample",
+        help="Sample N rows from dataset for faster iteration (useful for large datasets during development)",
+    ),
 ):
     """Generate a compliance audit PDF report with optional shift testing.
 
@@ -897,6 +939,30 @@ def audit(  # pragma: no cover
             typer.echo(f"Applying overrides from: {override_config}")
 
         audit_config = load_config_from_file(config, override_path=override_config, profile_name=profile, strict=strict)
+
+        # Apply fast mode if requested (reduces bootstrap samples for quick demos)
+        if fast:
+            if not hasattr(audit_config, "metrics") or audit_config.metrics is None:
+                from ..config.schema import MetricsConfig
+
+                audit_config.metrics = MetricsConfig()
+            audit_config.metrics.n_bootstrap = 100
+            typer.secho("⚡ Fast mode enabled - using 100 bootstrap samples for quick demo", fg=typer.colors.CYAN)
+
+        # Apply sampling if requested
+        if sample:
+            if sample < 100:
+                typer.secho("❌ Sample size must be at least 100 rows", fg=typer.colors.RED, err=True)
+                raise typer.Exit(ExitCode.VALIDATION_ERROR)
+            if not hasattr(audit_config, "data") or audit_config.data is None:
+                from ..config.schema import DataConfig
+
+                audit_config.data = DataConfig()
+            audit_config.data.sample_size = sample
+            typer.secho(
+                f"📊 Sampling {sample} rows for faster iteration (stratified by target if available)",
+                fg=typer.colors.CYAN,
+            )
 
         # Validate model availability and apply fallbacks (or fail if no_fallback is set)
         audit_config = preflight_check_model(audit_config, allow_fallback=not no_fallback)
@@ -1188,11 +1254,11 @@ def doctor():  # pragma: no cover
 
 
 def validate(  # pragma: no cover
-    config: Path = typer.Option(
-        ...,
+    config: Path | None = typer.Option(
+        None,
         "--config",
         "-c",
-        help="Path to configuration file to validate",
+        help="Path to configuration file to validate (auto-detects glassalpha.yaml, audit.yaml, config.yaml)",
         exists=True,
         file_okay=True,
     ),
@@ -1236,6 +1302,19 @@ def validate(  # pragma: no cover
         from ..config import load_config_from_file
         from ..core.registry import ModelRegistry  # Already correct location
         from ..explain.registry import ExplainerRegistry
+
+        # Auto-detect config if not provided
+        if config is None:
+            from .defaults import get_smart_defaults
+
+            defaults = get_smart_defaults()
+            config = defaults["config"]
+            if config is None:
+                typer.echo(
+                    "Configuration error: No configuration file found. Create one with 'glassalpha init' or specify with --config",
+                )
+                raise typer.Exit(ExitCode.USER_ERROR.value)
+            typer.echo(f"Auto-detected config: {config}")
 
         typer.echo(f"Validating configuration: {config}")
 
@@ -1600,8 +1679,8 @@ def reasons(  # pragma: no cover
 
     """
     import json
-    import pickle
 
+    import joblib
     import pandas as pd
 
     try:
@@ -1623,8 +1702,8 @@ def reasons(  # pragma: no cover
                 contact_info = getattr(cfg.reason_codes, "contact_info", contact_info)
 
         typer.echo(f"Loading model from: {model}")
-        with open(model, "rb") as f:
-            model_obj = pickle.load(f)  # nosec: B301
+        # Use joblib for loading (matches saving with joblib.dump in audit command)
+        model_obj = joblib.load(model)
 
         typer.echo(f"Loading data from: {data}")
         df = pd.read_csv(data)
@@ -1839,8 +1918,8 @@ def recourse(  # pragma: no cover
 
     """
     import json
-    import pickle
 
+    import joblib
     import pandas as pd
 
     try:
@@ -1872,8 +1951,10 @@ def recourse(  # pragma: no cover
             )
 
         typer.echo(f"Loading model from: {model}")
-        with open(model, "rb") as f:
-            model_obj = pickle.load(f)  # nosec: B301
+        # Use joblib for loading (matches saving with joblib.dump in audit command)
+        import joblib
+
+        model_obj = joblib.load(model)
 
         typer.echo(f"Loading data from: {data}")
         df = pd.read_csv(data)

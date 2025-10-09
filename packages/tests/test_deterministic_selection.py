@@ -195,9 +195,11 @@ class TestDeterministicSelection:
             threads.append(t)
             t.start()
 
-        # Wait for all threads
+        # Wait for all threads with timeout to prevent hangs
         for t in threads:
-            t.join()
+            t.join(timeout=5.0)
+            if t.is_alive():
+                raise TimeoutError(f"Thread {t.name} did not complete within timeout")
 
         # All selections should be identical
         assert len(set(results)) == 1, "Concurrent selection is not deterministic"

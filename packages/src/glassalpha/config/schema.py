@@ -265,6 +265,12 @@ class MetricsConfig(BaseModel):
         description="Stability testing configuration (perturbation sweeps)",
     )
     custom: dict[str, list[str]] | None = Field(None, description="Custom metric categories")
+    n_bootstrap: int = Field(
+        1000,
+        description="Number of bootstrap samples for confidence intervals (default: 1000, fast mode: 100)",
+        ge=50,
+        le=10000,
+    )
 
     @field_validator("performance", "fairness", "drift")
     @classmethod

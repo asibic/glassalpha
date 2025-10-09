@@ -31,8 +31,8 @@ open reports/audit_report.html  # macOS
 git clone https://github.com/GlassAlpha/glassalpha
 cd glassalpha/packages && pip install -e .
 
-# 2. Generate audit (30 seconds)
-glassalpha audit --config configs/german_credit_simple.yaml --output audit.pdf
+# 2. Generate audit (lightning fast with --fast flag!)
+glassalpha audit --config configs/german_credit_simple.yaml --output audit.pdf --fast
 
 # 3. Done! Open your professional PDF
 open audit.pdf  # macOS
@@ -251,13 +251,44 @@ GlassAlpha comes with a ready-to-use German Credit dataset example that demonstr
 
 ### Run the audit command
 
-Generate audit report (takes ~3 seconds):
+Generate audit report (takes ~2-3 seconds with --fast):
 
 ```bash
 glassalpha audit \
   --config configs/german_credit_simple.yaml \
-  --output my_first_audit.html
+  --output my_first_audit.html \
+  --fast
 ```
+
+!!! tip "Fast Mode for Demos"
+The `--fast` flag reduces bootstrap samples from 1000 to 100 for lightning-quick demos (~2-3 seconds vs ~5-7 seconds). Results are still statistically valid! For production audits, omit `--fast` to use full 1000 bootstrap samples for maximum precision.
+
+!!! info "Timing Expectations"
+**With --fast flag (recommended for demos):**
+
+    - German Credit (LogisticRegression): ~2-3 seconds
+    - German Credit (XGBoost): ~3-4 seconds
+    - Adult Income (LogisticRegression): ~4-5 seconds
+    - Adult Income (XGBoost): ~5-6 seconds
+
+    **Without --fast (production mode):**
+
+    - German Credit (LogisticRegression): ~5-7 seconds
+    - German Credit (XGBoost): ~7-9 seconds
+    - Adult Income (LogisticRegression): ~12-15 seconds
+    - Adult Income (XGBoost): ~15-18 seconds
+
+    Times measured on Apple M1 Max (32GB RAM). Your mileage may vary based on hardware and dataset size.
+
+!!! info "Progress Bars"
+GlassAlpha shows progress bars for long-running bootstrap operations (calibration and fairness confidence intervals). Progress bars:
+
+    - **Auto-detect environment**: Terminal vs Jupyter notebook
+    - **Respect configuration**: Disabled in strict mode (professional audit output)
+    - **Can be disabled**: Set `GLASSALPHA_NO_PROGRESS=1` environment variable
+    - **Skip fast operations**: Only show for 100+ bootstrap samples
+
+    Progress bars use minimal CPU overhead and provide visual feedback during statistical computations.
 
 **Note:** The simple configuration uses `logistic_regression` model (always available). For advanced models like XGBoost or LightGBM, install with `pip install 'glassalpha[explain]'`.
 

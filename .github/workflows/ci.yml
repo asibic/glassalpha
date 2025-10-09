@@ -75,6 +75,18 @@ jobs:
           python -m pip install -c constraints.txt --upgrade pip setuptools wheel build
           python -m pip install -c constraints.txt -e ".[all,dev]"
 
+      - name: Validate packaging metadata
+        working-directory: packages
+        run: |
+          echo "=== Install packaging validation tools ==="
+          python -m pip install check-manifest validate-pyproject twine
+
+          echo "=== Validate pyproject.toml schema ==="
+          validate-pyproject pyproject.toml
+
+          echo "=== Verify MANIFEST.in completeness ==="
+          check-manifest --verbose
+
       - name: Build wheel and install (no editable)
         working-directory: packages
         run: |
@@ -100,6 +112,10 @@ jobs:
             exit 1
           fi
           echo "✅ Dist hygiene verified: clean project-only wheel"
+
+          echo "=== Validate wheel with twine ==="
+          twine check dist/*
+
           python -m pip install --force-reinstall dist/glassalpha*.whl
 
       - name: Verify installation and dependencies
@@ -307,6 +323,63 @@ jobs:
           export MPLBACKEND=Agg
           env PYTHONPATH="" timeout 1200 python -m pytest tests/ -v --maxfail=3 --tb=line || echo "Final test run completed or timed out"
 
+      - name: Test notebooks with nbmake
+        working-directory: examples
+        run: |
+          echo "=== Install nbmake for notebook testing ==="
+          python -m pip install pytest nbmake
+
+          echo "=== Execute notebooks to verify they run without errors ==="
+          export MPLBACKEND=Agg
+          # Run with timeout per notebook (3 minutes each)
+          python -m pytest --nbmake notebooks/*.ipynb --nbmake-timeout=180 -v || echo "⚠️  Some notebooks failed (see above)"
+
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('packages/pyproject.toml', 'packages/constraints.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install package and dependencies
+        run: |
+          python -m pip install --upgrade pip
+          cd packages
+          pip install -c constraints.txt -e ".[all]"
+
+      - name: Run pip-audit (security vulnerability scan)
+        run: |
+          python -m pip install pip-audit
+          cd packages
+          echo "=== Scanning for known CVEs in dependencies ==="
+          pip-audit --desc --format json --output pip-audit-report.json || true
+
+          echo "=== Human-readable report ==="
+          pip-audit --desc || echo "⚠️  Vulnerabilities found (see details above)"
+
+          echo ""
+          echo "Note: Security scan failures do not block CI currently."
+          echo "Review findings and update constraints.txt for critical CVEs."
+
+      - name: Upload security report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pip-audit-report
+          path: packages/pip-audit-report.json
+          retention-days: 90
+
   lint:
     runs-on: ubuntu-latest
     steps:
@@ -385,7 +458,7 @@ jobs:
           path: ./site/site
 
   deploy:
-    needs: [test, lint, docs]
+    needs: [test, security, lint, docs]
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     concurrency:

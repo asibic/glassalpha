@@ -73,6 +73,7 @@ dev = [
     "pytest-cov>=4.1",
     "pytest-asyncio>=0.21",
     "pytest-xdist>=3.8",  # Parallel test execution for test isolation
+    "hypothesis>=6.92",  # Property-based testing for calibration and fairness
     "nbmake>=1.5",  # Notebook execution testing
     "black>=23.0",
     "ruff>=0.6",
@@ -238,11 +239,16 @@ minversion = "8.0"
 addopts = [
     "-ra",
     "--strict-markers",
+    # Parallel execution disabled due to pytest-xdist teardown hang
+    # Use: pytest -n auto to enable parallel if needed
     # Coverage now handled by CI configuration to allow dual gates
     # XGBoost tests use conditional import - will skip gracefully if unavailable
     # COVERAGE STATUS: Gate 1 (critical modules ≥65%), Gate 2 (overall ≥70% trend monitoring)
     # Current: Overall coverage at 69% - on track to meet targets
     # Next targets: Critical modules → 85%, Overall → 75%, then 80%
+]
+env = [
+    "GLASSALPHA_NO_PROGRESS=1",
 ]
 markers = [
     "requires_xgboost: tests that need XGBoost runtime (can be skipped on incompatible environments)",

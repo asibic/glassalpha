@@ -358,7 +358,12 @@ def test_recourse_e2e_json_serialization(
 @pytest.mark.integration
 def test_recourse_cli_help():
     """Test that recourse CLI help is accessible."""
+    import shutil
     import subprocess
+
+    # Skip if CLI not installed
+    if not shutil.which("glassalpha"):
+        pytest.skip("glassalpha CLI not installed")
 
     result = subprocess.run(
         ["glassalpha", "recourse", "--help"],

@@ -26,10 +26,10 @@ pipx install "glassalpha[all]"
 
 ### For Python Projects
 
-Install with pip in a virtual environment:
+Install with pip in a virtual environment (recommended to avoid system package conflicts):
 
 ```bash
-# Create virtual environment
+# Create virtual environment (required on macOS/Linux with system Python)
 python3 -m venv .venv
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
@@ -65,8 +65,8 @@ pip install -e ".[dev,all]"
 # Pull image
 docker pull glassalpha/glassalpha:latest
 
-# Run audit
-docker run -v $(pwd):/data glassalpha/glassalpha audit --config /data/config.yaml --out /data/report.html
+# Run audit (use --fast for quick demos)
+docker run -v $(pwd):/data glassalpha/glassalpha audit --config /data/config.yaml --out /data/report.html --fast
 
 # Interactive shell
 docker run -it glassalpha/glassalpha bash
@@ -75,8 +75,8 @@ docker run -it glassalpha/glassalpha bash
 ## Quick Start
 
 ```bash
-# Generate first audit in 60 seconds
-glassalpha audit --config quickstart.yaml --out audit.html
+# Generate first audit in 2-3 seconds (with --fast)
+glassalpha audit --config quickstart.yaml --out audit.html --fast
 
 # Validate configuration
 glassalpha validate config.yaml

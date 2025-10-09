@@ -127,7 +127,7 @@ metrics:
 # Report configuration
 report:
   template: standard_audit
-  output_format: pdf
+  output_format: html # Use HTML for fast generation (change to "pdf" for regulatory submission)
   styling:
     color_scheme: professional
     compliance_statement: true

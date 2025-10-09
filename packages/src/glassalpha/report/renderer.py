@@ -13,7 +13,15 @@ from pathlib import Path
 from typing import Any
 
 import jinja2
-from matplotlib.figure import Figure
+
+# Lazy import matplotlib to avoid dependency for HTML-only reports
+try:
+    from matplotlib.figure import Figure
+
+    _MATPLOTLIB_AVAILABLE = True
+except ImportError:
+    Figure = None  # type: ignore
+    _MATPLOTLIB_AVAILABLE = False
 
 # Friend's spec: Use importlib.resources for template loading from installed package
 try:
@@ -335,7 +343,7 @@ class AuditReportRenderer:
 
         return plots
 
-    def _figure_to_base64(self, figure: Figure) -> str:
+    def _figure_to_base64(self, figure: Any) -> str:  # noqa: ANN401
         """Convert matplotlib figure to base64 data URL.
 
         Args:
@@ -344,9 +352,28 @@ class AuditReportRenderer:
         Returns:
             Base64 data URL string for embedding in HTML
 
+        Raises:
+            ImportError: If matplotlib not available
+
         """
+        if not _MATPLOTLIB_AVAILABLE:
+            raise ImportError(
+                "matplotlib is required for plot generation. "
+                "Install with: pip install 'glassalpha[all]' or pip install matplotlib",
+            )
+
         buffer = BytesIO()
-        figure.savefig(buffer, format="png", dpi=150, bbox_inches="tight", facecolor="white", edgecolor="none")
+        # Reduce DPI from 150 to 96 for smaller file size (still looks good on screen)
+        # Use 'tight' bbox_inches to minimize whitespace
+        figure.savefig(
+            buffer,
+            format="png",
+            dpi=96,  # Reduced from 150 to 96 (standard screen DPI)
+            bbox_inches="tight",
+            facecolor="white",
+            edgecolor="none",
+            optimize=True,  # Optimize PNG compression
+        )
         buffer.seek(0)
 
         # Encode as base64

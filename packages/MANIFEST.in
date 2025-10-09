@@ -1,1 +1,5 @@
-recursive-include src/glassalpha/report/templates *.html
+recursive-include src/glassalpha/report/templates *.html *.css *.js *.txt
+recursive-include src/glassalpha/data/configs *.yaml
+include README.md LICENSE NOTICE
+include constraints.txt
+include pyproject.toml

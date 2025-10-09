@@ -314,35 +314,35 @@ class AuditPipeline:
         try:
             logger.info("Starting audit pipeline execution")
 
-            # Step 1: Setup reproducibility
+            # Step 1: Setup reproducibility (~5% of time)
             self._setup_reproducibility()
-            self._update_progress(progress_callback, "Reproducibility setup complete", 10)
+            self._update_progress(progress_callback, "Reproducibility setup complete", 5)
 
-            # Step 2: Load and validate data
+            # Step 2: Load and validate data (~10% of time)
             data, schema = self._load_data()
             # Store dataset for provenance tracking
             self._dataset_df = data.copy()  # Store copy for provenance
             self._feature_count = len(schema.features) if schema.features else data.shape[1] - 1
             self._class_count = data[schema.target].nunique() if schema.target in data.columns else None
-            self._update_progress(progress_callback, "Data loaded and validated", 20)
+            self._update_progress(progress_callback, "Data loaded and validated", 15)
 
-            # Step 3: Load/initialize model
+            # Step 3: Load/initialize model (~10% of time)
             self.model = self._load_model(data, schema)
-            self._update_progress(progress_callback, "Model loaded/trained", 35)
+            self._update_progress(progress_callback, "Model loaded/trained", 25)
 
-            # Step 4: Select and initialize explainer
+            # Step 4: Select and initialize explainer (~1% of time)
             self.explainer = self._select_explainer()
-            self._update_progress(progress_callback, "Explainer selected", 45)
+            self._update_progress(progress_callback, "Explainer selected", 26)
 
-            # Step 5: Generate explanations
+            # Step 5: Generate explanations (~20% of time for coefficients, ~50% for permutation)
             explanations = self._generate_explanations(data, schema)
-            self._update_progress(progress_callback, "Explanations generated", 60)
+            self._update_progress(progress_callback, "Explanations generated", 45)
 
-            # Step 6: Compute metrics
+            # Step 6: Compute metrics (~50% of time - fairness CIs are expensive)
             self._compute_metrics(data, schema)
-            self._update_progress(progress_callback, "Metrics computed", 80)
+            self._update_progress(progress_callback, "Metrics computed", 95)
 
-            # Step 7: Finalize results and manifest
+            # Step 7: Finalize results and manifest (~5% of time)
             self._finalize_results(explanations)
             self._update_progress(progress_callback, "Audit complete", 100)
 
@@ -533,6 +533,33 @@ class AuditPipeline:
         )
 
         logger.info(f"Loaded data: {data.shape[0]} rows, {data.shape[1]} columns")
+
+        # Warn about performance for large datasets
+        n_rows = len(data)
+        n_protected = len(schema.sensitive_features) if schema.sensitive_features else 0
+
+        if n_rows > 50000:
+            # Very large dataset - will be slow
+            estimated_time = n_rows / 1000  # Rough estimate: ~1 second per 1000 rows
+            logger.warning(
+                f"Large dataset detected ({n_rows:,} rows). "
+                f"Audit may take {estimated_time:.0f}-{estimated_time * 2:.0f} seconds. "
+                "Consider using --sample for faster iteration during development.",
+            )
+        elif n_rows > 10000:
+            # Moderately large dataset
+            estimated_time = n_rows / 1500
+            logger.info(
+                f"Dataset has {n_rows:,} rows. Estimated audit time: {estimated_time:.0f}-{estimated_time * 1.5:.0f} seconds. "
+                "Use --sample for faster iteration.",
+            )
+
+        # Warn about fairness computation complexity
+        if n_protected > 1 and n_rows > 5000:
+            logger.info(
+                f"Computing fairness metrics for {n_protected} protected attributes on {n_rows:,} samples. "
+                "Bootstrap confidence intervals may take additional time.",
+            )
 
         return data, schema
 
@@ -793,14 +820,33 @@ class AuditPipeline:
                 strict_mode = self.config.get("strict_mode", False)
 
             # Generate explanations with progress settings
-            # Note: PermutationExplainer requires y parameter, other explainers ignore it
-            explanations = self.explainer.explain(
-                self.model,  # Model instance (required by explainer interface)
-                X_processed,
-                y=y_target,  # Required for PermutationExplainer
-                show_progress=True,  # Enable progress by default
-                strict_mode=strict_mode,  # Respect strict mode setting
-            )
+            # Note: Different explainers have different signatures:
+            # - CoefficientsExplainer: explain(model, X, y, **kwargs)
+            # - PermutationExplainer: explain(X, y, **kwargs) [model stored in fit]
+            # - TreeSHAP: explain(X, **kwargs) [model stored in fit]
+
+            # Check explainer signature to determine if it needs model parameter
+            import inspect
+
+            sig = inspect.signature(self.explainer.explain)
+            params = list(sig.parameters.keys())
+
+            # If first param is 'model', pass it; otherwise explainer has model from fit()
+            if params and params[0] == "model":
+                explanations = self.explainer.explain(
+                    self.model,  # Some explainers need explicit model reference
+                    X_processed,
+                    y=y_target,  # Required for PermutationExplainer
+                    show_progress=True,  # Enable progress by default
+                    strict_mode=strict_mode,  # Respect strict mode setting
+                )
+            else:
+                explanations = self.explainer.explain(
+                    X_processed,
+                    y=y_target,  # Required for PermutationExplainer
+                    show_progress=True,  # Enable progress by default
+                    strict_mode=strict_mode,  # Respect strict mode setting
+                )
 
         # Normalize explanations to canonical format
         normalized_explanations = self._normalize_explanations(
@@ -1105,10 +1151,10 @@ class AuditPipeline:
             y_pred = self.model.predict(X_processed)
             logger.info("Using model's default predictions (multiclass or no probabilities available)")
 
-        # Compute performance metrics
-        self._update_progress(progress_callback, "Computing performance metrics", 62)
+        # Compute performance metrics (~5% of time)
+        self._update_progress(progress_callback, "Computing performance metrics", 50)
         self._compute_performance_metrics(y_true, y_pred, y_proba)
-        self._update_progress(progress_callback, "Performance metrics complete", 65)
+        self._update_progress(progress_callback, "Performance metrics complete", 55)
 
         # Friend's spec: Ensure accuracy is always computed for each model type
         try:
@@ -1127,16 +1173,16 @@ class AuditPipeline:
         except Exception:
             logger.exception("Failed to compute explicit accuracy:")
 
-        # Compute fairness metrics if sensitive features available
+        # Compute fairness metrics if sensitive features available (~33% of time - bootstrap CIs are expensive)
         if sensitive_features is not None:
-            self._update_progress(progress_callback, "Computing fairness metrics", 67)
+            self._update_progress(progress_callback, "Computing fairness metrics", 60)
             self._compute_fairness_metrics(y_true, y_pred, y_proba, sensitive_features, X)
-            self._update_progress(progress_callback, "Fairness metrics complete", 72)
+            self._update_progress(progress_callback, "Fairness metrics complete", 88)
 
-        # Compute stability metrics (E6+ perturbation sweeps)
-        self._update_progress(progress_callback, "Computing stability metrics", 75)
+        # Compute stability metrics (~2% of time)
+        self._update_progress(progress_callback, "Computing stability metrics", 90)
         self._compute_stability_metrics(X, sensitive_features)
-        self._update_progress(progress_callback, "Stability metrics complete", 78)
+        self._update_progress(progress_callback, "Stability metrics complete", 92)
 
         # Compute drift metrics (placeholder for now)
         self._compute_drift_metrics(X, y_true)
@@ -1359,13 +1405,20 @@ class AuditPipeline:
                 # Get seed for deterministic bootstrap
                 seed = get_component_seed("calibration_ci")
 
+                # Get bootstrap count from config
+                n_bootstrap = 1000  # Default
+                if hasattr(self.config, "metrics") and hasattr(self.config.metrics, "n_bootstrap"):
+                    n_bootstrap = self.config.metrics.n_bootstrap
+                elif isinstance(self.config, dict):
+                    n_bootstrap = self.config.get("metrics", {}).get("n_bootstrap", 1000)
+
                 # Compute calibration with CIs
                 calibration_result = assess_calibration_quality(
                     y_true=y_true,
                     y_prob_pos=y_proba[:, 1],  # Positive class probabilities
                     n_bins=10,
                     compute_confidence_intervals=True,
-                    n_bootstrap=1000,
+                    n_bootstrap=n_bootstrap,
                     confidence_level=0.95,
                     seed=seed,
                 )
@@ -1405,6 +1458,9 @@ class AuditPipeline:
 
         """
         logger.debug("Computing fairness metrics")
+
+        # Preprocess features for individual fairness (needs same feature space as model)
+        X_processed = self._preprocess_for_training(X)
 
         # E12: Compute dataset-level bias metrics first (foundational check)
         logger.debug("Computing E12: Dataset-level bias metrics")
@@ -1485,6 +1541,13 @@ class AuditPipeline:
         elif isinstance(self.config, dict):
             intersections = self.config.get("data", {}).get("intersections", [])
 
+        # Get bootstrap count from config
+        n_bootstrap = 1000  # Default
+        if hasattr(self.config, "metrics") and hasattr(self.config.metrics, "n_bootstrap"):
+            n_bootstrap = self.config.metrics.n_bootstrap
+        elif isinstance(self.config, dict):
+            n_bootstrap = self.config.get("metrics", {}).get("n_bootstrap", 1000)
+
         try:
             fairness_results = run_fairness_metrics(
                 y_true,
@@ -1492,7 +1555,7 @@ class AuditPipeline:
                 sensitive_features,
                 fairness_metrics,
                 compute_confidence_intervals=True,
-                n_bootstrap=1000,
+                n_bootstrap=n_bootstrap,
                 confidence_level=0.95,
                 seed=seed,
                 intersections=intersections,  # E5.1: Pass intersections from config
@@ -1506,9 +1569,9 @@ class AuditPipeline:
                 # Get protected attribute names
                 protected_attrs = list(sensitive_features.columns)
 
-                # Create combined feature DataFrame (X + protected attributes)
-                # Need to ensure we don't duplicate columns
-                X_with_protected = X.copy()
+                # Use preprocessed features (X_processed) that match model's expected input
+                # Individual fairness needs the same feature space the model was trained on
+                X_with_protected = X_processed.copy()
                 for col in protected_attrs:
                     if col not in X_with_protected.columns:
                         X_with_protected[col] = sensitive_features[col]
@@ -1531,7 +1594,7 @@ class AuditPipeline:
                 # Initialize individual fairness metrics
                 individual_metrics = IndividualFairnessMetrics(
                     model=self.model,
-                    features=X_with_protected,
+                    features=X_with_protected,  # Now using preprocessed features
                     predictions=predictions,
                     protected_attributes=protected_attrs,
                     distance_metric="euclidean",  # Default to Euclidean

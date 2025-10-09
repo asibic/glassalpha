@@ -518,8 +518,11 @@ result.to_config("configs/production_audit.yaml")
 ### Step 2: Validate reproducibility
 
 ```bash
-# Run from CLI to ensure consistency
-glassalpha audit --config configs/production_audit.yaml --output prod_audit.pdf
+# Run from CLI to ensure consistency (use --fast for quick validation)
+glassalpha audit --config configs/production_audit.yaml --output prod_audit.pdf --fast
+
+# For final production audit: omit --fast and add --strict
+# glassalpha audit --config configs/production_audit.yaml --output prod_audit.pdf --strict
 ```
 
 ### Step 3: Hand off to ML Engineer

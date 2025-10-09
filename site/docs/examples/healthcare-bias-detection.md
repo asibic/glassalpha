@@ -183,11 +183,11 @@ monitoring:
 ## Running the healthcare audit
 
 ```bash
-# Standard healthcare audit
+# Quick demo (use --fast for 2-3 second audits)
 glassalpha audit \
   --config configs/healthcare_outcomes.yaml \
   --output healthcare_bias_assessment.pdf \
-  --strict
+  --fast
 
 # With additional validation
 glassalpha validate \
@@ -200,13 +200,15 @@ glassalpha audit \
   --config configs/healthcare_outcomes.yaml \
   --output xgboost_healthcare.pdf \
   --override '{"model": {"type": "xgboost"}}' \
-  --strict
+  --fast
 
 glassalpha audit \
   --config configs/healthcare_outcomes.yaml \
   --output lightgbm_healthcare.pdf \
   --override '{"model": {"type": "lightgbm"}}' \
-  --strict
+  --fast
+
+# For production/regulatory: omit --fast and add --strict
 ```
 
 ## Healthcare-specific report sections

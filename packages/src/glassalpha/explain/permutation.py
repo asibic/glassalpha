@@ -108,12 +108,14 @@ class PermutationExplainer(ExplainerBase):
                 "Pass y as: explainer.explain(X, y=y_test)",
             )
 
-        # Get the underlying model for sklearn compatibility
-        underlying_model = getattr(self.model, "model", self.model)
+        # Use the wrapper model, not the underlying model
+        # sklearn's permutation_importance needs an object with predict/predict_proba
+        # Our wrappers provide this interface even for XGBoost/LightGBM
+        estimator = self.model
 
         # Determine appropriate scoring method
         # Scorers must have signature: scorer(estimator, X, y) -> float
-        if hasattr(underlying_model, "predict_proba"):
+        if hasattr(estimator, "predict_proba"):
             # For classifiers, use negative log loss
             from sklearn.metrics import log_loss
 
@@ -143,7 +145,7 @@ class PermutationExplainer(ExplainerBase):
             # Show progress indicator (permutation_importance doesn't support callbacks)
             with get_progress_bar(total=X.shape[1] * self.n_repeats, desc="Computing Permutation", leave=False) as pbar:
                 r = permutation_importance(
-                    underlying_model,
+                    estimator,
                     X,
                     y,
                     n_repeats=self.n_repeats,
@@ -153,7 +155,7 @@ class PermutationExplainer(ExplainerBase):
                 pbar.update(X.shape[1] * self.n_repeats)
         else:
             r = permutation_importance(
-                underlying_model,
+                estimator,
                 X,
                 y,
                 n_repeats=self.n_repeats,
@@ -169,7 +171,7 @@ class PermutationExplainer(ExplainerBase):
 
         # For permutation importance, we need to create a baseline prediction
         # We'll use the mean prediction as baseline for feature importance
-        baseline_pred = underlying_model.predict(X)
+        baseline_pred = estimator.predict(X)
         if baseline_pred.ndim == 1:
             baseline_pred = baseline_pred.reshape(-1, 1)
 
@@ -184,7 +186,16 @@ class PermutationExplainer(ExplainerBase):
         # Create feature attributions for each sample
         # For permutation importance, we compute per-sample attributions
         # by measuring how much each feature contributes to the prediction
-        n_samples, n_features = X.shape
+
+        # Convert X to numpy array if it's a DataFrame
+        import pandas as pd
+
+        if isinstance(X, pd.DataFrame):
+            X_array = X.values
+        else:
+            X_array = X
+
+        n_samples, n_features = X_array.shape
 
         # For each sample, compute attribution as: feature_value * importance_weight
         # This is a simplified approach - in practice you'd want more sophisticated methods
@@ -194,7 +205,7 @@ class PermutationExplainer(ExplainerBase):
             for j, feature_name in enumerate(feature_names):
                 # Attribution = feature_value * normalized_importance
                 importance_weight = importances[j] / max(abs_importances) if max(abs_importances) > 0 else 0
-                sample_attributions[feature_name] = float(X[i, j] * importance_weight)
+                sample_attributions[feature_name] = float(X_array[i, j] * importance_weight)
             attributions.append(sample_attributions)
 
         return {

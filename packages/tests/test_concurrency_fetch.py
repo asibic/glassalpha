@@ -87,9 +87,11 @@ class TestConcurrencyFetch:
             threads.append(thread)
             thread.start()
 
-        # Wait for all threads to complete
+        # Wait for all threads to complete with timeout to prevent hangs
         for thread in threads:
-            thread.join()
+            thread.join(timeout=10.0)
+            if thread.is_alive():
+                raise TimeoutError(f"Thread {thread.name} did not complete within timeout")
 
         # All should succeed
         assert len(results) == 3

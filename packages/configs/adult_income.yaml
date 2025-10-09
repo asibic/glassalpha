@@ -39,9 +39,10 @@ reproducibility:
 
 # Data configuration
 data:
-  dataset: custom
-  path: ~/data/adult_income.csv # Update this path to your data location
-  target_column: income # Binary: '>50K' or '<=50K'
+  dataset: adult_income # Use built-in Adult Income dataset
+  fetch: if_missing
+  offline: false
+  target_column: income_over_50k # Binary target column
 
   # All features in the Adult dataset
   feature_columns:
@@ -133,7 +134,7 @@ metrics:
 # Report configuration
 report:
   template: standard_audit
-  output_format: pdf
+  output_format: html # Use HTML for fast generation (change to "pdf" for regulatory submission)
   styling:
     color_scheme: professional
     compliance_statement: true

@@ -428,6 +428,8 @@ class TestFromModelProgressBars:
 
     def test_progress_feature_implemented(self):
         """Verify progress bar utilities exist and are accessible."""
+        import os
+
         from glassalpha.utils.progress import get_progress_bar, is_progress_enabled
 
         # Verify utilities exist
@@ -436,7 +438,13 @@ class TestFromModelProgressBars:
 
         # Verify strict mode disables progress
         assert not is_progress_enabled(strict_mode=True)
-        assert is_progress_enabled(strict_mode=False)  # Result depends on tqdm availability
+
+        # During tests, GLASSALPHA_NO_PROGRESS=1 is set, so progress is disabled
+        # In normal usage (strict_mode=False, no env var), it depends on tqdm availability
+        env_disabled = os.environ.get("GLASSALPHA_NO_PROGRESS", "0") == "1"
+        if env_disabled:
+            assert not is_progress_enabled(strict_mode=False)
+        # else: Would be True if tqdm available, but we can't test that reliably
 
     def test_from_model_shows_progress_by_default(self):
         """Progress bar shown in notebook/terminal by default."""
@@ -472,13 +480,15 @@ class TestFromModelProgressBars:
                 protected_attributes=["protected"],
             )
 
-            # Verify progress bar was created
+            # Verify progress bar was created (check first call - the main audit progress bar)
             assert mock_pbar.called
-            call_kwargs = mock_pbar.call_args.kwargs
-            assert call_kwargs["total"] == 100
-            assert call_kwargs["desc"] == "Audit"
-            assert call_kwargs["disable"] is False  # Progress enabled by default
-            assert call_kwargs["leave"] is False  # Don't leave progress bar after completion
+            # Multiple progress bars created (audit + bootstrap CIs)
+            # Check the first call (main audit progress bar)
+            first_call_kwargs = mock_pbar.call_args_list[0].kwargs
+            assert first_call_kwargs["total"] == 100  # Percentage-based (0-100)
+            assert first_call_kwargs["desc"] == "Audit"
+            assert first_call_kwargs["disable"] is False  # Progress enabled by default
+            assert first_call_kwargs["leave"] is False  # Don't leave progress bar after completion
 
             # Verify result is valid
             assert result.success

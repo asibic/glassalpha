@@ -28,7 +28,7 @@ This feature is essential for:
 Test a single demographic shift:
 
 ```bash
-glassalpha audit --config audit.yaml --check-shift gender:+0.1
+glassalpha audit --config audit.yaml --check-shift gender:+0.1 --fast
 ```
 
 This simulates a 10 percentage point increase in the proportion of one gender group.

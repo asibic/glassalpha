@@ -99,34 +99,42 @@ def compute_bootstrap_ci(
         )
 
     # Generate bootstrap samples
-    from tqdm.auto import tqdm
+    from ...utils.progress import get_progress_bar
 
     n_samples = len(y_true)
     bootstrap_estimates = []
 
-    # Add progress bar for bootstrap iterations (disable for small n_bootstrap)
-    for _ in tqdm(range(n_bootstrap), desc="Bootstrap fairness CIs", leave=False, disable=n_bootstrap < 100):
-        # Stratified sampling preserves class proportions
-        if stratify:
-            # Sample indices maintaining class balance
-            indices = _stratified_resample(y_true, rng)
-        else:
-            # Simple random resample with replacement
-            indices = rng.choice(n_samples, size=n_samples, replace=True)
+    # Add progress bar for bootstrap iterations (respects strict mode and env vars)
+    with get_progress_bar(
+        total=n_bootstrap,
+        desc="Bootstrap fairness CIs",
+        leave=False,
+        disable=n_bootstrap < 100,
+    ) as pbar:
+        for _ in range(n_bootstrap):
+            # Stratified sampling preserves class proportions
+            if stratify:
+                # Sample indices maintaining class balance
+                indices = _stratified_resample(y_true, rng)
+            else:
+                # Simple random resample with replacement
+                indices = rng.choice(n_samples, size=n_samples, replace=True)
 
-        # Resample data
-        y_true_boot = y_true[indices]
-        y_pred_boot = y_pred[indices]
-        sensitive_boot = sensitive[indices]
+            # Resample data
+            y_true_boot = y_true[indices]
+            y_pred_boot = y_pred[indices]
+            sensitive_boot = sensitive[indices]
 
-        # Compute metric on bootstrap sample
-        try:
-            boot_estimate = metric_fn(y_true_boot, y_pred_boot, sensitive_boot)
-            if not np.isnan(boot_estimate):
-                bootstrap_estimates.append(boot_estimate)
-        except Exception as e:
-            logger.debug(f"Bootstrap iteration failed: {e}")
-            continue
+            # Compute metric on bootstrap sample
+            try:
+                boot_estimate = metric_fn(y_true_boot, y_pred_boot, sensitive_boot)
+                if not np.isnan(boot_estimate):
+                    bootstrap_estimates.append(boot_estimate)
+            except Exception as e:
+                logger.debug(f"Bootstrap iteration failed: {e}")
+                continue
+
+            pbar.update(1)
 
     if len(bootstrap_estimates) == 0:
         logger.warning("All bootstrap iterations failed")

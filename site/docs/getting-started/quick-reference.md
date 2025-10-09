@@ -4,26 +4,26 @@ Fast reference for common GlassAlpha commands, API patterns, and configurations.
 
 ## CLI Commands (Most Common)
 
-| Command                    | Description                     | Example                                                    |
-| -------------------------- | ------------------------------- | ---------------------------------------------------------- |
-| `glassalpha audit`         | Generate full audit report      | `glassalpha audit --config audit.yaml --output report.pdf` |
-| `glassalpha validate`      | Validate config without running | `glassalpha validate --config audit.yaml`                  |
-| `glassalpha list`          | List available components       | `glassalpha list`                                          |
-| `glassalpha datasets list` | Show built-in datasets          | `glassalpha datasets list`                                 |
-| `glassalpha datasets info` | Dataset details                 | `glassalpha datasets info german_credit`                   |
-| `glassalpha models`        | Show available models           | `glassalpha models`                                        |
-| `glassalpha --version`     | Check installed version         | `glassalpha --version`                                     |
-| `glassalpha --help`        | Show all commands               | `glassalpha --help`                                        |
+| Command                    | Description                     | Example                                                           |
+| -------------------------- | ------------------------------- | ----------------------------------------------------------------- |
+| `glassalpha audit`         | Generate full audit report      | `glassalpha audit --config audit.yaml --output report.pdf --fast` |
+| `glassalpha validate`      | Validate config without running | `glassalpha validate --config audit.yaml`                         |
+| `glassalpha list`          | List available components       | `glassalpha list`                                                 |
+| `glassalpha datasets list` | Show built-in datasets          | `glassalpha datasets list`                                        |
+| `glassalpha datasets info` | Dataset details                 | `glassalpha datasets info german_credit`                          |
+| `glassalpha models`        | Show available models           | `glassalpha models`                                               |
+| `glassalpha --version`     | Check installed version         | `glassalpha --version`                                            |
+| `glassalpha --help`        | Show all commands               | `glassalpha --help`                                               |
 
 ## Common Flags
 
-| Flag                 | Purpose                      | Usage                                                     |
-| -------------------- | ---------------------------- | --------------------------------------------------------- |
-| `--strict`           | Enforce regulatory mode      | `glassalpha audit --config audit.yaml --strict`           |
-| `--explain-failures` | Verbose error messages       | `glassalpha audit --config audit.yaml --explain-failures` |
-| `--no-pdf`           | Skip PDF generation (faster) | `glassalpha audit --config audit.yaml --no-pdf`           |
-| `--dry-run`          | Validate without executing   | `glassalpha audit --config audit.yaml --dry-run`          |
-| `--verbose`          | Detailed logging             | `glassalpha audit --config audit.yaml --verbose`          |
+| Flag                 | Purpose                         | Usage                                                     |
+| -------------------- | ------------------------------- | --------------------------------------------------------- |
+| `--fast`             | Quick demo mode (100 bootstrap) | `glassalpha audit --config audit.yaml --fast`             |
+| `--strict`           | Enforce regulatory mode         | `glassalpha audit --config audit.yaml --strict`           |
+| `--explain-failures` | Verbose error messages          | `glassalpha audit --config audit.yaml --explain-failures` |
+| `--dry-run`          | Validate without executing      | `glassalpha audit --config audit.yaml --dry-run`          |
+| `--verbose`          | Detailed logging                | `glassalpha --verbose audit --config audit.yaml`          |
 
 ## Python API (Notebooks)
 
@@ -297,7 +297,7 @@ ls -la data/your_data.csv
 
 # Use built-in datasets for testing
 glassalpha datasets list
-glassalpha audit --config configs/german_credit_simple.yaml
+glassalpha audit --config configs/german_credit_simple.yaml --fast
 ```
 
 ### 4. Slow Audit Performance

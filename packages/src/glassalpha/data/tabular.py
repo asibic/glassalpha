@@ -99,6 +99,39 @@ class TabularDataLoader(DataInterface):
 
         logger.info(f"Loaded data: {data.shape[0]} rows, {data.shape[1]} columns")
 
+        # Apply sampling if requested in schema config
+        if schema and hasattr(schema, "sample_size") and schema.sample_size:
+            sample_size = schema.sample_size
+            if sample_size < len(data):
+                logger.info(f"Sampling {sample_size} rows from {len(data)} total rows")
+
+                # Try stratified sampling by target if available
+                if schema.target and schema.target in data.columns:
+                    try:
+                        from sklearn.model_selection import train_test_split
+
+                        # Use stratified split to maintain target distribution
+                        sampled, _ = train_test_split(
+                            data,
+                            train_size=sample_size,
+                            stratify=data[schema.target],
+                            random_state=42,
+                        )
+                        data = sampled.reset_index(drop=True)
+                        logger.info(f"Applied stratified sampling by target: {schema.target}")
+                    except Exception as e:
+                        # Fall back to random sampling if stratified fails
+                        logger.warning(f"Stratified sampling failed: {e}, using random sampling")
+                        data = data.sample(n=sample_size, random_state=42).reset_index(drop=True)
+                else:
+                    # Simple random sampling
+                    data = data.sample(n=sample_size, random_state=42).reset_index(drop=True)
+                    logger.info("Applied random sampling")
+
+                logger.info(f"Sampled data: {data.shape[0]} rows, {data.shape[1]} columns")
+            else:
+                logger.info(f"Requested sample size ({sample_size}) >= dataset size ({len(data)}), using full dataset")
+
         # Validate schema if provided
         if schema:
             self.validate_schema(data, schema)
@@ -152,7 +185,56 @@ class TabularDataLoader(DataInterface):
         if schema.sensitive_features:
             missing_sensitive = set(schema.sensitive_features) - set(data.columns)
             if missing_sensitive:
-                msg = f"Missing sensitive feature columns: {missing_sensitive}"
+                msg = f"❌ Missing sensitive feature columns: {missing_sensitive}\n\n"
+
+                # Find potential matches using fuzzy matching
+                available_cols = list(data.columns)
+                suggestions = {}
+                for missing in missing_sensitive:
+                    # Try fuzzy matching
+                    import difflib
+
+                    close_matches = difflib.get_close_matches(
+                        missing.lower(),
+                        [c.lower() for c in available_cols],
+                        n=3,
+                        cutoff=0.6,
+                    )
+                    if close_matches:
+                        # Map back to original case
+                        suggestions[missing] = [c for c in available_cols if c.lower() in close_matches]
+
+                if suggestions:
+                    msg += "💡 Did you mean one of these?\n"
+                    for missing, matches in suggestions.items():
+                        msg += f"\n  Instead of '{missing}', try:\n"
+                        for match in matches:
+                            msg += f"    • {match}\n"
+                    msg += "\nUpdate your config:\n"
+                    msg += "  data:\n"
+                    msg += "    protected_attributes:\n"
+                    for missing, matches in suggestions.items():
+                        msg += f"      - {matches[0]}  # was: {missing}\n"
+                else:
+                    # Show available columns that might be protected attributes
+                    protected_candidates = [
+                        col
+                        for col in available_cols
+                        if any(
+                            keyword in col.lower()
+                            for keyword in ["gender", "sex", "race", "age", "ethnicity", "religion", "disability"]
+                        )
+                    ]
+                    if protected_candidates:
+                        msg += "💡 Available columns that might be protected attributes:\n"
+                        for col in protected_candidates:
+                            msg += f"   • {col}\n"
+                    else:
+                        msg += f"Available columns: {available_cols[:10]}"
+                        if len(available_cols) > 10:
+                            msg += f" (and {len(available_cols) - 10} more)"
+                        msg += "\n\n💡 Use 'glassalpha datasets info <dataset> --show-columns' to see all columns"
+
                 raise ValueError(msg)
 
         # Additional validation for TabularDataSchema
@@ -194,7 +276,7 @@ class TabularDataLoader(DataInterface):
 
         """
         # Extract features
-        X = data[schema.features].copy()  # noqa: N806
+        X = data[schema.features].copy()
 
         # Extract target
         y = data[schema.target].to_numpy()
@@ -292,7 +374,7 @@ class TabularDataLoader(DataInterface):
 
     def preprocess_features(
         self,
-        X: pd.DataFrame,  # noqa: N803
+        X: pd.DataFrame,
         schema: TabularDataSchema,
         *,
         fit_preprocessor: bool = True,  # noqa: ARG002
@@ -308,7 +390,7 @@ class TabularDataLoader(DataInterface):
             Preprocessed feature DataFrame
 
         """
-        X_processed = X.copy()  # noqa: N806
+        X_processed = X.copy()
 
         # Friend's spec: Automatically detect and one-hot encode object/categorical columns
         # This prevents "could not convert string to float: '< 0 DM'" errors
@@ -317,7 +399,7 @@ class TabularDataLoader(DataInterface):
         if object_cols:
             logger.info(f"One-hot encoding categorical columns: {object_cols}")
             # Apply pd.get_dummies as specified by friend (drop_first=False to keep all categories)
-            X_processed = pd.get_dummies(X_processed, columns=object_cols, drop_first=False)  # noqa: N806
+            X_processed = pd.get_dummies(X_processed, columns=object_cols, drop_first=False)
 
         # Handle explicitly specified categorical features (if not already processed)
         if schema.categorical_features:
