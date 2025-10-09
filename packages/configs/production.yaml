@@ -54,7 +54,6 @@ reproducibility:
   random_seed: 42
   deterministic: true
   capture_environment: true
-  validate_determinism: true
 
 # Report configuration
 report:
@@ -65,5 +64,3 @@ report:
 # Full manifest
 manifest:
   enabled: true
-  include_git_info: true
-  include_environment: true
