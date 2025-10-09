@@ -66,7 +66,7 @@ pip install -e ".[dev,all]"
 docker pull glassalpha/glassalpha:latest
 
 # Run audit (use --fast for quick demos)
-docker run -v $(pwd):/data glassalpha/glassalpha audit --config /data/config.yaml --out /data/report.html --fast
+docker run -v $(pwd):/data glassalpha/glassalpha audit --config /data/config.yaml --output /data/report.html --fast
 
 # Interactive shell
 docker run -it glassalpha/glassalpha bash
@@ -76,16 +76,16 @@ docker run -it glassalpha/glassalpha bash
 
 ```bash
 # Generate first audit in 2-3 seconds (with --fast)
-glassalpha audit --config quickstart.yaml --out audit.html --fast
+glassalpha audit --config quickstart.yaml --output audit.html --fast
 
 # Validate configuration
 glassalpha validate config.yaml
 
 # Generate reason codes for adverse action notices
-glassalpha reasons --config config.yaml --instance-id 123 --out reasons.json
+glassalpha reasons --model model.pkl --data test.csv --instance 123 --output reasons.json
 
 # Generate recourse recommendations
-glassalpha recourse --config config.yaml --instance-id 123 --out recourse.json
+glassalpha recourse --model model.pkl --data test.csv --instance 123 --output recourse.json
 ```
 
 ## Features

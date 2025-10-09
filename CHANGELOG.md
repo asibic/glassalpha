@@ -69,6 +69,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **QuickStart Adult Income Configuration** (Critical User Experience Fix)
+
+  - Fixed target column mismatch: `income` → `income_over_50k`
+  - Fixed protected attributes: `["gender", "race"]` → `["sex", "race"]`
+  - QuickStart now uses dataset schema functions instead of hardcoded mappings
+  - Adult Income audits now work immediately after `glassalpha quickstart`
+
+- **Matplotlib PNG Optimization** (File Size + Warning Fix)
+
+  - Removed `optimize=True` parameter from `matplotlib.savefig()` (requires matplotlib >= 3.10)
+  - Added Pillow-based PNG compression (30-50% file size reduction)
+  - HTML reports reduced from ~57MB to ~15-20MB
+  - Fixed warning: `"FigureCanvasAgg.print_png() got an unexpected keyword argument 'optimize'"`
+  - Added `pillow>=10.0` to core dependencies
+
+- **Reasons/Recourse Commands with Wrapped Models** (ECOA Compliance Feature Fix)
+
+  - Fixed SHAP TreeExplainer compatibility with `XGBoostWrapper`
+  - Commands now extract native model from wrapper automatically
+  - Added informative message when extracting model: `"Extracted native model from wrapper"`
+  - Improved error messages with actionable guidance
+  - Both `reasons` and `recourse` commands now work with `--save-model` output
+
+- **Documentation and Guides**
+
+  - Updated `packages/README.md` CLI examples to use `--output` flag
+  - Corrected `reasons` and `recourse` command examples (use `--model` + `--data`, not `--config`)
+  - Added comprehensive [Strict Mode Guide](site/docs/guides/strict-mode.md)
+  - Added [Troubleshooting Guide](site/docs/getting-started/troubleshooting.md)
+  - Improved strict mode warning message with documentation link
+
+- **Testing and Quality**
+
+  - Added comprehensive smoke test script (`packages/scripts/smoke_test.sh`)
+  - Tests all critical user journeys before PyPI publication
+  - Validates: QuickStart (both datasets), file sizes, warnings, model saving, CLI commands
+
 - Added `refresh()` method to `_PassthroughProgressBar` for API completeness
 
 ---

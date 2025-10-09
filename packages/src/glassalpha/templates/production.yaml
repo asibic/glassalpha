@@ -17,6 +17,7 @@ data:
 # Model: Production model with preprocessing
 model:
   path: models/production_model.pkl # REQUIRED: Path to trained model
+  save_path: models/production_model_versioned.pkl # Auto-save versioned copy
   type: xgboost # Your model type
 
 # Preprocessing: REQUIRED for production

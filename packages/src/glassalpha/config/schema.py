@@ -46,6 +46,7 @@ class ModelConfig(BaseModel):
 
     type: str = Field(..., description="Model type (xgboost, lightgbm, logistic_regression, etc.)")
     path: Path | None = Field(None, description="Path to saved model file")
+    save_path: Path | None = Field(None, description="Path to save trained model (enables reasons/recourse)")
     params: dict[str, Any] | None = Field(default_factory=dict, description="Additional model parameters")
     calibration: CalibrationConfig | None = Field(None, description="Optional probability calibration")
 

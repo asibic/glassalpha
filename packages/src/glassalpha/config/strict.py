@@ -163,7 +163,10 @@ def validate_strict_mode(config: AuditConfig, quick_mode: bool = False) -> None:
     logger.info(f"{mode_desc.capitalize()} validation passed")
 
     if quick_mode:
-        logger.warning("Quick strict mode is enabled - suitable for testing but NOT for production audits")
+        logger.warning(
+            "Quick strict mode is enabled - suitable for testing but NOT for production audits. "
+            "See https://glassalpha.com/guides/strict-mode/ for full strict mode requirements.",
+        )
 
 
 def validate_deterministic_config(config: dict[str, Any]) -> bool:

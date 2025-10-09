@@ -123,13 +123,14 @@ def _bootstrap_components() -> None:
     logger.debug("Component bootstrap completed")
 
 
-def _run_audit_pipeline(config, output_path: Path, selected_explainer: str | None = None):
+def _run_audit_pipeline(config, output_path: Path, selected_explainer: str | None = None, compact: bool = False):
     """Execute the complete audit pipeline and generate report in specified format.
 
     Args:
         config: Validated audit configuration
         output_path: Path where report should be saved
         selected_explainer: Optional explainer override
+        compact: If True, generate compact report (excludes matched pairs from HTML)
 
     Returns:
         tuple: (audit_results, trained_model) where trained_model is the model used in the audit
@@ -261,6 +262,7 @@ def _run_audit_pipeline(config, output_path: Path, selected_explainer: str | Non
             html_content = render_audit_report(
                 audit_results=audit_results,
                 output_path=output_path,
+                compact=compact,
                 report_title=f"ML Model Audit Report - {datetime.now().strftime('%Y-%m-%d')}",
                 generation_date=datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC"),
             )
@@ -304,12 +306,24 @@ def _run_audit_pipeline(config, output_path: Path, selected_explainer: str | Non
             file_size_mb = file_size / (1024 * 1024)
             typer.echo(f"Size: {file_size:,} bytes ({file_size_mb:.1f} MB)")
 
-            # Warn if file size is large (>10MB is problematic for email/sharing)
-            if file_size_mb > 10:
+            # Enhanced file size warnings with actionable tips
+            if file_size_mb > 50:
+                # Very large file (>50MB) - critical warning
                 typer.secho(
-                    f"⚠️  Warning: Large file size ({file_size_mb:.1f} MB) may be difficult to share via email",
+                    f"⚠️  Large report size ({file_size_mb:.1f} MB) detected",
                     fg=typer.colors.YELLOW,
                 )
+                typer.echo("💡 Tips to reduce size:")
+                typer.echo("   • Use --compact-report (excludes individual fairness pairs, saves ~50-80MB)")
+                typer.echo("   • Use --fast for development (reduces bootstrap samples)")
+                typer.echo("   • Full data available in manifest.json sidecar")
+            elif file_size_mb > 10:
+                # Moderate file (10-50MB) - gentle warning
+                typer.secho(
+                    f"⚠️  Report size ({file_size_mb:.1f} MB) may be difficult to email",
+                    fg=typer.colors.YELLOW,
+                )
+                typer.echo("💡 Tip: Use --compact-report for smaller files (<5MB)")
 
             typer.echo(f"Total time: {total_time:.2f}s")
             typer.echo(f"   Pipeline: {pipeline_time:.2f}s")
@@ -803,6 +817,11 @@ def audit(  # pragma: no cover
         "--sample",
         help="Sample N rows from dataset for faster iteration (useful for large datasets during development)",
     ),
+    compact_report: bool = typer.Option(
+        False,
+        "--compact-report",
+        help="Generate compact report (<5MB) by excluding individual fairness matched pairs from HTML. Full data saved in manifest.json.",
+    ),
 ):
     """Generate a compliance audit PDF report with optional shift testing.
 
@@ -1033,7 +1052,7 @@ def audit(  # pragma: no cover
 
         # Run audit pipeline
         typer.echo("\nRunning audit pipeline...")
-        audit_results = _run_audit_pipeline(audit_config, output, selected_explainer)
+        audit_results = _run_audit_pipeline(audit_config, output, selected_explainer, compact=compact_report)
 
         # Save model if requested
         if save_model and audit_results:
@@ -1599,7 +1618,7 @@ def reasons(  # pragma: no cover
         ...,
         "--model",
         "-m",
-        help="Path to trained model file (.pkl, .joblib)",
+        help="Path to trained model file (.pkl, .joblib). Generate with: glassalpha audit --save-model model.pkl",
         exists=True,
         file_okay=True,
     ),
@@ -1729,11 +1748,18 @@ def reasons(  # pragma: no cover
         else:
             prediction = float(model_obj.predict(X_instance)[0])
 
+        # Extract native model from wrapper if needed
+        native_model = model_obj
+        if hasattr(model_obj, "model"):
+            # GlassAlpha wrapper - extract underlying model
+            native_model = model_obj.model
+            typer.echo(f"Extracted native model from wrapper: {type(native_model).__name__}")
+
         # Generate SHAP values (use TreeSHAP for tree models)
         try:
             import shap
 
-            explainer = shap.TreeExplainer(model_obj)
+            explainer = shap.TreeExplainer(native_model)
             shap_values = explainer.shap_values(X_instance)
 
             # Handle multi-output case (binary classification)
@@ -1751,6 +1777,7 @@ def reasons(  # pragma: no cover
                 err=True,
             )
             typer.echo("\nTip: Ensure model is TreeSHAP-compatible (XGBoost, LightGBM, RandomForest)")
+            typer.echo("If using a wrapped model, save the native model directly instead.")
             raise typer.Exit(ExitCode.USER_ERROR) from None
 
         # Extract reason codes
@@ -1837,7 +1864,7 @@ def recourse(  # pragma: no cover
         ...,
         "--model",
         "-m",
-        help="Path to trained model file (.pkl, .joblib)",
+        help="Path to trained model file (.pkl, .joblib). Generate with: glassalpha audit --save-model model.pkl",
         exists=True,
         file_okay=True,
     ),
@@ -1989,11 +2016,18 @@ def recourse(  # pragma: no cover
             typer.echo("No recourse needed.")
             raise typer.Exit(ExitCode.SUCCESS)
 
+        # Extract native model from wrapper if needed
+        native_model = model_obj
+        if hasattr(model_obj, "model"):
+            # GlassAlpha wrapper - extract underlying model
+            native_model = model_obj.model
+            typer.echo(f"Extracted native model from wrapper: {type(native_model).__name__}")
+
         # Generate SHAP values (use TreeSHAP for tree models)
         try:
             import shap
 
-            explainer = shap.TreeExplainer(model_obj)
+            explainer = shap.TreeExplainer(native_model)
             shap_values = explainer.shap_values(X_instance)
 
             # Handle multi-output case (binary classification)
@@ -2009,7 +2043,7 @@ def recourse(  # pragma: no cover
                 f"Warning: SHAP TreeExplainer failed ({e}). Trying KernelSHAP...",
                 fg=typer.colors.YELLOW,
             )
-            # Fallback to KernelSHAP
+            # Fallback to KernelSHAP (use original model_obj for predict interface)
             import shap
 
             explainer = shap.KernelExplainer(model_obj.predict_proba, shap.sample(X_instance, 100))

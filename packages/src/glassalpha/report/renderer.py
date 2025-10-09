@@ -131,6 +131,7 @@ class AuditReportRenderer:
         output_path: Path | None = None,
         *,
         embed_plots: bool = True,
+        compact: bool = False,
         **template_vars: Any,  # noqa: ANN401
     ) -> str:
         """Render complete audit report from audit results.
@@ -140,6 +141,7 @@ class AuditReportRenderer:
             template_name: Name of the template file to use
             output_path: Optional path to save rendered HTML
             embed_plots: Whether to embed plots as base64 images
+            compact: If True, exclude individual fairness matched pairs from HTML (saves ~50-80MB)
             **template_vars: Additional variables to pass to template: Any
 
         Returns:
@@ -149,7 +151,7 @@ class AuditReportRenderer:
         logger.info(f"Rendering audit report using template: {template_name}")
 
         # Prepare template context
-        context = self._prepare_template_context(audit_results, embed_plots=embed_plots)
+        context = self._prepare_template_context(audit_results, embed_plots=embed_plots, compact=compact)
         context.update(template_vars)
 
         # Add guard to prevent template rendering errors
@@ -172,12 +174,15 @@ class AuditReportRenderer:
 
         return rendered_html
 
-    def _prepare_template_context(self, audit_results: AuditResults, *, embed_plots: bool = True) -> dict[str, Any]:
+    def _prepare_template_context(
+        self, audit_results: AuditResults, *, embed_plots: bool = True, compact: bool = False
+    ) -> dict[str, Any]:
         """Prepare comprehensive template context from audit results.
 
         Args:
             audit_results: Audit results to process
             embed_plots: Whether to create and embed plots
+            compact: If True, exclude individual fairness matched pairs from HTML
 
         Returns:
             Dictionary with template context variables
@@ -186,7 +191,7 @@ class AuditReportRenderer:
         logger.debug("Preparing template context from audit results")
 
         # Use centralized context building for consistency and safety
-        context = self._build_report_context(audit_results, embed_plots=embed_plots)
+        context = self._build_report_context(audit_results, embed_plots=embed_plots, compact=compact)
 
         # Add metadata and descriptions
         context.update(
@@ -238,12 +243,15 @@ class AuditReportRenderer:
                         f"Template context error: 'feature_importances' values must be numeric, got {type(importance)} for feature '{feature}'",
                     )
 
-    def _build_report_context(self, audit_results: AuditResults, *, embed_plots: bool = True) -> dict[str, Any]:
+    def _build_report_context(
+        self, audit_results: AuditResults, *, embed_plots: bool = True, compact: bool = False
+    ) -> dict[str, Any]:
         """Build normalized report context from audit results.
 
         Args:
             audit_results: Audit results to process
             embed_plots: Whether to create and embed plots
+            compact: If True, exclude large data structures (matched pairs)
 
         Returns:
             Normalized context dictionary safe for template rendering
@@ -252,7 +260,7 @@ class AuditReportRenderer:
         from .context import normalize_audit_context  # noqa: PLC0415
 
         # Get base context with proper normalization
-        context = normalize_audit_context(audit_results)
+        context = normalize_audit_context(audit_results, compact=compact)
 
         # Determine generation date (fixed in deterministic mode)
         import os  # noqa: PLC0415
@@ -365,6 +373,7 @@ class AuditReportRenderer:
         buffer = BytesIO()
         # Reduce DPI from 150 to 96 for smaller file size (still looks good on screen)
         # Use 'tight' bbox_inches to minimize whitespace
+        # Note: 'optimize' parameter requires matplotlib >= 3.10, so we omit it
         figure.savefig(
             buffer,
             format="png",
@@ -372,13 +381,29 @@ class AuditReportRenderer:
             bbox_inches="tight",
             facecolor="white",
             edgecolor="none",
-            optimize=True,  # Optimize PNG compression
         )
         buffer.seek(0)
 
-        # Encode as base64
-        image_base64 = base64.b64encode(buffer.getvalue()).decode("utf-8")
+        # Try to compress PNG with PIL if available (reduces file size 30-50%)
+        try:
+            from PIL import Image
+
+            # Load PNG from buffer
+            img = Image.open(buffer)
+            compressed_buffer = BytesIO()
+            # Save with optimize=True (PIL supports this)
+            img.save(compressed_buffer, format="PNG", optimize=True)
+            compressed_buffer.seek(0)
+            image_data = compressed_buffer.getvalue()
+            compressed_buffer.close()
+        except ImportError:
+            # PIL not available, use uncompressed PNG
+            image_data = buffer.getvalue()
+
         buffer.close()
+
+        # Encode as base64
+        image_base64 = base64.b64encode(image_data).decode("utf-8")
 
         # Create data URL
         return f"data:image/png;base64,{image_base64}"
@@ -546,6 +571,7 @@ def render_audit_report(
     audit_results: AuditResults,
     output_path: Path | None = None,
     template_name: str = "standard_audit.html",
+    compact: bool = False,
     **template_vars: Any,  # noqa: ANN401
 ) -> str:
     """Convenience function to render audit report.
@@ -554,6 +580,7 @@ def render_audit_report(
         audit_results: Complete audit results from pipeline
         output_path: Optional path to save HTML file
         template_name: Template file to use
+        compact: If True, exclude matched pairs from HTML (saves ~50-80MB)
         **template_vars: Additional template variables: Any
 
     Returns:
@@ -565,5 +592,6 @@ def render_audit_report(
         audit_results=audit_results,
         output_path=output_path,
         template_name=template_name,
+        compact=compact,
         **template_vars,
     )

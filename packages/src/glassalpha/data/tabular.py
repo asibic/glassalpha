@@ -159,19 +159,41 @@ class TabularDataLoader(DataInterface):
                 col for col in available_cols if col.lower() in ["target", "label", "outcome", "class", "y"]
             ]
 
+            # Add dataset-specific suggestions
+            dataset_targets = {
+                "german_credit": "credit_risk",
+                "adult_income": "income_>50k",
+                "fraud_detection": "is_fraud",
+                "healthcare_outcomes": "readmission",
+                "insurance_risk": "claim_amount",
+            }
+
             msg = f"❌ Target column '{schema.target}' not found in data\n\n"
 
-            if available_targets:
-                msg += "💡 Did you mean one of these?\n"
-                for col in available_targets:
-                    msg += f"   • {col}\n"
-                msg += "\nUpdate your config:\n"
-                msg += "  data:\n"
-                msg += f"    target_column: {available_targets[0]}\n"
-            else:
-                msg += f"Available columns: {available_cols[:10]}"
-                if len(available_cols) > 10:
-                    msg += f" (and {len(available_cols) - 10} more)"
+            # Check if this looks like a known dataset
+            dataset_detected = False
+            for dataset_name, expected_target in dataset_targets.items():
+                if expected_target in available_cols:
+                    msg += f"💡 This looks like the {dataset_name} dataset\n"
+                    msg += f"   Expected target column: {expected_target}\n\n"
+                    msg += "Update your config:\n"
+                    msg += "  data:\n"
+                    msg += f"    target_column: {expected_target}\n"
+                    dataset_detected = True
+                    break
+
+            if not dataset_detected:
+                if available_targets:
+                    msg += "💡 Did you mean one of these?\n"
+                    for col in available_targets:
+                        msg += f"   • {col}\n"
+                    msg += "\nUpdate your config:\n"
+                    msg += "  data:\n"
+                    msg += f"    target_column: {available_targets[0]}\n"
+                else:
+                    msg += f"Available columns: {available_cols[:10]}"
+                    if len(available_cols) > 10:
+                        msg += f" (and {len(available_cols) - 10} more)"
 
             raise ValueError(msg)
 

@@ -59,11 +59,12 @@ def normalize_metrics(metrics: Any) -> dict[str, Any]:  # noqa: ANN401
     return normalized
 
 
-def normalize_audit_context(audit_results: Any) -> dict[str, Any]:  # noqa: ANN401
+def normalize_audit_context(audit_results: Any, *, compact: bool = False) -> dict[str, Any]:  # noqa: ANN401
     """Normalize complete audit results for template rendering.
 
     Args:
         audit_results: Audit results object with various attributes
+        compact: If True, exclude large data structures (matched pairs) from context
 
     Returns:
         Normalized context dict safe for template rendering
@@ -124,6 +125,10 @@ def normalize_audit_context(audit_results: Any) -> dict[str, Any]:  # noqa: ANN4
                         diffs = [p.get("prediction_diff", 0.0) for p in matched_pairs_list]
                         flattened["avg_prediction_diff"] = sum(diffs) / len(diffs) if diffs else 0.0
                         flattened["max_prediction_diff"] = max(diffs) if diffs else 0.0
+
+                        # Skip full matched pairs list in compact mode (saves 50-80MB)
+                        if not compact:
+                            flattened["matched_pairs"] = matched_pairs_list
                     else:
                         flattened["avg_prediction_diff"] = 0.0
                         flattened["max_prediction_diff"] = 0.0

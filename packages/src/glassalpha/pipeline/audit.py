@@ -686,6 +686,19 @@ class AuditPipeline:
             model = train_from_config(self.config, X_processed, y)
             logger.info("Model training completed using configuration")
 
+            # Auto-save model if save_path is configured
+            model_save_path = getattr(self.config.model, "save_path", None)
+            if model_save_path:
+                try:
+                    import joblib  # noqa: PLC0415
+
+                    save_path = Path(model_save_path)
+                    save_path.parent.mkdir(parents=True, exist_ok=True)
+                    joblib.dump(model, save_path)
+                    logger.info(f"Model auto-saved to: {save_path}")
+                except Exception as e:  # noqa: BLE001
+                    logger.warning(f"Failed to auto-save model to {model_save_path}: {e}")
+
         # Store model information
         feature_importance = {}
         if hasattr(model, "get_feature_importance"):
