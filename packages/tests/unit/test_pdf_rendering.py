@@ -2,8 +2,13 @@
 
 This module tests edge cases, error handling, and deterministic behavior
 of the audit report renderer to ensure reliable PDF generation.
+
+Note: Most tests here use mocked PDF generation or HTML output to avoid
+platform-specific WeasyPrint issues. For full PDF integration tests,
+see test_pdf_generation_linux.py (Linux CI only).
 """
 
+import sys
 import tempfile
 from pathlib import Path
 from unittest.mock import patch

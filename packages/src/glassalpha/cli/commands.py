@@ -166,7 +166,7 @@ def _run_audit_pipeline(config, output_path: Path, selected_explainer: str | Non
     elif output_format == "pdf" and _PDF_AVAILABLE:
         # Warn about potential slow PDF generation
         typer.secho(
-            "⚠️  PDF generation may take 10+ minutes for complex audits. Consider using HTML format for faster results.",
+            "⚠️  PDF generation may take 1-2 minutes for complex audits. Consider using HTML format for faster results.",
             fg=typer.colors.YELLOW,
         )
         typer.echo("   Tip: Set 'output_format: html' in your config for faster generation.\n")
