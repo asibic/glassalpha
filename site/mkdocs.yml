@@ -110,6 +110,7 @@ nav:
       - Configuration Patterns: getting-started/configuration-patterns.md
       - Built-in Datasets: getting-started/datasets.md
       - Public Data Sources: getting-started/data-sources.md
+      - Troubleshooting: getting-started/troubleshooting.md
 
   # === GUIDES (Role-first, then industry, then tasks) ===
   - Guides:
@@ -145,6 +146,7 @@ nav:
           - Detecting Dataset Bias: guides/dataset-bias.md
           - Counterfactual Recourse: guides/recourse.md
           - Testing Demographic Shifts: guides/shift-testing.md
+          - Strict Mode: guides/strict-mode.md
 
   # === COMPLIANCE (Regulatory requirements) ===
   - Compliance:

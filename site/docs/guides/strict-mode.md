@@ -170,4 +170,4 @@ preprocessing:
 
 - [Preprocessing Guide](preprocessing.md)
 - [Configuration Patterns](../getting-started/configuration-patterns.md)
-- [Regulatory Compliance](../compliance/overview.md)
+- [Regulatory Compliance](../compliance/index.md)
