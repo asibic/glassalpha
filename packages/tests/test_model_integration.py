@@ -273,8 +273,8 @@ class TestLogisticRegressionWrapper:
         """Test wrapper with multiclass classification."""
         X_df, y, feature_names = sample_multiclass_data
 
-        # Train multiclass model
-        model = LogisticRegression(random_state=42, max_iter=2000, solver="liblinear")
+        # Train multiclass model (use lbfgs for multiclass support)
+        model = LogisticRegression(random_state=42, max_iter=2000, solver="lbfgs")
         model.fit(X_df, y)
 
         wrapper = LogisticRegressionWrapper(model=model)

@@ -48,8 +48,8 @@ class TestSklearnMulticlassSupport:
         # Create multiclass data
         X, y = _create_test_data_multiclass()
 
-        # Train base sklearn model
-        base_model = LogisticRegression(random_state=42, max_iter=2000, solver="liblinear")
+        # Train base sklearn model (use lbfgs for multiclass support)
+        base_model = LogisticRegression(random_state=42, max_iter=2000, solver="lbfgs")
         base_model.fit(X, y)
 
         # Wrap with our wrapper
@@ -95,7 +95,7 @@ class TestSklearnMulticlassSupport:
         from sklearn.linear_model import LogisticRegression
 
         X, y = _create_test_data_multiclass()
-        base_model = LogisticRegression(random_state=42, max_iter=2000, solver="liblinear")
+        base_model = LogisticRegression(random_state=42, max_iter=2000, solver="lbfgs")
         base_model.fit(X, y)
 
         wrapper = SklearnGenericWrapper(base_model)
@@ -496,7 +496,7 @@ class TestSklearnWrapperAdvancedFeatures:
         X, y = _create_test_data_multiclass()
 
         wrapper = LogisticRegressionWrapper()
-        base_model = LogisticRegression(random_state=42, max_iter=2000, solver="liblinear")
+        base_model = LogisticRegression(random_state=42, max_iter=2000, solver="lbfgs")
         base_model.fit(X, y)
         wrapper.model = base_model
 

@@ -563,6 +563,8 @@ class TestTrainingPipeline:
 
     def test_train_error_recovery_on_failure(self):
         """Test error recovery when training fails."""
+        import warnings
+
         # Create config that might cause training to fail
         params = {
             "max_iter": 1,  # Very few iterations
@@ -573,7 +575,10 @@ class TestTrainingPipeline:
         X, y = _create_test_data(samples=20)
 
         # Should handle training failures gracefully
-        model = train_from_config(config, X, y)
+        # Suppress expected convergence warning (intentionally testing failure mode)
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", category=Warning)
+            model = train_from_config(config, X, y)
 
         # May succeed or fail depending on data/params, but shouldn't crash
         # The important thing is that it doesn't raise unhandled exceptions

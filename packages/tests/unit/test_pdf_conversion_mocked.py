@@ -10,6 +10,7 @@ from unittest.mock import MagicMock, Mock, patch
 import pytest
 
 from glassalpha.pipeline.audit import AuditResults
+
 try:
     from glassalpha.report.renderers.pdf import AuditPDFRenderer as PDFRenderer
     from glassalpha.report.renderers.pdf import render_audit_pdf

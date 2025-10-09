@@ -247,9 +247,6 @@ addopts = [
     # Current: Overall coverage at 69% - on track to meet targets
     # Next targets: Critical modules → 85%, Overall → 75%, then 80%
 ]
-env = [
-    "GLASSALPHA_NO_PROGRESS=1",
-]
 markers = [
     "requires_xgboost: tests that need XGBoost runtime (can be skipped on incompatible environments)",
     "slow: tests that take longer than usual (e.g. full audits, can be skipped with -m 'not slow')",
@@ -263,13 +260,14 @@ testpaths = ["tests"]
 # Warning filters: treat our warnings as errors, filter third-party noise
 filterwarnings = [
     "error::UserWarning:glassalpha.*",
-    "ignore:X does not have valid feature names.*:UserWarning:sklearn.base",
-    "ignore:X has feature names.*:UserWarning:sklearn.base",
+    "ignore:X does not have valid feature names.*:UserWarning:sklearn.*",
+    "ignore:X has feature names.*:UserWarning:sklearn.*",
     "ignore:.*l1_reg.*deprecated.*:DeprecationWarning:shap.explainers._kernel",
     "ignore:Mean of empty slice.*:RuntimeWarning:numpy",
     "ignore:invalid value encountered in scalar divide.*:RuntimeWarning:numpy",
     "ignore:Precision is ill-defined.*:UserWarning",
     "ignore:PyPDF2 is deprecated.*:DeprecationWarning",
+    "ignore:.*liblinear.*deprecated.*multiclass.*:FutureWarning:sklearn.*",
 ]
 # pythonpath = ["src"]  # Removed: forces testing against installed package, not source tree
 
