@@ -158,7 +158,7 @@ class TestPDFConversionMocked:
         with pytest.raises(RuntimeError) as exc_info:
             renderer.convert_html_to_pdf("<html>test</html>", output_path)
 
-        assert "PDF backend is not installed" in str(exc_info.value)
+        assert "PDF backend (WeasyPrint) is not installed" in str(exc_info.value)
 
     @patch("glassalpha.report.renderers.pdf.CSS")
     @patch("glassalpha.report.renderers.pdf.HTML")

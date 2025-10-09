@@ -21,6 +21,7 @@ import os
 import random
 from collections.abc import Generator
 from contextlib import contextmanager
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -29,6 +30,32 @@ import numpy as np
 from glassalpha.utils.seeds import set_global_seed
 
 logger = logging.getLogger(__name__)
+
+
+def get_deterministic_timestamp() -> datetime:
+    """Get a deterministic timestamp for reproducible builds.
+
+    Uses SOURCE_DATE_EPOCH environment variable if set, otherwise uses current time.
+    This ensures byte-identical outputs across different execution times.
+
+    Returns:
+        datetime object (UTC) for use in manifests and metadata
+
+    Example:
+        >>> os.environ["SOURCE_DATE_EPOCH"] = "1577836800"  # 2020-01-01 00:00:00 UTC
+        >>> get_deterministic_timestamp()
+        datetime.datetime(2020, 1, 1, 0, 0, tzinfo=datetime.timezone.utc)
+
+    """
+    source_date_epoch = os.environ.get("SOURCE_DATE_EPOCH")
+    if source_date_epoch:
+        try:
+            timestamp = int(source_date_epoch)
+            return datetime.fromtimestamp(timestamp, tz=UTC)
+        except (ValueError, OSError) as e:
+            logger.warning(f"Invalid SOURCE_DATE_EPOCH '{source_date_epoch}': {e}. Using current time.")
+
+    return datetime.now(UTC)
 
 
 @contextmanager

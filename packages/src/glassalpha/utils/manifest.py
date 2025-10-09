@@ -227,7 +227,6 @@ class ManifestGenerator:
 
         """
         self.audit_id = audit_id or self._generate_audit_id()
-        self.start_time = datetime.now(UTC)
 
         # Direct attributes for test compatibility
         self.status: str = "initialized"
@@ -242,13 +241,16 @@ class ManifestGenerator:
         self.datasets: dict[str, Any] = {}
         self.result_hashes: dict[str, str] = {}
 
-        # Determine creation time (fixed in deterministic mode)
-        if os.environ.get("GLASSALPHA_DETERMINISTIC"):
-            creation_time = datetime(2000, 1, 1, 0, 0, 0, tzinfo=UTC)
-            created_at = "2000-01-01T00:00:00+00:00"
+        # Determine creation time (fixed when SOURCE_DATE_EPOCH is set)
+        source_date_epoch = os.environ.get("SOURCE_DATE_EPOCH")
+        if source_date_epoch:
+            creation_time = datetime.fromtimestamp(int(source_date_epoch), tz=UTC)
+            created_at = creation_time.isoformat()
+            self.start_time = creation_time  # Use deterministic time for start_time too
         else:
             creation_time = datetime.now(UTC)
             created_at = creation_time.isoformat()
+            self.start_time = creation_time
 
         # Initialize empty manifest (don't collect platform/git on init to avoid crashes)
         self.manifest = AuditManifest(
@@ -472,20 +474,21 @@ class ManifestGenerator:
     def _generate_audit_id(self) -> str:
         """Generate unique audit ID.
 
-        In deterministic mode (GLASSALPHA_DETERMINISTIC env var set),
-        generates a fixed audit ID based on the seed for reproducibility.
+        When SOURCE_DATE_EPOCH is set, generates a deterministic audit ID
+        based on the fixed timestamp for reproducibility.
 
         Returns:
             Unique audit ID string
 
         """
-        # Check if we're in deterministic mode
-        deterministic_seed = os.environ.get("GLASSALPHA_DETERMINISTIC")
+        # Check if we're using SOURCE_DATE_EPOCH for determinism
+        source_date_epoch = os.environ.get("SOURCE_DATE_EPOCH")
 
-        if deterministic_seed:
-            # Use fixed timestamp and seed-based hash for determinism
-            timestamp = "20000101_000000"  # Fixed timestamp
-            hash_input = f"deterministic_{deterministic_seed}"
+        if source_date_epoch:
+            # Use fixed timestamp from SOURCE_DATE_EPOCH for determinism
+            dt = datetime.fromtimestamp(int(source_date_epoch), tz=UTC)
+            timestamp = dt.strftime("%Y%m%d_%H%M%S")
+            hash_input = f"deterministic_{source_date_epoch}"
             audit_hash = hash_object(hash_input)[:8]
             return f"audit_{timestamp}_{audit_hash}"
 

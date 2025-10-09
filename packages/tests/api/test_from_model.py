@@ -5,7 +5,12 @@ import pandas as pd
 import pytest
 
 import glassalpha as ga
-from glassalpha.exceptions import NonBinaryClassificationError, NoPredictProbaError
+from glassalpha.exceptions import (
+    CategoricalDataError,
+    MultiIndexNotSupportedError,
+    NonBinaryClassificationError,
+    NoPredictProbaError,
+)
 
 
 @pytest.fixture
@@ -256,3 +261,50 @@ def test_from_model_model_without_predict_proba():
             calibration=True,
             random_seed=42,
         )
+
+
+def test_from_model_categorical_data_raises_error():
+    """Test from_model raises clear error for categorical features."""
+    from sklearn.linear_model import LogisticRegression
+
+    # Create DataFrame with categorical column
+    df = pd.DataFrame(
+        {
+            "numeric": [25, 30, 35, 40, 45],
+            "category": ["A", "B", "A", "C", "B"],  # Categorical column
+        }
+    )
+    y = [0, 1, 0, 1, 0]
+
+    model = LogisticRegression()
+    # Train on numeric only to create a fitted model
+    model.fit(df[["numeric"]], y)
+
+    # Try to audit with categorical - should raise CategoricalDataError
+    with pytest.raises(CategoricalDataError) as exc_info:
+        ga.audit.from_model(model, df, y)
+
+    assert "category" in exc_info.value.message
+    assert exc_info.value.code == "GAE2001"
+    assert "encode categorical" in exc_info.value.fix.lower()
+
+
+def test_from_model_multiindex_error_is_actionable():
+    """Test multiindex error message is clear and actionable."""
+    from sklearn.linear_model import LogisticRegression
+
+    # Create multiindex DataFrame
+    index = pd.MultiIndex.from_tuples([("A", 1), ("A", 2), ("B", 1)])
+    df = pd.DataFrame({"x": [1, 2, 3]}, index=index)
+    y = [0, 1, 0]
+
+    model = LogisticRegression()
+    model.fit(df, y)
+
+    with pytest.raises(MultiIndexNotSupportedError) as exc_info:
+        ga.audit.from_model(model, df, y)
+
+    # Verify error message quality
+    assert "reset_index" in exc_info.value.fix
+    assert "GAE1012" in exc_info.value.code
+    assert exc_info.value.fix is not None

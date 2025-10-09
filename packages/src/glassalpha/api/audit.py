@@ -1,19 +1,24 @@
 """Audit entry points: from_model, from_predictions, from_config, run_audit.
 
 Phase 3: Main API surface for generating audit results.
+
+LAZY IMPORTS: numpy and pandas are imported inside functions to enable
+basic module imports without scientific dependencies installed.
 """
 
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-import numpy as np
-import pandas as pd
+if TYPE_CHECKING:
+    import numpy as np
+    import pandas as pd
 
 from glassalpha.api.result import AuditResult
 from glassalpha.exceptions import (
+    CategoricalDataError,
     DataHashMismatchError,
     InvalidProtectedAttributesError,
     LengthMismatchError,
@@ -22,6 +27,24 @@ from glassalpha.exceptions import (
     NoPredictProbaError,
     ResultIDMismatchError,
 )
+
+
+def _validate_sklearn_compatible(X: pd.DataFrame) -> None:
+    """Validate that DataFrame is compatible with sklearn models.
+
+    Checks for categorical columns that would cause "could not convert string to float" errors.
+
+    Args:
+        X: Feature DataFrame to validate
+
+    Raises:
+        CategoricalDataError: If categorical columns are found
+
+    """
+    categorical_cols = X.select_dtypes(include=["object", "category", "string"]).columns.tolist()
+
+    if categorical_cols:
+        raise CategoricalDataError(categorical_cols)
 
 
 def from_model(  # noqa: PLR0913
@@ -92,6 +115,8 @@ def from_model(  # noqa: PLR0913
         >>> result = ga.audit.from_model(model, X, y, explain=False)
 
     """
+    import pandas as pd
+
     from glassalpha.core.canonicalization import hash_data_for_manifest
     from glassalpha.models.detection import detect_model_type
 
@@ -99,9 +124,10 @@ def from_model(  # noqa: PLR0913
     X_arr = _to_numpy(X)
     y_arr = _to_numpy(y)
 
-    # Validate no MultiIndex
+    # Validate inputs before any model operations
     if isinstance(X, pd.DataFrame):
         _validate_no_multiindex(X)
+        _validate_sklearn_compatible(X)
 
     # Extract feature names
     if feature_names is None:
@@ -233,6 +259,8 @@ def from_predictions(
 
     """
     from datetime import UTC, datetime
+
+    import numpy as np
 
     import glassalpha
     from glassalpha.core.canonicalization import compute_result_id, hash_data_for_manifest
@@ -403,6 +431,7 @@ def from_config(config_path: str | Path) -> AuditResult:
     import pickle
     from pathlib import Path as PathLib
 
+    import pandas as pd
     import yaml
 
     from glassalpha.core.canonicalization import hash_data_for_manifest
@@ -531,6 +560,9 @@ def _normalize_protected_attributes(
         GlassAlphaError (GAE1003): Length mismatch
 
     """
+    import numpy as np
+    import pandas as pd
+
     if protected_attributes is None:
         return None
 
@@ -653,6 +685,9 @@ def _validate_binary_classification(
         GlassAlphaError (GAE1004): Non-binary classification
 
     """
+    import numpy as np
+    import pandas as pd
+
     # Convert to numpy
     y_arr = _to_numpy(y)
 
@@ -683,6 +718,8 @@ def _validate_no_multiindex(df: pd.DataFrame) -> None:
         GlassAlphaError (GAE1012): MultiIndex detected
 
     """
+    import pandas as pd
+
     if isinstance(df.index, pd.MultiIndex):
         raise MultiIndexNotSupportedError("DataFrame")
 
@@ -697,6 +734,8 @@ def _extract_feature_names(X: pd.DataFrame | np.ndarray) -> list[str]:
         List of feature names (e.g., ["feature_0", "feature_1", ...] if ndarray)
 
     """
+    import pandas as pd
+
     if isinstance(X, pd.DataFrame):
         return list(X.columns)
     return [f"feature_{i}" for i in range(X.shape[1])]
@@ -712,6 +751,8 @@ def _to_numpy(arr: pd.Series | pd.DataFrame | np.ndarray) -> np.ndarray:
         Numpy array
 
     """
+    import pandas as pd
+
     if isinstance(arr, (pd.Series, pd.DataFrame)):
         return arr.values
     return arr
@@ -735,6 +776,8 @@ def _compute_performance_metrics(
         Dictionary with performance metrics
 
     """
+    import numpy as np
+
     from sklearn.metrics import (
         accuracy_score,
         brier_score_loss,
@@ -831,6 +874,8 @@ def _compute_fairness_metrics(
         Dictionary with fairness metrics
 
     """
+    import numpy as np
+
     results = {}
 
     # For each protected attribute, compute demographic parity metrics
@@ -1027,12 +1072,25 @@ def run_audit(
             optimize_size=True,
         )
 
+        # Use deterministic timestamp if SOURCE_DATE_EPOCH is set
+        import os
+
+        source_date_epoch = os.environ.get("SOURCE_DATE_EPOCH")
+        if source_date_epoch:
+            from datetime import UTC, datetime
+
+            report_date = datetime.fromtimestamp(int(source_date_epoch), tz=UTC).strftime("%Y-%m-%d")
+            generation_date = datetime.fromtimestamp(int(source_date_epoch), tz=UTC).strftime("%Y-%m-%d %H:%M:%S UTC")
+        else:
+            report_date = datetime.now().strftime("%Y-%m-%d")
+            generation_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC")
+
         pdf_path = render_audit_pdf(
             audit_results=audit_results,
             output_path=output_path,
             config=pdf_config,
-            report_title=f"ML Model Audit Report - {datetime.now().strftime('%Y-%m-%d')}",
-            generation_date=datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC"),
+            report_title=f"ML Model Audit Report - {report_date}",
+            generation_date=generation_date,
         )
 
         # Generate manifest sidecar if available

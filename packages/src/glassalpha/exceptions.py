@@ -238,6 +238,55 @@ class DataHashMismatchError(GlassAlphaError):
         )
 
 
+# Data validation errors (2xxx)
+
+
+class CategoricalDataError(GlassAlphaError):
+    """Categorical data found in features without preprocessing.
+
+    sklearn models require numeric features. Categorical columns must be
+    encoded (one-hot, label, etc.) before model training and prediction.
+    """
+
+    def __init__(
+        self,
+        categorical_columns: list[str],
+        *,
+        fix: str | None = None,
+        docs: str | None = None,
+    ) -> None:
+        """Initialize categorical data error.
+
+        Args:
+            categorical_columns: List of categorical column names
+            fix: Override default fix message
+            docs: Override default docs link
+
+        """
+        if fix is None:
+            fix = (
+                "Encode categorical columns before model training. "
+                "Example: pd.get_dummies(df, columns=['category_col']). "
+                "Or use sklearn's ColumnTransformer with OneHotEncoder."
+            )
+
+        if docs is None:
+            docs = "https://glassalpha.com/guides/categorical-data"
+
+        message = (
+            f"Categorical columns found: {categorical_columns}. "
+            "sklearn models require numeric features. "
+            "Encode categorical data before training."
+        )
+
+        super().__init__(
+            code="GAE2001",
+            message=message,
+            fix=fix,
+            docs=docs,
+        )
+
+
 # File operation errors (4xxx)
 
 

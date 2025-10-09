@@ -68,11 +68,26 @@ Generate audits without YAML files using the `from_model()` API:
 
 ```python
 import glassalpha as ga
+import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder
 
-# Load data
-df = ga.datasets.load_german_credit()
+# Load data (GlassAlpha returns file paths, not DataFrames)
+german_path = ga.datasets.REGISTRY['german_credit'].fetch_fn()
+df = pd.read_csv(german_path)
+
+# Encode categorical columns for sklearn compatibility
+categorical_cols = df.select_dtypes(include=['object']).columns
+label_encoders = {}
+
+for col in categorical_cols:
+    if col != 'credit_risk':  # Don't encode target
+        le = LabelEncoder()
+        df[col] = le.fit_transform(df[col])
+        label_encoders[col] = le
+
+# Split features and target
 X = df.drop(columns=["credit_risk"])
 y = df["credit_risk"]
 
@@ -91,7 +106,7 @@ result = ga.audit.from_model(
     X=X_test,
     y=y_test,
     protected_attributes={
-        "age": X_test["age"],
+        "age_years": X_test["age_years"],
         "gender": X_test["gender"]
     },
     random_seed=42

@@ -13,11 +13,12 @@ import os
 import platform
 import subprocess
 import sys
-from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
 import pandas as pd
+
+from glassalpha.utils.determinism import get_deterministic_timestamp
 
 logger = logging.getLogger(__name__)
 
@@ -56,7 +57,7 @@ def generate_run_manifest(
 
     manifest = {
         "manifest_version": "1.0",
-        "generated_at": datetime.now(UTC).isoformat(),
+        "generated_at": get_deterministic_timestamp().isoformat(),
         "glassalpha_version": _get_glassalpha_version(),
     }
 

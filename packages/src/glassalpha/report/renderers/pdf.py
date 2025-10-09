@@ -132,6 +132,11 @@ class AuditPDFRenderer:
             # Set PDF metadata
             self._set_pdf_metadata(output_path)
 
+            # Normalize PDF metadata for byte-identical determinism
+            from glassalpha.utils.determinism import normalize_pdf_metadata
+
+            normalize_pdf_metadata(output_path)
+
             file_size = output_path.stat().st_size
             logger.info(f"Successfully generated PDF: {output_path} ({file_size:,} bytes)")
 
@@ -144,8 +149,12 @@ class AuditPDFRenderer:
             logger.warning(f"PDF backend not available. Wrote HTML to {html_path}")
 
             raise RuntimeError(
-                f"PDF backend is not installed. Wrote HTML to {html_path}. "
-                'Install with: pip install "glassalpha[docs]" to enable PDF.',
+                f"PDF backend (WeasyPrint) is not installed. "
+                f"Wrote HTML report to {html_path} instead.\n\n"
+                "To enable PDF generation:\n"
+                "  pip install 'glassalpha[pdf]'\n"
+                "  # or: pip install weasyprint\n\n"
+                "Note: HTML reports are fully functional and can be printed as PDF.",
             ) from e
 
         except Exception as e:
@@ -463,6 +472,11 @@ class AuditPDFRenderer:
             # Set metadata
             self._set_pdf_metadata(output_path)
 
+            # Normalize PDF metadata for byte-identical determinism
+            from glassalpha.utils.determinism import normalize_pdf_metadata
+
+            normalize_pdf_metadata(output_path)
+
             file_size = output_path.stat().st_size
             logger.info(f"HTML to PDF conversion complete: {file_size:,} bytes")
 
@@ -475,8 +489,12 @@ class AuditPDFRenderer:
             logger.warning(f"PDF backend not available. Wrote HTML to {html_path}")
 
             raise RuntimeError(
-                f"PDF backend is not installed. Wrote HTML to {html_path}. "
-                'Install with: pip install "glassalpha[docs]" to enable PDF.',
+                f"PDF backend (WeasyPrint) is not installed. "
+                f"Wrote HTML report to {html_path} instead.\n\n"
+                "To enable PDF generation:\n"
+                "  pip install 'glassalpha[pdf]'\n"
+                "  # or: pip install weasyprint\n\n"
+                "Note: HTML reports are fully functional and can be printed as PDF.",
             ) from e
 
         except Exception as e:

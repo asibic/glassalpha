@@ -21,12 +21,23 @@ python3 -m pip install --force-reinstall --no-deps dist/*.whl
 echo ""
 echo "🧪 Step 4: Contract validation tests"
 
+# Detect wheel file dynamically
+WHEEL=$(ls dist/glassalpha-*.whl | head -1)
+
+if [ -z "$WHEEL" ]; then
+    echo "❌ No wheel file found in dist/"
+    exit 1
+fi
+
+echo "Found wheel: $WHEEL"
+echo ""
+
 # Test 1: Logger format contract
 echo "1️⃣  Logger format contract..."
 python3 -c "
 import zipfile
 import sys
-wheel = 'dist/glassalpha-0.1.0-py3-none-any.whl'
+wheel = '$WHEEL'
 with zipfile.ZipFile(wheel, 'r') as zf:
     content = zf.read('glassalpha/pipeline/audit.py').decode('utf-8')
     if 'logger.info(f\"Initialized audit pipeline with profile: {config.audit_profile}\")' in content:
@@ -41,7 +52,7 @@ echo "2️⃣  Template packaging contract..."
 python3 -c "
 import zipfile
 import sys
-wheel = 'dist/glassalpha-0.1.0-py3-none-any.whl'
+wheel = '$WHEEL'
 with zipfile.ZipFile(wheel, 'r') as zf:
     files = zf.namelist()
     if 'glassalpha/report/templates/standard_audit.html' in files:
@@ -56,7 +67,7 @@ echo "3️⃣  Model training contract..."
 python3 -c "
 import zipfile
 import sys
-wheel = 'dist/glassalpha-0.1.0-py3-none-any.whl'
+wheel = '$WHEEL'
 with zipfile.ZipFile(wheel, 'r') as zf:
     content = zf.read('glassalpha/pipeline/audit.py').decode('utf-8')
     if 'if getattr(self.model, \"model\", None) is None:' in content:
@@ -75,7 +86,7 @@ echo "4️⃣  LogisticRegression save/load contract..."
 python3 -c "
 import zipfile
 import sys
-wheel = 'dist/glassalpha-0.1.0-py3-none-any.whl'
+wheel = '$WHEEL'
 with zipfile.ZipFile(wheel, 'r') as zf:
     content = zf.read('glassalpha/models/tabular/sklearn.py').decode('utf-8')
     checks = {

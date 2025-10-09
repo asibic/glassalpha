@@ -58,9 +58,11 @@ def _ensure_docs_if_pdf(output_path: str) -> None:
                 import reportlab  # noqa: F401
             except ImportError:
                 raise SystemExit(
-                    "PDF requested but no PDF backend found.\n"
-                    'Install: pip install "glassalpha[docs]"\n'
-                    "Or use: --output audit.html",
+                    "PDF backend (WeasyPrint) is not installed.\n\n"
+                    "To enable PDF generation:\n"
+                    "  pip install 'glassalpha[pdf]'\n"
+                    "  # or: pip install weasyprint\n\n"
+                    "Note: Use --output audit.html to generate HTML reports instead.",
                 )
 
 
@@ -235,12 +237,25 @@ def _run_audit_pipeline(config, output_path: Path, selected_explainer: str | Non
 
             # Generate PDF
             pdf_start = time.time()
+            # Use deterministic timestamp if SOURCE_DATE_EPOCH is set
+            import os
+
+            source_date_epoch = os.environ.get("SOURCE_DATE_EPOCH")
+            if source_date_epoch:
+                report_date = datetime.fromtimestamp(int(source_date_epoch), tz=UTC).strftime("%Y-%m-%d")
+                generation_date = datetime.fromtimestamp(int(source_date_epoch), tz=UTC).strftime(
+                    "%Y-%m-%d %H:%M:%S UTC",
+                )
+            else:
+                report_date = datetime.now().strftime("%Y-%m-%d")
+                generation_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC")
+
             pdf_path = render_audit_pdf(
                 audit_results=audit_results,
                 output_path=output_path,
                 config=pdf_config,
-                report_title=f"ML Model Audit Report - {datetime.now().strftime('%Y-%m-%d')}",
-                generation_date=datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC"),
+                report_title=f"ML Model Audit Report - {report_date}",
+                generation_date=generation_date,
             )
 
             pdf_time = time.time() - pdf_start
@@ -269,12 +284,25 @@ def _run_audit_pipeline(config, output_path: Path, selected_explainer: str | Non
 
             # Generate HTML
             html_start = time.time()
+            # Use deterministic timestamp if SOURCE_DATE_EPOCH is set
+            import os
+
+            source_date_epoch = os.environ.get("SOURCE_DATE_EPOCH")
+            if source_date_epoch:
+                report_date = datetime.fromtimestamp(int(source_date_epoch), tz=UTC).strftime("%Y-%m-%d")
+                generation_date = datetime.fromtimestamp(int(source_date_epoch), tz=UTC).strftime(
+                    "%Y-%m-%d %H:%M:%S UTC",
+                )
+            else:
+                report_date = datetime.now().strftime("%Y-%m-%d")
+                generation_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC")
+
             html_content = render_audit_report(
                 audit_results=audit_results,
                 output_path=output_path,
                 compact=compact,
-                report_title=f"ML Model Audit Report - {datetime.now().strftime('%Y-%m-%d')}",
-                generation_date=datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC"),
+                report_title=f"ML Model Audit Report - {report_date}",
+                generation_date=generation_date,
             )
 
             html_time = time.time() - html_start

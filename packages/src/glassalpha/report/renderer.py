@@ -7,7 +7,7 @@ template processing, and asset management.
 
 import base64
 import logging
-from datetime import UTC, datetime
+from datetime import datetime
 from io import BytesIO
 from pathlib import Path
 from typing import Any
@@ -175,7 +175,11 @@ class AuditReportRenderer:
         return rendered_html
 
     def _prepare_template_context(
-        self, audit_results: AuditResults, *, embed_plots: bool = True, compact: bool = False
+        self,
+        audit_results: AuditResults,
+        *,
+        embed_plots: bool = True,
+        compact: bool = False,
     ) -> dict[str, Any]:
         """Prepare comprehensive template context from audit results.
 
@@ -244,7 +248,11 @@ class AuditReportRenderer:
                     )
 
     def _build_report_context(
-        self, audit_results: AuditResults, *, embed_plots: bool = True, compact: bool = False
+        self,
+        audit_results: AuditResults,
+        *,
+        embed_plots: bool = True,
+        compact: bool = False,
     ) -> dict[str, Any]:
         """Build normalized report context from audit results.
 
@@ -262,13 +270,11 @@ class AuditReportRenderer:
         # Get base context with proper normalization
         context = normalize_audit_context(audit_results, compact=compact)
 
-        # Determine generation date (fixed in deterministic mode)
-        import os  # noqa: PLC0415
+        # Determine generation date (fixed when SOURCE_DATE_EPOCH is set)
+        from glassalpha.utils.determinism import get_deterministic_timestamp
 
-        if os.environ.get("GLASSALPHA_DETERMINISTIC"):
-            generation_date = "2000-01-01 00:00:00 UTC"
-        else:
-            generation_date = datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S UTC")
+        generation_timestamp = get_deterministic_timestamp()
+        generation_date = generation_timestamp.strftime("%Y-%m-%d %H:%M:%S UTC")
 
         # Add basic audit information
         context.update(
